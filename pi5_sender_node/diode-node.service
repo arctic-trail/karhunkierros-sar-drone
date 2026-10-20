@@ -1,0 +1,18 @@
+[Unit]
+Description=Edge AI Optical Diode Sensor Node
+DefaultDependencies=no
+After=systemd-udevd.service local-fs.target
+Wants=systemd-udevd.service
+
+[Service]
+Type=simple
+User=root
+EnvironmentFile=-/etc/trailcam/node.env
+Environment="NODE_KEY_FILE=/etc/trailcam/node_key.json"
+Environment="ALLOW_EXAMPLE_KEYS=0"
+ExecStart=/usr/bin/python3 /opt/diode-node/sender_node.py
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=sysinit.target
