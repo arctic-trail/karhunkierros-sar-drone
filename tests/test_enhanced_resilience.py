@@ -250,6 +250,11 @@ def run_resilience_test_suite():
             "karhunkierros_sar_isometrinen_maastonakyma.jpg",
             "arctic_sar_rescue_chain_5_stages_en_v4.jpg",
             "arctic_sar_isometric_terrain_en_v3.jpg",
+            "arctic_sar_system_8_parts_overview_v1.jpg",
+            "arctic_sar_aircraft_cots_subsystems_v2.jpg",
+            "arctic_sar_navigation_layers_5tier_v1.jpg",
+            "arctic_sar_link_ladder_4tier_v1.jpg",
+            "arctic_sar_opaslyhty_canopy_geometry_v1.jpg",
         ]
         for img_name in required_images:
             img_path = os.path.join(imgs_dir, img_name)
