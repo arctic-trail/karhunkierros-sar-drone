@@ -1,4 +1,11 @@
-# Karhunkierros SAR & "Digital Wilderness Hut" (`v1.6-Round2-Multi-Model-Hardened`) — Autonomous Wilderness Rescue Drone System
+# Karhunkierros SAR & "Digital Wilderness Hut" (`v1.6` / `v2.0` Concept Release) — Autonomous Wilderness Rescue Drone System
+
+> **PROJECT STATUS DISCLAIMER — EARLY-STAGE ENGINEERING CONCEPT & SIMULATION REFERENCE (`MIT LICENSE`):**
+> - **Concept & Simulation Stage (First Public Release):** This repository publishes an open-source **engineering concept, COTS hardware bill-of-materials (`€1,189–€1,329`), and software simulation reference architecture** for wilderness search-and-rescue (SAR). It is **not** a flight-certified aircraft, an operational rescue service, or a field-deployed system.
+> - **What Is Built & Tested Today vs. What Remains Conceptual:**
+>   1. **Hardware Bench-Verified Today:** The shared trail-camera sensor node (`Raspberry Pi 5` + `Pico 2` + `100BASE-FX` optical diode) and `LoRa` collector hub stack (shared 100% with [`arctic-trail/arctic-trail-cam`](https://github.com/arctic-trail/arctic-trail-cam)) have been assembled and verified on the indoor bench.
+>   2. **Software-Simulated & Unit-Tested Today (`29/29` Suites Passing):** The SAR drone companion module (`collector_hub/drone_observer.py`), 37-parameter `ArduCopter 4.5+` configuration, GNSS-spoofing EKF fence logic, above-canopy (`28 m` AGL) spotlight geometry, and "Uber-for-SAR" dispatch coordinator are verified in software simulation.
+>   3. **Unvalidated / Concept Stage (Next Steps):** Physical assembly of the `Holybro X500 V2` SAR airframe, `-25 °C` winter flight endurance, payload release trials, heated roofed nest (`+10 °C`) mechanics, and **Traficom / EASA Specific Category (SORA)** aviation approvals have **not yet been flight-tested or authorized** (see the [Readiness & Verification Matrix](#readiness--verification-matrix-design-vs-simulation-vs-field-validation) below).
 
 ![Karhunkierros SAR — End-to-End Wilderness Rescue Chain (Stages 1–5)](docs/images/arctic_sar_rescue_chain_5_stages_en_v4.jpg)
 

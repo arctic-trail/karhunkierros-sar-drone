@@ -1,4 +1,7 @@
-# Karhunkierros SAR & "Digitaalinen Autiotupa" (`v1.6-Round2-Multi-Model-Hardened`) — Tiettömän taipaleen pelastusketju (Pro Bono -konseptimuistio)
+# Karhunkierros SAR & "Digitaalinen Autiotupa" (`v1.6` / `v2.0` Konseptijulkaisu) — Tiettömän taipaleen pelastusketju (Pro Bono -konseptimuistio)
+
+> **HUOMAUTUS KEHITYSVAIHEESTA (AVOIMEN LÄHDEKOODIN KONSEPTI- JA SIMULAATIOJULKAISU):**
+> Tämä asiakirja esittelee **avoimen lähdekoodin teknisen konseptin, COTS-komponenttilistan (`1 189–1 329 €`) ja ohjelmistosimuloidun viitearkkitehtuurin** (`29/29` yksikkötestiä `collector_hub/drone_observer.py` -moduulissa). Vaikka polunvarsikameran ja keskusyksikön laitteisto ([`arctic-trail/arctic-trail-cam`](https://github.com/arctic-trail/arctic-trail-cam)) on pöytätestattu, **pelastusdrone (`Holybro X500 V2`), `-25 °C` talvilentokesto, ensiapupudotus ja `+10 °C` katettu automaattiasema ovat tässä ensimmäisessä julkaisussa konsepti- ja simulaatiovaiheessa**, eikä niille ole vielä suoritettu maastolentokokeita tai haettu `Traficomin` (`EASA Specific SORA`) ilmailulupia.
 
 > **Ydinajatus (Miksi tämä pelastaa ihmishenkiä Suomen erämaissa):**
 > Kun retkeilijä tai perhe eksyy Suomen kansallispuistossa tai erämaassa (kuten Rukan / Oulangan **Karhunkierroksella**), lähimmälle auratulle tielle on usein **`8–25 kilometriä`**. **Poliisiauto tai ambulanssi ei pääse tiettömään metsään**, ja moottorikelkka- tai jalkapartion (`Poliisi` / `Rajavartiolaitos` / `Pelastuslaitos` / `Vapepa`) kokoaminen ja saapuminen kohteeseen kestää helposti **`1,5–3 tuntia`**.

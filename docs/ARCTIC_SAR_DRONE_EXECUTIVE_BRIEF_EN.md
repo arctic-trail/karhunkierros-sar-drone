@@ -1,4 +1,7 @@
-# Karhunkierros SAR & "Digital Wilderness Hut" (`v1.6-Round2-Multi-Model-Hardened`) — End-to-End Wilderness Rescue Chain (Executive Brief)
+# Karhunkierros SAR & "Digital Wilderness Hut" (`v1.6` / `v2.0` Concept Release) — End-to-End Wilderness Rescue Chain (Executive Concept Brief)
+
+> **CONCEPT-STAGE STATUS DISCLAIMER (FIRST PUBLIC RELEASE):**
+> This document presents an **open-source engineering concept, COTS hardware bill-of-materials (`€1,189–€1,329`), and software-simulated reference architecture** (`29/29` unit tests passing in `collector_hub/drone_observer.py`). While the ground trail-camera and collector stack ([`arctic-trail/arctic-trail-cam`](https://github.com/arctic-trail/arctic-trail-cam)) is bench-verified, **the SAR drone airframe, `-25 °C` winter flight endurance, payload drop, and `+10 °C` roofed station are currently at the concept and simulation stage** and have not yet undergone live flight testing or `Traficom` / `EASA SORA` regulatory certification (see Section 4.3 Readiness Matrix).
 
 > **Core Premise (Why This Saves Lives in Roadless Arctic Wilderness):**
 > When a hiker or family becomes lost in roadless boreal or Arctic wilderness (such as Finland's **Karhunkierros** trail in Oulanka / Ruka), the nearest plowed road is often **`8–25 km` away**. **A police van or ambulance cannot drive into roadless forest**, and mobilizing a snowmobile or ski patrol (`Poliisi` / `Rajavartiolaitos` / `Pelastuslaitos` / `Vapepa`) to reach the coordinates typically takes **`1.5–3 hours`**.

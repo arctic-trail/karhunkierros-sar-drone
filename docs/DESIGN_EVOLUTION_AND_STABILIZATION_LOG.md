@@ -1,5 +1,8 @@
 # Master Design Evolution, Trade-Off Audit, and Architecture Stabilization Log
 
+> **CONCEPT-STAGE STATUS DISCLAIMER (FIRST PUBLIC RELEASE):**
+> This log documents the **open-source engineering concept, COTS hardware bill-of-materials (`€1,189–€1,329`), and software-simulated reference architecture** (`29/29` unit tests passing in `collector_hub/drone_observer.py`). While the shared ground trail-camera and collector stack ([`arctic-trail/arctic-trail-cam`](https://github.com/arctic-trail/arctic-trail-cam)) is bench-verified, **the physical SAR drone airframe, `-25 °C` winter flight endurance, payload drop, and `+10 °C` roofed station are currently at the concept and simulation stage** and require Phase 1–3 field flight validation and `Traficom` / `EASA SORA` regulatory authorization.
+
 **Document Status:** Authoritative Master Engineering Log (`v2.0-FinLab-And-SupplyChain-Hardened`)  
 **Repository Scope:** `karhunkierros-sar-drone` (100% Shared Ground Camera & Collector Stack with [`arctic-trail/arctic-trail-cam`](https://github.com/arctic-trail/arctic-trail-cam) + Modular `drone_observer.py` SAR Extension)  
 **Purpose:** Permanently records every design iteration (Iterations 1–20), independent audit remediations (`F01`–`F53`), open-source ecosystem trade-offs, rejected architectural alternatives (including why we reject custom PCBs and heavy cloud/4G dependencies), and the **Reference COTS Hardware Baseline** so future development never goes in circles.
