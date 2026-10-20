@@ -1,8 +1,8 @@
-# Karhunkierros SAR & "Digitaalinen Autiotupa" (`v1.6-Round2-Multi-Model-Hardened`) — Autonomous Wilderness Rescue Drone System
+# Karhunkierros SAR & "Digital Wilderness Hut" (`v1.6-Round2-Multi-Model-Hardened`) — Autonomous Wilderness Rescue Drone System
 
-![Karhunkierros SAR — Koko pelastusketju vaihe vaiheelta (1–5)](docs/images/karhunkierros_pelastusketju_5_vaihetta.jpg)
+![Karhunkierros SAR — End-to-End Wilderness Rescue Chain (Stages 1–5)](docs/images/arctic_sar_rescue_chain_5_stages_en_v4.jpg)
 
-![Karhunkierros SAR — Isometrinen maasto- ja käyttönäkymä (Vaiheet 1–5 käytännössä)](docs/images/karhunkierros_sar_isometrinen_maastonakyma.jpg)
+![Karhunkierros SAR — 3D Terrain View: From Plowed Road End to Roadless Wilderness (Stages 1–5)](docs/images/arctic_sar_isometric_terrain_en_v3.jpg)
 
 > **100% SHARED CAMERA & COLLECTOR STACK WITH [`arctic-trail/arctic-trail-cam`](https://github.com/arctic-trail/arctic-trail-cam) + ZERO CUSTOM PCBS**
 > - **Single Unified Trail Camera Product:** The ground camera node (`pi5_sender_node/`, `pico_gatekeeper/`) and collector hub (`collector_hub/receiver_hub.py`, `collector_hub/subghz_nlos_relay.py`, `collector_hub/dashboard_server.py`, `collector_hub/ui/`) are **100% shared with [`arctic-trail/arctic-trail-cam`](https://github.com/arctic-trail/arctic-trail-cam)** so there is only one trail camera hardware/software product to build and maintain.
@@ -10,9 +10,11 @@
 
 ## Key Documentation & Architecture Guides
 
-1. **[Karhunkierros SAR Pro Bono -konseptimuistio (PDF — All Images Embedded)](docs/KARHUNKIERROS_PRO_BONO_SAR_BRIEF_FI.pdf)** | **[Markdown Source](docs/KARHUNKIERROS_PRO_BONO_SAR_BRIEF_FI.md)** — *Tiettömän taipaleen pelastusketju (Vaiheet 1–5), 3D-isometrinen maastonäkymä & suunnittelu, josta tietosuojavaltuutettukin tykkää.*
-2. **[Master Design Evolution, Trade-Off Audit & Stabilization Log (`v1.6-Round2-Multi-Model-Hardened`)](docs/DESIGN_EVOLUTION_AND_STABILIZATION_LOG.md)** — *Chronological log of all 16 design iterations, independent Round-1 and Round-2 multi-model audit remediation (`F01`–`F44`), why we reject custom PCBs in favor of 100% snap-in COTS parts, and the `€1,189` plug-and-play BOM.*
-3. **[Comprehensive Technical & Engineering Guide (EN/FI)](docs/AERIAL_OBSERVATION_DRONE_GUIDE.md)** — *Full mathematical, hardware, 65-byte MAVLink v2 (#84), multi-drone swarm, 48h ephemeral ring buffer, Poronhoitolaki compliance, and Finnish ETRS-TM35FIN / Rajavartiolaitos aviation coordinate specification.*
+1. **[Executive Concept Brief in English (PDF — All Images Embedded)](docs/ARCTIC_SAR_DRONE_EXECUTIVE_BRIEF_EN.pdf)** | **[Markdown Source](docs/ARCTIC_SAR_DRONE_EXECUTIVE_BRIEF_EN.md)** — *End-to-end wilderness rescue chain (Stages 1–5), 3D isometric terrain overview, timeline comparison, and Privacy-by-Design architecture.*
+2. **[Benchtop Quickstart & Step-by-Step Hardware Assembly Guide](docs/BENCHTOP_QUICKSTART_GUIDE.md)** — *Real-photo COTS hardware inventory (`[D01]`–`[D20]`), exact `Pixhawk 6C` / `Raspberry Pi 5` / `X500 V2` plug-and-play wiring, and 3-Stage bench verification.*
+3. **[Master Design Evolution, Trade-Off Audit & Stabilization Log (`v1.6-Round2-Multi-Model-Hardened`)](docs/DESIGN_EVOLUTION_AND_STABILIZATION_LOG.md)** — *Chronological log of all 16 design iterations, independent Round-1 and Round-2 multi-model audit remediation (`F01`–`F44`), why we reject custom PCBs in favor of 100% snap-in COTS parts, and the `€1,189` plug-and-play BOM.*
+4. **[Comprehensive Technical & Engineering Guide](docs/AERIAL_OBSERVATION_DRONE_GUIDE.md)** — *Full mathematical, hardware, 65-byte MAVLink v2 (#84), multi-drone swarm, 48h ephemeral ring buffer, Poronhoitolaki compliance, and Finnish ETRS-TM35FIN / Rajavartiolaitos aviation coordinate specification.*
+5. **[Finnish Regional Case Study & Stakeholder Brief / Suomeksi (PDF)](docs/KARHUNKIERROS_PRO_BONO_SAR_BRIEF_FI.pdf)** | **[Markdown Source (FI)](docs/KARHUNKIERROS_PRO_BONO_SAR_BRIEF_FI.md)** — *Karhunkierros SAR Pro Bono -konseptimuistio suomalaisille sidosryhmille (Metsähallitus, Vapepa, Pelastuslaitos, Rajavartiolaitos, Poliisi).*
 
 ## Quick Verification & CLI Commands
 

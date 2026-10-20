@@ -248,6 +248,8 @@ def run_resilience_test_suite():
             "bearnese_architecture_field_visualization.jpg",
             "karhunkierros_pelastusketju_5_vaihetta.jpg",
             "karhunkierros_sar_isometrinen_maastonakyma.jpg",
+            "arctic_sar_rescue_chain_5_stages_en_v4.jpg",
+            "arctic_sar_isometric_terrain_en_v3.jpg",
         ]
         for img_name in required_images:
             img_path = os.path.join(imgs_dir, img_name)
@@ -257,20 +259,21 @@ def run_resilience_test_suite():
             for forbidden in (b"Exif", b"c2pa", b"jumb", b"http://ns.adobe.com"):
                 assert forbidden not in img_bytes, f"Residual metadata ({forbidden}) found in {img_name}"
 
-        pdf_path = os.path.join(docs_dir, "KARHUNKIERROS_PRO_BONO_SAR_BRIEF_FI.pdf")
-        assert os.path.isfile(pdf_path) and os.path.getsize(pdf_path) > 100000, "Printable SAR PDF brief missing or incomplete"
-        with open(pdf_path, "rb") as pdff:
-            pdf_bytes = pdff.read()
-        for forbidden_pdf in (b"/Creator", b"/Producer", b"/CreationDate", b"/ModDate", b"/Author", b"Macintosh", b"HeadlessChrome", b"Skia/PDF"):
-            assert forbidden_pdf not in pdf_bytes, f"Residual PDF metadata ({forbidden_pdf}) found in KARHUNKIERROS_PRO_BONO_SAR_BRIEF_FI.pdf"
-        # Also decompress PDF FlateDecode streams and verify no stale battery/version strings remain (F44)
-        import re, zlib
-        for m_stream in re.finditer(rb"stream\r?\n(.*?)\r?\nendstream", pdf_bytes, re.DOTALL):
-            try:
-                dec = zlib.decompress(m_stream.group(1))
-                assert b"Molicel" not in dec and b"v1.0-Stabilized" not in dec, "Stale text found inside PDF stream"
-            except Exception:
-                pass
+        for pdf_name in ("KARHUNKIERROS_PRO_BONO_SAR_BRIEF_FI.pdf", "ARCTIC_SAR_DRONE_EXECUTIVE_BRIEF_EN.pdf"):
+            pdf_path = os.path.join(docs_dir, pdf_name)
+            assert os.path.isfile(pdf_path) and os.path.getsize(pdf_path) > 100000, f"Printable SAR PDF brief missing or incomplete: {pdf_name}"
+            with open(pdf_path, "rb") as pdff:
+                pdf_bytes = pdff.read()
+            for forbidden_pdf in (b"/Creator", b"/Producer", b"/CreationDate", b"/ModDate", b"/Author", b"Macintosh", b"HeadlessChrome", b"Skia/PDF"):
+                assert forbidden_pdf not in pdf_bytes, f"Residual PDF metadata ({forbidden_pdf}) found in {pdf_name}"
+            # Also decompress PDF FlateDecode streams and verify no stale battery/version strings remain (F44)
+            import re, zlib
+            for m_stream in re.finditer(rb"stream\r?\n(.*?)\r?\nendstream", pdf_bytes, re.DOTALL):
+                try:
+                    dec = zlib.decompress(m_stream.group(1))
+                    assert b"Molicel" not in dec and b"v1.0-Stabilized" not in dec, f"Stale text found inside PDF stream of {pdf_name}"
+                except Exception:
+                    pass
 
         # Verify OS junk anti-metadata protection is built into run_guided_bench_doctor.py
         with open(os.path.join(pkg_root, "run_guided_bench_doctor.py"), "r", encoding="utf-8") as bf:
