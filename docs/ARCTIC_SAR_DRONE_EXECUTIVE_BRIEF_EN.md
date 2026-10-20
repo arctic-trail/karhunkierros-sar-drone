@@ -119,6 +119,8 @@ Even though the system exists purely to save human lives in emergencies, every h
 
 ### 4.3 Readiness & Verification Matrix (Design vs. Simulation vs. Field Validation)
 
+![From Bench to Field: The Validation Ladder (Steps 1–7)](images/arctic_sar_slide28_validation_ladder_v1.jpg)
+
 | Subsystem / Capability | Designed | Simulated / Unit-Tested (`29/29`) | Hardware Bench | Field-Validated | Authorised |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **Trail Posts & Collector Hub (`arctic-trail-cam` stack)** | Yes | Yes | Yes (`Pi 5` + `Pico` + `LoRa`) | Partial (winter optical/RF) | No (`Metsähallitus` permit pending) |

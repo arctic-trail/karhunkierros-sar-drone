@@ -255,6 +255,8 @@ def run_resilience_test_suite():
             "arctic_sar_navigation_layers_5tier_v1.jpg",
             "arctic_sar_link_ladder_4tier_v1.jpg",
             "arctic_sar_opaslyhty_canopy_geometry_v1.jpg",
+            "arctic_sar_slide01_cover_v2.jpg",
+            "arctic_sar_slide28_validation_ladder_v1.jpg",
         ]
         for img_name in required_images:
             img_path = os.path.join(imgs_dir, img_name)
@@ -264,13 +266,16 @@ def run_resilience_test_suite():
             for forbidden in (b"Exif", b"c2pa", b"jumb", b"http://ns.adobe.com"):
                 assert forbidden not in img_bytes, f"Residual metadata ({forbidden}) found in {img_name}"
 
-        for pdf_name in ("KARHUNKIERROS_PRO_BONO_SAR_BRIEF_FI.pdf", "ARCTIC_SAR_DRONE_EXECUTIVE_BRIEF_EN.pdf"):
-            pdf_path = os.path.join(docs_dir, pdf_name)
-            assert os.path.isfile(pdf_path) and os.path.getsize(pdf_path) > 100000, f"Printable SAR PDF brief missing or incomplete: {pdf_name}"
-            with open(pdf_path, "rb") as pdff:
+        for pdf_rel in (
+            os.path.join(docs_dir, "KARHUNKIERROS_PRO_BONO_SAR_BRIEF_FI.pdf"),
+            os.path.join(docs_dir, "ARCTIC_SAR_DRONE_EXECUTIVE_BRIEF_EN.pdf"),
+            os.path.join(pkg_root, "KARHUNKIERROS_SAR_PRESENTATION.pdf"),
+        ):
+            assert os.path.isfile(pdf_rel) and os.path.getsize(pdf_rel) > 100000, f"Printable SAR PDF missing or incomplete: {pdf_rel}"
+            with open(pdf_rel, "rb") as pdff:
                 pdf_bytes = pdff.read()
             for forbidden_pdf in (b"/Creator", b"/Producer", b"/CreationDate", b"/ModDate", b"/Author", b"Macintosh", b"HeadlessChrome", b"Skia/PDF"):
-                assert forbidden_pdf not in pdf_bytes, f"Residual PDF metadata ({forbidden_pdf}) found in {pdf_name}"
+                assert forbidden_pdf not in pdf_bytes, f"Residual PDF metadata ({forbidden_pdf}) found in {pdf_rel}"
             # Also decompress PDF FlateDecode streams and verify no stale battery/version strings remain (F44)
             import re, zlib
             for m_stream in re.finditer(rb"stream\r?\n(.*?)\r?\nendstream", pdf_bytes, re.DOTALL):

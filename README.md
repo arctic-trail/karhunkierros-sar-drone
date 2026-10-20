@@ -7,6 +7,8 @@
 >   2. **Software-Simulated & Unit-Tested Today (`29/29` Suites Passing):** The SAR drone companion module (`collector_hub/drone_observer.py`), 37-parameter `ArduCopter 4.5+` configuration, GNSS-spoofing EKF fence logic, above-canopy (`28 m` AGL) spotlight geometry, and "Uber-for-SAR" dispatch coordinator are verified in software simulation.
 >   3. **Unvalidated / Concept Stage (Next Steps):** Physical assembly of the `Holybro X500 V2` SAR airframe, `-25 °C` winter flight endurance, payload release trials, heated roofed nest (`+10 °C`) mechanics, and **Traficom / EASA Specific Category (SORA)** aviation approvals have **not yet been flight-tested or authorized** (see the [Readiness & Verification Matrix](#readiness--verification-matrix-design-vs-simulation-vs-field-validation) below).
 
+![Karhunkierros SAR — The Complete Wilderness Rescue System (Concept Overview)](docs/images/arctic_sar_slide01_cover_v2.jpg)
+
 ![Karhunkierros SAR — End-to-End Wilderness Rescue Chain (Stages 1–5)](docs/images/arctic_sar_rescue_chain_5_stages_en_v4.jpg)
 
 ![Karhunkierros SAR — 3D Terrain View: From Plowed Road End to Roadless Wilderness (Stages 1–5)](docs/images/arctic_sar_isometric_terrain_en_v3.jpg)
@@ -17,7 +19,7 @@
 
 ## Key Documentation & Architecture Guides
 
-1. **[Executive Concept Brief in English (PDF — All Images Embedded)](docs/ARCTIC_SAR_DRONE_EXECUTIVE_BRIEF_EN.pdf)** | **[30-Slide System Presentation Deck (`.pptx`)](KARHUNKIERROS_SAR_PRESENTATION.pptx)** | **[Markdown Source](docs/ARCTIC_SAR_DRONE_EXECUTIVE_BRIEF_EN.md)** — *End-to-end wilderness rescue chain (Stages 1–5), 3D isometric terrain overview, 30-slide complete system architecture presentation, timeline comparison, and Privacy-by-Design architecture.*
+1. **[Executive Concept Brief in English (PDF — All Images Embedded)](docs/ARCTIC_SAR_DRONE_EXECUTIVE_BRIEF_EN.pdf)** | **[30-Slide System Presentation Deck (PDF — Browser Viewable)](KARHUNKIERROS_SAR_PRESENTATION.pdf)** | **[Markdown Source](docs/ARCTIC_SAR_DRONE_EXECUTIVE_BRIEF_EN.md)** — *End-to-end wilderness rescue chain (Stages 1–5), 3D isometric terrain overview, 30-slide complete system architecture presentation, timeline comparison, and Privacy-by-Design architecture.*
 2. **[Benchtop Quickstart & Step-by-Step Hardware Assembly Guide](docs/BENCHTOP_QUICKSTART_GUIDE.md)** — *Real-photo COTS hardware inventory (`[D01]`–`[D20]`), exact `Pixhawk 6C` / `Raspberry Pi 5` / `X500 V2` plug-and-play wiring, and 3-Stage bench verification.*
 3. **[Master Design Evolution, Trade-Off Audit & Stabilization Log (`v1.6-Round2-Multi-Model-Hardened`)](docs/DESIGN_EVOLUTION_AND_STABILIZATION_LOG.md)** — *Chronological log of all 16 design iterations, independent Round-1 and Round-2 multi-model audit remediation (`F01`–`F44`), why we reject custom PCBs in favor of 100% snap-in COTS parts, and the `€1,189` plug-and-play BOM.*
 4. **[Comprehensive Technical & Engineering Guide](docs/AERIAL_OBSERVATION_DRONE_GUIDE.md)** — *Full mathematical, hardware, 65-byte MAVLink v2 (#84), multi-drone swarm, 48h ephemeral ring buffer, Poronhoitolaki compliance, and Finnish ETRS-TM35FIN / Rajavartiolaitos aviation coordinate specification.*
@@ -85,6 +87,8 @@ When a verified `112` / `inReach` / Trail-Post `SOS` alert is issued, the coordi
 ![Above-Canopy Aerial Lantern & Standoff Geometry](docs/images/arctic_sar_opaslyhty_canopy_geometry_v1.jpg)
 
 ## Readiness & Verification Matrix (Design vs. Simulation vs. Field Validation)
+
+![From Bench to Field: The Validation Ladder (Steps 1–7)](docs/images/arctic_sar_slide28_validation_ladder_v1.jpg)
 
 | Subsystem / Capability | Designed | Simulated / Unit-Tested (`29/29`) | Hardware Bench | Field-Validated | Authorised |
 | :--- | :---: | :---: | :---: | :---: | :---: |
