@@ -2199,19 +2199,77 @@ def run_avionics_and_failure_mode_suite(
 
 
 def main() -> None:
-    print("=" * 105)
-    print("ARCTIC TRAIL TIER-3 FAST-SAR JET — 6-DOF END-TO-END FLIGHT DYNAMICS SIMULATOR (-30 °C ARCTIC STORM)")
-    print("=" * 105)
-    arctic_storm = EnvironmentConditions(
-        surface_temp_c=-30.0,
-        wind_speed_10m_mps=12.0,
-        wind_dir_from_deg=45.0,
-        turbulence_intensity="MODERATE",
-        gust_amplitude_mps=7.5,
-        icing_lwc_g_m3=0.25,
-        deicer_enabled=True,
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Arctic Trail Tier-3 Fast-SAR Jet — 6-DOF Flight, Avionics, Interference & FDIR Simulator"
     )
-    rows = compare_all_configurations(arctic_storm)
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="VARIANT_H_EVO",
+        choices=list(AIRCRAFT_CATALOG.keys()),
+        help="Airframe configuration ID to simulate.",
+    )
+    parser.add_argument(
+        "--preset",
+        type=str,
+        default="NOMINAL_CLEAN",
+        choices=list(INTERFERENCE_FAULT_PRESETS.keys()),
+        help="External interference & hardware failure-mode preset.",
+    )
+    parser.add_argument(
+        "--no-fdir",
+        action="store_true",
+        help="Disable autonomous 3-domain FDIR protection to observe unmitigated fault effects.",
+    )
+    parser.add_argument("--temp-c", type=float, default=-30.0, help="Ambient surface temperature (°C).")
+    parser.add_argument("--wind-ms", type=float, default=12.0, help="10 m mean wind speed (m/s).")
+    parser.add_argument("--wind-dir", type=float, default=45.0, help="Wind direction FROM (deg).")
+    parser.add_argument(
+        "--turbulence",
+        type=str,
+        default="MODERATE",
+        choices=["NONE", "LIGHT", "MODERATE", "SEVERE"],
+        help="Dryden spectral turbulence intensity.",
+    )
+    parser.add_argument("--gust-ms", type=float, default=7.5, help="Discrete (1-cos) gust amplitude (m/s).")
+    parser.add_argument("--icing-lwc", type=float, default=0.25, help="Supercooled cloud icing LWC (g/m^3).")
+    parser.add_argument("--no-deicer", action="store_true", help="Disable electro-thermal pitot & wing de-icer.")
+    parser.add_argument(
+        "--launch",
+        type=str,
+        default="DROP_TROLLEY",
+        choices=["DROP_TROLLEY", "CATAPULT"],
+        help="Launch mode.",
+    )
+    parser.add_argument(
+        "--landing",
+        type=str,
+        default="PARACHUTE_AIRBAG",
+        choices=["PARACHUTE_AIRBAG", "BELLY_SKID"],
+        help="Recovery / landing mode.",
+    )
+    parser.add_argument("--export-json", type=str, default="", help="Optional path to export full JSON telemetry.")
+    args, _ = parser.parse_known_args()
+
+    env = EnvironmentConditions(
+        surface_temp_c=args.temp_c,
+        wind_speed_10m_mps=args.wind_ms,
+        wind_dir_from_deg=args.wind_dir,
+        turbulence_intensity=args.turbulence,
+        gust_amplitude_mps=args.gust_ms,
+        icing_lwc_g_m3=args.icing_lwc,
+        deicer_enabled=not args.no_deicer,
+    )
+
+    print("=" * 105)
+    print(
+        f"ARCTIC TRAIL TIER-3 FAST-SAR JET — 6-DOF END-TO-END FLIGHT DYNAMICS SIMULATOR "
+        f"({args.temp_c:.0f} °C, {args.wind_ms:.1f} m/s WIND)"
+    )
+    print("=" * 105)
+    rows = compare_all_configurations(env)
     print(
         f"{'Config ID':<22} | {'MTOW':>6} | {'Launch':<12} | {'V_max':>9} | {'Loiter P':>9} | "
         f"{'Drop CEP':>8} | {'TD Vz':>7} | {'SP Zeta':>7} | {'DR Zeta':>7} | {'Pass'}"
@@ -2226,26 +2284,43 @@ def main() -> None:
             f"{'YES' if r['mission_success'] else 'NO'}"
         )
 
+    base_faults = INTERFERENCE_FAULT_PRESETS[args.preset]
+    if args.no_fdir:
+        fdict = asdict(base_faults)
+        fdict["fdir_enabled"] = False
+        active_faults = InterferenceAndFaultConfig(**fdict)
+    else:
+        active_faults = base_faults
+
     print("\n" + "=" * 105)
-    print("PHASE-BY-PHASE MISSION TIMELINE: VARIANT_H_EVO (DROP-TROLLEY LAUNCH -> CAPSULE DROP -> PARACHUTE LANDING)")
-    print("=" * 105)
-    baseline_res = run_end_to_end_6dof_mission(
-        config_id="VARIANT_H_EVO",
-        env=arctic_storm,
-        launch_mode="DROP_TROLLEY",
-        landing_mode="PARACHUTE_AIRBAG",
+    print(
+        f"PHASE-BY-PHASE MISSION TIMELINE: {args.config} | PRESET={args.preset} "
+        f"(FDIR={'ON' if active_faults.fdir_enabled else 'OFF'})"
     )
-    for p in baseline_res.phase_summary:
+    print("=" * 105)
+    selected_res = run_end_to_end_6dof_mission(
+        config_id=args.config,
+        env=env,
+        launch_mode=args.launch,
+        landing_mode=args.landing,
+        faults=active_faults,
+    )
+    for p in selected_res.phase_summary:
         print(
             f"  [{p['phase']:<18}] {p['start_s']:>5.1f}s -> {p['end_s']:>5.1f}s "
             f"({p['duration_s']:>4.1f}s) | Alt={p['alt_end_m']:>5.1f}m | "
             f"V={p['vtas_end_mps']:>5.1f}m/s | {p['note']}"
         )
+    if selected_res.fdir_events:
+        print("-" * 105)
+        print(f"  TRIGGERED FDIR EVENTS ({len(selected_res.fdir_events)}):")
+        for ev in selected_res.fdir_events:
+            print(f"    * [t={ev['t_s']:>5.1f}s | {ev['severity']:<8} | {ev['code']}] {ev['action']}")
 
     print("\n" + "=" * 105)
-    print("3-DOMAIN AVIONICS, SENSOR INTERFERENCE & FAILURE-MODE / FDIR STRESS SUITE (VARIANT_H_EVO)")
+    print(f"3-DOMAIN AVIONICS, SENSOR INTERFERENCE & FAILURE-MODE / FDIR STRESS SUITE ({args.config})")
     print("=" * 105)
-    fdir_rows = run_avionics_and_failure_mode_suite("VARIANT_H_EVO", arctic_storm)
+    fdir_rows = run_avionics_and_failure_mode_suite(args.config, env)
     for fr in fdir_rows:
         print(
             f"  [{fr['preset_id']:<38}] Pass={'YES' if fr['mission_success'] else 'NO '} | "
@@ -2253,6 +2328,11 @@ def main() -> None:
             f"IMU={fr['final_active_imu']:<20} | EGT_max={fr['max_fadec_egt_c']:>5.1f}C | "
             f"DropCEP={fr['capsule_cep_m']:>4.2f}m"
         )
+
+    if args.export_json:
+        with open(args.export_json, "w", encoding="utf-8") as f:
+            json.dump(asdict(selected_res), f, indent=2)
+        print(f"\n[EXPORTED] Full 6-DOF & Avionics/FDIR telemetry written to: {args.export_json}")
 
 
 if __name__ == "__main__":
