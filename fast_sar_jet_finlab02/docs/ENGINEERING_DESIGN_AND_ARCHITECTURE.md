@@ -218,3 +218,33 @@ To determine how far the operational envelope of `FIN-LAB-02` can be pushed prac
 ![MW54-Class 54 mm Micro-Turbojet Exploded Axial Cutaway](images/sar_design_15_tier1b_engine_and_fadec_appendix_v1.jpg)
 
 ![European OpenTurbine-EU STM32G474 Digital FADEC & 3% Total-Loss Bearing Lubrication Plumbing](images/sar_design_16_openturbine_eu_stm32g4_fadec_v1.jpg)
+
+---
+
+## 11. System-of-Systems Integration, Internal Sensor Physics, Pin-to-Pin Harness, Center-of-Gravity ($X_{\text{CG}}$) Envelope & FMEA Redundancy Plates (`Plates 18–22`)
+
+### 11.1 End-to-End 3-Tier Arctic System-of-Systems Architecture (`Plate 18`)
+Links Tier-1 `[P11-AIR/RF]` acoustic + passive-RF nodes and `[P12-BELT]` non-RF rotorcraft border belt (`Vesper VM3011` `9 µW` piezo wakeup $\rightarrow$ `Acconeer XM125` `60 GHz` pulsed coherent radar + `Lepton 3.5` LWIR) into the `FIN-LAB-01 v1.0` Open U-Space Fusion Engine (`2,500` intersections fused in `4.4 ms`, `14.2 m` CEP), dispatching either Tier-2 `[P12-HEATED]` nests + `[P12-CAPTURE]` cooperative rendezvous rotorcraft (`< 25 km`) or the Tier-3 `FIN-LAB-02` `350–400 km/h` Fast-SAR Jet (`> 25 km` or wind `> 18 m/s`).
+
+![End-to-End 3-Tier Arctic System-of-Systems Architecture](images/sar_design_18_system_of_systems_integration_v1.jpg)
+
+### 11.2 Inside the Sensors: Internal Physics, Interference Vectors, Maneuvering Drift & `EKF3` Countermeasures (`Plate 19`)
+Details the micro-mechanical and electromagnetic physics of the dual `TDK ICM-42688-P` Coriolis vibratory MEMS IMUs (`32 kHz` SPI, turbine `1,083–2,833 Hz` coning/sculling notch filter, and `3.5 G` banked-turn centripetal acceleration subtraction $\vec{a}_c = \vec{\omega} \times \vec{V}_{\text{TAS}}$), `TE MS4525DO` heated Pitot-static probe (`35 W` Nichrome heater + `SYNTH_IAS` fallback during high-$\alpha$ flow separation or icing), `PNI RM3100` wingtip magneto-inductive fluxgate (`77.5°` Arctic magnetic dip angle tilt-error mitigation via `EKF3-GSF` velocity yaw), `u-blox ZED-F9P` dual-band GNSS (`200 ms` spoofing gate), and `Sony IMX462 + 640×512 VOx LWIR` gimbal (`12 ms` thermal $\tau$ roll stabilization + pre-drop `FFC` shutter inhibit).
+
+![Inside the Sensors: Internal Physics, Interference Vectors, Maneuvering Drift & Countermeasures](images/sar_design_19_sensor_internals_interference_and_drift_v1.jpg)
+
+### 11.3 Complete Pin-to-Pin Avionics, Dual-Bus Power Isolation & `< 50 ms` Safety Watchdog Schematic (`Plate 20`)
+Documents the galvanically separated three-battery architecture (**Bus A:** `4S1P Molicel P45B` clean avionics with dual `LTC4359` ideal-diode `5.2 V / 8 A` BECs; **Bus B:** `6S2P Molicel P45B` heaters and `7.4 V / 10 A` HV servo rail for `6x KST X10` servos; **Bus C:** `3S1P LiFePO4` turbine ECU pack), full `ARK FPV STM32H743` $\leftrightarrow$ `Raspberry Pi 5 + Hailo-8L` pin assignments, and the hardware `SN74LVC1G08` `AND`-gate watchdog driving the `< 50 ms` `Bürkert 6011` Viton fuel shutoff solenoid and dorsal `2.8 m²` parachute.
+
+![Complete Pin-to-Pin Avionics, Dual-Bus Power Isolation & Safety Watchdog Wiring Schematic](images/sar_design_20_complete_pin_to_pin_wiring_schematic_v1.jpg)
+
+### 11.4 Mass, Balance, Center-of-Gravity ($X_{\text{CG}}$) Excursion & $V$-$n$ Flight Performance Envelope (`Plate 21`)
+Co-locating both the twin `2.0 L` baffled saddle fuel tanks (`2.65 kg` `Jet A-1`) and the ventral `5.00 kg` heated SAR capsule on the loaded Center of Gravity ($X_{\text{CG}} = 595.0\text{ mm}$ from nose tip, ahead of the Aerodynamic Neutral Point $X_{\text{NP}} = 668.0\text{ mm}$, $\text{MAC} = 650.0\text{ mm}$) keeps static margin inside **`+11.2%` to `+13.5% MAC`** across fuel burn and payload drop (`+1.2°` trim change at release), with a `150 mL` pressurized spherical `UAT` hopper at $X = 588\text{ mm}$ preventing air ingestion down to `-1.5 G`.
+
+![Mass, Balance, Center-of-Gravity Excursion & V-n Flight Performance Envelope Analysis](images/sar_design_21_cg_balance_and_flight_envelope_v2.jpg)
+
+### 11.5 Visual Failure Modes, Performance Degradation & Redundancy Architecture (`Plate 22`)
+Eliminates single-point failures via a **4-servo split `110°` $\Lambda$-tail** (`4x KST X10` independent upper/lower ruddervators + `2x` outboard elevons retaining `68%` pitch and `62%` yaw authority if one servo jams at `15°`), `< 50 ms` fire-safe `Bürkert` fuel shutoff + dorsal recovery chute (or Option B `2.2 kW` fold-out electric pusher RTB), `SYNTH_IAS` analytical airspeed backup, series-parallel dual-pin + `25 N` electro-permanent magnetic breakaway pod latch, dual `ICM-42688-P` IMUs, and GNSS-denied thermal terrain-contour navigation (`18.4 m` CEP).
+
+![Visual Failure Modes, Performance Degradation & Redundancy Architecture (FMEA)](images/sar_design_22_fmea_failure_modes_and_redundancies_v1.jpg)
+
