@@ -2777,7 +2777,7 @@
             <div><b>FIN-LAB-03 (105m GNSS-Free):</b> 30-Min Drift <b>${escapeHtml(nav.max_30min_gnss_denied_error_m)}m</b> &le; 30m (Hypsometric Alt <b>${escapeHtml(nav.true_hypsometric_alt_agl_m)}m</b> vs Raw ${escapeHtml(nav.raw_isa_baro_alt_m)}m)</div>
             <div><b>FIN-LAB-04 (1,000-Run Monte Carlo):</b> Optimal <code>${escapeHtml(opt.config_id)}</code> (<b>${escapeHtml(opt.golden_hour_survival_rate_pct)}%</b> Golden-Hour, P95 <b>${escapeHtml(opt.response_time_p95_min)}m</b>, €${escapeHtml(opt.cost_eur)})</div>
             <div><b>FIN-LAB-05 (10Hz -30&deg;C Log):</b> <code>${escapeHtml(qual.qualification_grade)}</code> (R_int <b>${escapeHtml(qual.max_r_internal_mohm)}m&Omega;</b>, Cap <b>${escapeHtml(qual.usable_capacity_retained_pct)}%</b>, 8,500 RPM Ice-Shed OK)</div>
-            <div><b>Sec 6.1 Allied BOM (&le; €5,000):</b> COTS <b>€${escapeHtml(sup.baseline_cots_bom_eur)}</b> | Allied Tier-1 <b>€${escapeHtml(sup.tier1_allied_cots_bom_eur)}</b> | +60% De-China <b>€${escapeHtml(sup.blanket_60pct_dechina_premium_bom_eur)}</b> | Tier-2 <b>€${escapeHtml(sup.tier2_sovereign_european_lwir_bom_eur)}</b></div>
+            <div><b>FIN-LAB Allied BOM (&le; €5,000):</b> COTS <b>€${escapeHtml(sup.baseline_cots_bom_eur)}</b> | Allied Tier-1 <b>€${escapeHtml(sup.tier1_allied_cots_bom_eur)}</b> | +60% Contingency <b>€${escapeHtml(sup.blanket_60pct_dechina_premium_bom_eur)}</b> | Tier-2 <b>€${escapeHtml(sup.tier2_sovereign_european_lwir_bom_eur)}</b></div>
             <div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap;">
               <button class="btn-sm accent" onclick="triggerHumanPilotVoice('takeover_and_talk')" style="font-size:10px;padding:2px 7px;">🕹️🎙️ Human Pilot &amp; 2-Way Voice</button>
               <button class="btn-sm accent" onclick="triggerMarketplaceAction('simulate_multi_accept')" style="font-size:10px;padding:2px 7px;">📡 SAR Dispatch Marketplace</button>
@@ -2862,7 +2862,7 @@
               <button class="btn-sm accent" id="btn-drone-marketplace" onclick="triggerMarketplaceAction('simulate_multi_accept')" title="Open Uber-for-SAR Alert Dispatch Marketplace + Roofed Auto-Stations + Human Coordinator" style="font-size:10px;padding:2px 7px;">📡 SAR Dispatch Marketplace</button>
               <button class="btn-sm" id="btn-drone-grid" onclick="triggerDroneApproach('grid-search')" title="Dispatch 4 drones to sweep probability grid" style="font-size:10px;padding:2px 7px;">🔍 4-Drone Grid</button>
               <button class="btn-sm" id="btn-drone-sargroup" onclick="triggerDroneApproach('sar-tourist-group')" title="Simulate 48h ring buffer + 4 separated tourists self-guided SAR" style="font-size:10px;padding:2px 7px;">🧭 Split Group SAR</button>
-              <button class="btn-sm accent" id="btn-drone-finlab" onclick="triggerDroneApproach('finlab-suite')" title="Run FIN-LAB-01/03/04/05 & Section 6.1 Allied Supply-Chain Verification Suite" style="font-size:10px;padding:2px 7px;">🧪 FIN-LAB &amp; Supply-Chain Suite</button>
+              <button class="btn-sm accent" id="btn-drone-finlab" onclick="triggerDroneApproach('finlab-suite')" title="Run FIN-LAB-01/02/03/04/05 & Allied Supply-Chain Verification Suite" style="font-size:10px;padding:2px 7px;">🧪 FIN-LAB &amp; Supply-Chain Suite</button>
             </div>
           `;
         }

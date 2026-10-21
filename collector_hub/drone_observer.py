@@ -1138,7 +1138,7 @@ def evaluate_gnss_rf_jamming_and_weather_resilience(
     rc_elrs_link_lost=False,
 ):
     """
-    Evaluates and mitigates the real-world EW / anti-drone gun (e.g., 6-band KVS G-6)
+    Evaluates and mitigates real-world high-power multi-band RF interference and GNSS blackout
     and Arctic weather failure modes in Eastern & Northern Finland wilderness SAR:
       1. GNSS Jamming & Spoofing + Pre-Emptive `< 80 ms` EKF3 Switch:
          - Monitors u-blox M10 RF front-end broadband jamming indicator (`ublox_m10_jam_ind >= 110`
@@ -1153,10 +1153,10 @@ def evaluate_gnss_rf_jamming_and_weather_resilience(
            `compute_finlab03_gnss_denied_high_altitude_navigation()` (Cold-Air Hypsometric Baro-DEM
            Scaling + Dual-Band `IMX462`/`TC001` Homography Odometry + Surveyed *Autiotupa*/River/Trail
            Landmark EKF Resets).
-      2. Anti-Drone Gun Simultaneous RC (`ELRS 2.4 GHz`) + GCS (`LR900-F 915 MHz`) + GNSS Failsafe Lock (`3.1`):
+      2. Simultaneous Multi-Band RC (`ELRS 2.4 GHz`) + GCS (`LR900-F 915 MHz`) + GNSS Failsafe Lock (`3.1`):
          - Enforces `FS_OPTIONS = 19` (continue `GUIDED`/`AUTO` companion control on hardwired `TELEM2`
            when both RC and GCS radio links are jammed) and `FS_EKF_ACTION = 2` (`AltHold` instead of
-           stock `1 = Land`), mathematically preventing the KVS G-6 "forced autoland / RTL-into-jammed-GPS"
+           stock `1 = Land`), mathematically preventing the "forced autoland / RTL-into-jammed-GPS"
            trap while spooling telemetry into a local `fsync` store-and-forward ring buffer and
            executing an orthogonal directional-beam escape step-out.
       3. External `M10` Mast Compass `I2C` RF Rectification / Glitch Isolation (`3.2`):
@@ -5783,7 +5783,7 @@ def generate_arducopter_pixhawk6c_param_profile():
         "FLTMODE1": 5,             # Mode 1: LOITER (Manual Stick Manoeuvring with GPS/Optical-Flow Position Hold)
         "FLTMODE4": 4,             # Mode 4: GUIDED (Dashboard Human-Pilot Nudge & Companion AI Search)
         "FLTMODE6": 6,             # Mode 6: RTL (Instant Manual Return-to-Launch Safety Switch)
-        # Failsafes & Anti-Drone Gun (6-Band EW Jammer) Hardening (3.1)
+        # Failsafes & High-Power Multi-Band RF Interference Hardening (3.1)
         "FS_THR_ENABLE": 1,        # RC failsafe enabled (governed by FS_OPTIONS=19 during Guided/Auto)
         "FS_GCS_ENABLE": 1,        # GCS heartbeat failsafe enabled (governed by FS_OPTIONS=19 during Guided)
         "FS_OPTIONS": 19,          # 3.1: Bitmask 1+2+16 = Continue Guided/Auto over hardwired Pi 5 TELEM2 when RC + GCS are jammed!
@@ -5812,7 +5812,7 @@ def generate_arducopter_pixhawk6c_param_profile():
 
 def export_open_sar_situational_awareness_packet(marketplace_state):
     """
-    Inspired by Ukraine's `Delta` situational-awareness architecture (open standards so any agency
+    Inspired by open multi-agency situational-awareness architectures (open standards so any agency
     can plug in without proprietary cloud lock-in) and `QuadroFleet` multi-link failover (`F26` & `F36`):
     Exports a zero-dependency, open-standard SAR Situational Awareness Packet containing:
       1. `ETRS-TM35FIN` (EPSG:3067) metric coordinates for Finnish authorities (Poliisi, Rajavartiolaitos, Vapepa)
@@ -7159,7 +7159,7 @@ class HumanPilotAndTwoWayVoiceRelayController:
         hiker_visual_gesture="HAND_WAVE_YES_AND_THUMBS_UP",
     ):
         """
-        Graceful degradation when a 6-band anti-drone jammer (e.g., KVS G-6) severs both
+        Graceful degradation when severe multi-band RF interference severs both
         the 915 MHz LoRa (`LR900-F`) GCS link and the 2.4 GHz (`ELRS`) pilot RC link during
         an active human-piloted / voice-intercom rescue:
           1. Engages immediate Deadman velocity zeroing (`vel = 0`) and seamlessly hands
@@ -7393,7 +7393,7 @@ def execute_human_pilot_and_voice_relay_action(
 
 
 # ==============================================================================
-# 11C. Finland Pro Bono Lab (FIN-LAB-01 / 03 / 04 / 05) & Section 6.1 Allied
+# 11C. FIN-LAB Conformance Suite (FIN-LAB-01 / 02 / 03 / 04 / 05) & Allied
 #      Supply-Chain Provenance Suite (Iterations 18–20)
 # ==============================================================================
 
@@ -7592,12 +7592,12 @@ def compute_finlab03_fast_fixed_wing_navigation(
 
 # ------------------------------------------------------------------------------
 # 2. FIN-LAB-05: 10 Hz Cold-Weather & Flight Black-Box Telemetry Logger
-#    (MIL-STD-810H Method 502.7 Low Temp & Method 521.4 Icing + AECTP-300)
+#    (IEC 60068-2-1 Low Temp & RTCA DO-160G Section 24 Icing)
 # ------------------------------------------------------------------------------
 class ColdWeatherBlackBoxLogger:
     """
     `FIN-LAB-05` 10 Hz Cold-Soak & Flight Black-Box Telemetry Recorder and Automated
-    `MIL-STD-810H Method 502.7 / 521.4` & `NATO AECTP-300` Qualification Grader.
+    `IEC 60068-2-1` (Cold) & `RTCA DO-160G Section 24` (Icing) Qualification Grader.
     """
 
     CLIMB_PUNCHOUT_MAX_CURRENT_A = 35.0
@@ -7716,8 +7716,8 @@ class ColdWeatherBlackBoxLogger:
 
     def evaluate_telemetry_qualification(self, delivered_energy_wh_override=None):
         """
-        Evaluates the recorded 10 Hz cold-soak/flight log against `MIL-STD-810H Method 502.7 / 521.4`
-        and `NATO AECTP-300` to assign `CLASS_A_MINUS_30C_QUALIFIED`, `CLASS_B_MINUS_20C_QUALIFIED`,
+        Evaluates the recorded 10 Hz cold-soak/flight log against `IEC 60068-2-1` (Cold)
+        and `RTCA DO-160G Section 24` (Icing) to assign `CLASS_A_MINUS_30C_QUALIFIED`, `CLASS_B_MINUS_20C_QUALIFIED`,
         or `FAIL_COLD_SAG_OR_ICING`.
         """
         if not self.records:
@@ -7765,7 +7765,7 @@ class ColdWeatherBlackBoxLogger:
 
         return {
             "finlab_project_code": "FIN-LAB-05",
-            "standards_traced": ["MIL-STD-810H Method 502.7 (Low Temp)", "MIL-STD-810H Method 521.4 (Icing)", "NATO AECTP-300 (303/311)"],
+            "standards_traced": ["IEC 60068-2-1 (Low Temp)", "RTCA DO-160G Sec 24 (Icing)", "FIN-LAB-05 (-30C Arctic Class A)"],
             "sample_rate_hz": 10,
             "sample_count": len(self.records),
             "min_ambient_temp_c": round(min_amb_c, 2),
@@ -8065,7 +8065,7 @@ def fuse_uspace_airspace_tracks_v10(
       1. **Retarded Acoustic Emission-Time Alignment:**
          Corrects reception timestamps `t_rx` by acoustic propagation time `r / c(T)` where
          `c(T) = 20.05 * sqrt(T_K)` (`315.9 m/s` at `-25 °C`).
-      2. **Claude 4-Gate Ghost-Track Suppression (`O(N log N)` via 500 m Spatial Hashing):**
+      2. **4-Gate Ghost-Track Suppression (`O(N log N)` via 500 m Spatial Hashing):**
          - Gate 1 (Elevation-Altitude Consistency): `|r_A * tan(el_A) - r_B * tan(el_B)| <= 2.5 * sigma_h`
            (enabled by the 1.5 m vertical pine-trunk microphone pair).
          - Gate 2 (Harmonic Ratio & Vector Doppler Consistency): Intrinsic harmonic structure and
@@ -8415,7 +8415,7 @@ def compute_finlab01_conformance_scorecard(
     Computes the `FIN-LAB-01` Objective O1–O5 Conformance Scorecard:
       - O1: Track continuity across sensor handovers `>= 95.0%` (weighted by tracked duration `s`)
       - O2: False track rate `< 1.0 per hour per 100 km^2`
-      - O3: Detection-to-cue latency `<= 30.0 s` (P95) + Cost-Ranked Effector Allocation (`100%`)
+      - O3: Detection-to-cue latency `<= 30.0 s` (P95) + Cost-Ranked Responder Allocation (`100%`)
       - O4: Vendor-neutral open API (`>= 3` distinct sensor modalities & `>= 2` responder types)
       - O5: Zero functional GNSS dependence (`gnss_functional_independence == True`)
     """
@@ -8498,7 +8498,7 @@ def simulate_regional_surge_resource_contention(
 ):
     """
     `FIN-LAB-04 v1.0` Discrete-Event (`heapq`) Regional Emergency Surge & Multi-Bay Heated Nest
-    Resource Contention Simulator (incorporating Claude Fable 5.1 & GPT-6 Astra improvements):
+    Resource Contention Simulator:
       - Models persistent aircraft, spare battery packs, and charger queues across `total_events`
         arriving over `window_hours` with false-positive classification leakage `(1 - classifier_precision)`.
       - Computes multi-bay `+15 °C` nest thermal power demand at `-30 °C` (`Delta_T = 45 K`):
@@ -8579,10 +8579,10 @@ def simulate_sar_fleet_monte_carlo_sizing(
     candidate_configs=None,
 ):
     """
-    `FIN-LAB-04` Monte Carlo SAR Campaign & Magazine/Battery Stock Sizing Digital Twin (`F48`).
+    `FIN-LAB-04` Monte Carlo SAR Campaign & Spare Battery Stock Sizing Digital Twin (`F48`).
     Simulates `n_iterations` (default 1,000) winter SAR emergencies along the 82 km Karhunkierros
     trail (`-32 °C` to `-5 °C`, Weibull winds, 30% split tourist groups, `F23` snow-load hatch
-    faults, `18.0 km` winter combat radius limit, roadless Oulanka canyon ski approach from plowed
+    faults, `18.0 km` winter SAR operating radius limit, roadless Oulanka canyon ski approach from plowed
     road-heads, and battery turnaround queuing) deterministically via `random.Random(seed)` in `< 35 ms`.
     Returns the Cost vs. Golden-Hour Rescue Probability Pareto front.
     """
@@ -8663,7 +8663,7 @@ def simulate_sar_fleet_monte_carlo_sizing(
                 if sc["hatch_blocked"] and idx == (sc["faulty_nest_slot"] % nest_count):
                     continue
                 dist_km = math.hypot(abs(n_km - sc["s_km"]), abs(sc["d_off_m"]) / 1000.0)
-                # F48: Enforce winter 1-way SAR combat radius limit (18.0 km) so a nest at km 0
+                # F48: Enforce winter 1-way SAR operating radius limit (18.0 km) so a nest at km 0
                 # cannot fly 41 km into the central canyon on a single 4S2P battery in -28 C!
                 if dist_km > WINTER_DRONE_MAX_SAR_RADIUS_KM:
                     continue
@@ -8722,17 +8722,17 @@ def simulate_sar_fleet_monte_carlo_sizing(
 
 
 # ------------------------------------------------------------------------------
-# 5. Section 6.1 Component Provenance, Allied Second-Source & COTS Buildability
+# 5. FIN-LAB Component Provenance, Allied Second-Source & COTS Buildability
 # ------------------------------------------------------------------------------
 def audit_supply_chain_and_cots_buildability():
     """
-    Audits the SAR Drone & Arctic Trail Cam against FIN-LAB Charter 6.1 (Open Arctic
+    Audits the SAR Drone & Arctic Trail Cam against the FIN-LAB Supply-Chain Resilience Charter (Open Arctic
     Supply-Chain Resilience & High-Power RF/EMI Immunity — `NdFeB` sintered magnets,
     `-40 °C` battery cells, and uncooled `LWIR` thermal cores), verifying:
       1. Explicit country-of-origin provenance and European/Allied drop-in second sources.
       2. Strict compliance with the `<= €5,000` BOM rule across Baseline COTS (`€1,329` incl. `+€45`
          broadband RF/EMI ferrite shielding `[D20]` & out-of-band UHF/DECT collar PTT mic `[D19]`),
-         Tier-1 Allied COTS (`€1,770`), Blanket `+60%` De-China Premium (`€2,126.40`), and
+         Tier-1 Allied COTS (`€1,770`), Blanket `+60%` Non-Single-Source Contingency (`€2,126.40`), and
          Tier-2 Sovereign European (`€2,965` with French `Lynred ATTO320 / Senop` LWIR).
       3. Zero-Custom-PCB Snap-In Buildability (`2.5 hours` assembly with standard connectors)
          plus the exact pin-by-pin `JST-GH` harness schedule (`TELEM2` Pin 1 `+5V` isolated).
@@ -8856,7 +8856,7 @@ def audit_supply_chain_and_cots_buildability():
 def run_complete_finlab_and_supply_chain_verification_suite():
     """
     Runs all 5 additions (`FIN-LAB-01`, `FIN-LAB-03`, `FIN-LAB-04`, `FIN-LAB-05`, and
-    Section 6.1 Supply-Chain & COTS Buildability Audit) and returns a consolidated report.
+    FIN-LAB Allied Supply-Chain & COTS Buildability Audit) and returns a consolidated report.
     """
     # 1. FIN-LAB-01 Civilian Twin Adapters + C2 Ingest Bridge + O1-O5 Scorecard
     coord = SARDispatchMarketplaceCoordinator()
@@ -8920,7 +8920,7 @@ def run_complete_finlab_and_supply_chain_verification_suite():
         )
     finlab05_qual = logger.evaluate_telemetry_qualification(delivered_energy_wh_override=88.8)
 
-    # 5. Section 6.1 Supply-Chain & COTS Buildability Audit
+    # 5. FIN-LAB Allied Supply-Chain & COTS Buildability Audit
     supply_chain = audit_supply_chain_and_cots_buildability()
 
     # 6. FIN-LAB-01 v1.0 Open U-Space Surge Track Fusion (2,500 candidates, 4-Gate Ghost Filter)
@@ -8963,7 +8963,7 @@ def main():
         "--mode",
         choices=["simulate", "simulate-swarm", "grid-search", "sar-tourist-group", "lantern-guide", "dispatch-marketplace", "human-pilot", "finlab-suite", "bench-check", "approach", "standoff", "alert-hook", "daemon"],
         default="simulate",
-        help="Operating mode: simulate (single target), simulate-swarm (multi-camera/multi-drone), grid-search (multi-drone lawnmower search), sar-tourist-group (48h ring-buffered trail sighting + split tourist group SAR), lantern-guide (Aerial Lantern & Trail Guide to nearest Autiotupa), dispatch-marketplace (Uber-for-SAR Open-Alert Marketplace + Roofed Auto-Stations + Human Coordinator), human-pilot (Human-in-the-Loop Manual Manoeuvring & Two-Way Voice Intercom Relay), finlab-suite (FIN-LAB-01/03/04/05 & Section 6.1 Allied Supply-Chain Verification Suite), bench-check (Wave 1/2 SAR Drone Companion Hardware Bench Check & .param Exporter), approach (Bearnese Mountain Dog close-approach), standoff, alert-hook, or daemon",
+        help="Operating mode: simulate (single target), simulate-swarm (multi-camera/multi-drone), grid-search (multi-drone lawnmower search), sar-tourist-group (48h ring-buffered trail sighting + split tourist group SAR), lantern-guide (Aerial Lantern & Trail Guide to nearest Autiotupa), dispatch-marketplace (Uber-for-SAR Open-Alert Marketplace + Roofed Auto-Stations + Human Coordinator), human-pilot (Human-in-the-Loop Manual Manoeuvring & Two-Way Voice Intercom Relay), finlab-suite (FIN-LAB-01/02/03/04/05 & Allied Supply-Chain Verification Suite), bench-check (Wave 1/2 SAR Drone Companion Hardware Bench Check & .param Exporter), approach (Bearnese Mountain Dog close-approach), standoff, alert-hook, or daemon",
     )
     parser.add_argument(
         "--preset",
@@ -9087,7 +9087,7 @@ def main():
         print(f"  FIN-LAB-03 (105m GNSS-Free): 30-Min Drift={nav['max_30min_gnss_denied_error_m']} m <= {nav['finlab03_pass_mark_m']} m (Hypsometric Alt {nav['true_hypsometric_alt_agl_m']} m vs Raw {nav['raw_isa_baro_alt_m']} m)")
         print(f"  FIN-LAB-04 (Monte Carlo)   : {mc['iterations_run']} runs in {mc['execution_time_ms']} ms -> Optimal: {opt['config_id']} ({opt['golden_hour_survival_rate_pct']}% Golden-Hour, P95 {opt['response_time_p95_min']} min)")
         print(f"  FIN-LAB-05 (10Hz -30C Log) : Grade={qual['qualification_grade']} (Min Temp {qual['min_ambient_temp_c']} C, R_int {qual['max_r_internal_mohm']} mOhm, Capacity {qual['usable_capacity_retained_pct']}%)")
-        print(f"  Sec 6.1 Supply-Chain BOM   : Baseline €{sup['baseline_cots_bom_eur']} | Allied Tier-1 €{sup['tier1_allied_cots_bom_eur']} | +60% De-China €{sup['blanket_60pct_dechina_premium_bom_eur']} | Tier-2 €{sup['tier2_sovereign_european_lwir_bom_eur']} (All <= €5,000)")
+        print(f"  FIN-LAB Supply-Chain BOM   : Baseline €{sup['baseline_cots_bom_eur']} | Allied Tier-1 €{sup['tier1_allied_cots_bom_eur']} | +60% Allied Contingency €{sup['blanket_60pct_dechina_premium_bom_eur']} | Tier-2 €{sup['tier2_sovereign_european_lwir_bom_eur']} (All <= €5,000)")
         print("=========================================================================")
         return
 

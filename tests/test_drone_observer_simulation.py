@@ -908,7 +908,7 @@ class TestAerialObserverModule(unittest.TestCase):
         self.assertEqual(res["arducopter_fs_options_bitmask"], 19)
         self.assertEqual(res["arducopter_fs_ekf_action"], 2)
 
-        # Verify 3.1, 3.2, 3.3, 3.4 & 3.5: 6-band anti-drone gun (KVS G-6) pre-emptive M10 jamInd switch,
+        # Verify 3.1, 3.2, 3.3, 3.4 & 3.5: Multi-band high-power RF interference pre-emptive M10 jamInd switch,
         # external M10 I2C compass glitch fencing, ArduCopter FS_OPTIONS=19/FS_EKF_ACTION=2, and Human-Pilot EW fallback
         ew_gun = dobs.evaluate_gnss_rf_jamming_and_weather_resilience(
             gnss_hdop=1.2,                       # Before HDOP even spikes...
@@ -1320,7 +1320,7 @@ class TestAerialObserverModule(unittest.TestCase):
 
     def test_23_multi_model_audit_physics_security_and_opsec_regressions(self):
         """
-        Verifies Iteration 15 multi-model audit findings (F32-F38):
+        Verifies Iteration 15 Round-1 engineering audit findings (F32-F38):
           - F32: Unified 8,000 mAh 4S2P (118.4 Wh) winter endurance model with decoupled cell_temp_c vs ambient_temp_c
           - F33: Fail-safe block when all accepting units are unfeasible or have post-acceptance hatch faults
           - F35: Autiotupa arrival lateral clearing offset (drone >= 15m from both hiker and cabin roof/chimney) & aft spotlight yaw
@@ -1405,7 +1405,7 @@ class TestAerialObserverModule(unittest.TestCase):
 
     def test_24_round2_multi_model_aerospace_and_bench_audit_regressions(self):
         """
-        Verifies all findings from Round-2 Multi-Model Aerospace, MAVLink & Bench Audit (F39-F44):
+        Verifies all findings from Round-2 Aerospace, MAVLink & Bench Engineering Audit (F39-F44):
           - F39 (AERO-01 & AERO-03): In ARRIVED_AT_AUTIOTUPA_SAFE_HAVEN, the laterally offset drone
             aims its spotlight directly at the cabin door (relative yaw ~+37..+90 deg, NOT 180 deg aft!),
             handles dist_to_hut_m == 0.0 without singularity, and compute_aerial_lantern_trail_guide_state()
@@ -1599,9 +1599,9 @@ class TestAerialObserverModule(unittest.TestCase):
 
     def test_26_finlab_pro_bono_suite_and_allied_supply_chain_verification(self):
         """
-        Verifies the 5 high-leverage additions inspired by the Finland Pro Bono Lab Charters
-        (`FIN-LAB-01`, `FIN-LAB-03`, `FIN-LAB-04`, `FIN-LAB-05`) and Section 6.1 Allied
-        Supply-Chain Provenance Audit:
+        Verifies the 5 high-leverage additions aligned with the FIN-LAB Nordic Autonomous Systems
+        Working Group Charters (`FIN-LAB-01`, `FIN-LAB-02`, `FIN-LAB-03`, `FIN-LAB-04`, `FIN-LAB-05`) and
+        Allied Supply-Chain Provenance Audit:
           1. `FIN-LAB-01` Open Ingest API (`v0.9`) Civilian Twin Adapters (`AutiotupaCabinOccupancyAndOverdueAdapter`,
              `AcousticDistressAndMotorBearingAdapter`, `ReindeerPaliskuntaCollarTelemetryAdapter`,
              `TrailCameraMmWaveOpticalDiodeAdapter`) + Objective O1-O5 Conformance Scorecard (`all_objectives_passed=True`,
@@ -1613,11 +1613,11 @@ class TestAerialObserverModule(unittest.TestCase):
           3. `FIN-LAB-04` Deterministic Seeded Monte Carlo SAR Campaign & Battery Stock Sizing Digital Twin
              (`1,000` runs in `< 50 ms`, proving why spare 8,000 mAh packs and >= 4 roofed nests are required for
              `>= 95%` Golden-Hour survival).
-          4. `FIN-LAB-05` `10 Hz` Cold-Weather & Flight Black-Box Telemetry Logger (`MIL-STD-810H Method 502.7 / 521.4`
-             & `AECTP-300`), dynamic `R_internal` EMA, predictive 35A climb voltage-sag guard (`< 12.2V` clamps climb
+          4. `FIN-LAB-05` `10 Hz` Cold-Weather & Flight Black-Box Telemetry Logger (`IEC 60068-2-1` Cold &
+             `RTCA DO-160G Section 24` Icing), dynamic `R_internal` EMA, predictive 35A climb voltage-sag guard (`< 12.2V` clamps climb
              rate to `1.5 m/s`), supercooled icing torque anomaly (`> 12%` triggers 8,500 RPM centrifugal shedding),
              and `CLASS_A_MINUS_30C_QUALIFIED` grading.
-          5. Section 6.1 Component Provenance & Zero-Custom-PCB COTS Buildability Audit (`NdFeB` magnets from
+          5. FIN-LAB Allied Component Provenance & Zero-Custom-PCB COTS Buildability Audit (`NdFeB` magnets from
              `Neo Narva` / `Neorem Ulvila`, `-40C` `Molicel P45B/P50B` cells, dual-tier `TOPDON TC001` vs `Lynred ATTO320 / Senop`
              LWIR, all `<= 5,000 EUR`).
         """
@@ -1715,7 +1715,7 @@ class TestAerialObserverModule(unittest.TestCase):
         self.assertEqual(qual["qualification_grade"], "CLASS_A_MINUS_30C_QUALIFIED")
         self.assertTrue(qual["centrifugal_ice_shed_recovered"])
 
-        # 5. Section 6.1 Supply-Chain & COTS Buildability Audit + Pin-to-Pin Harness Schedule (F53)
+        # 5. FIN-LAB Allied Supply-Chain & COTS Buildability Audit + Pin-to-Pin Harness Schedule (F53)
         sup = suite["section_6_1_supply_chain_and_cots_audit"]
         self.assertTrue(sup["ear99_civilian_90_10_compliant"])
         self.assertEqual(sup["custom_pcbs_required"], 0)
@@ -1731,7 +1731,7 @@ class TestAerialObserverModule(unittest.TestCase):
         self.assertIn("Out-of-Band UHF", bench["expected_wave1_wave2_peripherals"]["cask_collar_ptt_mic"])
         self.assertIn("emi_ferrite_shielding_kit", bench["expected_wave1_wave2_peripherals"])
 
-        # 6. Verify Claude Fable 5.1 & GPT-6 Astra Multi-LLM Upgrades (FIN-LAB-01 v1.0, FIN-LAB-02/03, FIN-LAB-04 v1.0)
+        # 6. Verify FIN-LAB-01 v1.0 U-Space Surge Fusion, FIN-LAB-02/03 Fast Fixed-Wing & FIN-LAB-04 v1.0 Contention Upgrades
         self.assertEqual(nom_ac_obs["raw_telemetry_digest"]["observation_localization_state"], "TRIANGULATED_2D_FIX")
         self.assertIsNotNone(nom_ac_obs["raw_telemetry_digest"]["triangulated_range_m"])
         self.assertEqual(divergent_obs["raw_telemetry_digest"]["observation_localization_state"], "BEARING_ONLY_UNLOCATED")

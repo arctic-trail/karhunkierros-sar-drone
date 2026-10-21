@@ -29,7 +29,7 @@
 
 1. **[Executive Concept Brief in English (PDF — All Images Embedded)](docs/ARCTIC_SAR_DRONE_EXECUTIVE_BRIEF_EN.pdf)** | **[30-Slide System Presentation Deck (PDF — Browser Viewable)](KARHUNKIERROS_SAR_PRESENTATION.pdf)** | **[Markdown Source](docs/ARCTIC_SAR_DRONE_EXECUTIVE_BRIEF_EN.md)** — *End-to-end wilderness rescue chain (Stages 1–5), 3D isometric terrain overview, 30-slide complete system architecture presentation, timeline comparison, and Privacy-by-Design architecture.*
 2. **[Benchtop Quickstart & Step-by-Step Hardware Assembly Guide](docs/BENCHTOP_QUICKSTART_GUIDE.md)** — *Real-photo COTS hardware inventory (`[D01]`–`[D20]`), exact `Pixhawk 6C` / `Raspberry Pi 5` / `X500 V2` plug-and-play wiring, and 3-Stage bench verification.*
-3. **[Master Design Evolution, Trade-Off Audit & Stabilization Log (`v1.6-Round2-Multi-Model-Hardened`)](docs/DESIGN_EVOLUTION_AND_STABILIZATION_LOG.md)** — *Chronological log of all 16 design iterations, independent Round-1 and Round-2 multi-model audit remediation (`F01`–`F44`), why we reject custom PCBs in favor of 100% snap-in COTS parts, and the `€1,189` plug-and-play BOM.*
+3. **[Master Design Evolution, Trade-Off Audit & Stabilization Log (`v2.1-FinLab-USpace-Surge-And-SupplyChain-Hardened`)](docs/DESIGN_EVOLUTION_AND_STABILIZATION_LOG.md)** — *Chronological log of all 20 design iterations, independent Round-1 to Round-3 audit remediations (`F01`–`F53`), `FIN-LAB-01..05` reference benchmarks, why we reject custom PCBs in favor of 100% snap-in COTS parts, and the `€1,189–€1,329` plug-and-play BOM.*
 4. **[Comprehensive Technical & Engineering Guide](docs/AERIAL_OBSERVATION_DRONE_GUIDE.md)** — *Full mathematical, hardware, 65-byte MAVLink v2 (#84), multi-drone swarm, 48h ephemeral ring buffer, Poronhoitolaki compliance, and Finnish ETRS-TM35FIN / Rajavartiolaitos aviation coordinate specification.*
 5. **[Finnish Regional Case Study & Stakeholder Brief / Suomeksi (PDF)](docs/KARHUNKIERROS_PRO_BONO_SAR_BRIEF_FI.pdf)** | **[Markdown Source (FI)](docs/KARHUNKIERROS_PRO_BONO_SAR_BRIEF_FI.md)** — *Karhunkierros SAR Pro Bono -konseptimuistio suomalaisille sidosryhmille (Metsähallitus, Vapepa, Pelastuslaitos, Rajavartiolaitos, Poliisi).*
 
@@ -56,6 +56,9 @@ python3 -B collector_hub/drone_observer.py --mode sar-tourist-group
 
 # Simulate Multi-Drone Boustrophedon Grid Search
 python3 -B collector_hub/drone_observer.py --mode grid-search --num-drones 4
+
+# Run the FIN-LAB Conformance Suite (FIN-LAB-01/02/03/04/05 U-Space Surge Fusion, 105m GNSS-Free Nav, Monte Carlo & Allied BOM Audit)
+python3 -B collector_hub/drone_observer.py --mode finlab-suite
 ```
 
 ## "Uber-for-SAR" Open-Alert Dispatch Marketplace & Automated Roofed Shelters (`SARDispatchMarketplaceCoordinator`)
@@ -103,7 +106,8 @@ When a verified `112` / `inReach` / Trail-Post `SOS` alert is issued, the coordi
 | **Trail Posts & Collector Hub (`arctic-trail-cam` stack)** | Yes | Yes | Yes (`Pi 5` + `Pico` + `LoRa`) | Partial (winter optical/RF) | No (`Metsähallitus` permit pending) |
 | **Core SAR Drone Hardware (`X500 V2` + `Pixhawk 6C` + `Pi 5`)** | Yes | Yes (`37` `ArduCopter 4.5+` params) | Bench check (`drone_observer.py`) | No (`-25 °C` flight endurance open) | No (`Traficom SORA` required) |
 | **GNSS Spoof Fence & `<= 40 m` Optical Flow / LiDAR Hold** | Yes | Yes (`F01`–`F53` regression suites) | Sensor bench check | No (live jamming flight open) | No |
-| **Above-`40 m` Baro-DEM & Thermal/Visual Odometry (`FIN-LAB-01`)** | Yes | Modelled | Not yet flight-tested | No | No |
+| **Above-`40 m` Baro-DEM & Thermal/Visual Odometry (`FIN-LAB-02 / FIN-LAB-03`)** | Yes | Modelled (`20.76 m <= 30 m`) | Not yet flight-tested (`FIN-CAMPAIGN-2026-W`) | No | No |
+| **Open Sensor Ingest (`FIN-LAB-01 v1.0`), `10 Hz` `-30 °C` Logger (`FIN-LAB-05`) & Fleet Twin (`FIN-LAB-04`)** | Yes | Yes (`--mode finlab-suite`) | Bench verified | No (`FIN-CAMPAIGN-2026-W`) | No |
 | **Aerial Lantern (`28 m` AGL, `>= 15 m` Standoff) & `25 N` Drop** | Yes | Yes (`compute_elastic_pull_guidance_vector`) | Mechanical bench | No (local canopy survey required) | No |
 | **"Uber-for-SAR" Open Dispatch & `+10 °C` Roofed Nest** | Yes | Yes (`SARDispatchMarketplaceCoordinator`) | Dashboard & API verified | No (winter roof-actuator test open) | No (`Poliisi` / `RVL` / `ERC` MoU) |
 
