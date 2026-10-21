@@ -8979,7 +8979,7 @@ def run_complete_finlab_and_supply_chain_verification_suite():
         sys.path.insert(0, finlab02_dir)
     import northern_flank_red_gap_solver as gap_solver
     fin_sig_lib_v1 = gap_solver.generate_fin_sig_lib_v1_winter_dataset(samples_per_class=40, temp_c=-30.0)
-    p12_belt_sim = gap_solver.simulate_p12_belt_non_rf_rotorcraft_interception()
+    p12_belt_sim = gap_solver.simulate_p12_belt_non_rf_rotorcraft_detection()
     p12_heated_spec = gap_solver.evaluate_heated_nest_and_fast_climber()
     p12_capture_apn = gap_solver.simulate_3d_apn_optical_rendezvous_and_soft_capture()
     finlab06_usv = gap_solver.simulate_finlab06_coastal_cable_usv_mission()
@@ -9007,7 +9007,7 @@ def run_complete_finlab_and_supply_chain_verification_suite():
         "fin_sig_lib_v1_winter_signature_dataset": {
             "total_samples": fin_sig_lib_v1["total_samples"],
             "overall_5class_accuracy": fin_sig_lib_v1["overall_5class_accuracy"],
-            "decoy_vs_threat_accuracy": fin_sig_lib_v1["decoy_vs_threat_accuracy"],
+            "clutter_vs_aircraft_accuracy": fin_sig_lib_v1["clutter_vs_aircraft_accuracy"],
         },
         "p12_belt_non_rf_corridor_sensing": p12_belt_sim,
         "p12_heated_12cell_shelter_and_fast_climber": {
@@ -9163,7 +9163,7 @@ def main():
         print("=========================================================================")
         print(f"  FIN-LAB-01 (C2 & Adapters) : All O1-O5 Passed={sc['all_objectives_passed']} (Continuity {sc['O1_track_continuity_pct']}%, Cue P95 {sc['O3_detection_to_cue_p95_s']}s, {sc['O4_sensor_types_count']} Sensor Types)")
         print(f"  FIN-LAB-01 (Live Stream)   : {live_lt['total_candidate_tracks_ingested']} stream candidates -> {live_lt['total_verified_tracks_fused']} fused in {live_lt['total_stream_elapsed_ms']} ms (0 drops)")
-        print(f"  FIN-SIG-LIB v1.0 (-30C DS) : {sig_ds['total_samples']} Winter Signatures -> 5-Class Acc {sig_ds['overall_5class_accuracy']*100:.1f}%, Clutter Rej {sig_ds['decoy_vs_threat_accuracy']*100:.1f}%")
+        print(f"  FIN-SIG-LIB v1.0 (-30C DS) : {sig_ds['total_samples']} Winter Signatures -> 5-Class Acc {sig_ds['overall_5class_accuracy']*100:.1f}%, Clutter Rej {sig_ds['clutter_vs_aircraft_accuracy']*100:.1f}%")
         print(f"  FIN-LAB-03 (105m GNSS-Free): 30-Min Drift={nav['max_30min_gnss_denied_error_m']} m <= {nav['finlab03_pass_mark_m']} m (Hypsometric Alt {nav['true_hypsometric_alt_agl_m']} m vs Raw {nav['raw_isa_baro_alt_m']} m)")
         print(f"  FIN-LAB-04 (Monte Carlo)   : {mc['iterations_run']} runs in {mc['execution_time_ms']} ms -> Optimal: {opt['config_id']} ({opt['golden_hour_survival_rate_pct']}% Golden-Hour, P95 {opt['response_time_p95_min']} min)")
         print(f"  FIN-LAB-05 (10Hz -30C Log) : Grade={qual['qualification_grade']} (Min Temp {qual['min_ambient_temp_c']} C, R_int {qual['max_r_internal_mohm']} mOhm, Capacity {qual['usable_capacity_retained_pct']}%)")
