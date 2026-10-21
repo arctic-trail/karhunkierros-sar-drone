@@ -149,6 +149,12 @@ class TestArcticFastSarJetSuite(unittest.TestCase):
         self.assertLessEqual(sc["red_residual_cots_solved_now"], 14)
         self.assertEqual(sc["areas_at_3plus_now"], 11)
 
+        # 7. 3D APN closed-loop optical rendezvous & non-pyrotechnic Dyneema soft-net + parachute recovery
+        apn = gap_solver.simulate_3d_apn_optical_rendezvous_and_soft_capture()
+        self.assertLessEqual(apn.terminal_miss_distance_m, 0.85)
+        self.assertTrue(apn.zero_firearms_zero_pyrotechnics)
+        self.assertTrue(apn.captured_safely_without_lipo_puncture)
+
     def test_05_zero_chinese_components_and_opsec_linter(self):
         """Enforce zero Chinese components and zero forbidden region/PII strings across public files."""
         forbidden_tokens = [

@@ -64,11 +64,8 @@ Running `python3 northern_flank_red_gap_solver.py` executes the deterministic be
 | **`K` — Coastal & Subsea Cable Landfall USV** | `1/4` (Res `3`) | `2/4` (Res `2`) | **`3/4` (Green, Res `1`)** | **`3/4` (Green, Res `1`)** | **Initiative `#12 FIN-LAB-06 [P12-USV]` (`€4,650` BOM):** `1.85 m` solar/`LiFePO4` coastal USV with `450 kHz` side-scan sonar + 3-axis `PNI RM3100` (USA) magnetic cable tracker + `[P11-COAST]` optical shore handoff (`84%` availability, `36 h` endurance). |
 | **Total Weighted Conformance (`96 pts`)** | **`38.5%` (`37/96`)** | **`54.2%` (`52/96`)** | **`72.9%` (`70/96` in Code/CAD)** | **`85.4%–86.5%` (`82–83/96` Validated)** | **Priority Residual (`A+H+I+J+K`) slashed by `-65.9%` (`41 → 32 → 14` today, `11` validated); `11 of 12` civilian-addressable areas at `≥3/4`.** |
 
-![High-Speed Corridor Safety & SAR Rendezvous Geometry](docs/images/viz_corridor01_geometry_civilian_v7.jpg)
 
-![Scaling Civil U-Space Airspace Safety & SAR Dispatch](docs/images/viz_uspace02_surge_civilian_v6.jpg)
 
-![Closing All 5 Remaining FIN-LAB Benchmarks](docs/images/viz_finlab03_scorecard_civilian_v6.jpg)
 
 ---
 
