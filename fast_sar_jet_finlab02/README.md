@@ -45,9 +45,21 @@ Every visual and aerodynamic calculation in this repository derives from a singl
 - **Twin `16 mm` Carbon Tail Booms (`Y = ±230 mm`) + `110°` Outward-Canted Inverted $\Lambda$-Tail:** Keeps all tail surfaces and control linkages completely outside the central `720 °C` dorsal turbojet exhaust plume above a double-wall `304SS` + `10 mm` silica-aerogel thermal barrier deck.
 - **High-Visibility Civilian SAR Conspicuity + Detachable 3-Wheel Tundra Drop-Dolly:** Finished in `RAL 2005` fluorescent orange with a passive corner radar reflector (`+5 to +10 dBsm` X-band RCS for ATC visibility), `ADS-B Out / FLARM / Remote ID`, and a 3-wheel drop-dolly that stays on the ground at liftoff (`14.95 kg` airborne MTOW, staying below the `15.0 kg` regulatory class ceiling).
 
+![Variant H 3D CAD Single Source of Truth Cutaway](docs/images/sar_design_01_cad_ssot_cutaway_v1.jpg)
+
+![Variant H 7-Subsystem Callout Cutaway](docs/images/sar_design_02_subsystem_callout_cutaway_v1.jpg)
+
+![Unified Chined Center-Body, 2.20 m Cranked Wing & 304SS/Aerogel Thermal Shielding](docs/images/sar_design_03_airframe_thermal_deck_v1.jpg)
+
+![Universal Dorsal Engine Bay Zero-Ballast Swap](docs/images/sar_design_04_universal_dorsal_engine_bay_v1.jpg)
+
+![5.00 kg Survival Capsule, CAD Station A-A Cross-Section & Interchangeable Radar Pods](docs/images/sar_design_07_payload_bay_and_capsule_v1.jpg)
+
 ![2D Orthographic CAD Blueprint](docs/images/sar_cad_blueprint_2d_orthographic_v2.jpg)
 
 ![3D Isometric & Simulation Verification Sheet](docs/images/sar_cad_blueprint_3d_simulations_v2.jpg)
+
+> **Full 16-Plate Engineering Design & Subsystem Architecture Gallery:** See [**`docs/ENGINEERING_DESIGN_AND_ARCHITECTURE.md`**](docs/ENGINEERING_DESIGN_AND_ARCHITECTURE.md) for the complete set of CAD-reconciled subsystem cutaways, payload class variants (`Class 1`–`Class 3`), mission profile & `SORA` flight-test box diagrams, and the optional Tier-1B `OpenTurbine-EU` FADEC reference.
 
 ---
 
@@ -64,17 +76,24 @@ Running `python3 northern_flank_red_gap_solver.py` executes the deterministic be
 | **`K` — Coastal & Subsea Cable Landfall USV** | `1/4` (Res `3`) | `2/4` (Res `2`) | **`3/4` (Green, Res `1`)** | **`3/4` (Green, Res `1`)** | **Initiative `#12 FIN-LAB-06 [P12-USV]` (`€4,650` BOM):** `1.85 m` solar/`LiFePO4` coastal USV with `450 kHz` side-scan sonar + 3-axis `PNI RM3100` (USA) magnetic cable tracker + `[P11-COAST]` optical shore handoff (`84%` availability, `36 h` endurance). |
 | **Total Weighted Conformance (`96 pts`)** | **`38.5%` (`37/96`)** | **`54.2%` (`52/96`)** | **`72.9%` (`70/96` in Code/CAD)** | **`85.4%–86.5%` (`82–83/96` Validated)** | **Priority Residual (`A+H+I+J+K`) slashed by `-65.9%` (`41 → 32 → 14` today, `11` validated); `11 of 12` civilian-addressable areas at `≥3/4`.** |
 
+![High-Speed Corridor Safety & SAR Rendezvous Geometry](docs/images/sar_design_12_corridor_rendezvous_and_soft_net_v1.jpg)
 
+![800-Event Peak Civil U-Space Airspace-Safety & Emergency SAR Dispatch Flow](docs/images/sar_design_13_800_event_uspace_benchmark_v1.jpg)
 
+![Closing All Five Priority Civilian Benchmarks in 100% China-Free COTS Scope](docs/images/sar_design_14_five_priority_benchmarks_v1.jpg)
 
 ---
 
-## 4. Strict 100% Non-Chinese Allied/EU Hardware Policy
+## 4. Strict 100% Non-Chinese Allied/EU Hardware Policy & Control Architecture
 
 Zero Chinese components (`0.0%` of BOM) are permitted across airframe, propulsion, avionics, or ground nodes:
 - **Flight Controller & GNSS:** `ARK FPV Flight Controller` (`STM32H743`, USA NDAA-compliant) + `u-blox ZED-F9P / M10` (Switzerland) + `Bosch Sensortec BMP390 / BMI088` (Germany) + `TE Connectivity MS4525DO` heated pitot (USA/EU).
 - **Companion Compute & Vision:** `Raspberry Pi 5` (`8 GB`, Sony UK Technology Centre, Pencoed, Wales) + `FLIR Lepton 3.5` (USA) / `Lynred` (France) LWIR + `Sony Starvis` (Japan).
 - **Turbine & FADEC:** Turnkey European `JetCat P100-RX-BL / P160-RXi-B` (Germany), `Xicoy X132` (Spain), or `PBS Velká Bíteš` (Czechia) — or optional Phase-5 `OpenTurbine-EU` FADEC (`STMicroelectronics STM32G474RET6`, France/Italy + `Bartels Mikrotechnik` German fuel pump + `GRW` German hybrid ceramic bearings + `GTBA` UK/EU cast Inconel 713C wheel).
+
+![Three-Domain 100% Non-Chinese Fast-SAR Control Architecture](docs/images/sar_design_05_autonomy_control_architecture_v1.jpg)
+
+![100% Non-Chinese Allied COTS Supply-Chain Map](docs/images/sar_design_06_allied_cots_supply_chain_v1.jpg)
 
 ---
 
@@ -104,6 +123,12 @@ Because this is an independent, private, **pro-bono open-source engineering proj
    - Progression to `Iteration 1` fixed-wing flight trials at an authorized UAS test range once **Traficom / EASA Specific Category (`SORA`)** approvals and qualified safety-pilot (`RPIC`) protocols are in place.
 4. **Gate 4 — Advanced R&D Trade Studies (`Iteration 2` Electric-Loiter Relight & `Iteration 3` High-Speed `FIN-LAB-02` Envelope):**
    - Evaluate nose folding-prop electric loiter transition, windmill/starter relight envelopes at `-30 °C`, and `350–400 km/h` high-speed structural flutter margins only after `Iteration 1` baseline gates are proven in the field.
+
+![Twin-Boom 110-deg Inverted Lambda-Tail Mission Profile](docs/images/sar_design_09_mission_profile_and_drop_pass_v1.jpg)
+
+![EASA Specific-Category SORA Staged Flight-Test Box & Failsafes](docs/images/sar_design_10_sora_flight_test_and_failsafes_v1.jpg)
+
+![Four-Gate Bench, EDF Surrogate, Ground Run & Staged Jet Flight Qualification Pipeline](docs/images/sar_design_11_validation_gates_and_risk_matrix_v1.jpg)
 
 ---
 

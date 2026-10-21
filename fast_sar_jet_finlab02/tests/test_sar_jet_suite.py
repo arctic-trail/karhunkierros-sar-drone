@@ -196,6 +196,27 @@ class TestArcticFastSarJetSuite(unittest.TestCase):
                     checked_files += 1
         self.assertGreaterEqual(checked_files, 5)
 
+        # Verify docs/images/ contains the 2 CAD blueprints + 16 sar_design_* plates and zero viz_* kill-geometry charts
+        img_dir = os.path.join(REPO_ROOT, "docs", "images")
+        self.assertTrue(os.path.isdir(img_dir))
+        imgs = sorted(os.listdir(img_dir))
+        for img in imgs:
+            self.assertFalse(
+                img.startswith("viz_"),
+                f"Forbidden legacy kill-geometry image {img} found in docs/images/",
+            )
+            img_path = os.path.join(img_dir, img)
+            self.assertGreater(os.path.getsize(img_path), 100_000, f"Image {img} too small")
+        design_plates = [f for f in imgs if f.startswith("sar_design_")]
+        cad_plates = [f for f in imgs if f.startswith("sar_cad_blueprint_")]
+        self.assertEqual(len(cad_plates), 2)
+        self.assertEqual(len(design_plates), 16)
+        self.assertTrue(
+            os.path.exists(
+                os.path.join(REPO_ROOT, "docs", "ENGINEERING_DESIGN_AND_ARCHITECTURE.md")
+            )
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
