@@ -18,7 +18,7 @@ To complement the isometric subsystem cutaways above, the direct 4-view 2D ortho
 
 ![2D Orthographic CAD Blueprint (STEP AP214)](images/sar_cad_blueprint_2d_orthographic_v2.jpg)
 
-![3D CAD Isometric Mesh, ATC Conspicuity & Drag Polar](images/sar_cad_blueprint_3d_simulations_v2.jpg)
+![3D CAD Isometric Mesh, ATC Conspicuity & Drag Polar](images/sar_cad_blueprint_3d_simulations_v3.jpg)
 
 ---
 

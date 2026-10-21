@@ -343,20 +343,60 @@ def render_sar_3d_simulations(params: dict, sim: dict):
     c_yellow = "#FACC15"
 
     mesh_16 = trimesh.load(str(CAD_DIR / "arctic_fast_sar_jet_iter1_fixed16deg.stl"))
+    # Subdivide long CAD triangles so painter's depth sort (zsort='average') has zero z-fighting
+    v_sub, f_sub = trimesh.remesh.subdivide_to_size(mesh_16.vertices, mesh_16.faces, max_edge=28.0)
+    mesh_render = trimesh.Trimesh(vertices=v_sub, faces=f_sub, process=False)
 
     def plot_mesh_3d(ax, title, elev, azim):
         ax.set_facecolor(c_bg)
         ax.set_title(title, color=c_cyan, fontsize=12.5, fontweight="bold", pad=8, loc="left")
-        v = mesh_16.vertices
-        f = mesh_16.faces
-        step = max(1, len(f) // 2500)
-        polys = v[f[::step]]
-        coll = Poly3DCollection(polys, facecolor=c_orange, edgecolor="#7C2D12", linewidths=0.18, alpha=0.78)
+        v = mesh_render.vertices
+        f = mesh_render.faces
+        polys = v[f]  # Render 100% of surface triangles (zero decimation / zero missing facets)
+
+        # Compute clean unit normals per triangle (no NaNs) for high-contrast 3D CAD studio shading
+        v0, v1, v2 = polys[:, 0], polys[:, 1], polys[:, 2]
+        raw_n = np.cross(v1 - v0, v2 - v0)
+        norms = np.linalg.norm(raw_n, axis=1, keepdims=True)
+        normals = np.divide(raw_n, norms, out=np.zeros_like(raw_n), where=norms > 1e-9)
+
+        light_key = np.array([0.35, -0.45, 0.82])
+        light_key /= np.linalg.norm(light_key)
+        light_fill = np.array([-0.60, 0.50, 0.25])
+        light_fill /= np.linalg.norm(light_fill)
+
+        diff_key = np.clip(np.sum(normals * light_key, axis=1), 0.0, 1.0)
+        diff_fill = np.clip(np.sum(normals * light_fill, axis=1), 0.0, 1.0)
+        rim_z = np.clip(normals[:, 2], 0.0, 1.0)
+        spec = diff_key ** 16
+
+        # High-contrast RAL 2005 Fluorescent SAR Orange 3D studio shading (no x-ray line bleed-through)
+        shadow_rgb = np.array([0.38, 0.10, 0.02])
+        mid_rgb = np.array([1.00, 0.33, 0.03])
+        high_rgb = np.array([1.00, 0.72, 0.28])
+
+        shade = np.clip(0.22 + 0.62 * diff_key + 0.18 * diff_fill + 0.12 * rim_z, 0.0, 1.0)
+        rgb = shadow_rgb[None, :] * (1.0 - shade[:, None]) + mid_rgb[None, :] * shade[:, None]
+        rgb = np.clip(rgb + 0.35 * spec[:, None] * high_rgb[None, :], 0.0, 1.0)
+        rgba = np.column_stack([rgb, np.ones(len(f))])
+
+        # Slight edge darkening on same Poly3DCollection so depth sorting occludes hidden surfaces cleanly
+        edge_rgba = np.column_stack([rgb * 0.72, np.full(len(f), 0.35)])
+
+        coll = Poly3DCollection(
+            polys,
+            facecolors=rgba,
+            edgecolors=edge_rgba,
+            linewidths=0.08,
+            antialiased=True,
+            zsort="average",
+        )
         ax.add_collection3d(coll)
-        ax.set_xlim(0, 1600)
-        ax.set_ylim(-1100, 1100)
-        ax.set_zlim(-250, 280)
-        ax.set_box_aspect((1600, 2200, 530))
+
+        ax.set_xlim(40, 1520)
+        ax.set_ylim(-1060, 1060)
+        ax.set_zlim(-190, 250)
+        ax.set_box_aspect((1480, 2120, 440), zoom=1.24)
         ax.view_init(elev=elev, azim=azim)
         ax.tick_params(colors="#94A3B8", labelsize=8)
         ax.set_xlabel("X (mm)", color="#94A3B8", fontsize=8.5)
@@ -439,9 +479,8 @@ def render_sar_3d_simulations(params: dict, sim: dict):
     for spine in ax_sar.spines.values():
         spine.set_color(c_cyan)
 
-    out_path = IMG_DIR / "sar_cad_blueprint_3d_simulations_v2.jpg"
+    out_path = IMG_DIR / "sar_cad_blueprint_3d_simulations_v3.jpg"
     fig.savefig(out_path, dpi=100, facecolor=fig.get_facecolor(), pil_kwargs={"quality": 94})
-    fig.savefig(ARTIFACT_DIR / "sar_cad_blueprint_3d_simulations_v2.jpg", dpi=100, facecolor=fig.get_facecolor(), pil_kwargs={"quality": 94})
     plt.close(fig)
     print("Saved:", out_path)
 

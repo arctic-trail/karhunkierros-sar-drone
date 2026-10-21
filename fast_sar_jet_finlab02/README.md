@@ -63,7 +63,7 @@ Every visual and aerodynamic calculation in this repository derives from a singl
 
 ![2D Orthographic CAD Blueprint](docs/images/sar_cad_blueprint_2d_orthographic_v2.jpg)
 
-![3D Isometric & Simulation Verification Sheet](docs/images/sar_cad_blueprint_3d_simulations_v2.jpg)
+![3D Isometric & Simulation Verification Sheet](docs/images/sar_cad_blueprint_3d_simulations_v3.jpg)
 
 > **Full 16-Plate Engineering Design, 6-DoF CFD Wind-Tunnel & Stability Architecture Reference:** See [**`docs/ENGINEERING_DESIGN_AND_ARCHITECTURE.md`**](docs/ENGINEERING_DESIGN_AND_ARCHITECTURE.md) for the complete set of CAD-reconciled subsystem cutaways, payload class variants (`Class 1`–`Class 3`), mission profile & `SORA` flight-test box diagrams, **Section 8 (6-Config Trade Study, `+14.0% MAC` MIL-STD-1797 Level 1 Eigenmodes, 3D/2D Kirchhoff–Helmholtz CFD Separation Physics & 4-Stage Stall/Upset Recovery)**, and the optional Tier-1B `OpenTurbine-EU` FADEC reference.
 
