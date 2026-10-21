@@ -1,5 +1,12 @@
 # Karhunkierros SAR & "Digital Wilderness Hut" (`v1.6` / `v2.0` Concept Release) — Autonomous Wilderness Rescue Drone System
 
+> **Open-source, GNSS-independent Arctic wilderness search-and-rescue (SAR) drone & digital trail-hut guidance system (`~€1,189–€1,329` snap-in COTS). A private, pro-bono free-market COTS build. 🇫🇮 Finnish engineering.**
+>
+> * **GitHub Topics:** `ardupilot` · `pixhawk` · `raspberry-pi-5` · `search-and-rescue` · `sar-drone` · `gnss-denied` · `optical-flow` · `thermal-imaging` · `lora` · `open-hardware` · `arctic-engineering` · `cots`
+> * **Visual Architecture & System Presentation (30-Slide PDF Deck):** [`KARHUNKIERROS_SAR_PRESENTATION.pdf`](KARHUNKIERROS_SAR_PRESENTATION.pdf)
+> * **Executive Concept Brief (English PDF Booklet):** [`docs/ARCTIC_SAR_DRONE_EXECUTIVE_BRIEF_EN.pdf`](docs/ARCTIC_SAR_DRONE_EXECUTIVE_BRIEF_EN.pdf) | **Suomeksi (FI PDF):** [`docs/KARHUNKIERROS_PRO_BONO_SAR_BRIEF_FI.pdf`](docs/KARHUNKIERROS_PRO_BONO_SAR_BRIEF_FI.pdf)
+> * **License:** `MIT License`
+
 > **PROJECT STATUS DISCLAIMER — EARLY-STAGE ENGINEERING CONCEPT & SIMULATION REFERENCE (`MIT LICENSE`):**
 > - **Concept & Simulation Stage (First Public Release):** This repository publishes an open-source **engineering concept, COTS hardware bill-of-materials (`€1,189–€1,329`), and software simulation reference architecture** for wilderness search-and-rescue (SAR). It is **not** a flight-certified aircraft, an operational rescue service, or a field-deployed system.
 > - **What Is Built & Tested Today vs. What Remains Conceptual:**
@@ -13,9 +20,10 @@
 
 ![Karhunkierros SAR — 3D Terrain View: From Plowed Road End to Roadless Wilderness (Stages 1–5)](docs/images/arctic_sar_isometric_terrain_en_v3.jpg)
 
-> **100% SHARED CAMERA & COLLECTOR STACK WITH [`arctic-trail/arctic-trail-cam`](https://github.com/arctic-trail/arctic-trail-cam) + ZERO CUSTOM PCBS**
-> - **Single Unified Trail Camera Product:** The ground camera node (`pi5_sender_node/`, `pico_gatekeeper/`) and collector hub (`collector_hub/receiver_hub.py`, `collector_hub/subghz_nlos_relay.py`, `collector_hub/dashboard_server.py`, `collector_hub/ui/`) are **100% shared with [`arctic-trail/arctic-trail-cam`](https://github.com/arctic-trail/arctic-trail-cam)** so there is only one trail camera hardware/software product to build and maintain.
-> - **100% Snap-In COTS Hardware (Zero Custom PCBs):** Both the ground camera and the SAR drone (`Holybro X500 V2` + `Pixhawk 6C` + `Raspberry Pi 5` + `USB Thermal/Starvis` + `Benewake TF02-Pro 40m IP65 LiDAR` + `MicoAir MTF-02P / Matek PMW3901 Optical Flow` + `8,000 mAh 4S2P 14.8V (118.4 Wh) Ultra-Low-Temp Li-Ion`, **`~€1,189`**) assemble in `~2.5 hours` using standard `JST-GH`, `STEMMA QT / Qwiic`, `USB-C UVC`, and `XT60` connectors with **zero custom circuit boards**.
+> **Project Ethos — Private, Pro-Bono Free-Market Engineering & Voluntary Civil Society (`🇫🇮 Finnish Engineering`):**
+> - **Free-Market COTS vs. `€50,000+` Bureaucratic Procurement:** Rather than waiting years for slow public-sector procurement tenders or locked `€50,000+` proprietary aerospace systems, this is an independent, private, **pro-bono free-market engineering project** demonstrating how standard retail commercial off-the-shelf (`COTS`) parts (`€1,189–€1,329`) can deliver life-saving Arctic capability at `~1/40th` of legacy cost.
+> - **Decentralized Voluntary Dispatch ("Uber-for-SAR") & Strict Privacy:** Instead of top-down bureaucracy or persistent state surveillance, the architecture relies on **permissionless, voluntary civil-society participation** (local volunteer rescue clubs, snowmobilers, trail associations, and field patrols accepting open tasks bottom-up) paired with **hardware-enforced privacy** (`0.00 W` RF passive trail posts that auto-purge anonymous counts after 48 hours and never record identities).
+> - **100% Shared Camera & Collector Stack With [`arctic-trail/arctic-trail-cam`](https://github.com/arctic-trail/arctic-trail-cam) + Zero Custom PCBs:** Both the ground camera (`pi5_sender_node/`, `pico_gatekeeper/`) and the SAR drone (`Holybro X500 V2` + `Pixhawk 6C` + `Raspberry Pi 5` + `USB Thermal/Starvis` + `Benewake TF02-Pro 40m IP65 LiDAR` + `MicoAir MTF-02P / Matek PMW3901 Optical Flow` + `8,000 mAh 4S2P 14.8V (118.4 Wh) Ultra-Low-Temp Li-Ion`, **`~€1,189`**) assemble in `~2.5 hours` using standard `JST-GH`, `STEMMA QT / Qwiic`, `USB-C UVC`, and `XT60` connectors with **zero custom circuit boards**.
 
 ## Key Documentation & Architecture Guides
 
