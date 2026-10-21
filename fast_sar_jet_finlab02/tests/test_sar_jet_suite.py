@@ -160,6 +160,16 @@ class TestArcticFastSarJetSuite(unittest.TestCase):
             "makeflyeasy",
             "flycart",
             "telefly",
+            "geran",
+            "shahed",
+            "gerbera",
+            "apkws",
+            "kamikaze",
+            "warhead",
+            "munitions",
+            "ordnance",
+            "jet-kill",
+            "combat_radius",
         ]
         checked_files = 0
         for root, dirs, files in os.walk(REPO_ROOT):
