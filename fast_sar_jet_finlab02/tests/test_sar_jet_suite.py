@@ -184,7 +184,7 @@ class TestArcticFastSarJetSuite(unittest.TestCase):
                 d for d in dirs if d not in (".git", "_private", "__pycache__", "tests")
             ]
             for fname in files:
-                if fname.endswith((".md", ".py", ".json", ".svg")):
+                if fname.endswith((".md", ".py", ".json", ".svg", ".html")):
                     fpath = os.path.join(root, fname)
                     with open(fpath, "r", encoding="utf-8", errors="ignore") as f:
                         text = f.read().lower()
