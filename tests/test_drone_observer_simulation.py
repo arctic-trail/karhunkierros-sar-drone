@@ -1731,6 +1731,32 @@ class TestAerialObserverModule(unittest.TestCase):
         self.assertIn("Out-of-Band UHF", bench["expected_wave1_wave2_peripherals"]["cask_collar_ptt_mic"])
         self.assertIn("emi_ferrite_shielding_kit", bench["expected_wave1_wave2_peripherals"])
 
+        # 6. Verify Claude Fable 5.1 & GPT-6 Astra Multi-LLM Upgrades (FIN-LAB-01 v1.0, FIN-LAB-02/03, FIN-LAB-04 v1.0)
+        self.assertEqual(nom_ac_obs["raw_telemetry_digest"]["observation_localization_state"], "TRIANGULATED_2D_FIX")
+        self.assertIsNotNone(nom_ac_obs["raw_telemetry_digest"]["triangulated_range_m"])
+        self.assertEqual(divergent_obs["raw_telemetry_digest"]["observation_localization_state"], "BEARING_ONLY_UNLOCATED")
+        self.assertIsNone(divergent_obs["raw_telemetry_digest"]["triangulated_range_m"])
+
+        self.assertEqual(nav["model_evidence_status"], "ANALYTICAL_SCENARIO_ERROR_BUDGET_PENDING_FLIGHT_TEST")
+        fast_quad_nav = dobs.compute_finlab03_gnss_denied_high_altitude_navigation(cruise_speed_mps=30.0)
+        self.assertGreater(fast_quad_nav["max_30min_gnss_denied_error_m"], nav["max_30min_gnss_denied_error_m"])
+
+        fw_nav = suite["finlab03_fast_fixed_wing_nav"]
+        self.assertTrue(fw_nav["passed"])
+        self.assertTrue(fw_nav["heated_pitot_ok"])
+        fw_unheated = dobs.compute_finlab03_fast_fixed_wing_navigation(heated_pitot_installed=False)
+        self.assertFalse(fw_unheated["passed"])
+
+        uspace = suite["finlab01_civilian_twin"]["uspace_surge_fusion_v10"]
+        self.assertEqual(uspace["candidate_intersections_evaluated"], 2500)
+        self.assertTrue(uspace["meets_sub_30s_surge_requirement"])
+        self.assertGreater(uspace["ghost_intersections_rejected"], 0)
+
+        surge_sim = suite["finlab04_regional_surge_contention"]
+        self.assertEqual(surge_sim["total_events_simulated"], 2000)
+        self.assertGreater(surge_sim["per_nest_heating_power_at_minus30c_w"], 250.0)
+        self.assertGreater(surge_sim["single_pack_recharge_duration_min"], 30.0)
+
 
 if __name__ == "__main__":
     print("=== Running Autonomous Aerial Observation & Guidance Module Test Suite ===")
