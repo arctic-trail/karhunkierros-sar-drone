@@ -105,11 +105,12 @@ Zero Chinese components (`0.0%` of BOM) are permitted across airframe, propulsio
 
 ## 5. Readiness & Verification Matrix (Design vs. Simulation vs. Field Validation)
 
-| Subsystem / Capability | Designed (`3D CAD` / Spec) | Simulated / Unit-Tested (`7/7` Suites) | Hardware Bench | Field-Validated | Aviation / Regulatory Authorisation |
+| Subsystem / Capability | Designed (`3D CAD` / Spec) | Simulated / Unit-Tested (`8/8` Suites) | Hardware Bench | Field-Validated | Aviation / Regulatory Authorisation |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **Shared Companion Compute & Telemetry (`Pi 5` + `Pico 2` + Optical/LoRa)** | Yes | Yes | Yes (via `arctic-trail-cam` bench) | Partial (ground/link trials) | N/A (ground / bench) |
 | **Iteration 1 Airframe (`2.20 m` Fixed `16°` Wing + Twin-Boom `110°` $\Lambda$-Tail)** | Yes (`STEP AP214` / `STL`) | Yes (`sar_sizing_calculator.py` + `flight_simulator_6dof.py`) | Not yet fabricated | No | No (`Traficom` / `EASA SORA` required) |
 | **6-DoF Aerodynamics, `+14.0% MAC` Stability, 3D/2D CFD Flow & 4-Stage Stall/Upset Recovery** | Yes (`Section 8` SSOT) | Yes (`30-run` 6-Config $\times$ 5-Preset Matrix + HTML5 CFD Workbench) | Software-in-the-loop (`SITL`) | No (`Gate 2` EDF surrogate open) | No |
+| **1,000-Simulation Extreme Envelope Expansion (`+€140` / `+110 g` COTS Package + `12 km` Boom Fiber Option)** | Yes ([`Section 9` SSOT](docs/ENGINEERING_DESIGN_AND_ARCHITECTURE.md#9-1000-simulation-extreme-envelope-expansion-campaign--5-low-cost-cots-upgrades-140--110-g)) | Yes ([`monte_carlo_1000_envelope_expander.py`](monte_carlo_1000_envelope_expander.py), `45.2%` $\rightarrow$ `99.6%` pass) | Software-in-the-loop (`SITL`) | No | No |
 | **Spool-Lag Lead Filter, `EGT < 280 °C` Flameout Cutoff & Affine-Breguet RTH** | Yes | Yes (`pi_turbine_autonomy.py`) | Software-in-the-loop (`SITL`) | No (static turbine stand open) | No |
 | **Slowed `25–28 m/s` Parachute Survival-Capsule Release (`X_CG = 595 mm`)** | Yes | Yes (hard-inhibited `> 30 m/s`) | Not yet drop-tested | No | No (`Poliisi` / `RVL` / `Pelastuslaitos` MoU) |
 | **`FIN-LAB-02` `350–400 km/h` High-Speed Envelope & `[P12]` Enablers** | Yes | Yes (`northern_flank_red_gap_solver.py`) | Analytical / CAD model | No (winter range validation open) | No |
@@ -159,7 +160,10 @@ open simulator_ui/flight_simulator.html
 # 5. Run the FIN-LAB Civilian Airspace-Safety & Corridor Benchmark Solver
 python3 northern_flank_red_gap_solver.py
 
-# 6. Run the Full Automated Unit Test & Non-Chinese/Civilian-Wording Linter Suite (7/7 tests)
+# 6. Run the 1,000-Simulation Extreme Envelope Expansion Campaign (500 Baseline vs. 500 Upgraded COTS Runs)
+python3 monte_carlo_1000_envelope_expander.py
+
+# 7. Run the Full Automated Unit Test & Non-Chinese/Civilian-Wording Linter Suite (8/8 tests)
 python3 -B -m unittest discover -s tests -v
 ```
 

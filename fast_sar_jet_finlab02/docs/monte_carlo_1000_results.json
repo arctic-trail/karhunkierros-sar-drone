@@ -1,0 +1,195 @@
+{
+  "campaign_title": "1,000-Simulation Extreme Envelope Expansion Campaign (FIN-LAB-02)",
+  "total_simulations_executed": 1000,
+  "execution_time_s": 0.017,
+  "upgrade_package": {
+    "enabled": true,
+    "e1_leading_edge_deicer_35w": true,
+    "e2_arctic_fuel_heater_neg48c": true,
+    "e3_boom_fiber_spool_12km": true,
+    "e4_winglets_and_flaperon_mix": true,
+    "e5_indi_control_reallocation": true,
+    "added_fixed_cost_eur": 140.0,
+    "added_fixed_mass_kg": 0.11,
+    "optional_fiber_pod_cost_eur": 85.0,
+    "optional_fiber_pod_mass_kg": 1.15
+  },
+  "cohort_a_baseline_500": {
+    "total_runs": 500,
+    "airframe_survival_rate_pct": 100.0,
+    "mission_completion_rate_pct": 45.2,
+    "safe_capsule_drop_rate_pct": 45.6,
+    "mean_takeoff_roll_m": 23.3,
+    "mean_ld_max": 12.34,
+    "mean_practical_radius_km": 23.3,
+    "mean_nav_cep_m": 3.13,
+    "mean_stall_speed_ms": 17.35,
+    "fiber_guillotine_events": 0
+  },
+  "cohort_b_expanded_500": {
+    "total_runs": 500,
+    "airframe_survival_rate_pct": 100.0,
+    "mission_completion_rate_pct": 99.6,
+    "safe_capsule_drop_rate_pct": 100.0,
+    "mean_takeoff_roll_m": 17.1,
+    "mean_ld_max": 13.9,
+    "mean_practical_radius_km": 29.3,
+    "mean_nav_cep_m": 0.94,
+    "mean_stall_speed_ms": 15.42,
+    "fiber_guillotine_events": 67
+  },
+  "regime_breakdown_10x50": {
+    "R01_NOMINAL_ARCTIC_BASELINE": {
+      "description": "Standard -20 C to -30 C Lapland winter SAR mission",
+      "runs_per_cohort": 50,
+      "baseline_mission_success_pct": 100.0,
+      "expanded_mission_success_pct": 100.0,
+      "delta_gain_pct": 0.0
+    },
+    "R02_DEEP_POLAR_VORTEX_NEG45C": {
+      "description": "Extreme -35 C to -46 C cold soak (Jet A-1 wax & battery internal-resistance limit)",
+      "runs_per_cohort": 50,
+      "baseline_mission_success_pct": 52.0,
+      "expanded_mission_success_pct": 100.0,
+      "delta_gain_pct": 48.0
+    },
+    "R03_GALE_HEADWIND_24MS_SHEAR": {
+      "description": "18 to 26 m/s (65-94 km/h) gale headwind + 18 m/s crosswind shear",
+      "runs_per_cohort": 50,
+      "baseline_mission_success_pct": 76.0,
+      "expanded_mission_success_pct": 100.0,
+      "delta_gain_pct": 24.0
+    },
+    "R04_SEVERE_GLAZE_ICING_PITOT": {
+      "description": "Heavy supercooled freezing drizzle (ice_severity 1.2-2.0x) + Pitot tube ice bridging",
+      "runs_per_cohort": 50,
+      "baseline_mission_success_pct": 52.0,
+      "expanded_mission_success_pct": 100.0,
+      "delta_gain_pct": 48.0
+    },
+    "R05_MOUNTAIN_WAVE_ROTOR_35G": {
+      "description": "Severe -7.5 m/s vertical lee-wave downdraft rotor + turbulence during 25.5 m/s drop",
+      "runs_per_cohort": 50,
+      "baseline_mission_success_pct": 18.0,
+      "expanded_mission_success_pct": 100.0,
+      "delta_gain_pct": 82.0
+    },
+    "R06_TOTAL_EW_BLACKOUT_72DB": {
+      "description": "60-75 dB J/S broad-spectrum GNSS/RF jamming saturating standard CRPA",
+      "runs_per_cohort": 50,
+      "baseline_mission_success_pct": 4.0,
+      "expanded_mission_success_pct": 100.0,
+      "delta_gain_pct": 96.0
+    },
+    "R07_CO_ALTITUDE_55MS_INTERCEPT": {
+      "description": "50-56 m/s high-speed interceptor drone + acoustic/ballistic impulse at 55 m AGL",
+      "runs_per_cohort": 50,
+      "baseline_mission_success_pct": 88.0,
+      "expanded_mission_success_pct": 100.0,
+      "delta_gain_pct": 12.0
+    },
+    "R08_SINGLE_RUDDERVATOR_JAM": {
+      "description": "1 of 2 Lambda-tail ruddervators jammed at +11 deg in 16 m/s crosswind",
+      "runs_per_cohort": 50,
+      "baseline_mission_success_pct": 0.0,
+      "expanded_mission_success_pct": 100.0,
+      "delta_gain_pct": 100.0
+    },
+    "R09_HIGH_ALT_SLUSH_TAKEOFF": {
+      "description": "900-1,400 m elevation deep wet snow/slush strip (mu = 0.14-0.17)",
+      "runs_per_cohort": 50,
+      "baseline_mission_success_pct": 62.0,
+      "expanded_mission_success_pct": 100.0,
+      "delta_gain_pct": 38.0
+    },
+    "R10_COMPOUND_TORTURE_STRESS": {
+      "description": "Simultaneous -40 C + 1.5x icing + 20 m/s wind + 65 dB EW + 52 m/s intercept + servo fault",
+      "runs_per_cohort": 50,
+      "baseline_mission_success_pct": 0.0,
+      "expanded_mission_success_pct": 96.0,
+      "delta_gain_pct": 96.0
+    }
+  },
+  "configuration_breakdown": {
+    "VARIANT_H_EVO": {
+      "name": "Iteration 1 Baseline: Variant H-Evo (2.20 m Hybrid Dorsal-Jet + Electric Loiter)",
+      "baseline_success_pct": 39.3,
+      "expanded_success_pct": 100.0,
+      "expanded_mean_radius_km": 29.1,
+      "expanded_mean_takeoff_m": 17.7,
+      "expanded_mean_ld": 14.55
+    },
+    "FIN_LAB_02_FAST": {
+      "name": "Initiative #3: FIN-LAB-02 High-Speed Corridor Responder (1.28 m 60\u00b0 Swept, 400+ km/h)",
+      "baseline_success_pct": 57.1,
+      "expanded_success_pct": 97.6,
+      "expanded_mean_radius_km": 31.1,
+      "expanded_mean_takeoff_m": 17.4,
+      "expanded_mean_ld": 11.28
+    },
+    "VARIANT_H_TWINBOOM": {
+      "name": "Iteration 2A Trade Study: Variant H-TwinBoom (Inverted-V Tail, 2.30 m Span)",
+      "baseline_success_pct": 36.1,
+      "expanded_success_pct": 100.0,
+      "expanded_mean_radius_km": 26.8,
+      "expanded_mean_takeoff_m": 16.5,
+      "expanded_mean_ld": 14.23
+    },
+    "VARIANT_H_CANARD": {
+      "name": "Iteration 2B Trade Study: Variant H-Canard (Forward Lifting Canard + Rear Swept Wing)",
+      "baseline_success_pct": 33.7,
+      "expanded_success_pct": 100.0,
+      "expanded_mean_radius_km": 30.2,
+      "expanded_mean_takeoff_m": 18.8,
+      "expanded_mean_ld": 14.38
+    },
+    "VARIANT_H_STEALTH_VG": {
+      "name": "Iteration 3 Trade Study: Variant H-StealthVG (Variable-Geometry Swing-Wing 22\u00b0\u201350\u00b0)",
+      "baseline_success_pct": 50.6,
+      "expanded_success_pct": 100.0,
+      "expanded_mean_radius_km": 29.2,
+      "expanded_mean_takeoff_m": 15.3,
+      "expanded_mean_ld": 15.1
+    },
+    "FAST_CLIMBER_285": {
+      "name": "Initiative #9: 285 km/h Cold-Rated Allied COTS Fast-Climber & Soft-Net Responder",
+      "baseline_success_pct": 54.2,
+      "expanded_success_pct": 100.0,
+      "expanded_mean_radius_km": 18.3,
+      "expanded_mean_takeoff_m": 3.6,
+      "expanded_mean_ld": 11.99
+    }
+  },
+  "envelope_expansion_deltas": {
+    "cold_soak_floor_c": {
+      "baseline": -30.0,
+      "expanded": -48.0,
+      "upgrade": "E2 Fuel-Return Heat Exchanger + FSII"
+    },
+    "max_headwind_operational_ms": {
+      "baseline": 16.0,
+      "expanded": 24.5,
+      "upgrade": "E4 Winglets + E5 Boosted Idle"
+    },
+    "max_glaze_ice_survival_mult": {
+      "baseline": 0.85,
+      "expanded": 2.0,
+      "upgrade": "E1 35W Carbon-Veil Leading-Edge De-Icer"
+    },
+    "ew_jamming_immunity_js_db": {
+      "baseline": 48.0,
+      "expanded": 120.0,
+      "upgrade": "E3 12km Boom Fiber Spool + Optical Terrain Flow"
+    },
+    "takeoff_roll_slush_reduction_pct": {
+      "baseline": 0.0,
+      "expanded": -19.2,
+      "upgrade": "E4 +12 deg Symmetric Flaperon Mix"
+    },
+    "single_ruddervator_jam_recovery_pct": {
+      "baseline": 46.0,
+      "expanded": 98.0,
+      "upgrade": "E5 INDI Split-Tail Control Reallocation"
+    }
+  }
+}

@@ -197,7 +197,7 @@ class TestArcticFastSarJetSuite(unittest.TestCase):
                     checked_files += 1
         self.assertGreaterEqual(checked_files, 5)
 
-        # Verify docs/images/ contains the 2 CAD blueprints + 16 sar_design_* plates and zero viz_* kill-geometry charts
+        # Verify docs/images/ contains the 2 CAD blueprints + 17 sar_design_* plates and zero viz_* kill-geometry charts
         img_dir = os.path.join(REPO_ROOT, "docs", "images")
         self.assertTrue(os.path.isdir(img_dir))
         imgs = sorted(os.listdir(img_dir))
@@ -211,7 +211,7 @@ class TestArcticFastSarJetSuite(unittest.TestCase):
         design_plates = [f for f in imgs if f.startswith("sar_design_")]
         cad_plates = [f for f in imgs if f.startswith("sar_cad_blueprint_")]
         self.assertEqual(len(cad_plates), 2)
-        self.assertEqual(len(design_plates), 16)
+        self.assertEqual(len(design_plates), 17)
         self.assertTrue(
             os.path.exists(
                 os.path.join(REPO_ROOT, "docs", "ENGINEERING_DESIGN_AND_ARCHITECTURE.md")
@@ -317,6 +317,26 @@ class TestArcticFastSarJetSuite(unittest.TestCase):
             50.0,
             "Without EKF3 spoof rejection, GNSS spoofing should pull capsule drop off target",
         )
+
+    def test_08_1000_simulation_envelope_expansion(self):
+        """Verify the 1,000-simulation extreme envelope expansion suite (500 baseline vs 500 upgraded COTS runs)."""
+        import monte_carlo_1000_envelope_expander as mc1000
+
+        report = mc1000.run_1000_simulation_campaign(seed=20261021)
+        self.assertEqual(report["total_simulations_executed"], 1000)
+
+        b_sum = report["cohort_a_baseline_500"]
+        e_sum = report["cohort_b_expanded_500"]
+        self.assertEqual(b_sum["total_runs"], 500)
+        self.assertEqual(e_sum["total_runs"], 500)
+        self.assertEqual(b_sum["airframe_survival_rate_pct"], 100.0)
+        self.assertEqual(e_sum["airframe_survival_rate_pct"], 100.0)
+        self.assertGreaterEqual(e_sum["mission_completion_rate_pct"], 98.0)
+        self.assertGreater(e_sum["mission_completion_rate_pct"] - b_sum["mission_completion_rate_pct"], 45.0)
+        self.assertLess(e_sum["mean_takeoff_roll_m"], b_sum["mean_takeoff_roll_m"])
+        self.assertGreater(e_sum["mean_ld_max"], b_sum["mean_ld_max"])
+        self.assertGreater(e_sum["mean_practical_radius_km"], b_sum["mean_practical_radius_km"])
+        self.assertGreater(e_sum["fiber_guillotine_events"], 0)
 
 
 if __name__ == "__main__":
