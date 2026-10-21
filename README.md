@@ -9,6 +9,12 @@
 > * **Tier-3 Fast-SAR Jet-Hybrid & `[P12]` Gap-Closure Module (`FIN-LAB-02` `350–400 km/h` Open 3D `STEP AP214` CAD + `12-Cell +15 °C` Rapid-Launch Box + `285 km/h` Cold-Rated COTS Fast-Climber):** [`fast_sar_jet_finlab02/README.md`](fast_sar_jet_finlab02/README.md) | **16-Plate Engineering Design & Subsystem Gallery:** [`fast_sar_jet_finlab02/docs/ENGINEERING_DESIGN_AND_ARCHITECTURE.md`](fast_sar_jet_finlab02/docs/ENGINEERING_DESIGN_AND_ARCHITECTURE.md)
 > * **License:** [`MIT License`](LICENSE)
 
+> **🛠️ PLEASE FORK, BUILD, BREAK & IMPROVE THIS (NO PERMISSION NEEDED)**
+> These repositories are **100% open-source (`MIT License`) public-good engineering** for harsh Nordic & Baltic conditions.
+> * **No ego, no gatekeeping:** You do **not** need to ask permission to fork this, build a module on your kitchen table, use it for a university course/thesis, or spin a commercial product out of it.
+> * **Test logs > theory:** Almost everything here is currently at bench/simulation stage. If you build a €68 acoustic pod, freeze a battery at `-25 °C`, or 3D-print a sub-scale airframe and prove our numbers wrong—**please open a Pull Request or Issue with your real-world data!**
+> * **100% Civilian & Legal to Tinker With:** Everything in these repos (weather/wildlife nodes, optical diodes, airport/corridor acoustic logging, SAR navigation, cooperative own-drone soft-net recovery) is strictly civilian and legal for students, hobbyists, and labs to build and test.
+
 > **PROJECT STATUS DISCLAIMER — EARLY-STAGE ENGINEERING CONCEPT & SIMULATION REFERENCE (`MIT LICENSE`):**
 > - **Concept & Simulation Stage (First Public Release):** This repository publishes an open-source **engineering concept, COTS hardware bill-of-materials (`€1,189–€1,329`), and software simulation reference architecture** for wilderness search-and-rescue (SAR). It is **not** a flight-certified aircraft, an operational rescue service, or a field-deployed system.
 > - **What Is Built & Tested Today vs. What Remains Conceptual:**
