@@ -3542,8 +3542,8 @@ function draw2DAirfoilCFD(ctx, x0, y0, w, h, sample, flow, cfg, env) {
   ctx.stroke();
   ctx.restore();
 
-  // 2. Draw Separated Turbulent Wake / Recirculation Bubble Zone behind x_sep
-  if (flow.x_sep_mean < 0.96) {
+  // 2. Draw Separated Turbulent Wake / Recirculation Bubble Zone behind x_sep (only when x_sep < 92%c)
+  if (flow.x_sep_mean < 0.92) {
     ctx.save();
     const xSep = flow.x_sep_mean;
     const [spX, spY] = toAirfoilScreen(xSep, airfoilUpperZ(xSep));
@@ -3611,8 +3611,8 @@ function draw2DAirfoilCFD(ctx, x0, y0, w, h, sample, flow, cfg, env) {
         const xc = Math.min(1.0, relX);
         const surfScreen = toAirfoilScreen(xc, airfoilUpperZ(xc));
         const surfTargetDy = (surfScreen[1] - cy) - gap * (1.0 + 0.12 * xc);
-        if (xc <= flow.x_sep_mean) {
-          // Cleanly attached boundary layer hugging upper camber
+        if (flow.x_sep_mean >= 0.92 || xc <= flow.x_sep_mean) {
+          // Cleanly attached boundary layer hugging upper camber and smooth trailing-edge downwash wake
           const blend = distFactor * 0.86 * Math.exp(-Math.max(0.0, relX - 1.0) * 0.65);
           const downwash = Math.max(0.0, relX - 1.0) * sinA * 0.32 * chordPx * distFactor;
           dy = freestreamDy * (1.0 - blend) + (surfTargetDy + downwash) * blend;
@@ -3729,17 +3729,46 @@ function draw2DAirfoilCFD(ctx, x0, y0, w, h, sample, flow, cfg, env) {
   ctx.lineWidth = 1.8;
   ctx.stroke();
 
-  // Internal structural wing main spar & aft shear web (aerospace cross-section realism)
+  // Internal structural wing main spar (0.25c, 20mm carbon tube) & aft flaperon hinge spar (0.74c, 12mm carbon tube)
   const [sp1U, sp1Uy] = toAirfoilScreen(0.25, airfoilUpperZ(0.25) + 0.008);
   const [sp1L, sp1Ly] = toAirfoilScreen(0.25, airfoilLowerZ(0.25) - 0.008);
-  const [sp2U, sp2Uy] = toAirfoilScreen(0.66, airfoilUpperZ(0.66) + 0.006);
-  const [sp2L, sp2Ly] = toAirfoilScreen(0.66, airfoilLowerZ(0.66) - 0.006);
-  ctx.strokeStyle = "rgba(180, 215, 255, 0.45)";
+  const [sp2U, sp2Uy] = toAirfoilScreen(0.74, airfoilUpperZ(0.74) + 0.005);
+  const [sp2L, sp2Ly] = toAirfoilScreen(0.74, airfoilLowerZ(0.74) - 0.005);
+  ctx.strokeStyle = "rgba(180, 215, 255, 0.55)";
   ctx.lineWidth = 2.2;
   ctx.beginPath();
   ctx.moveTo(sp1U, sp1Uy); ctx.lineTo(sp1L, sp1Ly);
   ctx.moveTo(sp2U, sp2Uy); ctx.lineTo(sp2L, sp2Ly);
   ctx.stroke();
+
+  // Hinged Trailing-Edge Flaperon (0.74c - 1.00c, combining +12 deg low-speed droop + differential roll aileron)
+  const vtasNow = sample.vtas_ms || ((sample.vtas_kmh || 180) / 3.6);
+  const flapDroopDeg = vtasNow < 36.0 ? 12.0 * Math.min(1.0, (36.0 - vtasNow) / 10.0) : 0.0;
+  const ailDeflDeg = (sample.da_deg || (flow.roll_deg * 0.18)) || 0.0;
+  const flaperonDeg = flapDroopDeg + ailDeflDeg;
+  const [hingeX, hingeY] = toAirfoilScreen(0.74, 0.5 * (airfoilUpperZ(0.74) + airfoilLowerZ(0.74)));
+  const [teOrigX, teOrigY] = toAirfoilScreen(1.00, 0.0);
+  const flapLenPx = Math.hypot(teOrigX - hingeX, teOrigY - hingeY);
+  const baseFlapAng = Math.atan2(teOrigY - hingeY, teOrigX - hingeX);
+  const deflFlapAng = baseFlapAng + (flaperonDeg * Math.PI) / 180.0;
+  ctx.save();
+  ctx.translate(hingeX, hingeY);
+  ctx.rotate(deflFlapAng);
+  ctx.fillStyle = Math.abs(flaperonDeg) > 1.5 ? "rgba(0, 216, 255, 0.42)" : "rgba(58, 90, 133, 0.55)";
+  ctx.strokeStyle = "#00d8ff";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(0, -chordPx * 0.024);
+  ctx.lineTo(flapLenPx, 0);
+  ctx.lineTo(0, chordPx * 0.022);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+  ctx.fillStyle = "#7ce8ff";
+  ctx.font = "bold 8.5px SFMono-Regular, Consolas, monospace";
+  ctx.textAlign = "center";
+  ctx.fillText(`Flaperon δf=${flaperonDeg >= 0 ? "+" : ""}${flaperonDeg.toFixed(1)}°`, (hingeX + teOrigX) * 0.5, Math.max(hingeY, teOrigY) + 14);
 
   // Color-coded Upper-Surface Boundary Layer Attachment Ribbon (Green up to x_sep, Red after x_sep)
   ctx.lineWidth = 3.6;
