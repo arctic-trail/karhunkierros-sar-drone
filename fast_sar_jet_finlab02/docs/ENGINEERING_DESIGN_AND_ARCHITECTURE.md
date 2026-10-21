@@ -39,7 +39,7 @@ The dorsal engine bay uses twin `10 mm` pultruded carbon rails (`80 mm` spacing)
 - **Configuration A (Baseline):** German **JetCat P100-RX-BL** (`100 N` thrust, `Ø97 mm`, `1,080 g` bare / `1,380 g` installed, `€2,499` incl. factory ECU V6) mounted at $X_{\text{eng}} = 845.0\text{ mm}$.
 - **Configuration B (High-Margin Rough-Field / Hot-High Option):** Spanish **Xicoy X132** (`132 N` thrust, `Ø99 mm`, `960 g` bare / `1,140 g` installed, `€2,650` incl. factory telemetry ECU) shifted `+17.0 mm` aft to $X_{\text{eng}} = 862.0\text{ mm}$ to preserve $X_{\text{CG}} = 595.0\text{ mm}$ while adding **`+32%` thrust margin**.
 
-![Universal Dorsal Engine Bay Zero-Ballast Swap](images/sar_design_04_universal_dorsal_engine_bay_v1.jpg)
+![Universal Dorsal Engine Bay Zero-Ballast Swap](images/sar_design_04_universal_dorsal_engine_bay_v2.jpg)
 
 ---
 
@@ -71,7 +71,7 @@ The gasketed belly payload bay at Station `A-A` (`X_CG = 595.0 mm`) supports two
 
 ### Shared CAD Family Across Three Payload Classes (`Class 1` Testbed $\rightarrow$ `Class 2 Variant L` $\rightarrow$ `Class 3 Variant H`)
 
-![Three Payload Classes Sharing the Chined Center-Body + Twin-Boom 110-deg Inverted Lambda-Tail CAD Architecture](images/sar_design_08_payload_class_variants_v1.jpg)
+![Three Payload Classes Sharing the Chined Center-Body + Twin-Boom 110-deg Inverted Lambda-Tail CAD Architecture](images/sar_design_08_payload_class_variants_v2.jpg)
 
 ---
 
@@ -105,15 +105,15 @@ Implemented in [`northern_flank_red_gap_solver.py`](../northern_flank_red_gap_so
 - **Gate 1 (`~12 km` Head-On Visual/Thermal ID & Emergency Capsule Drop at `T+138 s`):** From a `30 km` `[P11-AIR]` / civil primary-radar cue (`4.4 ms` `FIN-LAB-01` track fusion), the `350–400 km/h` `FIN-LAB-02` responder launches head-on to achieve positive visual/LWIR identification or emergency survival-capsule delivery **`~12.4 km` out at `T+138 s`** (`87 s` before inner-perimeter arrival).
 - **Gate 2 (`8 km` Cold-Rated `285 km/h` Fast-Climber & Non-Pyrotechnic Dyneema Soft-Net Parachute Recovery at `T+165 s`):** Dispatched from a `+15 °C` heated 12-cell shelter (`6.5 s` clamshell lid), a cold-rated `285 km/h` COTS quadcopter uses **`50 Hz` 3D Augmented Proportional Navigation (`APN`, $N'=4.0$)** optical/thermal tracking (`0.08 m` terminal miss distance) to deploy a **non-pyrotechnic `2.5 × 2.5 m` breakaway Dyneema entanglement soft-net and `1.2 m²` recovery parachute**, bringing wayward rotorcraft down gently at **`4.11 m/s` (`<15 J` ground impact, zero firearms, zero pyrotechnics, zero LiPo fire hazard)**.
 
-![High-Speed Corridor Safety & SAR Rendezvous Geometry](images/sar_design_12_corridor_rendezvous_and_soft_net_v1.jpg)
+![High-Speed Corridor Safety & SAR Rendezvous Geometry](images/sar_design_12_corridor_rendezvous_and_soft_net_v2.jpg)
 
 ### Scaling Civil U-Space Airspace-Safety & Emergency SAR Dispatch (`800-Event` Peak Benchmark)
 
-![800-Event Peak Civil U-Space Airspace-Safety & Emergency SAR Dispatch Flow](images/sar_design_13_800_event_uspace_benchmark_v1.jpg)
+![800-Event Peak Civil U-Space Airspace-Safety & Emergency SAR Dispatch Flow](images/sar_design_13_800_event_uspace_benchmark_v2.jpg)
 
 ### Closing All Five Priority Civilian Benchmarks (`I, H, A, J, K`) in 100% China-Free COTS Scope
 
-![Closing All Five Priority Civilian Benchmarks in 100% China-Free COTS Scope](images/sar_design_14_five_priority_benchmarks_v1.jpg)
+![Closing All Five Priority Civilian Benchmarks in 100% China-Free COTS Scope](images/sar_design_14_five_priority_benchmarks_v2.jpg)
 
 ---
 

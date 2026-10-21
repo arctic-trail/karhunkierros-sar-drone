@@ -13,6 +13,7 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
+import flight_simulator_6dof as flight_sim
 import northern_flank_red_gap_solver as gap_solver
 import sar_sizing_calculator as sizing
 from sar_autonomy import pi_turbine_autonomy as autonomy
@@ -216,6 +217,44 @@ class TestArcticFastSarJetSuite(unittest.TestCase):
                 os.path.join(REPO_ROOT, "docs", "ENGINEERING_DESIGN_AND_ARCHITECTURE.md")
             )
         )
+
+    def test_06_6dof_end_to_end_flight_simulator(self):
+        """Verify 6-DOF end-to-end flight dynamics simulator across all 6 configurations and environments."""
+        arctic_env = flight_sim.EnvironmentConditions(
+            surface_temp_c=-30.0,
+            wind_speed_10m_mps=12.0,
+            wind_dir_from_deg=45.0,
+            turbulence_intensity="MODERATE",
+            gust_amplitude_mps=7.0,
+            icing_lwc_g_m3=0.25,
+            deicer_enabled=True,
+        )
+        rows = flight_sim.compare_all_configurations(arctic_env)
+        self.assertEqual(len(rows), 6)
+        for r in rows:
+            self.assertTrue(r["mission_success"], f"Config {r['config_id']} failed end-to-end mission")
+            self.assertEqual(r["mil_std_level"], 1, f"Config {r['config_id']} failed MIL-STD-1797 Level 1")
+            self.assertLessEqual(r["touchdown_vz_mps"], 4.5)
+            self.assertLessEqual(r["capsule_cep_m"], 10.0)
+
+        # Verify belly-skid landing and +15 C warm-weather comparison on VARIANT_H_EVO
+        warm_env = flight_sim.EnvironmentConditions(
+            surface_temp_c=15.0,
+            wind_speed_10m_mps=4.0,
+            turbulence_intensity="LIGHT",
+            gust_amplitude_mps=2.0,
+            icing_lwc_g_m3=0.0,
+        )
+        res_skid = flight_sim.run_end_to_end_6dof_mission(
+            config_id="VARIANT_H_EVO",
+            env=warm_env,
+            launch_mode="DROP_TROLLEY",
+            landing_mode="BELLY_SKID",
+        )
+        self.assertTrue(res_skid.mission_success)
+        self.assertEqual(len(res_skid.phase_summary), 8)
+        self.assertGreater(res_skid.landing_rollout_m, 5.0)
+        self.assertEqual(res_skid.max_ice_accretion_mm, 0.0)
 
 
 if __name__ == "__main__":

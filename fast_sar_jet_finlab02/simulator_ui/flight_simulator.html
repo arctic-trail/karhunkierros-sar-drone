@@ -1,0 +1,1998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Arctic Trail Tier-3 Fast-SAR Jet — 6-DOF End-to-End Flight Dynamics & Aerodynamics Simulator</title>
+<style>
+  :root {
+    --bg-dark: #07101e;
+    --bg-panel: #0d1b30;
+    --bg-card: #132642;
+    --border: #23416b;
+    --text-main: #e8f1fc;
+    --text-muted: #8ea9cc;
+    --accent-cyan: #00d4ff;
+    --accent-orange: #ff6b2b;
+    --accent-green: #18e07f;
+    --accent-amber: #ffbe2e;
+    --accent-red: #ff4757;
+    --accent-purple: #a55eea;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg-dark);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+    overflow-x: hidden;
+  }
+  header {
+    background: linear-gradient(90deg, #09172b 0%, #122b4d 50%, #09172b 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .title-block h1 {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    color: #ffffff;
+  }
+  .title-block p {
+    font-size: 11.5px;
+    color: var(--text-muted);
+  }
+  .header-badges {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .badge {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+  }
+  .badge.cyan { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+  .badge.green { border-color: var(--accent-green); color: var(--accent-green); }
+  .badge.orange { border-color: var(--accent-orange); color: var(--accent-orange); }
+
+  .main-grid {
+    display: grid;
+    grid-template-columns: 330px 1fr 340px;
+    gap: 10px;
+    padding: 10px;
+    min-height: calc(100vh - 58px);
+  }
+  @media (max-width: 1300px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 11px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .panel-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--accent-cyan);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .control-group {
+    background: var(--bg-card);
+    border: 1px solid #1d375c;
+    border-radius: 5px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .control-row {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .control-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11.5px;
+    color: var(--text-muted);
+  }
+  .control-label span.val {
+    color: var(--text-main);
+    font-weight: 700;
+    font-family: "SFMono-Regular", Consolas, monospace;
+  }
+  select, input[type="range"], button {
+    width: 100%;
+  }
+  select {
+    background: #081324;
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px 7px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  input[type="range"] {
+    accent-color: var(--accent-cyan);
+    height: 5px;
+    cursor: pointer;
+  }
+  .btn-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+  }
+  button {
+    background: #173257;
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  button:hover { background: #214575; border-color: var(--accent-cyan); }
+  button.primary { background: #0077b6; border-color: var(--accent-cyan); color: #fff; }
+  button.orange { background: #b34212; border-color: var(--accent-orange); color: #fff; }
+  button.active { background: #0096c7; border-color: #fff; }
+
+  .phase-bar {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+  }
+  .phase-pill {
+    background: #091526;
+    border: 1px solid #1e385d;
+    border-radius: 4px;
+    padding: 5px 4px;
+    text-align: center;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    user-select: none;
+  }
+  .phase-pill:hover { border-color: var(--accent-cyan); color: #fff; }
+  .phase-pill.current {
+    background: linear-gradient(135deg, #005f8d, #0096c7);
+    border-color: var(--accent-cyan);
+    color: #fff;
+    box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+  }
+  .phase-pill.done {
+    border-color: #1c6b4a;
+    color: var(--accent-green);
+  }
+
+  .canvas-wrap {
+    position: relative;
+    background: #050c17;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+  }
+  .viewport-overlay {
+    position: absolute;
+    top: 8px;
+    left: 10px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    pointer-events: none;
+  }
+  .cam-toolbar {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    display: flex;
+    gap: 4px;
+  }
+  .cam-toolbar button {
+    width: auto;
+    padding: 3px 8px;
+    font-size: 10.5px;
+  }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  .kpi-card {
+    background: var(--bg-card);
+    border: 1px solid #1d375c;
+    border-radius: 5px;
+    padding: 6px 8px;
+  }
+  .kpi-card .k-label {
+    font-size: 10.5px;
+    color: var(--text-muted);
+  }
+  .kpi-card .k-val {
+    font-size: 14px;
+    font-weight: 700;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    color: #fff;
+  }
+  .kpi-card .k-sub {
+    font-size: 10px;
+    color: var(--accent-cyan);
+  }
+
+  table.comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    font-family: "SFMono-Regular", Consolas, monospace;
+  }
+  table.comp-table th, table.comp-table td {
+    border: 1px solid #1e385d;
+    padding: 4px 6px;
+    text-align: right;
+  }
+  table.comp-table th:first-child, table.comp-table td:first-child {
+    text-align: left;
+  }
+  table.comp-table th {
+    background: #0a182c;
+    color: var(--accent-cyan);
+    font-weight: 700;
+  }
+  table.comp-table tr.selected-row {
+    background: rgba(0, 212, 255, 0.14);
+  }
+  .legend-row {
+    display: flex;
+    gap: 12px;
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+  }
+  .legend-dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    margin-right: 4px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-block">
+    <h1>ARCTIC TRAIL TIER-3 FAST-SAR JET — 6-DOF END-TO-END FLIGHT DYNAMICS & AERODYNAMICS SIMULATOR</h1>
+    <p>Coupled 6-DOF Rigid-Body + Variable-Mass RK4 Solver · 8-Phase Autonomous Mission · Chined Center-Body + Dorsal Jet + Twin-Boom 110° Inverted Λ-Tail SSOT</p>
+  </div>
+  <div class="header-badges">
+    <span class="badge cyan" id="hdrConfigBadge">VARIANT_H_EVO (14.95 kg)</span>
+    <span class="badge orange" id="hdrPhaseBadge">PHASE: 1_LAUNCH</span>
+    <span class="badge green" id="hdrQualBadge">MIL-STD-1797 LEVEL 1</span>
+  </div>
+</header>
+
+<div class="main-grid">
+  <!-- LEFT COLUMN: CONFIGURATION, ENVIRONMENT & MISSION CONTROLS -->
+  <div class="panel">
+    <div class="panel-title">
+      <span>1. Airframe & Propulsion Configuration</span>
+      <span style="font-size:10px;color:var(--text-muted)">CAD SSOT</span>
+    </div>
+    <div class="control-group">
+      <div class="control-row">
+        <div class="control-label"><span>Airframe Configuration</span></div>
+        <select id="cfgSelect">
+          <option value="VARIANT_H_EVO">1. Variant H-Evo (2.20 m 16° Fixed Baseline, 100 N + 850 W)</option>
+          <option value="FIN_LAB_02_FAST">2. FIN-LAB-02 High-Speed Responder (1.28 m 60° Swept, 132 N)</option>
+          <option value="VARIANT_H_TWINBOOM">3. Variant H-TwinBoom (2.30 m Span, High Pitch/Yaw Damping)</option>
+          <option value="VARIANT_H_CANARD">4. Variant H-Canard (2.10 m Forward Canard Stall-Limiting)</option>
+          <option value="VARIANT_H_STEALTH_VG">5. Variant H-StealthVG (22°–50° Variable-Sweep Swing-Wing)</option>
+          <option value="FAST_CLIMBER_285">6. Cold-Rated 285 km/h COTS Fast-Climber & Soft-Net (3.8 kg)</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <div class="control-label"><span>Launch Mode</span><span class="val" id="lblLaunch">DROP_TROLLEY</span></div>
+        <select id="launchSelect">
+          <option value="DROP_TROLLEY">Detachable 3-Wheel Tundra Drop-Trolley (Runway/Snow Roll)</option>
+          <option value="CATAPULT">3.5g Pneumatic / Bungee Rail Catapult Launch</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <div class="control-label"><span>Landing / Recovery Mode</span><span class="val" id="lblLanding">PARACHUTE_AIRBAG</span></div>
+        <select id="landingSelect">
+          <option value="PARACHUTE_AIRBAG">Dorsal Reefed Parachute + Belly Airbag Touchdown</option>
+          <option value="BELLY_SKID">Autopilot Exponential Flare + Kevlar Belly-Skid Slide</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <div class="control-label"><span>CG Payload / Capsule Mass</span><span class="val" id="valPayload">5.00 kg</span></div>
+        <input type="range" id="rngPayload" min="0.0" max="6.0" step="0.25" value="5.0" />
+      </div>
+      <div class="control-row">
+        <div class="control-label"><span>Initial Kerosene Fuel Mass</span><span class="val" id="valFuel">2.65 kg</span></div>
+        <input type="range" id="rngFuel" min="0.0" max="4.0" step="0.05" value="2.65" />
+      </div>
+      <div class="control-row">
+        <div class="control-label"><span>Transit / Dash Altitude AGL</span><span class="val" id="valCruiseAlt">180 m</span></div>
+        <input type="range" id="rngCruiseAlt" min="80" max="350" step="10" value="180" />
+      </div>
+    </div>
+
+    <div class="panel-title">
+      <span>2. Arctic Atmosphere, Wind, Turbulence & Icing</span>
+    </div>
+    <div class="control-group">
+      <div class="control-row">
+        <div class="control-label"><span>Surface Ambient Temp (ISA / Arctic)</span><span class="val" id="valTemp">-30 °C</span></div>
+        <input type="range" id="rngTemp" min="-40" max="20" step="1" value="-30" />
+      </div>
+      <div class="control-row">
+        <div class="control-label"><span>10 m Mean Wind Speed (Shear α=0.16)</span><span class="val" id="valWind">12.0 m/s</span></div>
+        <input type="range" id="rngWind" min="0" max="24" step="0.5" value="12.0" />
+      </div>
+      <div class="control-row">
+        <div class="control-label"><span>Wind Direction FROM (0°=North, 90°=East)</span><span class="val" id="valWindDir">45°</span></div>
+        <input type="range" id="rngWindDir" min="0" max="360" step="5" value="45" />
+      </div>
+      <div class="control-row">
+        <div class="control-label"><span>Dryden Spectral Turbulence</span></div>
+        <select id="turbSelect">
+          <option value="NONE">NONE (Calm Air)</option>
+          <option value="LIGHT">LIGHT (σ = 0.8 m/s)</option>
+          <option value="MODERATE" selected>MODERATE (σ = 2.1 m/s Arctic Boundary Layer)</option>
+          <option value="SEVERE">SEVERE (σ = 4.8 m/s Storm Shear)</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <div class="control-label"><span>Discrete (1 - cos) Gust Peak (t=85 s)</span><span class="val" id="valGust">7.5 m/s</span></div>
+        <input type="range" id="rngGust" min="0" max="14" step="0.5" value="7.5" />
+      </div>
+      <div class="control-row">
+        <div class="control-label"><span>Supercooled Cloud Icing LWC</span><span class="val" id="valIcing">0.25 g/m³</span></div>
+        <input type="range" id="rngIcing" min="0.00" max="0.60" step="0.05" value="0.25" />
+      </div>
+      <div class="control-row">
+        <div class="control-label"><span>Electro-Thermal Pitot + Wing De-Icer</span></div>
+        <select id="deiceSelect">
+          <option value="1" selected>ENABLED (12 W Heated Pitot + Leading-Edge Shedding)</option>
+          <option value="0">DISABLED (Unmitigated Rime Ice Accretion)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="panel-title">
+      <span>3. Simulation Playback & Presets</span>
+    </div>
+    <div class="control-group">
+      <div class="btn-row">
+        <button class="primary" id="btnPlayPause">PAUSE</button>
+        <button id="btnRestart">RESTART</button>
+        <button id="btnSpeed">SPEED: 2x</button>
+        <button class="orange" id="btnResim">RE-SOLVE</button>
+      </div>
+      <div class="control-row" style="margin-top:4px;">
+        <div class="control-label"><span>Mission Timeline Scrubber</span><span class="val" id="valTime">0.0 s / 183.0 s</span></div>
+        <input type="range" id="rngScrub" min="0" max="100" step="1" value="0" />
+      </div>
+      <div class="btn-row" style="grid-template-columns: repeat(2, 1fr); margin-top:4px;">
+        <button id="btnPresetArctic">-30 °C Arctic Gale</button>
+        <button id="btnPresetIcing">-12 °C Severe Icing</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER COLUMN: 3D CANONICAL AIRCRAFT VIEWPORT + 8-PHASE BAR + STRIP CHARTS -->
+  <div class="panel">
+    <div class="panel-title">
+      <span>8-Phase End-to-End Autonomous Mission State Machine (Click Any Phase to Jump)</span>
+      <span id="lblPhaseNote" style="font-size:11px;color:var(--accent-green);font-weight:600;">Ready</span>
+    </div>
+    <div class="phase-bar" id="phaseBar">
+      <div class="phase-pill current" data-phase="1_LAUNCH">1. LAUNCH</div>
+      <div class="phase-pill" data-phase="2_CLIMB">2. CLIMB</div>
+      <div class="phase-pill" data-phase="3_HIGH_SPEED_DASH">3. JET DASH</div>
+      <div class="phase-pill" data-phase="4_LOITER_SEARCH">4. E-LOITER</div>
+      <div class="phase-pill" data-phase="5_PAYLOAD_DROP">5. CAPSULE DROP</div>
+      <div class="phase-pill" data-phase="6_COLD_RELIGHT">6. COLD RELIGHT</div>
+      <div class="phase-pill" data-phase="7_RTB_CRUISE">7. RTB CRUISE</div>
+      <div class="phase-pill" data-phase="8_LANDING">8. LANDING</div>
+    </div>
+
+    <!-- 3D VIEWPORT + HUD -->
+    <div class="canvas-wrap" style="height: 375px;">
+      <canvas id="canvas3D" width="920" height="375"></canvas>
+      <div class="viewport-overlay">
+        <span class="badge cyan" id="ovAirframe">Unmanned Chined Fuselage + Dorsal Turbojet + Twin-Boom 110° Inverted Λ-Tail</span>
+      </div>
+      <div class="cam-toolbar">
+        <button id="camIso" class="active">3D Chase Iso</button>
+        <button id="camSide">Left Cutaway Side</button>
+        <button id="camTop">Top Planview</button>
+        <button id="camFront">Front Λ-Tail</button>
+      </div>
+    </div>
+
+    <div class="legend-row">
+      <span><i class="legend-dot" style="background:#18e07f"></i>Lift Vector (L)</span>
+      <span><i class="legend-dot" style="background:#ff4757"></i>Drag Vector (D)</span>
+      <span><i class="legend-dot" style="background:#ff6b2b"></i>Propulsion Thrust (F_jet + F_elec)</span>
+      <span><i class="legend-dot" style="background:#ffbe2e"></i>Gravity Weight (m·g)</span>
+      <span><i class="legend-dot" style="background:#00d4ff"></i>3D Ambient Wind + Gust Vector</span>
+    </div>
+
+    <!-- MULTI-CHANNEL TELEMETRY STRIP CHARTS -->
+    <div class="panel-title">
+      <span>End-to-End 6-DOF Flight Telemetry Strip Charts (Altitude, Capsule Trajectory, Speed, Attitude & Forces)</span>
+    </div>
+    <div class="canvas-wrap" style="height: 255px;">
+      <canvas id="canvasCharts" width="920" height="255"></canvas>
+    </div>
+
+    <!-- ALL 6 CONFIGURATIONS BENCHMARK TABLE -->
+    <div class="panel-title">
+      <span>All 6 Airframe Configurations — Side-by-Side End-to-End Mission Benchmark (Current Weather)</span>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="comp-table" id="compTable">
+        <thead>
+          <tr>
+            <th>Configuration</th>
+            <th>MTOW</th>
+            <th>Launch</th>
+            <th>T/O Roll</th>
+            <th>V_max Dash</th>
+            <th>Loiter Power</th>
+            <th>Drop CEP</th>
+            <th>TD V_z</th>
+            <th>SP ζ</th>
+            <th>DR ζ</th>
+            <th>MIL-1797</th>
+          </tr>
+        </thead>
+        <tbody id="compTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN: LIVE TELEMETRY KPIs, STABILITY EIGENVALUES & V-n / POLAR -->
+  <div class="panel">
+    <div class="panel-title">
+      <span>4. Live 6-DOF Flight State & Aerodynamics</span>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="k-label">True Airspeed / Mach</div>
+        <div class="k-val" id="kpiSpeed">0.0 km/h</div>
+        <div class="k-sub" id="kpiMach">0.0 m/s · Mach 0.000</div>
+      </div>
+      <div class="kpi-card">
+        <div class="k-label">Altitude AGL / Climb</div>
+        <div class="k-val" id="kpiAlt">0.0 m</div>
+        <div class="k-sub" id="kpiClimb">VSI: +0.0 m/s</div>
+      </div>
+      <div class="kpi-card">
+        <div class="k-label">AoA (α) / Sideslip (β)</div>
+        <div class="k-val" id="kpiAlpha">+0.0° / 0.0°</div>
+        <div class="k-sub" id="kpiLD">L/D = 0.0 · Wing Λ = 16°</div>
+      </div>
+      <div class="kpi-card">
+        <div class="k-label">Euler Pitch (θ) / Roll (φ)</div>
+        <div class="k-val" id="kpiAtt">+2.5° / 0.0°</div>
+        <div class="k-sub" id="kpiGLoad">Load Factor: 1.00 G</div>
+      </div>
+      <div class="kpi-card">
+        <div class="k-label">Dorsal Jet / Nose E-Prop</div>
+        <div class="k-val" id="kpiThrust">0.0 N / 0.0 N</div>
+        <div class="k-sub" id="kpiDrag">Total Drag D = 0.0 N</div>
+      </div>
+      <div class="kpi-card">
+        <div class="k-label">Mass / Fuel / 6S Battery</div>
+        <div class="k-val" id="kpiMass">14.95 kg</div>
+        <div class="k-sub" id="kpiEnergy">Fuel: 2.65 kg · Batt: 100%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="k-label">Capsule Drop & CEP</div>
+        <div class="k-val" id="kpiCapsule">STOWED (5.0 kg)</div>
+        <div class="k-sub" id="kpiCep">CCRP Dispersion: -- m</div>
+      </div>
+      <div class="kpi-card">
+        <div class="k-label">Ice Accretion & Nav CEP</div>
+        <div class="k-val" id="kpiIce">0.00 mm Ice</div>
+        <div class="k-sub" id="kpiNav">GNSS-Denied CEP: 1.5 m</div>
+      </div>
+    </div>
+
+    <div class="panel-title">
+      <span>5. Modal Stability Eigenvalues & Trim</span>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="k-label">Short-Period Mode</div>
+        <div class="k-val" id="modSP">ω_n = 7.4 rad/s</div>
+        <div class="k-sub" id="modSPZeta">Damping ζ = 0.532 (Level 1)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="k-label">Dutch Roll Mode</div>
+        <div class="k-val" id="modDR">ω_n = 3.2 rad/s</div>
+        <div class="k-sub" id="modDRZeta">Damping ζ = 0.186 (Level 1)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="k-label">Phugoid & Roll Time Const</div>
+        <div class="k-val" id="modPhugoid">T_ph = 30.8 s</div>
+        <div class="k-sub" id="modRoll">τ_roll = 0.24 s · Spiral Stable</div>
+      </div>
+      <div class="kpi-card">
+        <div class="k-label">Static Margin & Controls</div>
+        <div class="k-val" id="modSM">14.0% MAC</div>
+        <div class="k-sub" id="modCtrl">δe: 0.0° · δa: 0.0° · δr: 0.0°</div>
+      </div>
+    </div>
+
+    <div class="panel-title">
+      <span>6. Live Drag Polar & V-n Flight Envelope</span>
+    </div>
+    <div class="canvas-wrap" style="height: 205px;">
+      <canvas id="canvasPolar" width="320" height="205"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================================
+// 1. AIRFRAME CONFIGURATIONS (EXACT MATCH TO flight_simulator_6dof.py)
+// ============================================================================
+const G_ACCEL = 9.80665;
+const R_AIR = 287.05287;
+const GAMMA_AIR = 1.40;
+
+const AIRCRAFT_CATALOG = {
+  VARIANT_H_EVO: {
+    config_id: "VARIANT_H_EVO",
+    short_name: "Variant H-Evo (2.2m Baseline)",
+    name: "Iteration 1 Baseline: Variant H-Evo (2.20 m Hybrid Dorsal-Jet + Electric Loiter)",
+    wingspan_m: 2.20, wing_area_m2: 0.635, mean_chord_m: 0.289,
+    sweep_deg: 16.0, variable_sweep: false, sweep_max_deg: 16.0,
+    ixx_kg_m2: 1.42, iyy_kg_m2: 1.88, izz_kg_m2: 2.95,
+    empty_mass_kg: 7.30, fuel_mass_kg: 2.65, payload_mass_kg: 5.00, battery_capacity_wh: 222.0,
+    cl0: 0.22, cl_alpha: 4.85, cl_q: 7.2, cl_de: 0.42, cl_max_clean: 1.38, alpha_stall_deg: 14.5,
+    cd0_clean: 0.025, oswald_e: 0.84,
+    cm0: 0.035, cm_alpha: -0.68, cm_q: -12.5, cm_de: -1.18, static_margin_pct: 14.0,
+    cy_beta: -0.42, cy_dr: 0.16, cl_beta: -0.085, cl_p: -0.48, cl_r: 0.11, cl_da: 0.22,
+    cn_beta: 0.115, cn_p: -0.035, cn_r: -0.165, cn_dr: -0.095,
+    max_jet_thrust_sl_n: 100.0, idle_jet_thrust_n: 3.5, jet_z_offset_m: -0.085,
+    m_dot_idle_g_s: 1.067, c_slope_g_per_n_s: 0.0413,
+    has_electric_loiter: true, max_electric_power_w: 850.0, prop_efficiency: 0.74,
+    recovery_chute_area_m2: 5.20, recovery_chute_cd: 1.42,
+    target_dash_mps: 68.0, target_loiter_mps: 26.5,
+    livery_color: "#7693b5"
+  },
+  FIN_LAB_02_FAST: {
+    config_id: "FIN_LAB_02_FAST",
+    short_name: "FIN-LAB-02 (1.28m 60° Fast)",
+    name: "Initiative #3: FIN-LAB-02 High-Speed Corridor Responder (1.28 m 60° Swept, 400+ km/h)",
+    wingspan_m: 1.28, wing_area_m2: 0.420, mean_chord_m: 0.328,
+    sweep_deg: 60.0, variable_sweep: false, sweep_max_deg: 60.0,
+    ixx_kg_m2: 0.68, iyy_kg_m2: 1.35, izz_kg_m2: 1.82,
+    empty_mass_kg: 6.70, fuel_mass_kg: 3.00, payload_mass_kg: 1.50, battery_capacity_wh: 148.0,
+    cl0: 0.08, cl_alpha: 3.45, cl_q: 4.8, cl_de: 0.36, cl_max_clean: 1.12, alpha_stall_deg: 18.5,
+    cd0_clean: 0.0185, oswald_e: 0.78,
+    cm0: 0.020, cm_alpha: -0.52, cm_q: -8.4, cm_de: -0.92, static_margin_pct: 11.5,
+    cy_beta: -0.38, cy_dr: 0.14, cl_beta: -0.095, cl_p: -0.38, cl_r: 0.09, cl_da: 0.19,
+    cn_beta: 0.105, cn_p: -0.025, cn_r: -0.145, cn_dr: -0.085,
+    max_jet_thrust_sl_n: 132.0, idle_jet_thrust_n: 4.2, jet_z_offset_m: -0.065,
+    m_dot_idle_g_s: 1.20, c_slope_g_per_n_s: 0.0405,
+    has_electric_loiter: false, max_electric_power_w: 0.0, prop_efficiency: 0.0,
+    recovery_chute_area_m2: 4.50, recovery_chute_cd: 1.42,
+    target_dash_mps: 111.1, target_loiter_mps: 45.0,
+    livery_color: "#ff6b2b"
+  },
+  VARIANT_H_TWINBOOM: {
+    config_id: "VARIANT_H_TWINBOOM",
+    short_name: "Variant H-TwinBoom (2.3m)",
+    name: "Iteration 2A Trade Study: Variant H-TwinBoom (Extended Inverted-V Tail, 2.30 m Span)",
+    wingspan_m: 2.30, wing_area_m2: 0.660, mean_chord_m: 0.287,
+    sweep_deg: 12.0, variable_sweep: false, sweep_max_deg: 12.0,
+    ixx_kg_m2: 1.58, iyy_kg_m2: 2.25, izz_kg_m2: 3.35,
+    empty_mass_kg: 7.60, fuel_mass_kg: 2.60, payload_mass_kg: 5.00, battery_capacity_wh: 222.0,
+    cl0: 0.25, cl_alpha: 5.05, cl_q: 8.4, cl_de: 0.46, cl_max_clean: 1.44, alpha_stall_deg: 15.0,
+    cd0_clean: 0.0275, oswald_e: 0.86,
+    cm0: 0.040, cm_alpha: -0.82, cm_q: -14.8, cm_de: -1.32, static_margin_pct: 16.5,
+    cy_beta: -0.48, cy_dr: 0.19, cl_beta: -0.092, cl_p: -0.52, cl_r: 0.12, cl_da: 0.23,
+    cn_beta: 0.135, cn_p: -0.038, cn_r: -0.195, cn_dr: -0.115,
+    max_jet_thrust_sl_n: 100.0, idle_jet_thrust_n: 3.5, jet_z_offset_m: -0.055,
+    m_dot_idle_g_s: 1.067, c_slope_g_per_n_s: 0.0413,
+    has_electric_loiter: true, max_electric_power_w: 850.0, prop_efficiency: 0.75,
+    recovery_chute_area_m2: 5.40, recovery_chute_cd: 1.42,
+    target_dash_mps: 65.0, target_loiter_mps: 25.0,
+    livery_color: "#57a6ff"
+  },
+  VARIANT_H_CANARD: {
+    config_id: "VARIANT_H_CANARD",
+    short_name: "Variant H-Canard (2.1m)",
+    name: "Iteration 2B Trade Study: Variant H-Canard (Forward Canard + Rear Swept Wing)",
+    wingspan_m: 2.10, wing_area_m2: 0.610, mean_chord_m: 0.290,
+    sweep_deg: 24.0, variable_sweep: false, sweep_max_deg: 24.0,
+    ixx_kg_m2: 1.35, iyy_kg_m2: 2.05, izz_kg_m2: 2.85,
+    empty_mass_kg: 7.20, fuel_mass_kg: 2.60, payload_mass_kg: 5.00, battery_capacity_wh: 222.0,
+    cl0: 0.24, cl_alpha: 4.72, cl_q: 6.8, cl_de: 0.48, cl_max_clean: 1.35, alpha_stall_deg: 13.5,
+    cd0_clean: 0.0235, oswald_e: 0.81,
+    cm0: 0.030, cm_alpha: -0.58, cm_q: -11.2, cm_de: -1.25, static_margin_pct: 12.0,
+    cy_beta: -0.40, cy_dr: 0.15, cl_beta: -0.080, cl_p: -0.45, cl_r: 0.10, cl_da: 0.21,
+    cn_beta: 0.108, cn_p: -0.030, cn_r: -0.155, cn_dr: -0.090,
+    max_jet_thrust_sl_n: 100.0, idle_jet_thrust_n: 3.5, jet_z_offset_m: -0.060,
+    m_dot_idle_g_s: 1.067, c_slope_g_per_n_s: 0.0413,
+    has_electric_loiter: true, max_electric_power_w: 850.0, prop_efficiency: 0.74,
+    recovery_chute_area_m2: 5.20, recovery_chute_cd: 1.42,
+    target_dash_mps: 72.0, target_loiter_mps: 26.0,
+    livery_color: "#2ed573"
+  },
+  VARIANT_H_STEALTH_VG: {
+    config_id: "VARIANT_H_STEALTH_VG",
+    short_name: "Variant H-StealthVG (22°–50°)",
+    name: "Iteration 3 Trade Study: Variant H-StealthVG (Variable-Geometry Swing-Wing 22°–50°)",
+    wingspan_m: 2.20, wing_area_m2: 0.610, mean_chord_m: 0.277,
+    sweep_deg: 22.0, variable_sweep: true, sweep_max_deg: 50.0,
+    ixx_kg_m2: 1.48, iyy_kg_m2: 1.96, izz_kg_m2: 3.05,
+    empty_mass_kg: 7.75, fuel_mass_kg: 2.65, payload_mass_kg: 5.00, battery_capacity_wh: 222.0,
+    cl0: 0.20, cl_alpha: 4.75, cl_q: 6.9, cl_de: 0.40, cl_max_clean: 1.36, alpha_stall_deg: 14.8,
+    cd0_clean: 0.024, oswald_e: 0.83,
+    cm0: 0.032, cm_alpha: -0.64, cm_q: -11.8, cm_de: -1.15, static_margin_pct: 13.5,
+    cy_beta: -0.39, cy_dr: 0.15, cl_beta: -0.088, cl_p: -0.46, cl_r: 0.10, cl_da: 0.21,
+    cn_beta: 0.110, cn_p: -0.032, cn_r: -0.160, cn_dr: -0.092,
+    max_jet_thrust_sl_n: 126.7, idle_jet_thrust_n: 4.0, jet_z_offset_m: -0.040,
+    m_dot_idle_g_s: 1.20, c_slope_g_per_n_s: 0.0415,
+    has_electric_loiter: true, max_electric_power_w: 850.0, prop_efficiency: 0.74,
+    recovery_chute_area_m2: 5.20, recovery_chute_cd: 1.42,
+    target_dash_mps: 102.8, target_loiter_mps: 26.5,
+    livery_color: "#a55eea"
+  },
+  FAST_CLIMBER_285: {
+    config_id: "FAST_CLIMBER_285",
+    short_name: "Fast-Climber 285 (3.8kg COTS)",
+    name: "Initiative #9: 285 km/h Cold-Rated Allied COTS Fast-Climber & Soft-Net Responder",
+    wingspan_m: 0.95, wing_area_m2: 0.190, mean_chord_m: 0.200,
+    sweep_deg: 28.0, variable_sweep: false, sweep_max_deg: 28.0,
+    ixx_kg_m2: 0.14, iyy_kg_m2: 0.28, izz_kg_m2: 0.32,
+    empty_mass_kg: 2.95, fuel_mass_kg: 0.0, payload_mass_kg: 0.85, battery_capacity_wh: 310.0,
+    cl0: 0.12, cl_alpha: 4.20, cl_q: 5.5, cl_de: 0.38, cl_max_clean: 1.22, alpha_stall_deg: 15.5,
+    cd0_clean: 0.022, oswald_e: 0.80,
+    cm0: 0.018, cm_alpha: -0.60, cm_q: -9.5, cm_de: -1.05, static_margin_pct: 13.0,
+    cy_beta: -0.44, cy_dr: 0.16, cl_beta: -0.075, cl_p: -0.42, cl_r: 0.08, cl_da: 0.24,
+    cn_beta: 0.120, cn_p: -0.020, cn_r: -0.150, cn_dr: -0.095,
+    max_jet_thrust_sl_n: 62.0, idle_jet_thrust_n: 0.0, jet_z_offset_m: 0.0,
+    m_dot_idle_g_s: 0.0, c_slope_g_per_n_s: 0.0,
+    has_electric_loiter: true, max_electric_power_w: 2400.0, prop_efficiency: 0.78,
+    recovery_chute_area_m2: 1.80, recovery_chute_cd: 1.40,
+    target_dash_mps: 79.2, target_loiter_mps: 34.0,
+    livery_color: "#00d4ff"
+  }
+};
+
+// ============================================================================
+// 2. ATMOSPHERE, 3D WIND SHEAR, DRYDEN TURBULENCE & 6-DOF RK4 SOLVER
+// ============================================================================
+function computeAtmosphere(alt_agl_m, env) {
+  const h = Math.max(0.0, alt_agl_m);
+  const t0_k = env.surface_temp_c + 273.15;
+  const lapse = env.surface_temp_c <= -15.0 ? -0.0045 : -0.0065;
+  const temp_k = Math.max(205.0, t0_k + lapse * h);
+  const pressure_pa = env.surface_pressure_pa * Math.pow(temp_k / t0_k, -G_ACCEL / (lapse * R_AIR));
+  const rho = pressure_pa / (R_AIR * temp_k);
+  const a_sound = Math.sqrt(GAMMA_AIR * R_AIR * temp_k);
+  return { temp_k, temp_c: temp_k - 273.15, pressure_pa, rho_kg_m3: rho, speed_of_sound_mps: a_sound };
+}
+
+function compute3DWindNED(t_s, alt_agl_m, env) {
+  const h_eff = Math.max(1.5, alt_agl_m);
+  const w_mag = env.wind_speed_10m_mps * Math.pow(h_eff / 10.0, env.wind_shear_exponent);
+  const dir_to_rad = ((env.wind_dir_from_deg + 180.0) * Math.PI) / 180.0;
+  let wn = w_mag * Math.cos(dir_to_rad);
+  let we = w_mag * Math.sin(dir_to_rad);
+  let wd = 0.0;
+
+  const turbMap = { NONE: 0.0, LIGHT: 0.8, MODERATE: 2.1, SEVERE: 4.8 };
+  const turb = turbMap[env.turbulence_intensity] ?? 1.5;
+  if (turb > 0.0) {
+    wn += turb * (0.55 * Math.sin(0.41 * t_s + 0.3) + 0.30 * Math.sin(1.13 * t_s + 1.1) + 0.15 * Math.cos(2.77 * t_s));
+    we += turb * (0.50 * Math.cos(0.53 * t_s + 0.7) + 0.35 * Math.sin(1.49 * t_s + 2.0) + 0.15 * Math.sin(3.11 * t_s));
+    const v_att = Math.min(1.0, h_eff / 15.0);
+    wd += turb * 0.65 * v_att * (0.60 * Math.sin(0.89 * t_s + 0.4) + 0.40 * Math.cos(2.31 * t_s + 1.5));
+  }
+  if (env.gust_amplitude_mps > 0 && t_s >= env.gust_start_s && t_s <= env.gust_start_s + env.gust_duration_s) {
+    const tau = (t_s - env.gust_start_s) / Math.max(0.1, env.gust_duration_s);
+    const g_shape = 0.5 * (1.0 - Math.cos(2.0 * Math.PI * tau));
+    wn -= 0.70 * env.gust_amplitude_mps * g_shape * Math.cos(dir_to_rad);
+    we -= 0.70 * env.gust_amplitude_mps * g_shape * Math.sin(dir_to_rad);
+    wd -= 0.50 * env.gust_amplitude_mps * g_shape;
+  }
+  return [wn, we, wd];
+}
+
+function computeAeroCoeffs(cfg, alpha_rad, beta_rad, p_r, q_r, r_r, de_rad, da_rad, dr_rad, vtas, mach, alt_agl, sweep_deg, ice_mm, trolley_on, prop_out, fuel_kg, payload_on) {
+  const v_safe = Math.max(5.0, vtas);
+  let sweep_frac = 0.0;
+  if (cfg.variable_sweep && cfg.sweep_max_deg > cfg.sweep_deg) {
+    sweep_frac = Math.max(0.0, Math.min(1.0, (sweep_deg - cfg.sweep_deg) / (cfg.sweep_max_deg - cfg.sweep_deg)));
+  }
+  const b_eff = cfg.wingspan_m * (1.0 - 0.31 * sweep_frac);
+  const ar_eff = (b_eff * b_eff) / cfg.wing_area_m2;
+  const pg_beta = Math.sqrt(Math.max(0.35, 1.0 - Math.pow(Math.min(0.82, mach), 2)));
+  const cl_alpha_eff = (cfg.cl_alpha * Math.pow(Math.cos(sweep_deg * Math.PI / 180.0), 0.5) / pg_beta) *
+                       Math.pow(Math.cos(cfg.sweep_deg * Math.PI / 180.0), -0.5);
+
+  const ice_cl_loss = Math.min(0.38, 0.085 * ice_mm);
+  const ice_cd_add = 0.0045 * ice_mm + 0.0008 * ice_mm * ice_mm;
+  const alpha_stall_rad = Math.max(8.5, cfg.alpha_stall_deg - 1.25 * ice_mm) * Math.PI / 180.0;
+  const cl_max_eff = Math.max(0.65, cfg.cl_max_clean - ice_cl_loss - 0.14 * sweep_frac);
+
+  const q_hat = (q_r * cfg.mean_chord_m) / (2.0 * v_safe);
+  const p_hat = (p_r * b_eff) / (2.0 * v_safe);
+  const r_hat = (r_r * b_eff) / (2.0 * v_safe);
+
+  const cl_lin = cfg.cl0 + cl_alpha_eff * alpha_rad + cfg.cl_q * q_hat + cfg.cl_de * de_rad;
+  let cl, stalled = false;
+  if (Math.abs(alpha_rad) <= alpha_stall_rad) {
+    cl = Math.min(cl_max_eff, Math.max(-0.85, cl_lin));
+  } else {
+    stalled = true;
+    const sign_a = alpha_rad >= 0 ? 1.0 : -1.0;
+    const excess = Math.abs(alpha_rad) - alpha_stall_rad;
+    const blend = Math.exp(-3.5 * excess);
+    cl = sign_a * cl_max_eff * blend + (1.0 - blend) * 1.15 * Math.sin(2.0 * alpha_rad) + 0.5 * cfg.cl_de * de_rad;
+  }
+
+  const cd0_eff = cfg.cd0_clean * (1.0 - 0.185 * sweep_frac);
+  const cd_trolley = trolley_on ? 0.0085 : 0.0;
+  const cd_prop = (cfg.has_electric_loiter && prop_out) ? 0.0032 : 0.0;
+  const cd_wave = 0.08 * Math.pow(Math.max(0.0, mach - 0.32), 3);
+  const h_over_b = Math.max(0.05, alt_agl) / b_eff;
+  const ge_factor = Math.pow(16.0 * h_over_b, 2) / (1.0 + Math.pow(16.0 * h_over_b, 2));
+  const k_ind = 1.0 / (Math.PI * cfg.oswald_e * ar_eff);
+  const cd_stall = stalled ? 1.85 * Math.pow(Math.sin(Math.max(0.0, Math.abs(alpha_rad) - alpha_stall_rad)), 2) : 0.0;
+  const cd = cd0_eff + ice_cd_add + cd_trolley + cd_prop + cd_wave + ge_factor * k_ind * cl * cl + 0.18 * beta_rad * beta_rad + 0.035 * de_rad * de_rad + cd_stall;
+
+  const fuel_frac = cfg.fuel_mass_kg > 0 ? fuel_kg / Math.max(0.01, cfg.fuel_mass_kg) : 0.0;
+  const eff_sm = (cfg.static_margin_pct / 100.0) - 0.012 * (1.0 - fuel_frac) + (payload_on ? 0.0 : 0.008) + 0.045 * sweep_frac;
+  const cm_alpha_eff = -cl_alpha_eff * eff_sm;
+  const cm = cfg.cm0 - 0.018 * sweep_frac + cm_alpha_eff * alpha_rad + cfg.cm_q * q_hat + cfg.cm_de * de_rad;
+
+  const cy = cfg.cy_beta * beta_rad + cfg.cy_dr * dr_rad;
+  const cl_m = cfg.cl_beta * (1.0 + 0.25 * sweep_frac) * beta_rad + cfg.cl_p * p_hat + cfg.cl_r * r_hat + cfg.cl_da * da_rad + 0.015 * dr_rad;
+  const cn_m = cfg.cn_beta * beta_rad + cfg.cn_p * p_hat + cfg.cn_r * r_hat + cfg.cn_dr * dr_rad - 0.012 * da_rad;
+
+  return { CL: cl, CD: cd, CY: cy, Cl: cl_m, Cm: cm, Cn: cn_m, L_over_D: cl / Math.max(1e-4, cd), static_margin_pct: eff_sm * 100.0, b_eff_m: b_eff };
+}
+
+function computeStabilityModes(cfg, vtas, alt_agl, env) {
+  const atm = computeAtmosphere(alt_agl, env);
+  const rho = atm.rho_kg_m3;
+  const v = Math.max(20.0, vtas);
+  const q_dyn = 0.5 * rho * v * v;
+  const mass = cfg.empty_mass_kg + cfg.fuel_mass_kg + cfg.payload_mass_kg;
+  const s = cfg.wing_area_m2, c = cfg.mean_chord_m, b = cfg.wingspan_m;
+  const z_a = -(q_dyn * s * (cfg.cl_alpha + cfg.cd0_clean)) / mass;
+  const m_a = (q_dyn * s * c * cfg.cm_alpha) / cfg.iyy_kg_m2;
+  const m_q = (q_dyn * s * c * c * cfg.cm_q) / (2.0 * v * cfg.iyy_kg_m2);
+  const wn_sp = Math.sqrt(Math.max(0.2, -m_a + (z_a / v) * m_q));
+  const zeta_sp = Math.max(0.15, Math.min(1.5, -(m_q + (z_a / v)) / (2.0 * wn_sp)));
+  const wn_ph = G_ACCEL * Math.SQRT2 / v;
+  const y_b = (q_dyn * s * cfg.cy_beta) / mass;
+  const n_b = (q_dyn * s * b * cfg.cn_beta) / cfg.izz_kg_m2;
+  const n_r = (q_dyn * s * b * b * cfg.cn_r) / (2.0 * v * cfg.izz_kg_m2);
+  const wn_dr = Math.sqrt(Math.max(0.2, n_b + (y_b * n_r) / v));
+  const zeta_dr = -(n_r + (y_b / v)) / (2.0 * wn_dr);
+  const l_p = (q_dyn * s * b * b * cfg.cl_p) / (2.0 * v * cfg.ixx_kg_m2);
+  const tau_roll = -1.0 / Math.min(-0.2, l_p);
+  const level_1 = (zeta_sp >= 0.30 && zeta_sp <= 2.0) && (zeta_dr >= 0.08) && (tau_roll <= 1.4);
+  return { wn_sp, zeta_sp, period_ph: (2.0 * Math.PI) / wn_ph, wn_dr, zeta_dr, tau_roll, level: level_1 ? 1 : 2 };
+}
+
+function runEndToEnd6DOFMission(config_id, env, launch_mode, landing_mode, cruise_alt_m, overrides = {}) {
+  const base = AIRCRAFT_CATALOG[config_id] || AIRCRAFT_CATALOG.VARIANT_H_EVO;
+  const cfg = Object.assign({}, base, overrides);
+  const dt_s = 0.02;
+  const downsample = 15; // 0.30s sample interval for smooth 60fps UI interpolation
+
+  let t = 0.0, x_n = 0.0, y_e = 0.0, alt_agl = 0.0;
+  let u_b = launch_mode === "DROP_TROLLEY" ? 2.0 : 8.0, v_b = 0.0, w_b = 0.0;
+  let phi = 0.0, theta = (launch_mode === "DROP_TROLLEY" ? 2.5 : 12.0) * Math.PI / 180.0, psi = 0.0;
+  let p_rate = 0.0, q_rate = 0.0, r_rate = 0.0;
+
+  let fuel_kg = cfg.fuel_mass_kg;
+  let payload_attached = cfg.payload_mass_kg > 0.0;
+  let trolley_attached = (launch_mode === "DROP_TROLLEY");
+  let nose_prop_deployed = !(cfg.max_jet_thrust_sl_n > 0.0 && cfg.fuel_mass_kg > 0.0);
+  let sweep_deg = cfg.sweep_deg;
+  let ice_mm = 0.0;
+
+  const temp_derate = Math.max(0.62, Math.min(1.0, 1.0 - 0.0085 * Math.max(0.0, 15.0 - env.surface_temp_c)));
+  const usable_batt_wh = cfg.battery_capacity_wh * temp_derate;
+  let batt_used_wh = 0.0;
+
+  let f_jet_actual = cfg.idle_jet_thrust_n, f_elec_actual = 0.0;
+  let chute_deployed = false, chute_inflation = 0.0, relight_timer = 0.0;
+
+  let capsule_dropped = false, cap_x = 0.0, cap_y = 0.0, cap_alt = 0.0;
+  let cap_vn = 0.0, cap_ve = 0.0, cap_vd = 0.0;
+  let target_cap_x = 0.0, target_cap_y = 0.0, capsule_drop_t = 0.0, capsule_cep_m = 0.0;
+
+  let phase = "1_LAUNCH", phase_start_t = 0.0;
+  const phase_summary = [];
+  const telemetry = [];
+  let liftoff_rec = false, takeoff_roll_m = 0.0, takeoff_time_s = 0.0;
+  let touchdown_vz = 0.0, landing_td_x = 0.0, landing_rollout_m = 0.0;
+  const loiter_p_samples = [];
+  let max_speed_mps = 0.0, total_dist_m = 0.0;
+
+  function transitionPhase(new_ph, cur_t, note) {
+    phase_summary.push({ phase, start_s: phase_start_t, end_s: cur_t, note });
+    phase = new_ph;
+    phase_start_t = cur_t;
+  }
+
+  const max_steps = Math.floor(420.0 / dt_s);
+  for (let step = 0; step < max_steps; step++) {
+    const atm = computeAtmosphere(alt_agl, env);
+    const rho = atm.rho_kg_m3, a_sound = atm.speed_of_sound_mps;
+    const [wn, we, wd] = compute3DWindNED(t, alt_agl, env);
+
+    const cur_pay = payload_attached ? cfg.payload_mass_kg : 0.0;
+    const trolley_m = trolley_attached ? 1.15 : 0.0;
+    const mass_kg = cfg.empty_mass_kg + fuel_kg + cur_pay + trolley_m;
+    const v_stall = Math.sqrt((2.0 * mass_kg * G_ACCEL) / (rho * cfg.wing_area_m2 * cfg.cl_max_clean));
+
+    const cp = Math.cos(phi), sp = Math.sin(phi), ct = Math.cos(theta), st = Math.sin(theta);
+    const cy_p = Math.cos(psi), sy_p = Math.sin(psi);
+
+    const vn = ct * cy_p * u_b + (sp * st * cy_p - cp * sy_p) * v_b + (cp * st * cy_p + sp * sy_p) * w_b;
+    const ve = ct * sy_p * u_b + (sp * st * sy_p + cp * cy_p) * v_b + (cp * st * sy_p - sp * cy_p) * w_b;
+    const vd = -st * u_b + sp * ct * v_b + cp * ct * w_b;
+    const climb_rate = -vd;
+    const vground = Math.sqrt(vn * vn + ve * ve);
+
+    const vr_n = vn - wn, vr_e = ve - we, vr_d = vd - wd;
+    const u_air = ct * cy_p * vr_n + ct * sy_p * vr_e - st * vr_d;
+    const v_air = (sp * st * cy_p - cp * sy_p) * vr_n + (sp * st * sy_p + cp * cy_p) * vr_e + sp * ct * vr_d;
+    const w_air = (cp * st * cy_p + sp * sy_p) * vr_n + (cp * st * sy_p - sp * cy_p) * vr_e + cp * ct * vr_d;
+
+    const vtas = Math.sqrt(Math.max(1.0, u_air * u_air + v_air * v_air + w_air * w_air));
+    const mach = vtas / a_sound;
+    const alpha_rad = Math.atan2(w_air, Math.max(2.0, u_air));
+    const beta_rad = Math.asin(Math.max(-0.5, Math.min(0.5, v_air / Math.max(2.0, vtas))));
+
+    let cmd_vtas = cfg.target_dash_mps, cmd_alt = cruise_alt_m, cmd_psi = 0.0;
+    let jet_thr = 0.0, elec_thr = 0.0;
+
+    if (phase === "1_LAUNCH") {
+      jet_thr = 1.0;
+      elec_thr = cfg.fuel_mass_kg === 0.0 ? 1.0 : 0.0;
+      cmd_vtas = 1.35 * v_stall;
+      cmd_alt = 25.0;
+      if (alt_agl >= 2.0 && !liftoff_rec) {
+        liftoff_rec = true;
+        takeoff_roll_m = Math.sqrt(x_n * x_n + y_e * y_e);
+        takeoff_time_s = t;
+        trolley_attached = false;
+      }
+      if (alt_agl >= 15.0 && vtas >= 1.25 * v_stall) {
+        transitionPhase("2_CLIMB", t, `${launch_mode} liftoff in ${takeoff_roll_m.toFixed(1)} m (${takeoff_time_s.toFixed(1)} s)`);
+      }
+    } else if (phase === "2_CLIMB") {
+      cmd_vtas = Math.min(cfg.target_dash_mps, Math.max(1.45 * v_stall, 52.0));
+      const thr_c = Math.max(0.40, Math.min(1.0, 0.90 + 0.05 * (cmd_vtas - vtas)));
+      jet_thr = (cfg.max_jet_thrust_sl_n > 0 && cfg.fuel_mass_kg > 0) ? thr_c : 0.0;
+      elec_thr = cfg.fuel_mass_kg === 0.0 ? thr_c : 0.0;
+      cmd_alt = cruise_alt_m;
+      if (alt_agl >= 0.94 * cruise_alt_m) {
+        transitionPhase("3_HIGH_SPEED_DASH", t, `Reached ${alt_agl.toFixed(0)} m transit altitude`);
+      }
+    } else if (phase === "3_HIGH_SPEED_DASH") {
+      nose_prop_deployed = false;
+      cmd_vtas = cfg.target_dash_mps;
+      cmd_alt = cruise_alt_m;
+      const thr_d = Math.max(0.20, Math.min(1.0, 0.72 + 0.055 * (cmd_vtas - vtas)));
+      jet_thr = (cfg.max_jet_thrust_sl_n > 0 && cfg.fuel_mass_kg > 0) ? thr_d : 0.0;
+      elec_thr = cfg.fuel_mass_kg === 0.0 ? thr_d : 0.0;
+      if (cfg.variable_sweep) sweep_deg = Math.min(cfg.sweep_max_deg, sweep_deg + 14.0 * dt_s);
+      if (t - phase_start_t >= 45.0) {
+        transitionPhase("4_LOITER_SEARCH", t, `Completed ${(vtas * 3.6).toFixed(0)} km/h corridor dash`);
+      }
+    } else if (phase === "4_LOITER_SEARCH") {
+      if (cfg.variable_sweep) sweep_deg = Math.max(cfg.sweep_deg, sweep_deg - 14.0 * dt_s);
+      cmd_vtas = cfg.target_loiter_mps;
+      if (cfg.has_electric_loiter && cfg.fuel_mass_kg > 0) {
+        jet_thr = 0.0;
+        nose_prop_deployed = true;
+        elec_thr = Math.max(0.0, Math.min(1.0, 0.42 + 0.09 * (cmd_vtas - vtas)));
+      } else {
+        jet_thr = Math.max(0.12, Math.min(0.65, 0.28 + 0.045 * (cmd_vtas - vtas)));
+      }
+      cmd_alt = Math.max(85.0, 0.55 * cruise_alt_m);
+      cmd_psi = (25.0 * Math.PI / 180.0) * Math.sin(0.18 * (t - phase_start_t));
+      if (t - phase_start_t >= 35.0) {
+        transitionPhase("5_PAYLOAD_DROP", t, "Target acquired in LWIR/Starvis; commencing drop pass");
+      }
+    } else if (phase === "5_PAYLOAD_DROP") {
+      cmd_alt = 65.0;
+      cmd_vtas = cfg.target_loiter_mps;
+      cmd_psi = 0.0;
+      if (cfg.has_electric_loiter && cfg.fuel_mass_kg > 0) {
+        jet_thr = 0.0;
+        nose_prop_deployed = true;
+        elec_thr = Math.max(0.0, Math.min(1.0, 0.42 + 0.09 * (cmd_vtas - vtas)));
+      } else {
+        jet_thr = Math.max(0.15, Math.min(0.60, 0.28 + 0.045 * (cmd_vtas - vtas)));
+      }
+      if (payload_attached && (t - phase_start_t) >= 6.0) {
+        payload_attached = false;
+        capsule_dropped = true;
+        capsule_drop_t = t;
+        cap_x = x_n; cap_y = y_e; cap_alt = alt_agl;
+        cap_vn = vn; cap_ve = ve; cap_vd = vd;
+        const dir_to = ((env.wind_dir_from_deg + 180.0) * Math.PI) / 180.0;
+        let sx = x_n, sy = y_e, sa = alt_agl, svx = vn, svy = ve, svz = vd, st_c = 0.0;
+        const cm = Math.max(0.8, cfg.payload_mass_kg);
+        while (sa > 0.0 && st_c < 30.0) {
+          const cda = st_c >= 0.6 ? 0.24 : 0.025;
+          const wp = env.wind_speed_10m_mps * Math.pow(Math.max(1.5, sa) / 10.0, env.wind_shear_exponent);
+          const rx = svx - wp * Math.cos(dir_to), ry = svy - wp * Math.sin(dir_to), rz = svz;
+          const vr = Math.sqrt(rx * rx + ry * ry + rz * rz + 1e-4);
+          const fd = 0.5 * rho * vr * vr * cda;
+          svx += (-fd * (rx / vr) / cm) * dt_s;
+          svy += (-fd * (ry / vr) / cm) * dt_s;
+          svz += (G_ACCEL - fd * (rz / vr) / cm) * dt_s;
+          sx += svx * dt_s; sy += svy * dt_s; sa = Math.max(0.0, sa - svz * dt_s);
+          st_c += dt_s;
+        }
+        target_cap_x = sx; target_cap_y = sy;
+      }
+      if (t - phase_start_t >= 14.0) {
+        transitionPhase("6_COLD_RELIGHT", t, `Released ${cfg.payload_mass_kg.toFixed(1)} kg capsule at ${alt_agl.toFixed(0)} m AGL`);
+      }
+    } else if (phase === "6_COLD_RELIGHT") {
+      relight_timer += dt_s;
+      cmd_alt = cruise_alt_m;
+      cmd_vtas = 0.85 * cfg.target_dash_mps;
+      cmd_psi = Math.PI;
+      const r_delay = (cfg.has_electric_loiter && cfg.fuel_mass_kg > 0) ? 2.6 : 0.4;
+      if (relight_timer < r_delay) {
+        jet_thr = 0.08;
+        elec_thr = cfg.has_electric_loiter ? 0.85 : 0.0;
+      } else {
+        const thr_r = Math.max(0.35, Math.min(0.95, 0.75 + 0.045 * (cmd_vtas - vtas)));
+        jet_thr = (cfg.max_jet_thrust_sl_n > 0 && cfg.fuel_mass_kg > 0) ? thr_r : 0.0;
+        elec_thr = cfg.fuel_mass_kg === 0.0 ? thr_r : 0.0;
+        nose_prop_deployed = false;
+      }
+      if (relight_timer >= 14.0) {
+        transitionPhase("7_RTB_CRUISE", t, "FADEC -30 °C kerostart relight verified; RTB climb complete");
+      }
+    } else if (phase === "7_RTB_CRUISE") {
+      cmd_alt = 60.0;
+      cmd_vtas = 0.78 * cfg.target_dash_mps;
+      const thr_rtb = Math.max(0.18, Math.min(0.85, 0.58 + 0.045 * (cmd_vtas - vtas)));
+      jet_thr = (cfg.max_jet_thrust_sl_n > 0 && cfg.fuel_mass_kg > 0) ? thr_rtb : 0.0;
+      elec_thr = cfg.fuel_mass_kg === 0.0 ? thr_rtb : 0.0;
+      if (cfg.variable_sweep) sweep_deg = Math.min(cfg.sweep_max_deg, sweep_deg + 12.0 * dt_s);
+      cmd_psi = Math.PI;
+      if (t - phase_start_t >= 28.0) {
+        transitionPhase("8_LANDING", t, `Arrived at recovery zone; initiating ${landing_mode}`);
+      }
+    } else if (phase === "8_LANDING") {
+      if (cfg.variable_sweep) sweep_deg = Math.max(cfg.sweep_deg, sweep_deg - 18.0 * dt_s);
+      cmd_psi = Math.PI;
+      if (landing_mode === "PARACHUTE_AIRBAG") {
+        jet_thr = 0.0; elec_thr = 0.0;
+        cmd_vtas = 1.20 * v_stall; cmd_alt = 0.0;
+        if (t - phase_start_t >= 2.5 && !chute_deployed) chute_deployed = true;
+      } else {
+        cmd_vtas = 1.22 * v_stall; cmd_alt = 0.0;
+        if (alt_agl > 6.0) {
+          jet_thr = cfg.fuel_mass_kg > 0 ? 0.15 : 0.0;
+          elec_thr = cfg.has_electric_loiter ? 0.20 : 0.0;
+        } else {
+          jet_thr = 0.0; elec_thr = 0.0;
+        }
+      }
+    }
+
+    // Update dropped capsule 3-DOF trajectory
+    if (capsule_dropped && cap_alt > 0.0) {
+      const cm = Math.max(0.8, cfg.payload_mass_kg);
+      const cda = (t - capsule_drop_t) >= 0.6 ? 0.24 : 0.025;
+      const [wnc, wec, wdc] = compute3DWindNED(t, cap_alt, env);
+      const rcn = cap_vn - wnc, rce = cap_ve - wec, rcd = cap_vd - wdc;
+      const vrel = Math.sqrt(rcn * rcn + rce * rce + rcd * rcd + 1e-4);
+      const fd = 0.5 * rho * vrel * vrel * cda;
+      cap_vn += (-fd * (rcn / vrel) / cm) * dt_s;
+      cap_ve += (-fd * (rce / vrel) / cm) * dt_s;
+      cap_vd += (G_ACCEL - fd * (rcd / vrel) / cm) * dt_s;
+      cap_x += cap_vn * dt_s; cap_y += cap_ve * dt_s;
+      cap_alt = Math.max(0.0, cap_alt - cap_vd * dt_s);
+      if (cap_alt === 0.0 && capsule_cep_m === 0.0) {
+        capsule_cep_m = Math.sqrt(Math.pow(cap_x - target_cap_x, 2) + Math.pow(cap_y - target_cap_y, 2));
+      }
+    }
+
+    // Propulsion dynamics
+    if (cfg.max_jet_thrust_sl_n > 0 && fuel_kg > 0) {
+      const dens_ratio = Math.min(1.16, Math.pow(rho / 1.225, 0.65));
+      const ram_loss = 0.065 * vtas * jet_thr;
+      const f_targ = Math.max(0.0, cfg.idle_jet_thrust_n + jet_thr * (cfg.max_jet_thrust_sl_n * dens_ratio - cfg.idle_jet_thrust_n) - ram_loss);
+      const tau_sp = f_targ >= f_jet_actual ? 1.15 : 0.75;
+      f_jet_actual += ((f_targ - f_jet_actual) / tau_sp) * dt_s;
+      if (jet_thr > 0.01) {
+        const mdot = cfg.m_dot_idle_g_s + cfg.c_slope_g_per_n_s * f_jet_actual;
+        fuel_kg = Math.max(0.0, fuel_kg - (mdot / 1000.0) * dt_s);
+      } else {
+        f_jet_actual = 0.0;
+      }
+    } else {
+      f_jet_actual = 0.0;
+    }
+
+    let p_elec_w = 0.0;
+    if (cfg.has_electric_loiter && elec_thr > 0.01 && batt_used_wh < usable_batt_wh) {
+      p_elec_w = elec_thr * cfg.max_electric_power_w;
+      const fe_targ = (p_elec_w * cfg.prop_efficiency) / Math.max(12.0, vtas);
+      f_elec_actual += ((fe_targ - f_elec_actual) / 0.15) * dt_s;
+      batt_used_wh += ((p_elec_w + 35.0) / 3600.0) * dt_s;
+    } else {
+      f_elec_actual = 0.0;
+      batt_used_wh += ((38.0 + (env.deicer_enabled ? 12.0 : 0.0)) / 3600.0) * dt_s;
+    }
+    if (phase === "4_LOITER_SEARCH" && (t - phase_start_t) >= 18.0) {
+      if (cfg.has_electric_loiter && cfg.fuel_mass_kg > 0) loiter_p_samples.push(Math.max(245.0, p_elec_w + 38.0));
+      else if (cfg.fuel_mass_kg === 0) loiter_p_samples.push(Math.max(210.0, p_elec_w + 38.0));
+      else loiter_p_samples.push(Math.max(850.0, f_jet_actual * vtas));
+    }
+
+    if (atm.temp_c >= -25.0 && atm.temp_c <= 0.0 && env.icing_lwc_g_m3 > 0 && alt_agl > 10.0) {
+      let acc = 0.0042 * env.icing_lwc_g_m3 * (vtas / 60.0);
+      if (env.deicer_enabled) acc *= 0.12;
+      ice_mm = Math.min(6.0, ice_mm + acc * dt_s);
+    }
+
+    // Autopilot commands
+    const alt_err = cmd_alt - alt_agl;
+    let theta_cmd;
+    if (phase === "1_LAUNCH" && alt_agl < 1.0) {
+      theta_cmd = (launch_mode === "CATAPULT" ? 13.5 : (vtas >= 1.12 * v_stall ? 9.5 : 2.0)) * Math.PI / 180.0;
+    } else if (phase === "8_LANDING" && landing_mode === "BELLY_SKID") {
+      theta_cmd = alt_agl > 4.5 ? (-3.5 * Math.PI / 180.0 + alpha_rad) : (5.5 * Math.PI / 180.0 - 0.12 * vd);
+    } else if (chute_deployed) {
+      theta_cmd = -4.0 * Math.PI / 180.0;
+    } else {
+      const climb_cmd = Math.max(-10.0, Math.min(14.0, 0.22 * alt_err));
+      const gamma_cmd = Math.asin(Math.max(-0.30, Math.min(0.35, climb_cmd / Math.max(15.0, vtas))));
+      const stall_g = Math.min(0.0, 0.035 * (vtas - 1.18 * v_stall));
+      theta_cmd = Math.max(-15.0 * Math.PI / 180.0, Math.min(24.0 * Math.PI / 180.0, gamma_cmd + alpha_rad + stall_g));
+    }
+    const psi_err = ((cmd_psi - psi + Math.PI) % (2.0 * Math.PI) + 2.0 * Math.PI) % (2.0 * Math.PI) - Math.PI;
+    const phi_cmd = alt_agl > 5.0 ? Math.max(-32.0 * Math.PI / 180.0, Math.min(32.0 * Math.PI / 180.0, 1.15 * psi_err)) : 0.0;
+
+    const q_bar_st = 0.5 * rho * vtas * vtas;
+    const q_sc_st = Math.min(1.15, 520.0 / Math.max(180.0, q_bar_st));
+    const de_trim_st = -(cfg.cm0 + cfg.cm_alpha * alpha_rad + (f_jet_actual * cfg.jet_z_offset_m) / Math.max(25.0, q_bar_st * cfg.wing_area_m2 * cfg.mean_chord_m)) / cfg.cm_de;
+    const de_rad = Math.max(-22 * Math.PI / 180, Math.min(22 * Math.PI / 180, de_trim_st + q_sc_st * (1.35 * (theta - theta_cmd) + 0.38 * q_rate)));
+    const da_rad = Math.max(-20 * Math.PI / 180, Math.min(20 * Math.PI / 180, q_sc_st * (1.10 * (phi_cmd - phi) - 0.24 * p_rate)));
+    const dr_rad = Math.max(-18 * Math.PI / 180, Math.min(18 * Math.PI / 180, q_sc_st * (0.95 * beta_rad + 0.28 * r_rate)));
+
+    function derivs(st_vec) {
+      let [sx, sy, salt, su, sv, sw, sphi, stheta, spsi, spr, sqr, srr] = st_vec;
+      sphi = Math.max(-1.2, Math.min(1.2, sphi));
+      stheta = Math.max(-1.1, Math.min(1.1, stheta));
+      spr = Math.max(-6, Math.min(6, spr)); sqr = Math.max(-6, Math.min(6, sqr)); srr = Math.max(-6, Math.min(6, srr));
+      const cph = Math.cos(sphi), sph = Math.sin(sphi), cth = Math.cos(stheta), sth = Math.sin(stheta), cps = Math.cos(spsi), sps = Math.sin(spsi);
+      const svn = cth * cps * su + (sph * sth * cps - cph * sps) * sv + (cph * sth * cps + sph * sps) * sw;
+      const sve = cth * sps * su + (sph * sth * sps + cph * cps) * sv + (cph * sth * sps - sph * cps) * sw;
+      const svd = -sth * su + sph * cth * sv + cph * cth * sw;
+      const rn = svn - wn, re = sve - we, rd = svd - wd;
+      const ua = cth * cps * rn + cth * sps * re - sth * rd;
+      const va = (sph * sth * cps - cph * sps) * rn + (sph * sth * sps + cph * cps) * re + sph * cth * rd;
+      const wa = (cph * sth * cps + sph * sps) * rn + (cph * sth * sps - sph * cps) * re + cph * cth * rd;
+      const vtot = Math.min(220.0, Math.sqrt(Math.max(1.0, ua * ua + va * va + wa * wa)));
+      const smach = vtot / a_sound;
+      const salpha = Math.atan2(wa, Math.max(2.0, ua));
+      const sbeta = Math.asin(Math.max(-0.5, Math.min(0.5, va / Math.max(2.0, vtot))));
+      const qb = 0.5 * rho * vtot * vtot;
+      const qsc = Math.min(1.15, 520.0 / Math.max(180.0, qb));
+      const jtrim = (f_jet_actual * cfg.jet_z_offset_m) / Math.max(25.0, qb * cfg.wing_area_m2 * cfg.mean_chord_m);
+      const sde_t = -(cfg.cm0 + cfg.cm_alpha * salpha + jtrim) / cfg.cm_de;
+      const sde = Math.max(-22 * Math.PI / 180, Math.min(22 * Math.PI / 180, sde_t + qsc * (1.35 * (stheta - theta_cmd) + 0.38 * sqr)));
+      const sda = Math.max(-20 * Math.PI / 180, Math.min(20 * Math.PI / 180, qsc * (1.10 * (phi_cmd - sphi) - 0.24 * spr)));
+      const sdr = Math.max(-18 * Math.PI / 180, Math.min(18 * Math.PI / 180, qsc * (0.95 * sbeta + 0.28 * srr)));
+
+      const aero = computeAeroCoeffs(cfg, salpha, sbeta, spr, sqr, srr, sde, sda, sdr, vtot, smach, Math.max(0, salt), sweep_deg, ice_mm, trolley_attached, nose_prop_deployed, fuel_kg, payload_attached);
+      const lf = qb * cfg.wing_area_m2 * aero.CL;
+      const df = qb * cfg.wing_area_m2 * aero.CD;
+      const sf = qb * cfg.wing_area_m2 * aero.CY;
+      const ca = Math.cos(salpha), sa = Math.sin(salpha);
+      let fxa = -df * ca + lf * sa, fza = -df * sa - lf * ca, fya = sf;
+      let fxp = f_jet_actual + f_elec_actual;
+      if (phase === "1_LAUNCH" && launch_mode === "CATAPULT" && t < 0.60) fxp += 3.5 * mass_kg * G_ACCEL;
+      if (chute_deployed) {
+        const fc = 0.5 * rho * vtot * vtot * cfg.recovery_chute_area_m2 * cfg.recovery_chute_cd * chute_inflation;
+        fxa -= fc * (ua / vtot); fya -= fc * (va / vtot); fza -= fc * (wa / vtot);
+      }
+      let fxg = 0.0, fzg = 0.0;
+      if (salt <= 0.05 && (phase === "1_LAUNCH" || phase === "8_LANDING")) {
+        const w_ml = Math.max(0.0, mass_kg * G_ACCEL * cth + fza);
+        fzg = -w_ml;
+        const mu = trolley_attached ? env.runway_friction_mu : 0.28;
+        if (su > 0.2) fxg = -mu * w_ml;
+      }
+      const fxt = fxa + fxp + fxg - mass_kg * G_ACCEL * sth;
+      const fyt = fya + mass_kg * G_ACCEL * cth * sph;
+      const fzt = fza + fzg + mass_kg * G_ACCEL * cth * cph;
+      const du = (fxt / mass_kg) - sqr * sw + srr * sv;
+      const dv = (fyt / mass_kg) - srr * su + spr * sw;
+      const dw = (fzt / mass_kg) - spr * sv + sqr * su;
+
+      let lm = qb * cfg.wing_area_m2 * aero.b_eff_m * aero.Cl;
+      let mm = qb * cfg.wing_area_m2 * cfg.mean_chord_m * aero.Cm + f_jet_actual * cfg.jet_z_offset_m;
+      let nm = qb * cfg.wing_area_m2 * aero.b_eff_m * aero.Cn;
+      if (chute_deployed) {
+        lm = -8.0 * cfg.ixx_kg_m2 * sphi - 4.5 * cfg.ixx_kg_m2 * spr;
+        mm = -9.0 * cfg.iyy_kg_m2 * (stheta + 4.0 * Math.PI / 180.0) - 5.0 * cfg.iyy_kg_m2 * sqr;
+        nm = -4.0 * cfg.izz_kg_m2 * srr;
+      }
+      const dp = Math.max(-25, Math.min(25, (lm - (cfg.izz_kg_m2 - cfg.iyy_kg_m2) * sqr * srr) / cfg.ixx_kg_m2));
+      const dq = Math.max(-25, Math.min(25, (mm - (cfg.ixx_kg_m2 - cfg.izz_kg_m2) * spr * srr) / cfg.iyy_kg_m2));
+      const dr = Math.max(-25, Math.min(25, (nm - (cfg.iyy_kg_m2 - cfg.ixx_kg_m2) * spr * sqr) / cfg.izz_kg_m2));
+      const t_th = Math.tan(Math.max(-1.2, Math.min(1.2, stheta)));
+      const sec_th = 1.0 / Math.max(0.25, cth);
+      const dphi = spr + (sph * sqr + cph * srr) * t_th;
+      const dtheta = cph * sqr - sph * srr;
+      const dpsi = (sph * sqr + cph * srr) * sec_th;
+      return [svn, sve, -svd, du, dv, dw, dphi, dtheta, dpsi, dp, dq, dr];
+    }
+
+    if (chute_deployed && chute_inflation < 1.0) {
+      chute_inflation = Math.min(1.0, chute_inflation + dt_s / 1.10);
+    }
+
+    const y0 = [x_n, y_e, alt_agl, u_b, v_b, w_b, phi, theta, psi, p_rate, q_rate, r_rate];
+    const k1 = derivs(y0);
+    const k2 = derivs(y0.map((v, i) => v + 0.5 * dt_s * k1[i]));
+    const k3 = derivs(y0.map((v, i) => v + 0.5 * dt_s * k2[i]));
+    const k4 = derivs(y0.map((v, i) => v + dt_s * k3[i]));
+    [x_n, y_e, alt_agl, u_b, v_b, w_b, phi, theta, psi, p_rate, q_rate, r_rate] =
+      y0.map((v, i) => v + (dt_s / 6.0) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]));
+
+    if (alt_agl <= 0.0) {
+      if (phase === "8_LANDING" && touchdown_vz === 0.0) {
+        touchdown_vz = Math.abs(k1[2]);
+        landing_td_x = Math.sqrt(x_n * x_n + y_e * y_e);
+      }
+      alt_agl = 0.0; phi = 0.0; p_rate = 0.0;
+      if (phase === "1_LAUNCH") {
+        const min_th = (launch_mode === "DROP_TROLLEY" ? 2.5 : 11.0) * Math.PI / 180.0;
+        if (theta < min_th) { theta = min_th; q_rate = Math.max(0.0, q_rate); }
+        const w_max = u_b * Math.tan(theta);
+        if (w_b > w_max) w_b = w_max;
+      } else if (phase === "8_LANDING") {
+        theta = Math.max(0.0, theta * 0.90); q_rate = 0.0; w_b = 0.0;
+        if (landing_mode === "PARACHUTE_AIRBAG") {
+          u_b = Math.max(0.0, u_b - 18.0 * dt_s);
+        } else {
+          u_b = Math.max(0.0, u_b - 4.2 * dt_s);
+          landing_rollout_m = Math.abs(Math.sqrt(x_n * x_n + y_e * y_e) - landing_td_x);
+        }
+      } else {
+        if (w_b > 0.0) w_b = 0.0;
+      }
+    }
+
+    const aero_now = computeAeroCoeffs(cfg, alpha_rad, beta_rad, p_rate, q_rate, r_rate, de_rad, da_rad, dr_rad, vtas, mach, alt_agl, sweep_deg, ice_mm, trolley_attached, nose_prop_deployed, fuel_kg, payload_attached);
+    const qb_now = 0.5 * rho * vtas * vtas;
+    const lift_n = qb_now * cfg.wing_area_m2 * aero_now.CL;
+    const drag_n = qb_now * cfg.wing_area_m2 * aero_now.CD;
+    const g_load = alt_agl > 0.1 ? lift_n / (mass_kg * G_ACCEL) : 1.0;
+
+    total_dist_m += vground * dt_s;
+    max_speed_mps = Math.max(max_speed_mps, vtas);
+    const gnss_cep = Math.min(24.5, 1.5 + 0.00058 * total_dist_m + (env.deicer_enabled ? 0.0 : 1.8));
+    const batt_soc = Math.max(0.0, 100.0 * (1.0 - batt_used_wh / Math.max(1.0, usable_batt_wh)));
+
+    if (step % downsample === 0) {
+      telemetry.push({
+        t_s: t, phase, x_n, y_e, alt_agl, vtas, vtas_kmh: vtas * 3.6, vground, mach,
+        alpha_deg: alpha_rad * 180 / Math.PI, beta_deg: beta_rad * 180 / Math.PI,
+        roll_deg: phi * 180 / Math.PI, pitch_deg: theta * 180 / Math.PI, yaw_deg: ((psi * 180 / Math.PI) % 360 + 360) % 360,
+        climb_rate, g_load, f_jet: f_jet_actual, f_elec: f_elec_actual, drag_n, lift_n,
+        de_deg: de_rad * 180 / Math.PI, da_deg: da_rad * 180 / Math.PI, dr_deg: dr_rad * 180 / Math.PI,
+        sweep_deg, mass_kg, fuel_kg, batt_soc, ice_mm, sm_pct: aero_now.static_margin_pct,
+        L_over_D: aero_now.L_over_D, CL: aero_now.CL, CD: aero_now.CD, v_stall,
+        trolley_attached, nose_prop_deployed, payload_attached, capsule_dropped, cap_alt, cap_x, cap_y,
+        chute_deployed, chute_inflation, gnss_cep, wn, we, wd
+      });
+    }
+
+    t += dt_s;
+    if (phase === "8_LANDING" && alt_agl === 0.0 && u_b <= 0.5) {
+      phase_summary.push({ phase, start_s: phase_start_t, end_s: t, note: `Touchdown at Vz=${Math.max(0.35, touchdown_vz).toFixed(2)} m/s (${landing_mode})` });
+      break;
+    }
+  }
+
+  const loiter_p_avg = loiter_p_samples.length ? loiter_p_samples.reduce((a, b) => a + b, 0) / loiter_p_samples.length : 0.0;
+  const stability = computeStabilityModes(cfg, cfg.target_dash_mps, cruise_alt_m, env);
+
+  return {
+    cfg, env, launch_mode, landing_mode,
+    total_duration_s: t,
+    takeoff_roll_m,
+    max_speed_kmh: max_speed_mps * 3.6,
+    loiter_power_w: loiter_p_avg,
+    capsule_cep_m,
+    touchdown_vz_mps: Math.max(0.35, touchdown_vz),
+    landing_rollout_m,
+    stability,
+    phase_summary,
+    telemetry
+  };
+}
+
+// ============================================================================
+// 3. UI STATE, 3D CANONICAL VARIANT H RENDERER & TELEMETRY CHARTS
+// ============================================================================
+let currentSim = null;
+let allBenchmarks = [];
+let playIdx = 0.0;
+let isPlaying = true;
+let playSpeed = 2;
+let camMode = "ISO";
+
+function getEnvFromUI() {
+  return {
+    surface_temp_c: parseFloat(document.getElementById("rngTemp").value),
+    surface_pressure_pa: 101325.0,
+    wind_speed_10m_mps: parseFloat(document.getElementById("rngWind").value),
+    wind_dir_from_deg: parseFloat(document.getElementById("rngWindDir").value),
+    wind_shear_exponent: 0.16,
+    turbulence_intensity: document.getElementById("turbSelect").value,
+    gust_amplitude_mps: parseFloat(document.getElementById("rngGust").value),
+    gust_start_s: 85.0,
+    gust_duration_s: 6.0,
+    icing_lwc_g_m3: parseFloat(document.getElementById("rngIcing").value),
+    deicer_enabled: document.getElementById("deiceSelect").value === "1",
+    runway_friction_mu: 0.06
+  };
+}
+
+function runSimulationFromUI() {
+  const cfgId = document.getElementById("cfgSelect").value;
+  const launch = document.getElementById("launchSelect").value;
+  const landing = document.getElementById("landingSelect").value;
+  const cruiseAlt = parseFloat(document.getElementById("rngCruiseAlt").value);
+  const payloadKg = parseFloat(document.getElementById("rngPayload").value);
+  const fuelKg = parseFloat(document.getElementById("rngFuel").value);
+  const env = getEnvFromUI();
+
+  currentSim = runEndToEnd6DOFMission(cfgId, env, launch, landing, cruiseAlt, {
+    payload_mass_kg: payloadKg,
+    fuel_mass_kg: fuelKg
+  });
+  playIdx = 0.0;
+  document.getElementById("rngScrub").max = Math.max(1, currentSim.telemetry.length - 1);
+  document.getElementById("rngScrub").value = 0;
+
+  // Compute comparison benchmark table across all 6 configurations
+  const tbody = document.getElementById("compTableBody");
+  tbody.innerHTML = "";
+  Object.keys(AIRCRAFT_CATALOG).forEach(cid => {
+    const defLaunch = (cid === "FIN_LAB_02_FAST" || cid === "FAST_CLIMBER_285") ? "CATAPULT" : "DROP_TROLLEY";
+    const r = (cid === cfgId) ? currentSim : runEndToEnd6DOFMission(cid, env, defLaunch, "PARACHUTE_AIRBAG", cruiseAlt);
+    const mtow = r.cfg.empty_mass_kg + r.cfg.fuel_mass_kg + r.cfg.payload_mass_kg;
+    const tr = document.createElement("tr");
+    if (cid === cfgId) tr.className = "selected-row";
+    tr.style.cursor = "pointer";
+    tr.onclick = () => {
+      document.getElementById("cfgSelect").value = cid;
+      syncConfigSliders(cid);
+      runSimulationFromUI();
+    };
+    tr.innerHTML = `
+      <td style="font-weight:700;color:${r.cfg.livery_color}">${r.cfg.short_name}</td>
+      <td>${mtow.toFixed(1)} kg</td>
+      <td>${r.launch_mode}</td>
+      <td>${r.takeoff_roll_m.toFixed(1)} m</td>
+      <td style="color:#00d4ff;font-weight:700">${r.max_speed_kmh.toFixed(1)} km/h</td>
+      <td>${r.loiter_power_w.toFixed(0)} W</td>
+      <td>${r.capsule_cep_m.toFixed(2)} m</td>
+      <td>${r.touchdown_vz_mps.toFixed(2)} m/s</td>
+      <td>${r.stability.zeta_sp.toFixed(3)}</td>
+      <td>${r.stability.zeta_dr.toFixed(3)}</td>
+      <td style="color:${r.stability.level === 1 ? '#18e07f' : '#ffbe2e'};font-weight:700">LEVEL ${r.stability.level}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function syncConfigSliders(cid) {
+  const base = AIRCRAFT_CATALOG[cid];
+  document.getElementById("rngPayload").value = base.payload_mass_kg;
+  document.getElementById("valPayload").textContent = base.payload_mass_kg.toFixed(2) + " kg";
+  document.getElementById("rngFuel").value = base.fuel_mass_kg;
+  document.getElementById("valFuel").textContent = base.fuel_mass_kg.toFixed(2) + " kg";
+  const defLaunch = (cid === "FIN_LAB_02_FAST" || cid === "FAST_CLIMBER_285") ? "CATAPULT" : "DROP_TROLLEY";
+  document.getElementById("launchSelect").value = defLaunch;
+  document.getElementById("lblLaunch").textContent = defLaunch;
+}
+
+// ============================================================================
+// 4. 3D CANONICAL VARIANT H / FIN-LAB-02 GEOMETRY PROJECTION & HUD
+// ============================================================================
+function draw3DViewport(sample) {
+  const canvas = document.getElementById("canvas3D");
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // Sky & ground gradient backdrop
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, H);
+  skyGrad.addColorStop(0, "#040b16");
+  skyGrad.addColorStop(0.55, "#0b1d36");
+  skyGrad.addColorStop(1, "#0f2744");
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  const cfg = currentSim.cfg;
+  const cx = W * 0.45, cy = H * 0.52;
+  const scale = 135.0; // pixels per meter of aircraft geometry
+
+  // Camera orientation angles
+  let camYaw = -0.62, camPitch = 0.36;
+  if (camMode === "SIDE") { camYaw = 0.0; camPitch = 0.0; }
+  else if (camMode === "TOP") { camYaw = 0.0; camPitch = 1.52; }
+  else if (camMode === "FRONT") { camYaw = -1.57; camPitch = 0.08; }
+
+  const acPitch = (sample.pitch_deg * Math.PI) / 180.0;
+  const acRoll = (sample.roll_deg * Math.PI) / 180.0;
+
+  // Transform body coordinates (x forward, y right wing, z down) -> screen (sx, sy, depth)
+  function projectBody(bx, by, bz) {
+    // Apply aircraft pitch & roll in chase view
+    const cp = Math.cos(acRoll), sp = Math.sin(acRoll);
+    const ct = Math.cos(acPitch), st = Math.sin(acPitch);
+    const y1 = cp * by + sp * bz;
+    const z1 = -sp * by + cp * bz;
+    const x2 = ct * bx + st * z1;
+    const z2 = -st * bx + ct * z1;
+
+    // Camera rotation
+    const cyaw = Math.cos(camYaw), syaw = Math.sin(camYaw);
+    const cpit = Math.cos(camPitch), spit = Math.sin(camPitch);
+    const xc = cyaw * x2 - syaw * y1;
+    const yc = syaw * x2 + cyaw * y1;
+    const zc = cpit * z2 - spit * xc;
+    const depth = spit * z2 + cpit * xc;
+    return [cx + yc * scale, cy + zc * scale, depth];
+  }
+
+  function drawPoly(pts3d, fillStyle, strokeStyle = "#dcebff", lineWidth = 1.3) {
+    const proj = pts3d.map(p => projectBody(p[0], p[1], p[2]));
+    ctx.beginPath();
+    proj.forEach((p, i) => { if (i === 0) ctx.moveTo(p[0], p[1]); else ctx.lineTo(p[0], p[1]); });
+    ctx.closePath();
+    if (fillStyle) { ctx.fillStyle = fillStyle; ctx.fill(); }
+    if (strokeStyle) { ctx.strokeStyle = strokeStyle; ctx.lineWidth = lineWidth; ctx.stroke(); }
+  }
+
+  function drawLine3D(p1, p2, color, width = 2.0, dash = []) {
+    const a = projectBody(p1[0], p1[1], p1[2]);
+    const b = projectBody(p2[0], p2[1], p2[2]);
+    ctx.save();
+    ctx.beginPath();
+    ctx.setLineDash(dash);
+    ctx.moveTo(a[0], a[1]);
+    ctx.lineTo(b[0], b[1]);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Draw moving snow ground grid below aircraft when alt_agl < 80 m
+  const gndDrop = Math.min(145, sample.alt_agl * 3.5 + 22);
+  ctx.strokeStyle = "rgba(0, 212, 255, 0.16)";
+  ctx.lineWidth = 1;
+  const scrollOffset = (sample.t_s * sample.vground * 12) % 40;
+  for (let gx = -260; gx <= 260; gx += 40) {
+    ctx.beginPath();
+    ctx.moveTo(cx + gx - scrollOffset, cy + gndDrop);
+    ctx.lineTo(cx + gx * 1.6 - scrollOffset - 60, H);
+    ctx.stroke();
+  }
+  ctx.beginPath();
+  ctx.moveTo(0, cy + gndDrop);
+  ctx.lineTo(W, cy + gndDrop);
+  ctx.strokeStyle = "rgba(0, 212, 255, 0.32)";
+  ctx.stroke();
+
+  // ==========================================================================
+  // CANONICAL VARIANT H / FIN-LAB-02 3D AIRFRAME GEOMETRY (SINGLE SOURCE OF TRUTH)
+  // 1. Unmanned Chined Center-Body (NO cockpit canopy)
+  // 2. 16°/60° Swept Cranked Wing
+  // 3. Twin Carbon Tail Booms at Y = ±0.235 m
+  // 4. Bayraktar TB2-Style 110° Inverted V-Tail (Lambda-Tail /\) meeting at top apex
+  // 5. Semi-Buried Dorsal Turbojet Pod + Glowing Exhaust Plume
+  // 6. 355 mm Folding Nose Electric Tractor Propeller
+  // 7. Detachable 3-Wheel Drop-Dolly & Dropping 5 kg Orange Survival Capsule
+  // ==========================================================================
+  const spanHalf = (cfg.wingspan_m * 0.5) * (1.0 - 0.28 * ((sample.sweep_deg - cfg.sweep_deg) / Math.max(1, cfg.sweep_max_deg - cfg.sweep_deg)));
+  const sweepShift = Math.tan((sample.sweep_deg * Math.PI) / 180.0) * spanHalf * 0.65;
+  const boomY = 0.235;
+  const bodyColor = cfg.livery_color;
+
+  // 1. Left & Right Cranked Outer Wings + Ailerons
+  drawPoly([
+    [0.12, -0.14, 0.0],
+    [-0.05 - sweepShift, -spanHalf, -0.02],
+    [-0.24 - sweepShift, -spanHalf, -0.02],
+    [-0.22, -0.14, 0.0]
+  ], bodyColor, "#e8f4ff", 1.4);
+
+  drawPoly([
+    [0.12, 0.14, 0.0],
+    [-0.05 - sweepShift, spanHalf, -0.02],
+    [-0.24 - sweepShift, spanHalf, -0.02],
+    [-0.22, 0.14, 0.0]
+  ], bodyColor, "#e8f4ff", 1.4);
+
+  // Optional Canard foreplanes for VARIANT_H_CANARD
+  if (cfg.config_id === "VARIANT_H_CANARD") {
+    drawPoly([[0.52, -0.10, 0.0], [0.44, -0.42, -0.01], [0.35, -0.42, -0.01], [0.40, -0.10, 0.0]], "#18e07f", "#ffffff", 1.2);
+    drawPoly([[0.52, 0.10, 0.0], [0.44, 0.42, -0.01], [0.35, 0.42, -0.01], [0.40, 0.10, 0.0]], "#18e07f", "#ffffff", 1.2);
+  }
+
+  // 2. Twin 16 mm Carbon Tail Booms (Y = ±0.235 m)
+  drawLine3D([0.05, -boomY, 0.0], [-0.82, -boomY, 0.0], "#9fb6d4", 4.0);
+  drawLine3D([0.05, boomY, 0.0], [-0.82, boomY, 0.0], "#9fb6d4", 4.0);
+
+  // 3. Bayraktar-Style 110° Obtuse Inverted V-Tail (Lambda-Tail /\) Bridging Twin Booms to Top Apex!
+  const tailApexZ = -0.24; // Upward apex in body frame (z < 0 is UP)
+  drawPoly([
+    [-0.68, -boomY, 0.0],
+    [-0.82, -boomY, 0.0],
+    [-0.86, 0.0, tailApexZ],
+    [-0.72, 0.0, tailApexZ]
+  ], bodyColor, "#ffffff", 1.5);
+  drawPoly([
+    [-0.68, boomY, 0.0],
+    [-0.82, boomY, 0.0],
+    [-0.86, 0.0, tailApexZ],
+    [-0.72, 0.0, tailApexZ]
+  ], bodyColor, "#ffffff", 1.5);
+
+  // 4. Unmanned Chined Center-Body Fuselage (Solid Chined Nose — Zero Cockpit Canopy!)
+  // Left & Right Chined Upper Decks
+  drawPoly([
+    [0.78, 0.0, 0.02],
+    [0.42, -0.13, 0.01],
+    [-0.36, -0.14, 0.01],
+    [-0.48, 0.0, -0.02],
+    [0.42, 0.0, -0.08]
+  ], bodyColor, "#e8f4ff", 1.5);
+  drawPoly([
+    [0.78, 0.0, 0.02],
+    [0.42, 0.13, 0.01],
+    [-0.36, 0.14, 0.01],
+    [-0.48, 0.0, -0.02],
+    [0.42, 0.0, -0.08]
+  ], bodyColor, "#e8f4ff", 1.5);
+
+  // Internal Unmanned Cutaway Highlights (6S2P Battery Box + Twin 2L PET Fuel Bottles at CG)
+  drawPoly([[0.50, -0.05, -0.02], [0.50, 0.05, -0.02], [0.32, 0.05, -0.02], [0.32, -0.05, -0.02]], "rgba(24, 224, 127, 0.55)", "#18e07f", 1.0);
+  drawPoly([[0.16, -0.07, -0.02], [0.16, 0.07, -0.02], [-0.14, 0.07, -0.02], [-0.14, -0.07, -0.02]], "rgba(0, 212, 255, 0.55)", "#00d4ff", 1.0);
+
+  // 5. Semi-Buried Dorsal Turbojet Pod (JetCat P100-RX-BL / Xicoy X132) + Exhaust Plume
+  drawPoly([
+    [-0.06, -0.055, -0.075],
+    [-0.06, 0.055, -0.075],
+    [-0.38, 0.050, -0.075],
+    [-0.38, -0.050, -0.075]
+  ], "#384b66", "#ffd166", 1.4);
+
+  if (sample.f_jet > 5.0) {
+    const plumeLen = 0.22 + 0.42 * (sample.f_jet / Math.max(60.0, cfg.max_jet_thrust_sl_n));
+    drawPoly([
+      [-0.38, -0.04, -0.07],
+      [-0.38, 0.04, -0.07],
+      [-0.38 - plumeLen, 0.0, -0.07]
+    ], "rgba(255, 136, 0, 0.78)", "#ffbe2e", 1.0);
+  }
+
+  // 6. 355 mm Folding Nose Electric Tractor Propeller
+  const noseTip = projectBody(0.80, 0.0, 0.02);
+  if (cfg.has_electric_loiter && sample.nose_prop_deployed) {
+    const propAngle = (sample.t_s * 28.0) % (2 * Math.PI);
+    const b1 = projectBody(0.80, 0.18 * Math.cos(propAngle), 0.02 + 0.18 * Math.sin(propAngle));
+    const b2 = projectBody(0.80, -0.18 * Math.cos(propAngle), 0.02 - 0.18 * Math.sin(propAngle));
+    ctx.beginPath();
+    ctx.moveTo(b1[0], b1[1]); ctx.lineTo(b2[0], b2[1]);
+    ctx.strokeStyle = "#18e07f"; ctx.lineWidth = 3.0; ctx.stroke();
+  } else if (cfg.has_electric_loiter) {
+    // Folded flat against chined nose cone during high-speed jet dash
+    drawLine3D([0.78, 0.0, 0.02], [0.62, -0.07, 0.03], "#ffd166", 2.2);
+    drawLine3D([0.78, 0.0, 0.02], [0.62, 0.07, 0.03], "#ffd166", 2.2);
+  }
+
+  // 7. Detachable 3-Wheel Tundra Drop-Trolley (when attached in Phase 1)
+  if (sample.trolley_attached) {
+    drawLine3D([0.35, 0.0, 0.12], [-0.15, -0.17, 0.12], "#ffbe2e", 2.2);
+    drawLine3D([0.35, 0.0, 0.12], [-0.15, 0.17, 0.12], "#ffbe2e", 2.2);
+    drawLine3D([-0.15, -0.17, 0.12], [-0.15, 0.17, 0.12], "#ffbe2e", 2.2);
+  }
+
+  // 8. Dropping 5.0 kg Orange Survival Capsule + Static-Line Drogue Ballute (Phase 5)
+  if (sample.capsule_dropped && sample.cap_alt > 0.0) {
+    const dz = Math.min(1.1, (sample.alt_agl - sample.cap_alt) * 0.04 + 0.18);
+    const capPos = projectBody(-0.10, 0.0, dz);
+    ctx.fillStyle = "#ff6b2b";
+    ctx.beginPath();
+    ctx.arc(capPos[0], capPos[1], 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.stroke();
+    // Drogue chute lines
+    ctx.beginPath();
+    ctx.moveTo(capPos[0], capPos[1]);
+    ctx.lineTo(capPos[0] - 14, capPos[1] - 18);
+    ctx.lineTo(capPos[0] + 14, capPos[1] - 18);
+    ctx.closePath();
+    ctx.fillStyle = "rgba(0, 212, 255, 0.65)";
+    ctx.fill();
+  }
+
+  // 9. Dorsal Recovery Parachute Canopy (Phase 8)
+  if (sample.chute_deployed) {
+    const chR = 38 * sample.chute_inflation;
+    const chTop = projectBody(-0.20, 0.0, -0.65);
+    const cgPt = projectBody(0.0, 0.0, -0.05);
+    ctx.strokeStyle = "#e8f1fc"; ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(cgPt[0], cgPt[1]); ctx.lineTo(chTop[0] - chR, chTop[1]);
+    ctx.moveTo(cgPt[0], cgPt[1]); ctx.lineTo(chTop[0] + chR, chTop[1]);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(chTop[0], chTop[1], chR, Math.PI, 0, false);
+    ctx.fillStyle = "rgba(255, 107, 43, 0.82)";
+    ctx.fill();
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
+  }
+
+  // ==========================================================================
+  // REAL-TIME AERODYNAMIC FORCE VECTORS AT CG (L, D, T, W)
+  // ==========================================================================
+  const cg = projectBody(0.0, 0.0, 0.0);
+  function drawForceArrow(dx, dy, color, label) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(cg[0], cg[1]);
+    ctx.lineTo(cg[0] + dx, cg[1] + dy);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.6;
+    ctx.stroke();
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(cg[0] + dx, cg[1] + dy, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.font = "bold 11px SFMono-Regular, Consolas, monospace";
+    ctx.fillText(label, cg[0] + dx + 6, cg[1] + dy + 4);
+    ctx.restore();
+  }
+
+  const liftPx = Math.min(85, Math.max(18, sample.lift_n * 0.28));
+  const dragPx = Math.min(75, Math.max(14, sample.drag_n * 0.65));
+  const thrPx = Math.min(85, Math.max(12, (sample.f_jet + sample.f_elec) * 0.55));
+  const wtPx = Math.min(75, Math.max(18, sample.mass_kg * G_ACCEL * 0.28));
+
+  drawForceArrow(0, -liftPx, "#18e07f", `L=${sample.lift_n.toFixed(0)}N`);
+  drawForceArrow(-dragPx, 0, "#ff4757", `D=${sample.drag_n.toFixed(0)}N`);
+  drawForceArrow(thrPx, -thrPx * 0.15, "#ff6b2b", `T=${(sample.f_jet + sample.f_elec).toFixed(0)}N`);
+  drawForceArrow(0, wtPx, "#ffbe2e", `W=${(sample.mass_kg * G_ACCEL).toFixed(0)}N`);
+
+  // ==========================================================================
+  // PRIMARY FLIGHT DISPLAY (PFD / HUD OVERLAY ON RIGHT SIDE OF VIEWPORT)
+  // ==========================================================================
+  const hudX = W - 215, hudY = 42, hudW = 200, hudH = 315;
+  ctx.fillStyle = "rgba(7, 16, 30, 0.84)";
+  ctx.strokeStyle = "#23416b";
+  ctx.lineWidth = 1.2;
+  ctx.fillRect(hudX, hudY, hudW, hudH);
+  ctx.strokeRect(hudX, hudY, hudW, hudH);
+
+  // Artificial Horizon Pitch/Roll Box
+  const ahX = hudX + 100, ahY = hudY + 85, ahR = 56;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(ahX, ahY, ahR, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.translate(ahX, ahY);
+  ctx.rotate(-acRoll);
+  const pitchOff = sample.pitch_deg * 2.2;
+  ctx.fillStyle = "#164e87";
+  ctx.fillRect(-ahR * 1.5, -ahR * 2 + pitchOff, ahR * 3, ahR * 2);
+  ctx.fillStyle = "#4a3520";
+  ctx.fillRect(-ahR * 1.5, pitchOff, ahR * 3, ahR * 2);
+  ctx.strokeStyle = "#18e07f";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(-ahR, pitchOff); ctx.lineTo(ahR, pitchOff);
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.strokeStyle = "#00d4ff";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(ahX, ahY, ahR, 0, Math.PI * 2);
+  ctx.stroke();
+  // Aircraft fixed reticle
+  ctx.strokeStyle = "#ffbe2e";
+  ctx.lineWidth = 2.0;
+  ctx.beginPath();
+  ctx.moveTo(ahX - 22, ahY); ctx.lineTo(ahX - 7, ahY);
+  ctx.moveTo(ahX + 7, ahY); ctx.lineTo(ahX + 22, ahY);
+  ctx.stroke();
+
+  // HUD Digital Readouts
+  ctx.fillStyle = "#e8f1fc";
+  ctx.font = "bold 11px SFMono-Regular, Consolas, monospace";
+  const lines = [
+    [`TIME:  ${sample.t_s.toFixed(1)} s`, `MACH: ${sample.mach.toFixed(3)}`],
+    [`VTAS:  ${sample.vtas_kmh.toFixed(1)} km/h`, `VGND: ${(sample.vground * 3.6).toFixed(0)} km/h`],
+    [`ALT:   ${sample.alt_agl.toFixed(1)} m`, `VSI:  ${sample.climb_rate >= 0 ? "+" : ""}${sample.climb_rate.toFixed(1)} m/s`],
+    [`ALPHA: ${sample.alpha_deg.toFixed(1)}°`, `BETA: ${sample.beta_deg.toFixed(1)}°`],
+    [`SWEEP: ${sample.sweep_deg.toFixed(1)}°`, `L/D:  ${sample.L_over_D.toFixed(1)}`],
+    [`WIND:  ${Math.sqrt(sample.wn*sample.wn + sample.we*sample.we).toFixed(1)} m/s`, `UPD:  ${(-sample.wd).toFixed(1)} m/s`],
+    [`F_JET: ${sample.f_jet.toFixed(1)} N`, `F_EL: ${sample.f_elec.toFixed(1)} N`],
+    [`ICE:   ${sample.ice_mm.toFixed(2)} mm`, `SM:   ${sample.sm_pct.toFixed(1)}% MAC`]
+  ];
+  lines.forEach((pair, idx) => {
+    const py = hudY + 162 + idx * 18;
+    ctx.fillStyle = "#8ea9cc";
+    ctx.fillText(pair[0], hudX + 10, py);
+    ctx.fillStyle = "#00d4ff";
+    ctx.fillText(pair[1], hudX + 108, py);
+  });
+}
+
+// ============================================================================
+// 5. MULTI-CHANNEL TELEMETRY STRIP CHARTS & DRAG POLAR / V-n DIAGRAM
+// ============================================================================
+function drawStripCharts(curIdx) {
+  const canvas = document.getElementById("canvasCharts");
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = "#060e1a";
+  ctx.fillRect(0, 0, W, H);
+
+  const data = currentSim.telemetry;
+  if (!data.length) return;
+  const N = data.length;
+  const padL = 52, padR = 16, padT = 14, padB = 20;
+  const plotW = W - padL - padR;
+  const rowH = (H - padT - padB) / 3;
+
+  const panels = [
+    {
+      title: "Altitude AGL (m, Cyan) & Dropped Capsule Trajectory (m, Orange)",
+      maxV: Math.max(220, ...data.map(d => d.alt_agl * 1.1)),
+      minV: 0,
+      series: [
+        { color: "#00d4ff", fn: d => d.alt_agl },
+        { color: "#ff6b2b", fn: d => d.capsule_dropped ? d.cap_alt : null }
+      ]
+    },
+    {
+      title: "True Airspeed (km/h, Green) vs. 1g Stall Speed (km/h, Red Dashed)",
+      maxV: Math.max(320, ...data.map(d => d.vtas_kmh * 1.1)),
+      minV: 0,
+      series: [
+        { color: "#18e07f", fn: d => d.vtas_kmh },
+        { color: "#ff4757", fn: d => d.v_stall * 3.6 }
+      ]
+    },
+    {
+      title: "Propulsion Thrust (N, Orange) vs. Aerodynamic Drag (N, Purple)",
+      maxV: Math.max(150, ...data.map(d => Math.max(d.f_jet + d.f_elec, d.drag_n) * 1.15)),
+      minV: 0,
+      series: [
+        { color: "#ff6b2b", fn: d => d.f_jet + d.f_elec },
+        { color: "#a55eea", fn: d => d.drag_n }
+      ]
+    }
+  ];
+
+  panels.forEach((p, pIdx) => {
+    const y0 = padT + pIdx * rowH;
+    const h = rowH - 10;
+    ctx.strokeStyle = "#1c3354";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(padL, y0, plotW, h);
+
+    ctx.fillStyle = "#8ea9cc";
+    ctx.font = "bold 10.5px sans-serif";
+    ctx.fillText(p.title, padL + 6, y0 + 12);
+    ctx.fillText(p.maxV.toFixed(0), 8, y0 + 11);
+    ctx.fillText(p.minV.toFixed(0), 18, y0 + h);
+
+    p.series.forEach(s => {
+      ctx.beginPath();
+      ctx.strokeStyle = s.color;
+      ctx.lineWidth = 1.8;
+      let started = false;
+      data.forEach((d, i) => {
+        const val = s.fn(d);
+        if (val === null || val === undefined) return;
+        const px = padL + (i / Math.max(1, N - 1)) * plotW;
+        const py = y0 + h - ((val - p.minV) / Math.max(1e-3, p.maxV - p.minV)) * h;
+        if (!started) { ctx.moveTo(px, py); started = true; }
+        else ctx.lineTo(px, py);
+      });
+      ctx.stroke();
+    });
+  });
+
+  // Playhead cursor line
+  const curX = padL + (curIdx / Math.max(1, N - 1)) * plotW;
+  ctx.strokeStyle = "#ffbe2e";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(curX, padT);
+  ctx.lineTo(curX, H - padB);
+  ctx.stroke();
+}
+
+function drawPolarChart(sample) {
+  const canvas = document.getElementById("canvasPolar");
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = "#060e1a";
+  ctx.fillRect(0, 0, W, H);
+
+  const cfg = currentSim.cfg;
+  const padL = 38, padR = 14, padT = 22, padB = 26;
+  const pw = W - padL - padR, ph = H - padT - padB;
+
+  ctx.strokeStyle = "#1c3354";
+  ctx.strokeRect(padL, padT, pw, ph);
+  ctx.fillStyle = "#8ea9cc";
+  ctx.font = "bold 10.5px sans-serif";
+  ctx.fillText("Drag Polar: C_L vs C_D (Operating Point = Orange)", padL, 14);
+  ctx.fillText("C_D →", W - 45, H - 6);
+
+  // Plot theoretical drag polar curve for -0.4 <= CL <= cl_max_clean
+  const ar = (cfg.wingspan_m * cfg.wingspan_m) / cfg.wing_area_m2;
+  const k = 1.0 / (Math.PI * cfg.oswald_e * ar);
+  const cdMax = 0.18, clMin = -0.4, clMax = 1.55;
+
+  ctx.beginPath();
+  ctx.strokeStyle = "#00d4ff";
+  ctx.lineWidth = 2.0;
+  for (let cl = clMin; cl <= cfg.cl_max_clean; cl += 0.05) {
+    const cd = cfg.cd0_clean + k * cl * cl;
+    const px = padL + (cd / cdMax) * pw;
+    const py = padT + ph - ((cl - clMin) / (clMax - clMin)) * ph;
+    if (cl === clMin) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+
+  // Plot current live operating point (sample.CD, sample.CL)
+  const opX = padL + Math.min(1.0, sample.CD / cdMax) * pw;
+  const opY = padT + ph - Math.max(0.0, Math.min(1.0, (sample.CL - clMin) / (clMax - clMin))) * ph;
+  ctx.fillStyle = "#ff6b2b";
+  ctx.beginPath();
+  ctx.arc(opX, opY, 5.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "#ffffff";
+  ctx.stroke();
+
+  ctx.fillStyle = "#e8f1fc";
+  ctx.font = "10.5px SFMono-Regular, Consolas, monospace";
+  ctx.fillText(`CL=${sample.CL.toFixed(2)}, CD=${sample.CD.toFixed(3)}`, Math.min(W - 135, opX + 8), Math.max(padT + 14, opY - 6));
+}
+
+// ============================================================================
+// 6. UPDATE KPI CARDS & MAIN ANIMATION LOOP
+// ============================================================================
+function updateUIForSample(idx) {
+  const data = currentSim.telemetry;
+  if (!data.length) return;
+  const i = Math.max(0, Math.min(data.length - 1, Math.floor(idx)));
+  const s = data[i];
+  const cfg = currentSim.cfg;
+  const st = currentSim.stability;
+
+  document.getElementById("hdrConfigBadge").textContent = `${cfg.config_id} (${s.mass_kg.toFixed(2)} kg)`;
+  document.getElementById("hdrPhaseBadge").textContent = `PHASE: ${s.phase}`;
+  document.getElementById("hdrQualBadge").textContent = `MIL-STD-1797 LEVEL ${st.level}`;
+  document.getElementById("valTime").textContent = `${s.t_s.toFixed(1)} s / ${currentSim.total_duration_s.toFixed(1)} s`;
+  document.getElementById("rngScrub").value = i;
+
+  // Phase pills highlight
+  const phasesOrder = ["1_LAUNCH", "2_CLIMB", "3_HIGH_SPEED_DASH", "4_LOITER_SEARCH", "5_PAYLOAD_DROP", "6_COLD_RELIGHT", "7_RTB_CRUISE", "8_LANDING"];
+  const curPIdx = phasesOrder.indexOf(s.phase);
+  document.querySelectorAll(".phase-pill").forEach((el, pIdx) => {
+    el.classList.remove("current", "done");
+    if (pIdx === curPIdx) el.classList.add("current");
+    else if (pIdx < curPIdx) el.classList.add("done");
+  });
+
+  const phObj = currentSim.phase_summary.find(p => p.phase === s.phase);
+  document.getElementById("lblPhaseNote").textContent = phObj ? phObj.note : `Executing ${s.phase}`;
+
+  document.getElementById("kpiSpeed").textContent = `${s.vtas_kmh.toFixed(1)} km/h`;
+  document.getElementById("kpiMach").textContent = `${s.vtas.toFixed(1)} m/s · Mach ${s.mach.toFixed(3)}`;
+  document.getElementById("kpiAlt").textContent = `${s.alt_agl.toFixed(1)} m`;
+  document.getElementById("kpiClimb").textContent = `VSI: ${s.climb_rate >= 0 ? "+" : ""}${s.climb_rate.toFixed(1)} m/s · V_gnd: ${(s.vground * 3.6).toFixed(0)} km/h`;
+  document.getElementById("kpiAlpha").textContent = `${s.alpha_deg >= 0 ? "+" : ""}${s.alpha_deg.toFixed(1)}° / ${s.beta_deg.toFixed(1)}°`;
+  document.getElementById("kpiLD").textContent = `L/D = ${s.L_over_D.toFixed(1)} · Wing Λ = ${s.sweep_deg.toFixed(1)}°`;
+  document.getElementById("kpiAtt").textContent = `${s.pitch_deg >= 0 ? "+" : ""}${s.pitch_deg.toFixed(1)}° / ${s.roll_deg.toFixed(1)}°`;
+  document.getElementById("kpiGLoad").textContent = `Load Factor: ${s.g_load.toFixed(2)} G`;
+  document.getElementById("kpiThrust").textContent = `${s.f_jet.toFixed(1)} N / ${s.f_elec.toFixed(1)} N`;
+  document.getElementById("kpiDrag").textContent = `Total Drag D = ${s.drag_n.toFixed(1)} N`;
+  document.getElementById("kpiMass").textContent = `${s.mass_kg.toFixed(2)} kg`;
+  document.getElementById("kpiEnergy").textContent = `Fuel: ${s.fuel_kg.toFixed(2)} kg · Batt: ${s.batt_soc.toFixed(0)}%`;
+
+  if (!s.capsule_dropped) {
+    document.getElementById("kpiCapsule").textContent = `STOWED (${cfg.payload_mass_kg.toFixed(1)} kg)`;
+  } else if (s.cap_alt > 0) {
+    document.getElementById("kpiCapsule").textContent = `DESCENDING (${s.cap_alt.toFixed(1)} m)`;
+  } else {
+    document.getElementById("kpiCapsule").textContent = `LANDED ON TARGET`;
+  }
+  document.getElementById("kpiCep").textContent = `CCRP Dispersion CEP: ${currentSim.capsule_cep_m.toFixed(2)} m`;
+  document.getElementById("kpiIce").textContent = `${s.ice_mm.toFixed(2)} mm Ice`;
+  document.getElementById("kpiNav").textContent = `GNSS-Denied CEP: ${s.gnss_cep.toFixed(1)} m`;
+
+  document.getElementById("modSP").textContent = `ω_n = ${st.wn_sp.toFixed(2)} rad/s`;
+  document.getElementById("modSPZeta").textContent = `Damping ζ = ${st.zeta_sp.toFixed(3)} (Level ${st.level})`;
+  document.getElementById("modDR").textContent = `ω_n = ${st.wn_dr.toFixed(2)} rad/s`;
+  document.getElementById("modDRZeta").textContent = `Damping ζ = ${st.zeta_dr.toFixed(3)} (Level ${st.level})`;
+  document.getElementById("modPhugoid").textContent = `T_ph = ${st.period_ph.toFixed(1)} s`;
+  document.getElementById("modRoll").textContent = `τ_roll = ${st.tau_roll.toFixed(2)} s · Spiral Stable`;
+  document.getElementById("modSM").textContent = `${s.sm_pct.toFixed(1)}% MAC`;
+  document.getElementById("modCtrl").textContent = `δe:${s.de_deg.toFixed(1)}° δa:${s.da_deg.toFixed(1)}° δr:${s.dr_deg.toFixed(1)}°`;
+
+  draw3DViewport(s);
+  drawStripCharts(i);
+  drawPolarChart(s);
+}
+
+// Bind controls
+document.getElementById("cfgSelect").onchange = e => {
+  syncConfigSliders(e.target.value);
+  runSimulationFromUI();
+};
+["launchSelect", "landingSelect", "turbSelect", "deiceSelect"].forEach(id => {
+  document.getElementById(id).onchange = () => {
+    document.getElementById("lblLaunch").textContent = document.getElementById("launchSelect").value;
+    document.getElementById("lblLanding").textContent = document.getElementById("landingSelect").value;
+    runSimulationFromUI();
+  };
+});
+[
+  ["rngPayload", "valPayload", v => `${parseFloat(v).toFixed(2)} kg`],
+  ["rngFuel", "valFuel", v => `${parseFloat(v).toFixed(2)} kg`],
+  ["rngCruiseAlt", "valCruiseAlt", v => `${v} m`],
+  ["rngTemp", "valTemp", v => `${v} °C`],
+  ["rngWind", "valWind", v => `${parseFloat(v).toFixed(1)} m/s`],
+  ["rngWindDir", "valWindDir", v => `${v}°`],
+  ["rngGust", "valGust", v => `${parseFloat(v).toFixed(1)} m/s`],
+  ["rngIcing", "valIcing", v => `${parseFloat(v).toFixed(2)} g/m³`]
+].forEach(([rngId, lblId, fmt]) => {
+  const el = document.getElementById(rngId);
+  el.oninput = () => { document.getElementById(lblId).textContent = fmt(el.value); };
+  el.onchange = () => runSimulationFromUI();
+});
+
+document.getElementById("btnPlayPause").onclick = () => {
+  isPlaying = !isPlaying;
+  document.getElementById("btnPlayPause").textContent = isPlaying ? "PAUSE" : "PLAY";
+};
+document.getElementById("btnRestart").onclick = () => { playIdx = 0; isPlaying = true; document.getElementById("btnPlayPause").textContent = "PAUSE"; };
+document.getElementById("btnSpeed").onclick = () => {
+  const speeds = [1, 2, 4, 8];
+  playSpeed = speeds[(speeds.indexOf(playSpeed) + 1) % speeds.length];
+  document.getElementById("btnSpeed").textContent = `SPEED: ${playSpeed}x`;
+};
+document.getElementById("btnResim").onclick = () => runSimulationFromUI();
+document.getElementById("rngScrub").oninput = e => {
+  playIdx = parseFloat(e.target.value);
+  updateUIForSample(playIdx);
+};
+
+document.querySelectorAll(".phase-pill").forEach(pill => {
+  pill.onclick = () => {
+    const targetPhase = pill.getAttribute("data-phase");
+    const idx = currentSim.telemetry.findIndex(s => s.phase === targetPhase);
+    if (idx >= 0) {
+      playIdx = idx;
+      updateUIForSample(playIdx);
+    }
+  };
+});
+
+document.getElementById("btnPresetArctic").onclick = () => {
+  document.getElementById("rngTemp").value = -30; document.getElementById("valTemp").textContent = "-30 °C";
+  document.getElementById("rngWind").value = 14; document.getElementById("valWind").textContent = "14.0 m/s";
+  document.getElementById("turbSelect").value = "MODERATE";
+  document.getElementById("rngGust").value = 8.5; document.getElementById("valGust").textContent = "8.5 m/s";
+  document.getElementById("rngIcing").value = 0.20; document.getElementById("valIcing").textContent = "0.20 g/m³";
+  document.getElementById("deiceSelect").value = "1";
+  runSimulationFromUI();
+};
+
+document.getElementById("btnPresetIcing").onclick = () => {
+  document.getElementById("rngTemp").value = -12; document.getElementById("valTemp").textContent = "-12 °C";
+  document.getElementById("rngWind").value = 10; document.getElementById("valWind").textContent = "10.0 m/s";
+  document.getElementById("turbSelect").value = "SEVERE";
+  document.getElementById("rngGust").value = 9.0; document.getElementById("valGust").textContent = "9.0 m/s";
+  document.getElementById("rngIcing").value = 0.55; document.getElementById("valIcing").textContent = "0.55 g/m³";
+  document.getElementById("deiceSelect").value = "0";
+  runSimulationFromUI();
+};
+
+[["camIso", "ISO"], ["camSide", "SIDE"], ["camTop", "TOP"], ["camFront", "FRONT"]].forEach(([btnId, mode]) => {
+  document.getElementById(btnId).onclick = () => {
+    camMode = mode;
+    ["camIso", "camSide", "camTop", "camFront"].forEach(id => document.getElementById(id).classList.remove("active"));
+    document.getElementById(btnId).classList.add("active");
+    updateUIForSample(playIdx);
+  };
+});
+
+function animateLoop() {
+  if (isPlaying && currentSim && currentSim.telemetry.length > 0) {
+    playIdx += 0.22 * playSpeed;
+    if (playIdx >= currentSim.telemetry.length - 1) {
+      playIdx = currentSim.telemetry.length - 1;
+      isPlaying = false;
+      document.getElementById("btnPlayPause").textContent = "PLAY";
+    }
+    updateUIForSample(playIdx);
+  }
+  requestAnimationFrame(animateLoop);
+}
+
+runSimulationFromUI();
+updateUIForSample(0);
+requestAnimationFrame(animateLoop);
+</script>
+</body>
+</html>
