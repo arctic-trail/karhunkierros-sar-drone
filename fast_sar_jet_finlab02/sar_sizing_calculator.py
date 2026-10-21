@@ -3,9 +3,9 @@
 sar_sizing_calculator.py — First-Principles Brayton-Cycle & Affine-Breguet Sizing Calculator
 for the Arctic Trail Tier-3 Civilian Fast-SAR & FIN-LAB-02 High-Speed Responder Airframe.
 
-100% Non-Chinese (EU / UK / CH / US NDAA) COTS Architecture:
+100% Non-Chinese (EU / UK / CH / US Allied) COTS Architecture:
   - Turnkey Propulsion: German JetCat P100-RX-BL (100 N) or Spanish Xicoy X132 (132 N)
-  - Flight Control: ARK FPV (USA, NDAA STM32H7) + TE MS4525DO Heated Pitot + u-blox ZED-F9P (CH)
+  - Flight Control: ARK FPV (USA, Allied STM32H7) + TE MS4525DO Heated Pitot + u-blox ZED-F9P (CH)
   - Companion AI: Raspberry Pi 5 (UK) + FLIR Lepton/Boson LWIR + Sony Starvis Night Vision
   - Airframe: 2.20 m Mouldless Carbon/XPS Cranked Wing + Twin-Boom 110° Inverted Lambda-Tail
     (Iteration 1 Fixed 16° SAR Baseline @ 14.95 kg MTOW; FIN-LAB-02 60° Fast Responder @ 350-400 km/h)

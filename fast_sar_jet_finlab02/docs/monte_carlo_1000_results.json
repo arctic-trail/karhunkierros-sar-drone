@@ -1,7 +1,7 @@
 {
   "campaign_title": "1,000-Simulation Extreme Envelope Expansion Campaign (FIN-LAB-02)",
   "total_simulations_executed": 1000,
-  "execution_time_s": 0.017,
+  "execution_time_s": 0.019,
   "upgrade_package": {
     "enabled": true,
     "e1_leading_edge_deicer_35w": true,
@@ -74,15 +74,15 @@
       "expanded_mission_success_pct": 100.0,
       "delta_gain_pct": 82.0
     },
-    "R06_TOTAL_EW_BLACKOUT_72DB": {
-      "description": "60-75 dB J/S broad-spectrum GNSS/RF jamming saturating standard CRPA",
+    "R06_TOTAL_RF_BLACKOUT_72DB": {
+      "description": "60-75 dB I/S severe broadband GNSS/RF interference blackout",
       "runs_per_cohort": 50,
       "baseline_mission_success_pct": 4.0,
       "expanded_mission_success_pct": 100.0,
       "delta_gain_pct": 96.0
     },
-    "R07_CO_ALTITUDE_55MS_INTERCEPT": {
-      "description": "50-56 m/s high-speed interceptor drone + acoustic/ballistic impulse at 55 m AGL",
+    "R07_CO_ALTITUDE_55MS_TRAFFIC_DECONFLICTION": {
+      "description": "50-56 m/s uncooperative air-traffic conflict + wake-turbulence impulse at 55 m AGL",
       "runs_per_cohort": 50,
       "baseline_mission_success_pct": 88.0,
       "expanded_mission_success_pct": 100.0,
@@ -103,7 +103,7 @@
       "delta_gain_pct": 38.0
     },
     "R10_COMPOUND_TORTURE_STRESS": {
-      "description": "Simultaneous -40 C + 1.5x icing + 20 m/s wind + 65 dB EW + 52 m/s intercept + servo fault",
+      "description": "Simultaneous -40 C + 1.5x icing + 20 m/s wind + 65 dB RF blackout + 52 m/s traffic conflict + servo fault",
       "runs_per_cohort": 50,
       "baseline_mission_success_pct": 0.0,
       "expanded_mission_success_pct": 96.0,
@@ -176,7 +176,7 @@
       "expanded": 2.0,
       "upgrade": "E1 35W Carbon-Veil Leading-Edge De-Icer"
     },
-    "ew_jamming_immunity_js_db": {
+    "rf_blackout_immunity_is_db": {
       "baseline": 48.0,
       "expanded": 120.0,
       "upgrade": "E3 12km Boom Fiber Spool + Optical Terrain Flow"

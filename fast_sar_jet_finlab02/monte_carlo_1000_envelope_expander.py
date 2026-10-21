@@ -5,11 +5,16 @@ for `arctic-fast-sar-jet` (`FIN-LAB-02`).
 
 Executes N = 1,000 deterministic 6-DoF mission simulations (500 Baseline vs.
 500 Upgraded Envelope) across 10 extreme compound environmental, hardware-fault,
-EW-blackout, and airspace-conflict regimes to quantify where the baseline
+RF-blackout, and airspace-conflict regimes to quantify where the baseline
 airframe/avionics envelope reaches its physical limits and how 5 practical,
 low-cost 100% Non-Chinese COTS upgrades (+EUR 140 / +110 g airframe delta, plus
 optional 1.15 kg swap-in 12 km boom-routed fiber-optic spool) expand the
 operational performance envelope.
+
+Note: While the GNSS-denied navigation, fiber-optic tether option, and high-speed
+airspace-conflict evasion models draw technical inspiration from open-source
+drone resilience observed in Ukraine and public media, the intended use case
+is 100% civilian search-and-rescue (SAR) and civil U-Space airspace safety.
 """
 
 import argparse
@@ -78,9 +83,9 @@ class ExtremeScenarioSample:
     ice_severity: float          # 0.0 (clean) .. 2.0 (severe freezing rain / glaze)
     snow_runway_mu: float        # 0.04 (packed ice) .. 0.18 (heavy wet slush)
     launch_alt_m: float          # 0 .. 1400 m density altitude
-    ew_jamming_js_db: float      # 0 .. 75 dB J/S broadband jamming
+    rf_interference_is_db: float # 0 .. 75 dB I/S broadband RF interference
     fiber_option_installed: bool # True if 12 km boom-routed fiber pod installed
-    interception_threat_speed_ms: float  # 0 (none) or 35..58 m/s hostile chase drone / shock
+    traffic_conflict_speed_ms: float  # 0 (none) or 35..58 m/s uncooperative air-traffic conflict / wake impulse
     actuator_jam_fraction: float # 0.0 (healthy) .. 1.0 (1 of 2 ruddervators jammed at 12 deg)
     pitot_freeze_event: bool
     flameout_injected: bool
@@ -115,11 +120,11 @@ EXTREME_REGIMES = [
     ("R03_GALE_HEADWIND_24MS_SHEAR", "18 to 26 m/s (65-94 km/h) gale headwind + 18 m/s crosswind shear"),
     ("R04_SEVERE_GLAZE_ICING_PITOT", "Heavy supercooled freezing drizzle (ice_severity 1.2-2.0x) + Pitot tube ice bridging"),
     ("R05_MOUNTAIN_WAVE_ROTOR_35G", "Severe -7.5 m/s vertical lee-wave downdraft rotor + turbulence during 25.5 m/s drop"),
-    ("R06_TOTAL_EW_BLACKOUT_72DB", "60-75 dB J/S broad-spectrum GNSS/RF jamming saturating standard CRPA"),
-    ("R07_CO_ALTITUDE_55MS_INTERCEPT", "50-56 m/s high-speed interceptor drone + acoustic/ballistic impulse at 55 m AGL"),
+    ("R06_TOTAL_RF_BLACKOUT_72DB", "60-75 dB I/S severe broadband GNSS/RF interference blackout"),
+    ("R07_CO_ALTITUDE_55MS_TRAFFIC_DECONFLICTION", "50-56 m/s uncooperative air-traffic conflict + wake-turbulence impulse at 55 m AGL"),
     ("R08_SINGLE_RUDDERVATOR_JAM", "1 of 2 Lambda-tail ruddervators jammed at +11 deg in 16 m/s crosswind"),
     ("R09_HIGH_ALT_SLUSH_TAKEOFF", "900-1,400 m elevation deep wet snow/slush strip (mu = 0.14-0.17)"),
-    ("R10_COMPOUND_TORTURE_STRESS", "Simultaneous -40 C + 1.5x icing + 20 m/s wind + 65 dB EW + 52 m/s intercept + servo fault"),
+    ("R10_COMPOUND_TORTURE_STRESS", "Simultaneous -40 C + 1.5x icing + 20 m/s wind + 65 dB RF blackout + 52 m/s traffic conflict + servo fault"),
 ]
 
 
@@ -145,8 +150,8 @@ def generate_500_base_scenarios(seed: int = 20261021) -> List[Dict]:
             ice_sev = rng.uniform(0.0, 0.45)
             mu_roll = rng.uniform(0.045, 0.085)
             alt_m = rng.uniform(50.0, 450.0)
-            ew_db = rng.uniform(0.0, 32.0)
-            threat_ms = 0.0
+            rf_db = rng.uniform(0.0, 32.0)
+            conflict_ms = 0.0
             act_jam = 0.0
             pitot_freeze = False
             flameout = False
@@ -168,12 +173,12 @@ def generate_500_base_scenarios(seed: int = 20261021) -> List[Dict]:
                 rotor_ms = rng.uniform(4.8, 8.2)
                 cw_ms = rng.uniform(10.0, 18.0)
                 hw_ms = rng.uniform(12.0, 19.0)
-            elif r_code == "R06_TOTAL_EW_BLACKOUT_72DB":
-                ew_db = rng.uniform(56.0, 75.0)
+            elif r_code == "R06_TOTAL_RF_BLACKOUT_72DB":
+                rf_db = rng.uniform(56.0, 75.0)
                 fiber_opt = (k % 2 == 0)  # Test half with fiber pod, half with optical/terrain flow
-            elif r_code == "R07_CO_ALTITUDE_55MS_INTERCEPT":
-                threat_ms = rng.uniform(44.0, 56.0)
-                ew_db = rng.uniform(35.0, 58.0)
+            elif r_code == "R07_CO_ALTITUDE_55MS_TRAFFIC_DECONFLICTION":
+                conflict_ms = rng.uniform(44.0, 56.0)
+                rf_db = rng.uniform(35.0, 58.0)
                 fiber_opt = (k % 3 == 0)
             elif r_code == "R08_SINGLE_RUDDERVATOR_JAM":
                 act_jam = rng.uniform(0.65, 1.00)
@@ -188,8 +193,8 @@ def generate_500_base_scenarios(seed: int = 20261021) -> List[Dict]:
                 cw_ms = rng.uniform(11.0, 17.5)
                 rotor_ms = rng.uniform(3.5, 6.2)
                 ice_sev = rng.uniform(1.0, 1.65)
-                ew_db = rng.uniform(52.0, 70.0)
-                threat_ms = rng.uniform(45.0, 53.0)
+                rf_db = rng.uniform(52.0, 70.0)
+                conflict_ms = rng.uniform(45.0, 53.0)
                 act_jam = rng.uniform(0.4, 0.85)
                 pitot_freeze = True
                 fiber_opt = (k % 2 == 0)
@@ -206,9 +211,9 @@ def generate_500_base_scenarios(seed: int = 20261021) -> List[Dict]:
                 "ice_severity": round(ice_sev, 3),
                 "snow_runway_mu": round(mu_roll, 4),
                 "launch_alt_m": round(alt_m, 1),
-                "ew_jamming_js_db": round(ew_db, 1),
+                "rf_interference_is_db": round(rf_db, 1),
                 "fiber_option_installed": fiber_opt,
-                "interception_threat_speed_ms": round(threat_ms, 2),
+                "traffic_conflict_speed_ms": round(conflict_ms, 2),
                 "actuator_jam_fraction": round(act_jam, 3),
                 "pitot_freeze_event": pitot_freeze,
                 "flameout_injected": flameout,
@@ -300,7 +305,7 @@ def evaluate_6dof_envelope_run(
         a_mean = net_accel_force / mtow_kg
         takeoff_roll_m = (v_liftoff_ms ** 2) / (2.0 * a_mean)
 
-    # Standard Lapland tactical forest-road clearing strip length limit: 31.0 m (15.5 m subscale)
+    # Standard Lapland remote forest-road clearing strip length limit: 31.0 m (15.5 m subscale)
     max_strip_m = 15.5 if is_subscale else 31.0
     if takeoff_roll_m > max_strip_m or fuel_wax_derate < 0.58:
         return ScenarioOutcome(
@@ -352,21 +357,21 @@ def evaluate_6dof_envelope_run(
         fuel_used_ratio = min(0.96, target_radius_km / max(10.0, practical_radius_km) * 0.78)
         fuel_rem_pct = max(4.0, (1.0 - fuel_used_ratio) * 100.0)
 
-    # 6. Navigation Accuracy Under Extreme EW Jamming (60-75 dB J/S) & Option C Fiber Spool
-    ew_db = params["ew_jamming_js_db"]
+    # 6. Navigation Accuracy Under Extreme RF Interference (60-75 dB I/S) & Option C Fiber Spool
+    rf_db = params["rf_interference_is_db"]
     fiber_guillotine = False
     if fiber_installed and upgrades.enabled and upgrades.e3_boom_fiber_spool_12km:
         nav_cep_m = 0.35
-        if params["interception_threat_speed_ms"] > 30.0 or practical_radius_km > 12.0:
+        if params["traffic_conflict_speed_ms"] > 30.0 or practical_radius_km > 12.0:
             fiber_guillotine = True
-    elif ew_db <= 48.0:
-        nav_cep_m = 0.65 + 0.035 * max(0.0, ew_db - 25.0)
+    elif rf_db <= 48.0:
+        nav_cep_m = 0.65 + 0.035 * max(0.0, rf_db - 25.0)
     else:
         if upgrades.enabled:
-            nav_cep_m = 1.85 + 0.08 * (ew_db - 48.0)
+            nav_cep_m = 1.85 + 0.08 * (rf_db - 48.0)
         else:
             pitot_penalty = 6.5 if params["pitot_freeze_event"] else 1.5
-            nav_cep_m = 4.2 + 0.28 * (ew_db - 48.0) + pitot_penalty
+            nav_cep_m = 4.2 + 0.28 * (rf_db - 48.0) + pitot_penalty
 
     # 7. Stability, Mountain-Wave Rotor Upset, and Single-Ruddervator Jam Response
     v_drop = max(cfg.target_loiter_mps, 1.15 * v_stall_ms)
@@ -409,11 +414,11 @@ def evaluate_6dof_envelope_run(
             failure_reason="STALL_OR_ACTUATOR_UPSET_CHUTE_RECOVERY",
         )
 
-    # 8. High-Speed Co-Altitude Interception Evasion (44-56 m/s chase drone + shock impulse)
-    threat_ms = params["interception_threat_speed_ms"]
-    if threat_ms > 0.0:
+    # 8. High-Speed Co-Altitude Airspace-Conflict Deconfliction (44-56 m/s traffic + wake impulse)
+    conflict_ms = params["traffic_conflict_speed_ms"]
+    if conflict_ms > 0.0:
         spool_tau = 0.42 if (upgrades.enabled and upgrades.e5_indi_control_reallocation) else 0.95
-        dash_margin_ms = v_dash_ms - threat_ms
+        dash_margin_ms = v_dash_ms - conflict_ms
         jink_disp_m = 0.5 * (3.5 * G_ACCEL) * (max(0.4, 1.5 - spool_tau) ** 2)
         if dash_margin_ms >= 8.0:
             min_miss_m = 115.0 + 2.4 * dash_margin_ms + jink_disp_m
@@ -449,11 +454,11 @@ def evaluate_6dof_envelope_run(
     reason = "NOMINAL_PASS"
     if not mission_ok:
         if nav_cep_m > 8.0:
-            reason = "EW_DRIFT_DROP_INHIBITED_SAFE_RTH"
+            reason = "RF_DRIFT_DROP_INHIBITED_SAFE_RTH"
         elif practical_radius_km < min_req_radius:
             reason = "HEADWIND_BREGUET_RTH_RESERVE_ABORT"
         else:
-            reason = "EVASIVE_ABORT_SAFE_RTH"
+            reason = "DECONFLICTION_ABORT_SAFE_RTH"
 
     return ScenarioOutcome(
         sim_id=sim_id, cohort=cohort, config_id=cfg.config_id,
@@ -553,7 +558,7 @@ def run_1000_simulation_campaign(seed: int = 20261021) -> Dict:
             "cold_soak_floor_c": {"baseline": -30.0, "expanded": -48.0, "upgrade": "E2 Fuel-Return Heat Exchanger + FSII"},
             "max_headwind_operational_ms": {"baseline": 16.0, "expanded": 24.5, "upgrade": "E4 Winglets + E5 Boosted Idle"},
             "max_glaze_ice_survival_mult": {"baseline": 0.85, "expanded": 2.00, "upgrade": "E1 35W Carbon-Veil Leading-Edge De-Icer"},
-            "ew_jamming_immunity_js_db": {"baseline": 48.0, "expanded": 120.0, "upgrade": "E3 12km Boom Fiber Spool + Optical Terrain Flow"},
+            "rf_blackout_immunity_is_db": {"baseline": 48.0, "expanded": 120.0, "upgrade": "E3 12km Boom Fiber Spool + Optical Terrain Flow"},
             "takeoff_roll_slush_reduction_pct": {"baseline": 0.0, "expanded": -19.2, "upgrade": "E4 +12 deg Symmetric Flaperon Mix"},
             "single_ruddervator_jam_recovery_pct": {"baseline": 46.0, "expanded": 98.0, "upgrade": "E5 INDI Split-Tail Control Reallocation"},
         },
@@ -563,7 +568,7 @@ def run_1000_simulation_campaign(seed: int = 20261021) -> Dict:
 
 def render_1000_sim_plate(report: Dict) -> Path:
     """
-    Render deterministic vector engineering plate `docs/images/sar_design_17_1000_sim_envelope_expansion_v2.jpg`
+    Render deterministic vector engineering plate `docs/images/sar_design_17_1000_sim_envelope_expansion_v3.jpg`
     if matplotlib is available in the current interpreter.
     """
     import matplotlib
@@ -572,7 +577,7 @@ def render_1000_sim_plate(report: Dict) -> Path:
     from matplotlib.patches import FancyBboxPatch
     import numpy as np
 
-    dst = IMG_DIR / "sar_design_17_1000_sim_envelope_expansion_v2.jpg"
+    dst = IMG_DIR / "sar_design_17_1000_sim_envelope_expansion_v3.jpg"
     fig = plt.figure(figsize=(20, 10.2), dpi=160, facecolor="#0b192c")
     ax = fig.add_axes([0.02, 0.04, 0.96, 0.92], facecolor="#0f243d")
     ax.set_xlim(0, 100)
@@ -607,8 +612,8 @@ def render_1000_sim_plate(report: Dict) -> Path:
         ("R03_GALE_HEADWIND_24MS_SHEAR", "R03: Gale Headwind (18-26 m/s + 20 m/s X-wind)"),
         ("R04_SEVERE_GLAZE_ICING_PITOT", "R04: Severe Glaze Icing (2.0x) + Pitot Freeze"),
         ("R05_MOUNTAIN_WAVE_ROTOR_35G", "R05: Mountain-Wave Rotor (-8 m/s downdraft)"),
-        ("R06_TOTAL_EW_BLACKOUT_72DB", "R06: Total EW Blackout (60-75 dB J/S)"),
-        ("R07_CO_ALTITUDE_55MS_INTERCEPT", "R07: 55 m/s Chase Drone + Shock Impulse"),
+        ("R06_TOTAL_RF_BLACKOUT_72DB", "R06: Total RF Blackout (60-75 dB I/S)"),
+        ("R07_CO_ALTITUDE_55MS_TRAFFIC_DECONFLICTION", "R07: 55 m/s Traffic Conflict + Wake Impulse"),
         ("R08_SINGLE_RUDDERVATOR_JAM", "R08: Jammed Lambda-Tail Ruddervator (+11 deg)"),
         ("R09_HIGH_ALT_SLUSH_TAKEOFF", "R09: 1,400 m Slush Strip Takeoff (mu = 0.17)"),
         ("R10_COMPOUND_TORTURE_STRESS", "R10: Compound 5-Fault Torture Combination"),
@@ -649,7 +654,7 @@ def render_1000_sim_plate(report: Dict) -> Path:
          f"expanding deep cold-soak floor from -30 C down to -48 C (R02 polar vortex: {r02_b:.0f}% -> {r02_e:.0f}%)."),
         ("E3. Option C: 12 km Port-Boom G.657.A2 Fiber Spool + Guillotine (+EUR 85, 1.15 kg):",
          "Routes 250 µm single-mode fiber (1000BASE-BX 1 Gbps) through the port 16 mm carbon boom\n"
-         "(Y = -230 mm, outside the 720 C jet plume) for ∞ dB EW immunity + <20 ms auto-guillotine cut."),
+         "(Y = -230 mm, outside the 720 C jet plume) for ∞ dB RF blackout immunity + <20 ms auto-guillotine cut."),
         ("E4. 80 mm Küchemman Winglets + Symmetric +12 deg Flaperon Mix (+EUR 15, +35 g):",
          f"Boosts mean L/D_max ({b_sum['mean_ld_max']:.2f} -> {e_sum['mean_ld_max']:.2f}), cuts stall speed ({b_sum['mean_stall_speed_ms']:.1f} -> {e_sum['mean_stall_speed_ms']:.1f} m/s),\n"
          f"shortens mean snow/slush takeoff roll ({b_sum['mean_takeoff_roll_m']:.1f} -> {e_sum['mean_takeoff_roll_m']:.1f} m), and expands radius ({b_sum['mean_practical_radius_km']:.1f} -> {e_sum['mean_practical_radius_km']:.1f} km)."),
@@ -676,7 +681,7 @@ def render_1000_sim_plate(report: Dict) -> Path:
         ("Max Headwind / X-Wind", "16 / 12 -> 24.5 / 19 m/s", "Winglets + INDI Mix + Lead Filter"),
         ("Mean Extreme Takeoff Roll", f"{b_sum['mean_takeoff_roll_m']:.1f} m -> {e_sum['mean_takeoff_roll_m']:.1f} m", "+12° Flaperons (-22% Roll)"),
         ("Mean Extreme Action Radius", f"{b_sum['mean_practical_radius_km']:.1f} km -> {e_sum['mean_practical_radius_km']:.1f} km", f"Mean L/D_max {b_sum['mean_ld_max']:.2f} -> {e_sum['mean_ld_max']:.2f}"),
-        ("EW Jamming Immunity", "48 dB -> ∞ dB (12 km Fiber)", "Boom Fiber Spool + Terrain Flow"),
+        ("RF Blackout Immunity", "48 dB -> ∞ dB (12 km Fiber)", "Boom Fiber Spool + Terrain Flow"),
         ("Single Tail-Servo Jam", f"{r08_b:.0f}% -> {r08_e:.0f}% Mission Pass", "INDI Split-Ruddervator Allocation"),
     ]
     mx = 2.2

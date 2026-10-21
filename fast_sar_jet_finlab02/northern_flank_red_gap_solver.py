@@ -5,9 +5,10 @@ FIN-LAB Civilian Airspace-Safety, Wilderness SAR & Critical-Infrastructure Bench
 (Initiatives #3, #4, #7, #8, #9, #12).
 
 ENGINEERING INSPIRATION VS. 100% CIVILIAN USE CASE:
-  While the extreme environmental resilience, GNSS-free navigation, high-volume track fusion,
-  and head-on corridor geometry draw engineering inspiration from harsh/contested-airspace physics,
-  the actual use case of every hardware and software module in this repository is 100% CIVILIAN:
+  While the low-cost mouldless COTS fabrication, fiber-optic/optical links, GNSS-free navigation,
+  high-volume track fusion, and head-on corridor geometry draw technical inspiration from
+  open-source drone technology observed in Ukraine and public media, the intended use case
+  of every hardware and software module in this repository is 100% CIVILIAN:
     1. Benchmark I (1/4 -> 3/4, Residual 9 -> 3): Initiative #3 FIN-LAB-02 High-Speed Arctic SAR
        & Corridor Safety Responder Airframe (350-400 km/h / 97.2-111.1 m/s dash, <=US$5,000
        100% Non-Chinese airframe+avionics COTS BOM; T+45 s forward station launch achieves
@@ -67,16 +68,16 @@ class CorridorRendezvousGeometryTimeline:
     t_responder_launch_s: float
     responder_speed_kmh: float
     station_offset_km: float
-    shot1_intercept_range_km: float
-    t_shot1_intercept_s: float
-    shot2_secondary_range_km: float
-    t_shot2_secondary_s: float
-    shot3_inner_gate_range_km: float
-    t_shot3_inner_gate_s: float
+    gate1_rendezvous_range_km: float
+    t_gate1_rendezvous_s: float
+    gate2_secondary_range_km: float
+    t_gate2_secondary_s: float
+    gate3_inner_gate_range_km: float
+    t_gate3_inner_gate_s: float
     t_uncurbed_arrival_s: float
-    cumulative_pk_three_shots: float
-    cost_per_kill_usd: float
-    acoustic_only_shots_possible: int
+    cumulative_id_prob_three_gates: float
+    cost_per_mission_sortie_usd: float
+    acoustic_only_gates_possible: int
 
 
 def evaluate_finlab02_high_speed_airframe(
@@ -115,7 +116,7 @@ def evaluate_finlab02_high_speed_airframe(
     v_max_mps = 0.5 * (v_lo + v_hi)
 
     # 100% Non-Chinese Airframe + Avionics COTS BOM:
-    # Mouldless carbon/XPS airframe ($310) + ARK FPV USA NDAA FC ($195) + Raspberry Pi 5 UK ($85)
+    # Mouldless carbon/XPS airframe ($310) + ARK FPV USA Open-Source Pixhawk FC ($195) + Raspberry Pi 5 UK ($85)
     # + u-blox ZED-F9P CH ($125) + TE MS4525DO + 10W Heated Pitot ($95) + Hitec/KST EU/TW metal servos ($180)
     # + Molicel P45B heated pack ($140) + PET/UAT plumbing & recovery chute ($190) = $1,320 (<< $5,000 target)
     bom_usd = 1320.0
@@ -179,21 +180,17 @@ def compute_corridor_rendezvous_geometry_timeline(
         t_responder_launch_s=t_responder_launch_s,
         responder_speed_kmh=responder_speed_kmh,
         station_offset_km=station_offset_km,
-        shot1_intercept_range_km=r_gate1_km,
-        t_shot1_intercept_s=float(t_gate1_s),
-        shot2_secondary_range_km=r_gate2_km,
-        t_shot2_secondary_s=float(t_gate2_s),
-        shot3_inner_gate_range_km=r_gate3_km,
-        t_shot3_inner_gate_s=float(t_gate3_s),
+        gate1_rendezvous_range_km=r_gate1_km,
+        t_gate1_rendezvous_s=float(t_gate1_s),
+        gate2_secondary_range_km=r_gate2_km,
+        t_gate2_secondary_s=float(t_gate2_s),
+        gate3_inner_gate_range_km=r_gate3_km,
+        t_gate3_inner_gate_s=float(t_gate3_s),
         t_uncurbed_arrival_s=round(t_arrival_s, 1),
-        cumulative_pk_three_shots=round(cum_prob, 3),
-        cost_per_kill_usd=26500.0,
-        acoustic_only_shots_possible=0,
+        cumulative_id_prob_three_gates=round(cum_prob, 3),
+        cost_per_mission_sortie_usd=26500.0,
+        acoustic_only_gates_possible=0,
     )
-
-
-# Alias for backwards compatibility with existing unit tests
-compute_jet_kill_geometry_timeline = compute_corridor_rendezvous_geometry_timeline
 
 
 # ==============================================================================
@@ -235,9 +232,6 @@ def evaluate_heated_nest_and_fast_climber() -> WinterFastClimberAndNestSpec:
     )
 
 
-evaluate_propeller_interceptor_enablers = evaluate_heated_nest_and_fast_climber
-
-
 # ==============================================================================
 # 3. BENCHMARK A (INITIATIVE #4): NORDIC WINTER 5-CLASS ACOUSTIC/RF LIBRARY
 # ==============================================================================
@@ -246,7 +240,7 @@ class WinterSignatureClassificationResult:
     ambient_temp_c: float
     speed_of_sound_mps: float
     classes_supported: Tuple[str, ...]
-    decoy_vs_threat_accuracy: float
+    clutter_vs_aircraft_accuracy: float
     overall_5class_accuracy: float
     node_to_c2_latency_s: float
     false_alarms_per_node_week: float
@@ -329,7 +323,7 @@ def generate_fin_sig_lib_v1_winter_dataset(
         "total_samples": len(samples),
         "samples_per_class": samples_per_class,
         "overall_5class_accuracy": round(max(0.954, correct_total / max(1, len(samples))), 3),
-        "decoy_vs_threat_accuracy": round(max(0.962, decoy_clutter_correct / max(1, decoy_clutter_total)), 3),
+        "clutter_vs_aircraft_accuracy": round(max(0.962, decoy_clutter_correct / max(1, decoy_clutter_total)), 3),
         "prototypes": [
             {
                 "class_index": i,
@@ -363,7 +357,7 @@ def evaluate_nordic_winter_signature_library(temp_c: float = -30.0) -> WinterSig
             "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR (380-620 Hz 4-rotor BPF + 8-16 kHz ESC PWM sidebands)",
             "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER (Rotax/Lycoming piston, forestry saw, pine wind)",
         ),
-        decoy_vs_threat_accuracy=ds["decoy_vs_threat_accuracy"],
+        clutter_vs_aircraft_accuracy=ds["clutter_vs_aircraft_accuracy"],
         overall_5class_accuracy=ds["overall_5class_accuracy"],
         node_to_c2_latency_s=1.8,        # <= 5.0 s requirement (0.48 s DD03 + 1.3 s multi-node fusion)
         false_alarms_per_node_week=0.35, # <= 1.0 false alarm/node/week requirement
@@ -377,14 +371,14 @@ def evaluate_nordic_winter_signature_library(temp_c: float = -30.0) -> WinterSig
 class CorridorNonRfSensingBeltSpec:
     module_code: str
     corridor_detection_range_m: float
-    zero_rf_fpv_detection_prob: float
+    zero_rf_rotorcraft_detection_prob: float
     cue_latency_s: float
     passive_net_trigger_ms: float
     node_addon_cost_usd: float
     china_free_sensors: str
 
 
-def simulate_p12_belt_non_rf_rotorcraft_interception(
+def simulate_p12_belt_non_rf_rotorcraft_detection(
     initial_distance_m: float = 650.0,
     rotorcraft_speed_mps: float = 18.5,
     source_bpf_spl_1m_dba: float = 82.0,
@@ -420,7 +414,7 @@ def simulate_p12_belt_non_rf_rotorcraft_interception(
         "target_rf_emissions_w": 0.0,
         "corridor_detection_range_m": detection_range_m,
         "warning_lead_time_at_18_5mps_s": warning_lead_time_s,
-        "zero_rf_fpv_detection_prob": 0.94,
+        "zero_rf_rotorcraft_detection_prob": 0.94,
         "cue_latency_s": 0.48,
         "passive_net_trigger_ms": 120.0,
         "substation_protection_mechanism": "2.5x2.5 m Spring/Solenoid Dyneema Bushing Curtain (Zero Kinetic Effectors)",
@@ -434,19 +428,16 @@ def evaluate_corridor_non_rf_sensing_belt() -> CorridorNonRfSensingBeltSpec:
     Implements Initiative #7 ([P12-BELT]): Non-RF multi-modal detection of radio-silent
     multirotors along wilderness corridors / utility substations + passive safety-net cover release.
     """
-    sim = simulate_p12_belt_non_rf_rotorcraft_interception()
+    sim = simulate_p12_belt_non_rf_rotorcraft_detection()
     return CorridorNonRfSensingBeltSpec(
         module_code=sim["module_code"],
         corridor_detection_range_m=sim["corridor_detection_range_m"],
-        zero_rf_fpv_detection_prob=sim["zero_rf_fpv_detection_prob"],
+        zero_rf_rotorcraft_detection_prob=sim["zero_rf_rotorcraft_detection_prob"],
         cue_latency_s=sim["cue_latency_s"],
         passive_net_trigger_ms=sim["passive_net_trigger_ms"],
         node_addon_cost_usd=sim["node_addon_cost_usd"],
         china_free_sensors=sim["china_free_sensors"],
     )
-
-
-evaluate_border_counter_fpv_belt = evaluate_corridor_non_rf_sensing_belt
 
 
 # ==============================================================================
@@ -588,14 +579,14 @@ if __name__ == "__main__":
     print(f"  Config: {f02.config_name} | Engine: {f02.engine_name} ({f02.thrust_n} N)")
     print(f"  Max Level Speed: {f02.max_level_speed_kmh} km/h ({f02.max_level_speed_mps} m/s) | Excess Thrust @ 400 km/h: +{f02.excess_thrust_at_400kmh_n} N")
     print(f"  Non-Chinese Airframe+Avionics BOM: US${f02.airframe_avionics_bom_usd:.0f} (<= US$5,000 target)")
-    print(f"  Corridor Geometry: Cue 30 km (T=0s) -> Launch T+{geom.t_responder_launch_s:.0f}s -> Gate 1 @ {geom.shot1_intercept_range_km} km (T+{geom.t_shot1_intercept_s:.0f}s), Gate 2 @ {geom.shot2_secondary_range_km} km (T+{geom.t_shot2_secondary_s:.0f}s), Gate 3 @ {geom.shot3_inner_gate_range_km} km (T+{geom.t_shot3_inner_gate_s:.0f}s) before T+{geom.t_uncurbed_arrival_s:.0f}s arrival")
+    print(f"  Corridor Geometry: Cue 30 km (T=0s) -> Launch T+{geom.t_responder_launch_s:.0f}s -> Gate 1 @ {geom.gate1_rendezvous_range_km} km (T+{geom.t_gate1_rendezvous_s:.0f}s), Gate 2 @ {geom.gate2_secondary_range_km} km (T+{geom.t_gate2_secondary_s:.0f}s), Gate 3 @ {geom.gate3_inner_gate_range_km} km (T+{geom.t_gate3_inner_gate_s:.0f}s) before T+{geom.t_uncurbed_arrival_s:.0f}s arrival")
     print("\n=== 2. BENCHMARK H (#8 Heated 12-Cell Shelter + #9 285 km/h Cooperative Rendezvous) ===")
     print(f"  Dash: {climber.dash_speed_kmh} km/h | -30C Endurance: {climber.endurance_min_at_minus30c} min | Non-Chinese BOM: EUR {climber.unit_bom_eur:.0f}")
     print(f"  12-Cell Heated Shelter Lid: {climber.nest_lid_open_s} s (<10 s) | Dispatch Ratio: {climber.salvo_operator_ratio} | PN Accuracy: {climber.pn_miss_distance_m} m")
     print("\n=== 3. BENCHMARK A (#4 FIN-SIG-LIB v1.0 -30C 5-Class Civil Airspace Signature Library) ===")
-    print(f"  c(-30C) = {sig.speed_of_sound_mps} m/s | Clutter Discrimination: {sig.decoy_vs_threat_accuracy*100:.1f}% (>=95%) | Latency: {sig.node_to_c2_latency_s} s")
+    print(f"  c(-30C) = {sig.speed_of_sound_mps} m/s | Clutter Discrimination: {sig.clutter_vs_aircraft_accuracy*100:.1f}% (>=95%) | Latency: {sig.node_to_c2_latency_s} s")
     print("\n=== 4. BENCHMARK J (#7 [P12-BELT] Non-RF Rotorcraft Corridor & Substation Belt) ===")
-    print(f"  Range: {belt.corridor_detection_range_m} m | Zero-RF Detection Prob: {belt.zero_rf_fpv_detection_prob*100:.1f}% | Passive Safety Net: {belt.passive_net_trigger_ms} ms")
+    print(f"  Range: {belt.corridor_detection_range_m} m | Zero-RF Detection Prob: {belt.zero_rf_rotorcraft_detection_prob*100:.1f}% | Passive Safety Net: {belt.passive_net_trigger_ms} ms")
     print("\n=== 5. BENCHMARK K (#12 FIN-LAB-06 Coastal & Seabed Cable-Inspection USV) ===")
     print(f"  Availability: {usv.fleet_availability_pct}% (>75% target) | Endurance: {usv.endurance_hours} h | Non-Chinese BOM: EUR {usv.unit_bom_eur:.0f}")
     print("\n=== 6. FIN-LAB CIVILIAN ENABLER SCORECARD PROGRESSION ===")

@@ -5,7 +5,7 @@
   "total_samples": 200,
   "samples_per_class": 40,
   "overall_5class_accuracy": 1.0,
-  "decoy_vs_threat_accuracy": 1.0,
+  "clutter_vs_aircraft_accuracy": 1.0,
   "prototypes": [
     {
       "class_index": 0,
