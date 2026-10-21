@@ -1,0 +1,17 @@
+# Private & OPSEC-isolated directory (never committed)
+_private/
+
+# Python bytecode & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# macOS & editor artifacts
+.DS_Store
+._*
+.vscode/
+.idea/
+*.swp
