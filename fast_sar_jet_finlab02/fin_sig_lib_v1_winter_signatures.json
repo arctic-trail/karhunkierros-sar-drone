@@ -1,0 +1,3858 @@
+{
+  "library_version": "FIN-SIG-LIB v1.0 (-30C Synthetic Reference & Calibration Set)",
+  "ambient_temp_c": -30.0,
+  "speed_of_sound_mps": 312.58,
+  "total_samples": 200,
+  "samples_per_class": 40,
+  "overall_5class_accuracy": 1.0,
+  "decoy_vs_threat_accuracy": 1.0,
+  "prototypes": [
+    {
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "f0_hz": 125.0,
+      "harmonic_ratio_h2_h1": 0.78,
+      "esc_pwm_8_16khz_snr_db": 1.2,
+      "xm125_60ghz_doppler_bw_hz": 42.0,
+      "passive_rf_burst_dbm": -95.0
+    },
+    {
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "f0_hz": 255.0,
+      "harmonic_ratio_h2_h1": 1.35,
+      "esc_pwm_8_16khz_snr_db": 1.5,
+      "xm125_60ghz_doppler_bw_hz": 95.0,
+      "passive_rf_burst_dbm": -88.0
+    },
+    {
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "f0_hz": 1950.0,
+      "harmonic_ratio_h2_h1": 0.25,
+      "esc_pwm_8_16khz_snr_db": 2.0,
+      "xm125_60ghz_doppler_bw_hz": 310.0,
+      "passive_rf_burst_dbm": -82.0
+    },
+    {
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "f0_hz": 485.0,
+      "harmonic_ratio_h2_h1": 0.62,
+      "esc_pwm_8_16khz_snr_db": 13.5,
+      "xm125_60ghz_doppler_bw_hz": 240.0,
+      "passive_rf_burst_dbm": -110.0
+    },
+    {
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "f0_hz": 82.0,
+      "harmonic_ratio_h2_h1": 0.3,
+      "esc_pwm_8_16khz_snr_db": 0.8,
+      "xm125_60ghz_doppler_bw_hz": 14.0,
+      "passive_rf_burst_dbm": -108.0
+    }
+  ],
+  "samples": [
+    {
+      "sample_id": "FINSIG-W26-01-001",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 123.26,
+        "harmonic_ratio_h2_h1": 0.769,
+        "esc_pwm_8_16khz_snr_db": 1.09,
+        "xm125_60ghz_doppler_bw_hz": 51.27,
+        "passive_rf_burst_dbm": -95.39
+      },
+      "vector": [
+        123.26,
+        0.769,
+        1.09,
+        51.27,
+        -95.39
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-002",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 106.88,
+        "harmonic_ratio_h2_h1": 0.802,
+        "esc_pwm_8_16khz_snr_db": 0.94,
+        "xm125_60ghz_doppler_bw_hz": 39.14,
+        "passive_rf_burst_dbm": -94.65
+      },
+      "vector": [
+        106.88,
+        0.802,
+        0.94,
+        39.14,
+        -94.65
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-003",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 127.81,
+        "harmonic_ratio_h2_h1": 0.857,
+        "esc_pwm_8_16khz_snr_db": 1.85,
+        "xm125_60ghz_doppler_bw_hz": 43.46,
+        "passive_rf_burst_dbm": -97.23
+      },
+      "vector": [
+        127.81,
+        0.857,
+        1.85,
+        43.46,
+        -97.23
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-004",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 112.72,
+        "harmonic_ratio_h2_h1": 0.796,
+        "esc_pwm_8_16khz_snr_db": 2.5,
+        "xm125_60ghz_doppler_bw_hz": 42.55,
+        "passive_rf_burst_dbm": -95.32
+      },
+      "vector": [
+        112.72,
+        0.796,
+        2.5,
+        42.55,
+        -95.32
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-005",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 131.43,
+        "harmonic_ratio_h2_h1": 0.684,
+        "esc_pwm_8_16khz_snr_db": 0.89,
+        "xm125_60ghz_doppler_bw_hz": 48.47,
+        "passive_rf_burst_dbm": -92.36
+      },
+      "vector": [
+        131.43,
+        0.684,
+        0.89,
+        48.47,
+        -92.36
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-006",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 122.09,
+        "harmonic_ratio_h2_h1": 0.805,
+        "esc_pwm_8_16khz_snr_db": 1.45,
+        "xm125_60ghz_doppler_bw_hz": 52.33,
+        "passive_rf_burst_dbm": -98.37
+      },
+      "vector": [
+        122.09,
+        0.805,
+        1.45,
+        52.33,
+        -98.37
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-007",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 131.88,
+        "harmonic_ratio_h2_h1": 0.68,
+        "esc_pwm_8_16khz_snr_db": 0.0,
+        "xm125_60ghz_doppler_bw_hz": 33.99,
+        "passive_rf_burst_dbm": -97.77
+      },
+      "vector": [
+        131.88,
+        0.68,
+        0.0,
+        33.99,
+        -97.77
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-008",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 135.6,
+        "harmonic_ratio_h2_h1": 0.824,
+        "esc_pwm_8_16khz_snr_db": 0.0,
+        "xm125_60ghz_doppler_bw_hz": 53.19,
+        "passive_rf_burst_dbm": -98.03
+      },
+      "vector": [
+        135.6,
+        0.824,
+        0.0,
+        53.19,
+        -98.03
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-009",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 123.96,
+        "harmonic_ratio_h2_h1": 0.761,
+        "esc_pwm_8_16khz_snr_db": 1.31,
+        "xm125_60ghz_doppler_bw_hz": 52.81,
+        "passive_rf_burst_dbm": -93.07
+      },
+      "vector": [
+        123.96,
+        0.761,
+        1.31,
+        52.81,
+        -93.07
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-010",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 129.23,
+        "harmonic_ratio_h2_h1": 0.823,
+        "esc_pwm_8_16khz_snr_db": 1.67,
+        "xm125_60ghz_doppler_bw_hz": 33.72,
+        "passive_rf_burst_dbm": -97.17
+      },
+      "vector": [
+        129.23,
+        0.823,
+        1.67,
+        33.72,
+        -97.17
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-011",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 119.31,
+        "harmonic_ratio_h2_h1": 0.813,
+        "esc_pwm_8_16khz_snr_db": 0.95,
+        "xm125_60ghz_doppler_bw_hz": 72.83,
+        "passive_rf_burst_dbm": -97.48
+      },
+      "vector": [
+        119.31,
+        0.813,
+        0.95,
+        72.83,
+        -97.48
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-012",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 111.7,
+        "harmonic_ratio_h2_h1": 0.831,
+        "esc_pwm_8_16khz_snr_db": 2.61,
+        "xm125_60ghz_doppler_bw_hz": 48.68,
+        "passive_rf_burst_dbm": -92.47
+      },
+      "vector": [
+        111.7,
+        0.831,
+        2.61,
+        48.68,
+        -92.47
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-013",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 142.26,
+        "harmonic_ratio_h2_h1": 0.774,
+        "esc_pwm_8_16khz_snr_db": 0.0,
+        "xm125_60ghz_doppler_bw_hz": 34.98,
+        "passive_rf_burst_dbm": -92.12
+      },
+      "vector": [
+        142.26,
+        0.774,
+        0.0,
+        34.98,
+        -92.12
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-014",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 107.53,
+        "harmonic_ratio_h2_h1": 0.782,
+        "esc_pwm_8_16khz_snr_db": 1.45,
+        "xm125_60ghz_doppler_bw_hz": 37.83,
+        "passive_rf_burst_dbm": -92.81
+      },
+      "vector": [
+        107.53,
+        0.782,
+        1.45,
+        37.83,
+        -92.81
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-015",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 132.03,
+        "harmonic_ratio_h2_h1": 0.933,
+        "esc_pwm_8_16khz_snr_db": 1.81,
+        "xm125_60ghz_doppler_bw_hz": 33.96,
+        "passive_rf_burst_dbm": -96.7
+      },
+      "vector": [
+        132.03,
+        0.933,
+        1.81,
+        33.96,
+        -96.7
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-016",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 114.94,
+        "harmonic_ratio_h2_h1": 0.843,
+        "esc_pwm_8_16khz_snr_db": 0.64,
+        "xm125_60ghz_doppler_bw_hz": 41.07,
+        "passive_rf_burst_dbm": -92.73
+      },
+      "vector": [
+        114.94,
+        0.843,
+        0.64,
+        41.07,
+        -92.73
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-017",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 116.25,
+        "harmonic_ratio_h2_h1": 0.761,
+        "esc_pwm_8_16khz_snr_db": 0.0,
+        "xm125_60ghz_doppler_bw_hz": 27.71,
+        "passive_rf_burst_dbm": -96.72
+      },
+      "vector": [
+        116.25,
+        0.761,
+        0.0,
+        27.71,
+        -96.72
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-018",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 130.03,
+        "harmonic_ratio_h2_h1": 0.859,
+        "esc_pwm_8_16khz_snr_db": 1.18,
+        "xm125_60ghz_doppler_bw_hz": 45.45,
+        "passive_rf_burst_dbm": -94.49
+      },
+      "vector": [
+        130.03,
+        0.859,
+        1.18,
+        45.45,
+        -94.49
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-019",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 138.13,
+        "harmonic_ratio_h2_h1": 0.839,
+        "esc_pwm_8_16khz_snr_db": 1.47,
+        "xm125_60ghz_doppler_bw_hz": 28.66,
+        "passive_rf_burst_dbm": -92.27
+      },
+      "vector": [
+        138.13,
+        0.839,
+        1.47,
+        28.66,
+        -92.27
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-020",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 129.61,
+        "harmonic_ratio_h2_h1": 0.861,
+        "esc_pwm_8_16khz_snr_db": 1.17,
+        "xm125_60ghz_doppler_bw_hz": 67.78,
+        "passive_rf_burst_dbm": -96.09
+      },
+      "vector": [
+        129.61,
+        0.861,
+        1.17,
+        67.78,
+        -96.09
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-021",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 144.28,
+        "harmonic_ratio_h2_h1": 0.788,
+        "esc_pwm_8_16khz_snr_db": 0.69,
+        "xm125_60ghz_doppler_bw_hz": 27.1,
+        "passive_rf_burst_dbm": -95.46
+      },
+      "vector": [
+        144.28,
+        0.788,
+        0.69,
+        27.1,
+        -95.46
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-022",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 142.22,
+        "harmonic_ratio_h2_h1": 0.834,
+        "esc_pwm_8_16khz_snr_db": 1.88,
+        "xm125_60ghz_doppler_bw_hz": 10.64,
+        "passive_rf_burst_dbm": -92.85
+      },
+      "vector": [
+        142.22,
+        0.834,
+        1.88,
+        10.64,
+        -92.85
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-023",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 131.73,
+        "harmonic_ratio_h2_h1": 0.744,
+        "esc_pwm_8_16khz_snr_db": 0.58,
+        "xm125_60ghz_doppler_bw_hz": 41.97,
+        "passive_rf_burst_dbm": -89.78
+      },
+      "vector": [
+        131.73,
+        0.744,
+        0.58,
+        41.97,
+        -89.78
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-024",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 112.23,
+        "harmonic_ratio_h2_h1": 0.752,
+        "esc_pwm_8_16khz_snr_db": 2.55,
+        "xm125_60ghz_doppler_bw_hz": 36.11,
+        "passive_rf_burst_dbm": -96.1
+      },
+      "vector": [
+        112.23,
+        0.752,
+        2.55,
+        36.11,
+        -96.1
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-025",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 126.18,
+        "harmonic_ratio_h2_h1": 0.698,
+        "esc_pwm_8_16khz_snr_db": 1.42,
+        "xm125_60ghz_doppler_bw_hz": 26.03,
+        "passive_rf_burst_dbm": -92.32
+      },
+      "vector": [
+        126.18,
+        0.698,
+        1.42,
+        26.03,
+        -92.32
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-026",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 125.04,
+        "harmonic_ratio_h2_h1": 0.931,
+        "esc_pwm_8_16khz_snr_db": 1.48,
+        "xm125_60ghz_doppler_bw_hz": 60.03,
+        "passive_rf_burst_dbm": -98.94
+      },
+      "vector": [
+        125.04,
+        0.931,
+        1.48,
+        60.03,
+        -98.94
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-027",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 123.52,
+        "harmonic_ratio_h2_h1": 0.801,
+        "esc_pwm_8_16khz_snr_db": 2.93,
+        "xm125_60ghz_doppler_bw_hz": 19.81,
+        "passive_rf_burst_dbm": -92.0
+      },
+      "vector": [
+        123.52,
+        0.801,
+        2.93,
+        19.81,
+        -92.0
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-028",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 132.16,
+        "harmonic_ratio_h2_h1": 0.881,
+        "esc_pwm_8_16khz_snr_db": 1.91,
+        "xm125_60ghz_doppler_bw_hz": 42.69,
+        "passive_rf_burst_dbm": -96.58
+      },
+      "vector": [
+        132.16,
+        0.881,
+        1.91,
+        42.69,
+        -96.58
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-029",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 109.9,
+        "harmonic_ratio_h2_h1": 0.793,
+        "esc_pwm_8_16khz_snr_db": 1.01,
+        "xm125_60ghz_doppler_bw_hz": 68.67,
+        "passive_rf_burst_dbm": -96.85
+      },
+      "vector": [
+        109.9,
+        0.793,
+        1.01,
+        68.67,
+        -96.85
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-030",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 128.88,
+        "harmonic_ratio_h2_h1": 0.676,
+        "esc_pwm_8_16khz_snr_db": 0.81,
+        "xm125_60ghz_doppler_bw_hz": 45.45,
+        "passive_rf_burst_dbm": -92.51
+      },
+      "vector": [
+        128.88,
+        0.676,
+        0.81,
+        45.45,
+        -92.51
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-031",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 142.52,
+        "harmonic_ratio_h2_h1": 0.777,
+        "esc_pwm_8_16khz_snr_db": 0.09,
+        "xm125_60ghz_doppler_bw_hz": 48.04,
+        "passive_rf_burst_dbm": -93.44
+      },
+      "vector": [
+        142.52,
+        0.777,
+        0.09,
+        48.04,
+        -93.44
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-032",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 130.95,
+        "harmonic_ratio_h2_h1": 0.734,
+        "esc_pwm_8_16khz_snr_db": 2.32,
+        "xm125_60ghz_doppler_bw_hz": 43.16,
+        "passive_rf_burst_dbm": -92.88
+      },
+      "vector": [
+        130.95,
+        0.734,
+        2.32,
+        43.16,
+        -92.88
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-033",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 140.42,
+        "harmonic_ratio_h2_h1": 0.82,
+        "esc_pwm_8_16khz_snr_db": 1.48,
+        "xm125_60ghz_doppler_bw_hz": 70.42,
+        "passive_rf_burst_dbm": -94.26
+      },
+      "vector": [
+        140.42,
+        0.82,
+        1.48,
+        70.42,
+        -94.26
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-034",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 121.42,
+        "harmonic_ratio_h2_h1": 0.787,
+        "esc_pwm_8_16khz_snr_db": 2.67,
+        "xm125_60ghz_doppler_bw_hz": 43.57,
+        "passive_rf_burst_dbm": -93.43
+      },
+      "vector": [
+        121.42,
+        0.787,
+        2.67,
+        43.57,
+        -93.43
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-035",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 139.47,
+        "harmonic_ratio_h2_h1": 0.746,
+        "esc_pwm_8_16khz_snr_db": 0.0,
+        "xm125_60ghz_doppler_bw_hz": 45.95,
+        "passive_rf_burst_dbm": -94.31
+      },
+      "vector": [
+        139.47,
+        0.746,
+        0.0,
+        45.95,
+        -94.31
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-036",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 117.64,
+        "harmonic_ratio_h2_h1": 0.837,
+        "esc_pwm_8_16khz_snr_db": 1.8,
+        "xm125_60ghz_doppler_bw_hz": 28.87,
+        "passive_rf_burst_dbm": -93.43
+      },
+      "vector": [
+        117.64,
+        0.837,
+        1.8,
+        28.87,
+        -93.43
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-037",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 122.63,
+        "harmonic_ratio_h2_h1": 0.682,
+        "esc_pwm_8_16khz_snr_db": 1.65,
+        "xm125_60ghz_doppler_bw_hz": 41.4,
+        "passive_rf_burst_dbm": -97.25
+      },
+      "vector": [
+        122.63,
+        0.682,
+        1.65,
+        41.4,
+        -97.25
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-038",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 131.33,
+        "harmonic_ratio_h2_h1": 0.812,
+        "esc_pwm_8_16khz_snr_db": 0.63,
+        "xm125_60ghz_doppler_bw_hz": 47.28,
+        "passive_rf_burst_dbm": -91.93
+      },
+      "vector": [
+        131.33,
+        0.812,
+        0.63,
+        47.28,
+        -91.93
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-039",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 116.38,
+        "harmonic_ratio_h2_h1": 0.805,
+        "esc_pwm_8_16khz_snr_db": 1.2,
+        "xm125_60ghz_doppler_bw_hz": 71.91,
+        "passive_rf_burst_dbm": -100.63
+      },
+      "vector": [
+        116.38,
+        0.805,
+        1.2,
+        71.91,
+        -100.63
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-01-040",
+      "class_index": 0,
+      "class_name": "CLASS_1_LIGHT_FOAM_FIXED_WING",
+      "features": {
+        "f0_hz": 133.41,
+        "harmonic_ratio_h2_h1": 0.76,
+        "esc_pwm_8_16khz_snr_db": 1.1,
+        "xm125_60ghz_doppler_bw_hz": 67.1,
+        "passive_rf_burst_dbm": -95.03
+      },
+      "vector": [
+        133.41,
+        0.76,
+        1.1,
+        67.1,
+        -95.03
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-001",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 282.12,
+        "harmonic_ratio_h2_h1": 1.321,
+        "esc_pwm_8_16khz_snr_db": 1.85,
+        "xm125_60ghz_doppler_bw_hz": 88.52,
+        "passive_rf_burst_dbm": -90.09
+      },
+      "vector": [
+        282.12,
+        1.321,
+        1.85,
+        88.52,
+        -90.09
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-002",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 255.76,
+        "harmonic_ratio_h2_h1": 1.331,
+        "esc_pwm_8_16khz_snr_db": 1.7,
+        "xm125_60ghz_doppler_bw_hz": 67.21,
+        "passive_rf_burst_dbm": -81.94
+      },
+      "vector": [
+        255.76,
+        1.331,
+        1.7,
+        67.21,
+        -81.94
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-003",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 252.98,
+        "harmonic_ratio_h2_h1": 1.465,
+        "esc_pwm_8_16khz_snr_db": 0.5,
+        "xm125_60ghz_doppler_bw_hz": 98.86,
+        "passive_rf_burst_dbm": -78.43
+      },
+      "vector": [
+        252.98,
+        1.465,
+        0.5,
+        98.86,
+        -78.43
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-004",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 244.48,
+        "harmonic_ratio_h2_h1": 1.251,
+        "esc_pwm_8_16khz_snr_db": 0.96,
+        "xm125_60ghz_doppler_bw_hz": 101.24,
+        "passive_rf_burst_dbm": -85.9
+      },
+      "vector": [
+        244.48,
+        1.251,
+        0.96,
+        101.24,
+        -85.9
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-005",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 270.61,
+        "harmonic_ratio_h2_h1": 1.333,
+        "esc_pwm_8_16khz_snr_db": 0.0,
+        "xm125_60ghz_doppler_bw_hz": 89.26,
+        "passive_rf_burst_dbm": -84.25
+      },
+      "vector": [
+        270.61,
+        1.333,
+        0.0,
+        89.26,
+        -84.25
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-006",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 260.63,
+        "harmonic_ratio_h2_h1": 1.221,
+        "esc_pwm_8_16khz_snr_db": 1.47,
+        "xm125_60ghz_doppler_bw_hz": 113.46,
+        "passive_rf_burst_dbm": -81.57
+      },
+      "vector": [
+        260.63,
+        1.221,
+        1.47,
+        113.46,
+        -81.57
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-007",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 261.8,
+        "harmonic_ratio_h2_h1": 1.37,
+        "esc_pwm_8_16khz_snr_db": 0.27,
+        "xm125_60ghz_doppler_bw_hz": 83.87,
+        "passive_rf_burst_dbm": -87.86
+      },
+      "vector": [
+        261.8,
+        1.37,
+        0.27,
+        83.87,
+        -87.86
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-008",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 261.09,
+        "harmonic_ratio_h2_h1": 1.388,
+        "esc_pwm_8_16khz_snr_db": 1.03,
+        "xm125_60ghz_doppler_bw_hz": 79.79,
+        "passive_rf_burst_dbm": -90.35
+      },
+      "vector": [
+        261.09,
+        1.388,
+        1.03,
+        79.79,
+        -90.35
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-009",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 241.0,
+        "harmonic_ratio_h2_h1": 1.392,
+        "esc_pwm_8_16khz_snr_db": 0.0,
+        "xm125_60ghz_doppler_bw_hz": 90.6,
+        "passive_rf_burst_dbm": -86.64
+      },
+      "vector": [
+        241.0,
+        1.392,
+        0.0,
+        90.6,
+        -86.64
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-010",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 273.42,
+        "harmonic_ratio_h2_h1": 1.355,
+        "esc_pwm_8_16khz_snr_db": 2.49,
+        "xm125_60ghz_doppler_bw_hz": 89.73,
+        "passive_rf_burst_dbm": -90.25
+      },
+      "vector": [
+        273.42,
+        1.355,
+        2.49,
+        89.73,
+        -90.25
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-011",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 246.84,
+        "harmonic_ratio_h2_h1": 1.451,
+        "esc_pwm_8_16khz_snr_db": 2.48,
+        "xm125_60ghz_doppler_bw_hz": 101.43,
+        "passive_rf_burst_dbm": -77.93
+      },
+      "vector": [
+        246.84,
+        1.451,
+        2.48,
+        101.43,
+        -77.93
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-012",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 254.61,
+        "harmonic_ratio_h2_h1": 1.391,
+        "esc_pwm_8_16khz_snr_db": 1.8,
+        "xm125_60ghz_doppler_bw_hz": 92.07,
+        "passive_rf_burst_dbm": -80.99
+      },
+      "vector": [
+        254.61,
+        1.391,
+        1.8,
+        92.07,
+        -80.99
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-013",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 273.23,
+        "harmonic_ratio_h2_h1": 1.258,
+        "esc_pwm_8_16khz_snr_db": 1.1,
+        "xm125_60ghz_doppler_bw_hz": 100.65,
+        "passive_rf_burst_dbm": -85.63
+      },
+      "vector": [
+        273.23,
+        1.258,
+        1.1,
+        100.65,
+        -85.63
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-014",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 238.68,
+        "harmonic_ratio_h2_h1": 1.201,
+        "esc_pwm_8_16khz_snr_db": 0.0,
+        "xm125_60ghz_doppler_bw_hz": 94.06,
+        "passive_rf_burst_dbm": -88.31
+      },
+      "vector": [
+        238.68,
+        1.201,
+        0.0,
+        94.06,
+        -88.31
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-015",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 259.18,
+        "harmonic_ratio_h2_h1": 1.299,
+        "esc_pwm_8_16khz_snr_db": 0.29,
+        "xm125_60ghz_doppler_bw_hz": 68.3,
+        "passive_rf_burst_dbm": -87.0
+      },
+      "vector": [
+        259.18,
+        1.299,
+        0.29,
+        68.3,
+        -87.0
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-016",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 259.48,
+        "harmonic_ratio_h2_h1": 1.416,
+        "esc_pwm_8_16khz_snr_db": 2.28,
+        "xm125_60ghz_doppler_bw_hz": 92.48,
+        "passive_rf_burst_dbm": -83.92
+      },
+      "vector": [
+        259.48,
+        1.416,
+        2.28,
+        92.48,
+        -83.92
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-017",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 253.35,
+        "harmonic_ratio_h2_h1": 1.306,
+        "esc_pwm_8_16khz_snr_db": 0.98,
+        "xm125_60ghz_doppler_bw_hz": 87.28,
+        "passive_rf_burst_dbm": -94.55
+      },
+      "vector": [
+        253.35,
+        1.306,
+        0.98,
+        87.28,
+        -94.55
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-018",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 256.89,
+        "harmonic_ratio_h2_h1": 1.366,
+        "esc_pwm_8_16khz_snr_db": 1.14,
+        "xm125_60ghz_doppler_bw_hz": 85.58,
+        "passive_rf_burst_dbm": -86.88
+      },
+      "vector": [
+        256.89,
+        1.366,
+        1.14,
+        85.58,
+        -86.88
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-019",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 275.77,
+        "harmonic_ratio_h2_h1": 1.353,
+        "esc_pwm_8_16khz_snr_db": 1.0,
+        "xm125_60ghz_doppler_bw_hz": 87.19,
+        "passive_rf_burst_dbm": -88.21
+      },
+      "vector": [
+        275.77,
+        1.353,
+        1.0,
+        87.19,
+        -88.21
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-020",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 239.7,
+        "harmonic_ratio_h2_h1": 1.342,
+        "esc_pwm_8_16khz_snr_db": 1.56,
+        "xm125_60ghz_doppler_bw_hz": 119.35,
+        "passive_rf_burst_dbm": -85.15
+      },
+      "vector": [
+        239.7,
+        1.342,
+        1.56,
+        119.35,
+        -85.15
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-021",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 267.51,
+        "harmonic_ratio_h2_h1": 1.303,
+        "esc_pwm_8_16khz_snr_db": 2.16,
+        "xm125_60ghz_doppler_bw_hz": 79.96,
+        "passive_rf_burst_dbm": -87.06
+      },
+      "vector": [
+        267.51,
+        1.303,
+        2.16,
+        79.96,
+        -87.06
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-022",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 260.07,
+        "harmonic_ratio_h2_h1": 1.299,
+        "esc_pwm_8_16khz_snr_db": 3.48,
+        "xm125_60ghz_doppler_bw_hz": 102.49,
+        "passive_rf_burst_dbm": -93.76
+      },
+      "vector": [
+        260.07,
+        1.299,
+        3.48,
+        102.49,
+        -93.76
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-023",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 261.69,
+        "harmonic_ratio_h2_h1": 1.323,
+        "esc_pwm_8_16khz_snr_db": 1.5,
+        "xm125_60ghz_doppler_bw_hz": 101.15,
+        "passive_rf_burst_dbm": -86.82
+      },
+      "vector": [
+        261.69,
+        1.323,
+        1.5,
+        101.15,
+        -86.82
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-024",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 230.33,
+        "harmonic_ratio_h2_h1": 1.274,
+        "esc_pwm_8_16khz_snr_db": 2.26,
+        "xm125_60ghz_doppler_bw_hz": 112.18,
+        "passive_rf_burst_dbm": -82.24
+      },
+      "vector": [
+        230.33,
+        1.274,
+        2.26,
+        112.18,
+        -82.24
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-025",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 276.82,
+        "harmonic_ratio_h2_h1": 1.214,
+        "esc_pwm_8_16khz_snr_db": 2.26,
+        "xm125_60ghz_doppler_bw_hz": 69.7,
+        "passive_rf_burst_dbm": -83.12
+      },
+      "vector": [
+        276.82,
+        1.214,
+        2.26,
+        69.7,
+        -83.12
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-026",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 258.07,
+        "harmonic_ratio_h2_h1": 1.275,
+        "esc_pwm_8_16khz_snr_db": 3.49,
+        "xm125_60ghz_doppler_bw_hz": 103.5,
+        "passive_rf_burst_dbm": -93.72
+      },
+      "vector": [
+        258.07,
+        1.275,
+        3.49,
+        103.5,
+        -93.72
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-027",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 258.55,
+        "harmonic_ratio_h2_h1": 1.302,
+        "esc_pwm_8_16khz_snr_db": 1.61,
+        "xm125_60ghz_doppler_bw_hz": 88.86,
+        "passive_rf_burst_dbm": -83.85
+      },
+      "vector": [
+        258.55,
+        1.302,
+        1.61,
+        88.86,
+        -83.85
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-028",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 237.78,
+        "harmonic_ratio_h2_h1": 1.371,
+        "esc_pwm_8_16khz_snr_db": 3.3,
+        "xm125_60ghz_doppler_bw_hz": 84.08,
+        "passive_rf_burst_dbm": -87.36
+      },
+      "vector": [
+        237.78,
+        1.371,
+        3.3,
+        84.08,
+        -87.36
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-029",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 257.44,
+        "harmonic_ratio_h2_h1": 1.304,
+        "esc_pwm_8_16khz_snr_db": 2.14,
+        "xm125_60ghz_doppler_bw_hz": 96.28,
+        "passive_rf_burst_dbm": -90.85
+      },
+      "vector": [
+        257.44,
+        1.304,
+        2.14,
+        96.28,
+        -90.85
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-030",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 276.32,
+        "harmonic_ratio_h2_h1": 1.402,
+        "esc_pwm_8_16khz_snr_db": 1.33,
+        "xm125_60ghz_doppler_bw_hz": 86.6,
+        "passive_rf_burst_dbm": -90.37
+      },
+      "vector": [
+        276.32,
+        1.402,
+        1.33,
+        86.6,
+        -90.37
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-031",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 269.89,
+        "harmonic_ratio_h2_h1": 1.34,
+        "esc_pwm_8_16khz_snr_db": 1.95,
+        "xm125_60ghz_doppler_bw_hz": 92.57,
+        "passive_rf_burst_dbm": -86.14
+      },
+      "vector": [
+        269.89,
+        1.34,
+        1.95,
+        92.57,
+        -86.14
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-032",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 253.6,
+        "harmonic_ratio_h2_h1": 1.4,
+        "esc_pwm_8_16khz_snr_db": 1.32,
+        "xm125_60ghz_doppler_bw_hz": 105.95,
+        "passive_rf_burst_dbm": -85.97
+      },
+      "vector": [
+        253.6,
+        1.4,
+        1.32,
+        105.95,
+        -85.97
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-033",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 253.59,
+        "harmonic_ratio_h2_h1": 1.293,
+        "esc_pwm_8_16khz_snr_db": 0.57,
+        "xm125_60ghz_doppler_bw_hz": 85.22,
+        "passive_rf_burst_dbm": -90.98
+      },
+      "vector": [
+        253.59,
+        1.293,
+        0.57,
+        85.22,
+        -90.98
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-034",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 265.48,
+        "harmonic_ratio_h2_h1": 1.347,
+        "esc_pwm_8_16khz_snr_db": 3.05,
+        "xm125_60ghz_doppler_bw_hz": 125.09,
+        "passive_rf_burst_dbm": -87.93
+      },
+      "vector": [
+        265.48,
+        1.347,
+        3.05,
+        125.09,
+        -87.93
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-035",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 236.27,
+        "harmonic_ratio_h2_h1": 1.325,
+        "esc_pwm_8_16khz_snr_db": 1.43,
+        "xm125_60ghz_doppler_bw_hz": 75.35,
+        "passive_rf_burst_dbm": -88.76
+      },
+      "vector": [
+        236.27,
+        1.325,
+        1.43,
+        75.35,
+        -88.76
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-036",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 258.47,
+        "harmonic_ratio_h2_h1": 1.32,
+        "esc_pwm_8_16khz_snr_db": 0.74,
+        "xm125_60ghz_doppler_bw_hz": 84.98,
+        "passive_rf_burst_dbm": -82.6
+      },
+      "vector": [
+        258.47,
+        1.32,
+        0.74,
+        84.98,
+        -82.6
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-037",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 253.07,
+        "harmonic_ratio_h2_h1": 1.295,
+        "esc_pwm_8_16khz_snr_db": 1.13,
+        "xm125_60ghz_doppler_bw_hz": 107.6,
+        "passive_rf_burst_dbm": -90.07
+      },
+      "vector": [
+        253.07,
+        1.295,
+        1.13,
+        107.6,
+        -90.07
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-038",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 260.83,
+        "harmonic_ratio_h2_h1": 1.398,
+        "esc_pwm_8_16khz_snr_db": 2.24,
+        "xm125_60ghz_doppler_bw_hz": 113.48,
+        "passive_rf_burst_dbm": -89.67
+      },
+      "vector": [
+        260.83,
+        1.398,
+        2.24,
+        113.48,
+        -89.67
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-039",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 268.71,
+        "harmonic_ratio_h2_h1": 1.298,
+        "esc_pwm_8_16khz_snr_db": 1.11,
+        "xm125_60ghz_doppler_bw_hz": 110.79,
+        "passive_rf_burst_dbm": -85.51
+      },
+      "vector": [
+        268.71,
+        1.298,
+        1.11,
+        110.79,
+        -85.51
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-02-040",
+      "class_index": 1,
+      "class_name": "CLASS_2_HEAVY_PISTON_UAV",
+      "features": {
+        "f0_hz": 255.03,
+        "harmonic_ratio_h2_h1": 1.271,
+        "esc_pwm_8_16khz_snr_db": 2.06,
+        "xm125_60ghz_doppler_bw_hz": 86.68,
+        "passive_rf_burst_dbm": -90.79
+      },
+      "vector": [
+        255.03,
+        1.271,
+        2.06,
+        86.68,
+        -90.79
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-001",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1942.16,
+        "harmonic_ratio_h2_h1": 0.266,
+        "esc_pwm_8_16khz_snr_db": 0.0,
+        "xm125_60ghz_doppler_bw_hz": 314.76,
+        "passive_rf_burst_dbm": -81.47
+      },
+      "vector": [
+        1942.16,
+        0.266,
+        0.0,
+        314.76,
+        -81.47
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-002",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1942.93,
+        "harmonic_ratio_h2_h1": 0.318,
+        "esc_pwm_8_16khz_snr_db": 2.61,
+        "xm125_60ghz_doppler_bw_hz": 302.0,
+        "passive_rf_burst_dbm": -84.03
+      },
+      "vector": [
+        1942.93,
+        0.318,
+        2.61,
+        302.0,
+        -84.03
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-003",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1958.41,
+        "harmonic_ratio_h2_h1": 0.15,
+        "esc_pwm_8_16khz_snr_db": 1.67,
+        "xm125_60ghz_doppler_bw_hz": 301.67,
+        "passive_rf_burst_dbm": -81.79
+      },
+      "vector": [
+        1958.41,
+        0.15,
+        1.67,
+        301.67,
+        -81.79
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-004",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1952.55,
+        "harmonic_ratio_h2_h1": 0.252,
+        "esc_pwm_8_16khz_snr_db": 3.12,
+        "xm125_60ghz_doppler_bw_hz": 313.01,
+        "passive_rf_burst_dbm": -82.95
+      },
+      "vector": [
+        1952.55,
+        0.252,
+        3.12,
+        313.01,
+        -82.95
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-005",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1935.35,
+        "harmonic_ratio_h2_h1": 0.298,
+        "esc_pwm_8_16khz_snr_db": 2.52,
+        "xm125_60ghz_doppler_bw_hz": 329.15,
+        "passive_rf_burst_dbm": -84.26
+      },
+      "vector": [
+        1935.35,
+        0.298,
+        2.52,
+        329.15,
+        -84.26
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-006",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1950.32,
+        "harmonic_ratio_h2_h1": 0.246,
+        "esc_pwm_8_16khz_snr_db": 1.91,
+        "xm125_60ghz_doppler_bw_hz": 310.14,
+        "passive_rf_burst_dbm": -87.19
+      },
+      "vector": [
+        1950.32,
+        0.246,
+        1.91,
+        310.14,
+        -87.19
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-007",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1959.98,
+        "harmonic_ratio_h2_h1": 0.293,
+        "esc_pwm_8_16khz_snr_db": 3.12,
+        "xm125_60ghz_doppler_bw_hz": 339.69,
+        "passive_rf_burst_dbm": -82.96
+      },
+      "vector": [
+        1959.98,
+        0.293,
+        3.12,
+        339.69,
+        -82.96
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-008",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1949.56,
+        "harmonic_ratio_h2_h1": 0.251,
+        "esc_pwm_8_16khz_snr_db": 3.92,
+        "xm125_60ghz_doppler_bw_hz": 287.15,
+        "passive_rf_burst_dbm": -80.53
+      },
+      "vector": [
+        1949.56,
+        0.251,
+        3.92,
+        287.15,
+        -80.53
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-009",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1932.2,
+        "harmonic_ratio_h2_h1": 0.08,
+        "esc_pwm_8_16khz_snr_db": 0.0,
+        "xm125_60ghz_doppler_bw_hz": 291.76,
+        "passive_rf_burst_dbm": -78.77
+      },
+      "vector": [
+        1932.2,
+        0.08,
+        0.0,
+        291.76,
+        -78.77
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-010",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1939.49,
+        "harmonic_ratio_h2_h1": 0.235,
+        "esc_pwm_8_16khz_snr_db": 0.85,
+        "xm125_60ghz_doppler_bw_hz": 318.06,
+        "passive_rf_burst_dbm": -85.33
+      },
+      "vector": [
+        1939.49,
+        0.235,
+        0.85,
+        318.06,
+        -85.33
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-011",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1965.94,
+        "harmonic_ratio_h2_h1": 0.184,
+        "esc_pwm_8_16khz_snr_db": 1.24,
+        "xm125_60ghz_doppler_bw_hz": 311.62,
+        "passive_rf_burst_dbm": -81.93
+      },
+      "vector": [
+        1965.94,
+        0.184,
+        1.24,
+        311.62,
+        -81.93
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-012",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1967.24,
+        "harmonic_ratio_h2_h1": 0.258,
+        "esc_pwm_8_16khz_snr_db": 0.8,
+        "xm125_60ghz_doppler_bw_hz": 302.6,
+        "passive_rf_burst_dbm": -83.73
+      },
+      "vector": [
+        1967.24,
+        0.258,
+        0.8,
+        302.6,
+        -83.73
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-013",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1958.77,
+        "harmonic_ratio_h2_h1": 0.275,
+        "esc_pwm_8_16khz_snr_db": 1.88,
+        "xm125_60ghz_doppler_bw_hz": 321.48,
+        "passive_rf_burst_dbm": -83.6
+      },
+      "vector": [
+        1958.77,
+        0.275,
+        1.88,
+        321.48,
+        -83.6
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-014",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1948.35,
+        "harmonic_ratio_h2_h1": 0.262,
+        "esc_pwm_8_16khz_snr_db": 3.51,
+        "xm125_60ghz_doppler_bw_hz": 308.7,
+        "passive_rf_burst_dbm": -83.06
+      },
+      "vector": [
+        1948.35,
+        0.262,
+        3.51,
+        308.7,
+        -83.06
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-015",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1937.35,
+        "harmonic_ratio_h2_h1": 0.295,
+        "esc_pwm_8_16khz_snr_db": 1.42,
+        "xm125_60ghz_doppler_bw_hz": 314.54,
+        "passive_rf_burst_dbm": -87.75
+      },
+      "vector": [
+        1937.35,
+        0.295,
+        1.42,
+        314.54,
+        -87.75
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-016",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1962.62,
+        "harmonic_ratio_h2_h1": 0.162,
+        "esc_pwm_8_16khz_snr_db": 1.23,
+        "xm125_60ghz_doppler_bw_hz": 323.97,
+        "passive_rf_burst_dbm": -86.04
+      },
+      "vector": [
+        1962.62,
+        0.162,
+        1.23,
+        323.97,
+        -86.04
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-017",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1949.04,
+        "harmonic_ratio_h2_h1": 0.255,
+        "esc_pwm_8_16khz_snr_db": 1.01,
+        "xm125_60ghz_doppler_bw_hz": 327.73,
+        "passive_rf_burst_dbm": -77.47
+      },
+      "vector": [
+        1949.04,
+        0.255,
+        1.01,
+        327.73,
+        -77.47
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-018",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1926.14,
+        "harmonic_ratio_h2_h1": 0.154,
+        "esc_pwm_8_16khz_snr_db": 2.8,
+        "xm125_60ghz_doppler_bw_hz": 292.8,
+        "passive_rf_burst_dbm": -83.18
+      },
+      "vector": [
+        1926.14,
+        0.154,
+        2.8,
+        292.8,
+        -83.18
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-019",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1951.57,
+        "harmonic_ratio_h2_h1": 0.296,
+        "esc_pwm_8_16khz_snr_db": 1.78,
+        "xm125_60ghz_doppler_bw_hz": 311.26,
+        "passive_rf_burst_dbm": -84.35
+      },
+      "vector": [
+        1951.57,
+        0.296,
+        1.78,
+        311.26,
+        -84.35
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-020",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1965.64,
+        "harmonic_ratio_h2_h1": 0.217,
+        "esc_pwm_8_16khz_snr_db": 2.34,
+        "xm125_60ghz_doppler_bw_hz": 303.25,
+        "passive_rf_burst_dbm": -81.68
+      },
+      "vector": [
+        1965.64,
+        0.217,
+        2.34,
+        303.25,
+        -81.68
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-021",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1947.97,
+        "harmonic_ratio_h2_h1": 0.239,
+        "esc_pwm_8_16khz_snr_db": 1.0,
+        "xm125_60ghz_doppler_bw_hz": 320.51,
+        "passive_rf_burst_dbm": -77.72
+      },
+      "vector": [
+        1947.97,
+        0.239,
+        1.0,
+        320.51,
+        -77.72
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-022",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1952.94,
+        "harmonic_ratio_h2_h1": 0.298,
+        "esc_pwm_8_16khz_snr_db": 2.83,
+        "xm125_60ghz_doppler_bw_hz": 322.25,
+        "passive_rf_burst_dbm": -81.08
+      },
+      "vector": [
+        1952.94,
+        0.298,
+        2.83,
+        322.25,
+        -81.08
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-023",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1952.57,
+        "harmonic_ratio_h2_h1": 0.307,
+        "esc_pwm_8_16khz_snr_db": 2.07,
+        "xm125_60ghz_doppler_bw_hz": 297.14,
+        "passive_rf_burst_dbm": -81.93
+      },
+      "vector": [
+        1952.57,
+        0.307,
+        2.07,
+        297.14,
+        -81.93
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-024",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1927.15,
+        "harmonic_ratio_h2_h1": 0.25,
+        "esc_pwm_8_16khz_snr_db": 2.41,
+        "xm125_60ghz_doppler_bw_hz": 326.31,
+        "passive_rf_burst_dbm": -81.54
+      },
+      "vector": [
+        1927.15,
+        0.25,
+        2.41,
+        326.31,
+        -81.54
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-025",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1961.23,
+        "harmonic_ratio_h2_h1": 0.25,
+        "esc_pwm_8_16khz_snr_db": 0.99,
+        "xm125_60ghz_doppler_bw_hz": 291.37,
+        "passive_rf_burst_dbm": -84.93
+      },
+      "vector": [
+        1961.23,
+        0.25,
+        0.99,
+        291.37,
+        -84.93
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-026",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1933.47,
+        "harmonic_ratio_h2_h1": 0.292,
+        "esc_pwm_8_16khz_snr_db": 1.79,
+        "xm125_60ghz_doppler_bw_hz": 317.53,
+        "passive_rf_burst_dbm": -81.78
+      },
+      "vector": [
+        1933.47,
+        0.292,
+        1.79,
+        317.53,
+        -81.78
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-027",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1962.63,
+        "harmonic_ratio_h2_h1": 0.32,
+        "esc_pwm_8_16khz_snr_db": 1.36,
+        "xm125_60ghz_doppler_bw_hz": 306.38,
+        "passive_rf_burst_dbm": -83.61
+      },
+      "vector": [
+        1962.63,
+        0.32,
+        1.36,
+        306.38,
+        -83.61
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-028",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1930.38,
+        "harmonic_ratio_h2_h1": 0.295,
+        "esc_pwm_8_16khz_snr_db": 3.18,
+        "xm125_60ghz_doppler_bw_hz": 309.92,
+        "passive_rf_burst_dbm": -83.49
+      },
+      "vector": [
+        1930.38,
+        0.295,
+        3.18,
+        309.92,
+        -83.49
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-029",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1963.2,
+        "harmonic_ratio_h2_h1": 0.095,
+        "esc_pwm_8_16khz_snr_db": 2.18,
+        "xm125_60ghz_doppler_bw_hz": 311.89,
+        "passive_rf_burst_dbm": -83.73
+      },
+      "vector": [
+        1963.2,
+        0.095,
+        2.18,
+        311.89,
+        -83.73
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-030",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1966.84,
+        "harmonic_ratio_h2_h1": 0.314,
+        "esc_pwm_8_16khz_snr_db": 1.74,
+        "xm125_60ghz_doppler_bw_hz": 308.86,
+        "passive_rf_burst_dbm": -83.17
+      },
+      "vector": [
+        1966.84,
+        0.314,
+        1.74,
+        308.86,
+        -83.17
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-031",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1943.8,
+        "harmonic_ratio_h2_h1": 0.164,
+        "esc_pwm_8_16khz_snr_db": 3.37,
+        "xm125_60ghz_doppler_bw_hz": 323.57,
+        "passive_rf_burst_dbm": -79.59
+      },
+      "vector": [
+        1943.8,
+        0.164,
+        3.37,
+        323.57,
+        -79.59
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-032",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1936.76,
+        "harmonic_ratio_h2_h1": 0.387,
+        "esc_pwm_8_16khz_snr_db": 3.96,
+        "xm125_60ghz_doppler_bw_hz": 312.48,
+        "passive_rf_burst_dbm": -84.74
+      },
+      "vector": [
+        1936.76,
+        0.387,
+        3.96,
+        312.48,
+        -84.74
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-033",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1939.52,
+        "harmonic_ratio_h2_h1": 0.278,
+        "esc_pwm_8_16khz_snr_db": 1.1,
+        "xm125_60ghz_doppler_bw_hz": 309.55,
+        "passive_rf_burst_dbm": -78.71
+      },
+      "vector": [
+        1939.52,
+        0.278,
+        1.1,
+        309.55,
+        -78.71
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-034",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1931.77,
+        "harmonic_ratio_h2_h1": 0.382,
+        "esc_pwm_8_16khz_snr_db": 3.55,
+        "xm125_60ghz_doppler_bw_hz": 293.67,
+        "passive_rf_burst_dbm": -86.28
+      },
+      "vector": [
+        1931.77,
+        0.382,
+        3.55,
+        293.67,
+        -86.28
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-035",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1946.57,
+        "harmonic_ratio_h2_h1": 0.182,
+        "esc_pwm_8_16khz_snr_db": 1.74,
+        "xm125_60ghz_doppler_bw_hz": 275.93,
+        "passive_rf_burst_dbm": -82.69
+      },
+      "vector": [
+        1946.57,
+        0.182,
+        1.74,
+        275.93,
+        -82.69
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-036",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1971.81,
+        "harmonic_ratio_h2_h1": 0.176,
+        "esc_pwm_8_16khz_snr_db": 1.73,
+        "xm125_60ghz_doppler_bw_hz": 290.34,
+        "passive_rf_burst_dbm": -80.07
+      },
+      "vector": [
+        1971.81,
+        0.176,
+        1.73,
+        290.34,
+        -80.07
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-037",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1947.27,
+        "harmonic_ratio_h2_h1": 0.378,
+        "esc_pwm_8_16khz_snr_db": 2.2,
+        "xm125_60ghz_doppler_bw_hz": 305.09,
+        "passive_rf_burst_dbm": -80.34
+      },
+      "vector": [
+        1947.27,
+        0.378,
+        2.2,
+        305.09,
+        -80.34
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-038",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1943.87,
+        "harmonic_ratio_h2_h1": 0.162,
+        "esc_pwm_8_16khz_snr_db": 2.3,
+        "xm125_60ghz_doppler_bw_hz": 307.69,
+        "passive_rf_burst_dbm": -81.5
+      },
+      "vector": [
+        1943.87,
+        0.162,
+        2.3,
+        307.69,
+        -81.5
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-039",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1954.54,
+        "harmonic_ratio_h2_h1": 0.216,
+        "esc_pwm_8_16khz_snr_db": 2.42,
+        "xm125_60ghz_doppler_bw_hz": 332.94,
+        "passive_rf_burst_dbm": -85.35
+      },
+      "vector": [
+        1954.54,
+        0.216,
+        2.42,
+        332.94,
+        -85.35
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-03-040",
+      "class_index": 2,
+      "class_name": "CLASS_3_MICRO_TURBOJET_AIRCRAFT",
+      "features": {
+        "f0_hz": 1971.02,
+        "harmonic_ratio_h2_h1": 0.234,
+        "esc_pwm_8_16khz_snr_db": 1.24,
+        "xm125_60ghz_doppler_bw_hz": 342.04,
+        "passive_rf_burst_dbm": -81.53
+      },
+      "vector": [
+        1971.02,
+        0.234,
+        1.24,
+        342.04,
+        -81.53
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-001",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 501.58,
+        "harmonic_ratio_h2_h1": 0.674,
+        "esc_pwm_8_16khz_snr_db": 11.84,
+        "xm125_60ghz_doppler_bw_hz": 241.59,
+        "passive_rf_burst_dbm": -111.59
+      },
+      "vector": [
+        501.58,
+        0.674,
+        11.84,
+        241.59,
+        -111.59
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-002",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 468.76,
+        "harmonic_ratio_h2_h1": 0.503,
+        "esc_pwm_8_16khz_snr_db": 13.6,
+        "xm125_60ghz_doppler_bw_hz": 247.79,
+        "passive_rf_burst_dbm": -108.82
+      },
+      "vector": [
+        468.76,
+        0.503,
+        13.6,
+        247.79,
+        -108.82
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-003",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 481.3,
+        "harmonic_ratio_h2_h1": 0.567,
+        "esc_pwm_8_16khz_snr_db": 12.52,
+        "xm125_60ghz_doppler_bw_hz": 232.67,
+        "passive_rf_burst_dbm": -113.12
+      },
+      "vector": [
+        481.3,
+        0.567,
+        12.52,
+        232.67,
+        -113.12
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-004",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 482.54,
+        "harmonic_ratio_h2_h1": 0.618,
+        "esc_pwm_8_16khz_snr_db": 12.61,
+        "xm125_60ghz_doppler_bw_hz": 236.94,
+        "passive_rf_burst_dbm": -112.3
+      },
+      "vector": [
+        482.54,
+        0.618,
+        12.61,
+        236.94,
+        -112.3
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-005",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 484.95,
+        "harmonic_ratio_h2_h1": 0.653,
+        "esc_pwm_8_16khz_snr_db": 13.68,
+        "xm125_60ghz_doppler_bw_hz": 246.23,
+        "passive_rf_burst_dbm": -115.0
+      },
+      "vector": [
+        484.95,
+        0.653,
+        13.68,
+        246.23,
+        -115.0
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-006",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 480.42,
+        "harmonic_ratio_h2_h1": 0.638,
+        "esc_pwm_8_16khz_snr_db": 14.13,
+        "xm125_60ghz_doppler_bw_hz": 218.91,
+        "passive_rf_burst_dbm": -109.52
+      },
+      "vector": [
+        480.42,
+        0.638,
+        14.13,
+        218.91,
+        -109.52
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-007",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 499.6,
+        "harmonic_ratio_h2_h1": 0.608,
+        "esc_pwm_8_16khz_snr_db": 13.41,
+        "xm125_60ghz_doppler_bw_hz": 245.95,
+        "passive_rf_burst_dbm": -109.25
+      },
+      "vector": [
+        499.6,
+        0.608,
+        13.41,
+        245.95,
+        -109.25
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-008",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 493.16,
+        "harmonic_ratio_h2_h1": 0.625,
+        "esc_pwm_8_16khz_snr_db": 13.65,
+        "xm125_60ghz_doppler_bw_hz": 229.67,
+        "passive_rf_burst_dbm": -110.52
+      },
+      "vector": [
+        493.16,
+        0.625,
+        13.65,
+        229.67,
+        -110.52
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-009",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 500.16,
+        "harmonic_ratio_h2_h1": 0.607,
+        "esc_pwm_8_16khz_snr_db": 13.33,
+        "xm125_60ghz_doppler_bw_hz": 233.51,
+        "passive_rf_burst_dbm": -107.62
+      },
+      "vector": [
+        500.16,
+        0.607,
+        13.33,
+        233.51,
+        -107.62
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-010",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 474.66,
+        "harmonic_ratio_h2_h1": 0.68,
+        "esc_pwm_8_16khz_snr_db": 12.57,
+        "xm125_60ghz_doppler_bw_hz": 226.04,
+        "passive_rf_burst_dbm": -109.38
+      },
+      "vector": [
+        474.66,
+        0.68,
+        12.57,
+        226.04,
+        -109.38
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-011",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 486.58,
+        "harmonic_ratio_h2_h1": 0.64,
+        "esc_pwm_8_16khz_snr_db": 14.55,
+        "xm125_60ghz_doppler_bw_hz": 234.56,
+        "passive_rf_burst_dbm": -108.66
+      },
+      "vector": [
+        486.58,
+        0.64,
+        14.55,
+        234.56,
+        -108.66
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-012",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 473.99,
+        "harmonic_ratio_h2_h1": 0.703,
+        "esc_pwm_8_16khz_snr_db": 14.13,
+        "xm125_60ghz_doppler_bw_hz": 247.08,
+        "passive_rf_burst_dbm": -109.43
+      },
+      "vector": [
+        473.99,
+        0.703,
+        14.13,
+        247.08,
+        -109.43
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-013",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 475.49,
+        "harmonic_ratio_h2_h1": 0.598,
+        "esc_pwm_8_16khz_snr_db": 14.0,
+        "xm125_60ghz_doppler_bw_hz": 239.75,
+        "passive_rf_burst_dbm": -109.63
+      },
+      "vector": [
+        475.49,
+        0.598,
+        14.0,
+        239.75,
+        -109.63
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-014",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 468.55,
+        "harmonic_ratio_h2_h1": 0.632,
+        "esc_pwm_8_16khz_snr_db": 12.81,
+        "xm125_60ghz_doppler_bw_hz": 225.7,
+        "passive_rf_burst_dbm": -110.47
+      },
+      "vector": [
+        468.55,
+        0.632,
+        12.81,
+        225.7,
+        -110.47
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-015",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 462.54,
+        "harmonic_ratio_h2_h1": 0.666,
+        "esc_pwm_8_16khz_snr_db": 14.34,
+        "xm125_60ghz_doppler_bw_hz": 239.29,
+        "passive_rf_burst_dbm": -113.01
+      },
+      "vector": [
+        462.54,
+        0.666,
+        14.34,
+        239.29,
+        -113.01
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-016",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 473.56,
+        "harmonic_ratio_h2_h1": 0.61,
+        "esc_pwm_8_16khz_snr_db": 11.1,
+        "xm125_60ghz_doppler_bw_hz": 242.38,
+        "passive_rf_burst_dbm": -107.99
+      },
+      "vector": [
+        473.56,
+        0.61,
+        11.1,
+        242.38,
+        -107.99
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-017",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 481.23,
+        "harmonic_ratio_h2_h1": 0.587,
+        "esc_pwm_8_16khz_snr_db": 13.68,
+        "xm125_60ghz_doppler_bw_hz": 244.63,
+        "passive_rf_burst_dbm": -106.69
+      },
+      "vector": [
+        481.23,
+        0.587,
+        13.68,
+        244.63,
+        -106.69
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-018",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 485.22,
+        "harmonic_ratio_h2_h1": 0.574,
+        "esc_pwm_8_16khz_snr_db": 13.04,
+        "xm125_60ghz_doppler_bw_hz": 242.4,
+        "passive_rf_burst_dbm": -105.29
+      },
+      "vector": [
+        485.22,
+        0.574,
+        13.04,
+        242.4,
+        -105.29
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-019",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 481.12,
+        "harmonic_ratio_h2_h1": 0.551,
+        "esc_pwm_8_16khz_snr_db": 12.64,
+        "xm125_60ghz_doppler_bw_hz": 212.33,
+        "passive_rf_burst_dbm": -109.0
+      },
+      "vector": [
+        481.12,
+        0.551,
+        12.64,
+        212.33,
+        -109.0
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-020",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 468.53,
+        "harmonic_ratio_h2_h1": 0.539,
+        "esc_pwm_8_16khz_snr_db": 11.54,
+        "xm125_60ghz_doppler_bw_hz": 225.24,
+        "passive_rf_burst_dbm": -108.28
+      },
+      "vector": [
+        468.53,
+        0.539,
+        11.54,
+        225.24,
+        -108.28
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-021",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 469.13,
+        "harmonic_ratio_h2_h1": 0.505,
+        "esc_pwm_8_16khz_snr_db": 13.68,
+        "xm125_60ghz_doppler_bw_hz": 235.5,
+        "passive_rf_burst_dbm": -108.69
+      },
+      "vector": [
+        469.13,
+        0.505,
+        13.68,
+        235.5,
+        -108.69
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-022",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 493.96,
+        "harmonic_ratio_h2_h1": 0.619,
+        "esc_pwm_8_16khz_snr_db": 12.22,
+        "xm125_60ghz_doppler_bw_hz": 238.37,
+        "passive_rf_burst_dbm": -108.49
+      },
+      "vector": [
+        493.96,
+        0.619,
+        12.22,
+        238.37,
+        -108.49
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-023",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 477.95,
+        "harmonic_ratio_h2_h1": 0.525,
+        "esc_pwm_8_16khz_snr_db": 14.59,
+        "xm125_60ghz_doppler_bw_hz": 234.52,
+        "passive_rf_burst_dbm": -111.24
+      },
+      "vector": [
+        477.95,
+        0.525,
+        14.59,
+        234.52,
+        -111.24
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-024",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 485.19,
+        "harmonic_ratio_h2_h1": 0.688,
+        "esc_pwm_8_16khz_snr_db": 13.76,
+        "xm125_60ghz_doppler_bw_hz": 235.6,
+        "passive_rf_burst_dbm": -107.94
+      },
+      "vector": [
+        485.19,
+        0.688,
+        13.76,
+        235.6,
+        -107.94
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-025",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 510.98,
+        "harmonic_ratio_h2_h1": 0.712,
+        "esc_pwm_8_16khz_snr_db": 14.17,
+        "xm125_60ghz_doppler_bw_hz": 225.19,
+        "passive_rf_burst_dbm": -98.65
+      },
+      "vector": [
+        510.98,
+        0.712,
+        14.17,
+        225.19,
+        -98.65
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-026",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 470.5,
+        "harmonic_ratio_h2_h1": 0.595,
+        "esc_pwm_8_16khz_snr_db": 12.81,
+        "xm125_60ghz_doppler_bw_hz": 261.47,
+        "passive_rf_burst_dbm": -108.73
+      },
+      "vector": [
+        470.5,
+        0.595,
+        12.81,
+        261.47,
+        -108.73
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-027",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 467.73,
+        "harmonic_ratio_h2_h1": 0.638,
+        "esc_pwm_8_16khz_snr_db": 14.04,
+        "xm125_60ghz_doppler_bw_hz": 235.8,
+        "passive_rf_burst_dbm": -113.69
+      },
+      "vector": [
+        467.73,
+        0.638,
+        14.04,
+        235.8,
+        -113.69
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-028",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 476.23,
+        "harmonic_ratio_h2_h1": 0.591,
+        "esc_pwm_8_16khz_snr_db": 13.52,
+        "xm125_60ghz_doppler_bw_hz": 233.14,
+        "passive_rf_burst_dbm": -107.78
+      },
+      "vector": [
+        476.23,
+        0.591,
+        13.52,
+        233.14,
+        -107.78
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-029",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 473.51,
+        "harmonic_ratio_h2_h1": 0.506,
+        "esc_pwm_8_16khz_snr_db": 12.77,
+        "xm125_60ghz_doppler_bw_hz": 257.81,
+        "passive_rf_burst_dbm": -111.73
+      },
+      "vector": [
+        473.51,
+        0.506,
+        12.77,
+        257.81,
+        -111.73
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-030",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 513.32,
+        "harmonic_ratio_h2_h1": 0.652,
+        "esc_pwm_8_16khz_snr_db": 12.35,
+        "xm125_60ghz_doppler_bw_hz": 228.99,
+        "passive_rf_burst_dbm": -109.26
+      },
+      "vector": [
+        513.32,
+        0.652,
+        12.35,
+        228.99,
+        -109.26
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-031",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 470.75,
+        "harmonic_ratio_h2_h1": 0.777,
+        "esc_pwm_8_16khz_snr_db": 12.52,
+        "xm125_60ghz_doppler_bw_hz": 248.99,
+        "passive_rf_burst_dbm": -105.58
+      },
+      "vector": [
+        470.75,
+        0.777,
+        12.52,
+        248.99,
+        -105.58
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-032",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 483.68,
+        "harmonic_ratio_h2_h1": 0.554,
+        "esc_pwm_8_16khz_snr_db": 13.23,
+        "xm125_60ghz_doppler_bw_hz": 244.78,
+        "passive_rf_burst_dbm": -107.35
+      },
+      "vector": [
+        483.68,
+        0.554,
+        13.23,
+        244.78,
+        -107.35
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-033",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 485.69,
+        "harmonic_ratio_h2_h1": 0.528,
+        "esc_pwm_8_16khz_snr_db": 13.54,
+        "xm125_60ghz_doppler_bw_hz": 231.11,
+        "passive_rf_burst_dbm": -116.6
+      },
+      "vector": [
+        485.69,
+        0.528,
+        13.54,
+        231.11,
+        -116.6
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-034",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 476.56,
+        "harmonic_ratio_h2_h1": 0.525,
+        "esc_pwm_8_16khz_snr_db": 14.08,
+        "xm125_60ghz_doppler_bw_hz": 265.66,
+        "passive_rf_burst_dbm": -104.38
+      },
+      "vector": [
+        476.56,
+        0.525,
+        14.08,
+        265.66,
+        -104.38
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-035",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 478.06,
+        "harmonic_ratio_h2_h1": 0.589,
+        "esc_pwm_8_16khz_snr_db": 14.18,
+        "xm125_60ghz_doppler_bw_hz": 254.01,
+        "passive_rf_burst_dbm": -111.27
+      },
+      "vector": [
+        478.06,
+        0.589,
+        14.18,
+        254.01,
+        -111.27
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-036",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 483.27,
+        "harmonic_ratio_h2_h1": 0.766,
+        "esc_pwm_8_16khz_snr_db": 13.39,
+        "xm125_60ghz_doppler_bw_hz": 233.59,
+        "passive_rf_burst_dbm": -109.64
+      },
+      "vector": [
+        483.27,
+        0.766,
+        13.39,
+        233.59,
+        -109.64
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-037",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 492.01,
+        "harmonic_ratio_h2_h1": 0.553,
+        "esc_pwm_8_16khz_snr_db": 13.25,
+        "xm125_60ghz_doppler_bw_hz": 224.6,
+        "passive_rf_burst_dbm": -110.84
+      },
+      "vector": [
+        492.01,
+        0.553,
+        13.25,
+        224.6,
+        -110.84
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-038",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 507.71,
+        "harmonic_ratio_h2_h1": 0.669,
+        "esc_pwm_8_16khz_snr_db": 13.41,
+        "xm125_60ghz_doppler_bw_hz": 227.68,
+        "passive_rf_burst_dbm": -110.94
+      },
+      "vector": [
+        507.71,
+        0.669,
+        13.41,
+        227.68,
+        -110.94
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-039",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 497.71,
+        "harmonic_ratio_h2_h1": 0.583,
+        "esc_pwm_8_16khz_snr_db": 14.94,
+        "xm125_60ghz_doppler_bw_hz": 221.87,
+        "passive_rf_burst_dbm": -110.88
+      },
+      "vector": [
+        497.71,
+        0.583,
+        14.94,
+        221.87,
+        -110.88
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-04-040",
+      "class_index": 3,
+      "class_name": "CLASS_4_UNCOOPERATIVE_ZERO_RF_MULTIROTOR",
+      "features": {
+        "f0_hz": 506.09,
+        "harmonic_ratio_h2_h1": 0.487,
+        "esc_pwm_8_16khz_snr_db": 14.68,
+        "xm125_60ghz_doppler_bw_hz": 215.56,
+        "passive_rf_burst_dbm": -110.27
+      },
+      "vector": [
+        506.09,
+        0.487,
+        14.68,
+        215.56,
+        -110.27
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-001",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 79.91,
+        "harmonic_ratio_h2_h1": 0.354,
+        "esc_pwm_8_16khz_snr_db": 0.0,
+        "xm125_60ghz_doppler_bw_hz": 2.0,
+        "passive_rf_burst_dbm": -109.71
+      },
+      "vector": [
+        79.91,
+        0.354,
+        0.0,
+        2.0,
+        -109.71
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-002",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 82.45,
+        "harmonic_ratio_h2_h1": 0.241,
+        "esc_pwm_8_16khz_snr_db": 0.58,
+        "xm125_60ghz_doppler_bw_hz": 2.0,
+        "passive_rf_burst_dbm": -109.21
+      },
+      "vector": [
+        82.45,
+        0.241,
+        0.58,
+        2.0,
+        -109.21
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-003",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 71.75,
+        "harmonic_ratio_h2_h1": 0.316,
+        "esc_pwm_8_16khz_snr_db": 1.38,
+        "xm125_60ghz_doppler_bw_hz": 32.91,
+        "passive_rf_burst_dbm": -109.99
+      },
+      "vector": [
+        71.75,
+        0.316,
+        1.38,
+        32.91,
+        -109.99
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-004",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 78.15,
+        "harmonic_ratio_h2_h1": 0.303,
+        "esc_pwm_8_16khz_snr_db": 0.51,
+        "xm125_60ghz_doppler_bw_hz": 13.31,
+        "passive_rf_burst_dbm": -112.73
+      },
+      "vector": [
+        78.15,
+        0.303,
+        0.51,
+        13.31,
+        -112.73
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-005",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 86.5,
+        "harmonic_ratio_h2_h1": 0.24,
+        "esc_pwm_8_16khz_snr_db": 0.0,
+        "xm125_60ghz_doppler_bw_hz": 2.0,
+        "passive_rf_burst_dbm": -104.49
+      },
+      "vector": [
+        86.5,
+        0.24,
+        0.0,
+        2.0,
+        -104.49
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-006",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 80.3,
+        "harmonic_ratio_h2_h1": 0.376,
+        "esc_pwm_8_16khz_snr_db": 1.07,
+        "xm125_60ghz_doppler_bw_hz": 2.0,
+        "passive_rf_burst_dbm": -111.28
+      },
+      "vector": [
+        80.3,
+        0.376,
+        1.07,
+        2.0,
+        -111.28
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-007",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 91.17,
+        "harmonic_ratio_h2_h1": 0.249,
+        "esc_pwm_8_16khz_snr_db": 0.0,
+        "xm125_60ghz_doppler_bw_hz": 11.63,
+        "passive_rf_burst_dbm": -108.54
+      },
+      "vector": [
+        91.17,
+        0.249,
+        0.0,
+        11.63,
+        -108.54
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-008",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 69.76,
+        "harmonic_ratio_h2_h1": 0.278,
+        "esc_pwm_8_16khz_snr_db": 0.33,
+        "xm125_60ghz_doppler_bw_hz": 2.0,
+        "passive_rf_burst_dbm": -106.48
+      },
+      "vector": [
+        69.76,
+        0.278,
+        0.33,
+        2.0,
+        -106.48
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-009",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 72.18,
+        "harmonic_ratio_h2_h1": 0.386,
+        "esc_pwm_8_16khz_snr_db": 0.0,
+        "xm125_60ghz_doppler_bw_hz": 2.0,
+        "passive_rf_burst_dbm": -104.41
+      },
+      "vector": [
+        72.18,
+        0.386,
+        0.0,
+        2.0,
+        -104.41
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-010",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 62.82,
+        "harmonic_ratio_h2_h1": 0.258,
+        "esc_pwm_8_16khz_snr_db": 1.39,
+        "xm125_60ghz_doppler_bw_hz": 9.65,
+        "passive_rf_burst_dbm": -113.01
+      },
+      "vector": [
+        62.82,
+        0.258,
+        1.39,
+        9.65,
+        -113.01
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-011",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 84.28,
+        "harmonic_ratio_h2_h1": 0.287,
+        "esc_pwm_8_16khz_snr_db": 2.07,
+        "xm125_60ghz_doppler_bw_hz": 21.77,
+        "passive_rf_burst_dbm": -98.82
+      },
+      "vector": [
+        84.28,
+        0.287,
+        2.07,
+        21.77,
+        -98.82
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-012",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 62.08,
+        "harmonic_ratio_h2_h1": 0.299,
+        "esc_pwm_8_16khz_snr_db": 0.0,
+        "xm125_60ghz_doppler_bw_hz": 29.24,
+        "passive_rf_burst_dbm": -105.51
+      },
+      "vector": [
+        62.08,
+        0.299,
+        0.0,
+        29.24,
+        -105.51
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-013",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 91.12,
+        "harmonic_ratio_h2_h1": 0.249,
+        "esc_pwm_8_16khz_snr_db": 0.06,
+        "xm125_60ghz_doppler_bw_hz": 2.0,
+        "passive_rf_burst_dbm": -102.83
+      },
+      "vector": [
+        91.12,
+        0.249,
+        0.06,
+        2.0,
+        -102.83
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-014",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 88.15,
+        "harmonic_ratio_h2_h1": 0.283,
+        "esc_pwm_8_16khz_snr_db": 1.72,
+        "xm125_60ghz_doppler_bw_hz": 23.91,
+        "passive_rf_burst_dbm": -105.05
+      },
+      "vector": [
+        88.15,
+        0.283,
+        1.72,
+        23.91,
+        -105.05
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-015",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 62.36,
+        "harmonic_ratio_h2_h1": 0.253,
+        "esc_pwm_8_16khz_snr_db": 0.99,
+        "xm125_60ghz_doppler_bw_hz": 18.69,
+        "passive_rf_burst_dbm": -105.1
+      },
+      "vector": [
+        62.36,
+        0.253,
+        0.99,
+        18.69,
+        -105.1
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-016",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 69.8,
+        "harmonic_ratio_h2_h1": 0.308,
+        "esc_pwm_8_16khz_snr_db": 2.98,
+        "xm125_60ghz_doppler_bw_hz": 23.13,
+        "passive_rf_burst_dbm": -105.37
+      },
+      "vector": [
+        69.8,
+        0.308,
+        2.98,
+        23.13,
+        -105.37
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-017",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 81.77,
+        "harmonic_ratio_h2_h1": 0.351,
+        "esc_pwm_8_16khz_snr_db": 2.59,
+        "xm125_60ghz_doppler_bw_hz": 15.41,
+        "passive_rf_burst_dbm": -104.3
+      },
+      "vector": [
+        81.77,
+        0.351,
+        2.59,
+        15.41,
+        -104.3
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-018",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 71.41,
+        "harmonic_ratio_h2_h1": 0.339,
+        "esc_pwm_8_16khz_snr_db": 1.7,
+        "xm125_60ghz_doppler_bw_hz": 4.07,
+        "passive_rf_burst_dbm": -104.68
+      },
+      "vector": [
+        71.41,
+        0.339,
+        1.7,
+        4.07,
+        -104.68
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-019",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 73.83,
+        "harmonic_ratio_h2_h1": 0.247,
+        "esc_pwm_8_16khz_snr_db": 0.8,
+        "xm125_60ghz_doppler_bw_hz": 39.5,
+        "passive_rf_burst_dbm": -107.06
+      },
+      "vector": [
+        73.83,
+        0.247,
+        0.8,
+        39.5,
+        -107.06
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-020",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 93.32,
+        "harmonic_ratio_h2_h1": 0.252,
+        "esc_pwm_8_16khz_snr_db": 0.88,
+        "xm125_60ghz_doppler_bw_hz": 2.0,
+        "passive_rf_burst_dbm": -109.73
+      },
+      "vector": [
+        93.32,
+        0.252,
+        0.88,
+        2.0,
+        -109.73
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-021",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 92.11,
+        "harmonic_ratio_h2_h1": 0.297,
+        "esc_pwm_8_16khz_snr_db": 2.24,
+        "xm125_60ghz_doppler_bw_hz": 11.33,
+        "passive_rf_burst_dbm": -108.6
+      },
+      "vector": [
+        92.11,
+        0.297,
+        2.24,
+        11.33,
+        -108.6
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-022",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 97.45,
+        "harmonic_ratio_h2_h1": 0.257,
+        "esc_pwm_8_16khz_snr_db": 0.0,
+        "xm125_60ghz_doppler_bw_hz": 31.18,
+        "passive_rf_burst_dbm": -106.75
+      },
+      "vector": [
+        97.45,
+        0.257,
+        0.0,
+        31.18,
+        -106.75
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-023",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 55.8,
+        "harmonic_ratio_h2_h1": 0.303,
+        "esc_pwm_8_16khz_snr_db": 0.4,
+        "xm125_60ghz_doppler_bw_hz": 37.03,
+        "passive_rf_burst_dbm": -110.21
+      },
+      "vector": [
+        55.8,
+        0.303,
+        0.4,
+        37.03,
+        -110.21
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-024",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 74.97,
+        "harmonic_ratio_h2_h1": 0.24,
+        "esc_pwm_8_16khz_snr_db": 0.0,
+        "xm125_60ghz_doppler_bw_hz": 4.75,
+        "passive_rf_burst_dbm": -112.34
+      },
+      "vector": [
+        74.97,
+        0.24,
+        0.0,
+        4.75,
+        -112.34
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-025",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 69.52,
+        "harmonic_ratio_h2_h1": 0.194,
+        "esc_pwm_8_16khz_snr_db": 0.0,
+        "xm125_60ghz_doppler_bw_hz": 2.0,
+        "passive_rf_burst_dbm": -109.58
+      },
+      "vector": [
+        69.52,
+        0.194,
+        0.0,
+        2.0,
+        -109.58
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-026",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 73.73,
+        "harmonic_ratio_h2_h1": 0.219,
+        "esc_pwm_8_16khz_snr_db": 1.27,
+        "xm125_60ghz_doppler_bw_hz": 13.37,
+        "passive_rf_burst_dbm": -109.31
+      },
+      "vector": [
+        73.73,
+        0.219,
+        1.27,
+        13.37,
+        -109.31
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-027",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 76.39,
+        "harmonic_ratio_h2_h1": 0.405,
+        "esc_pwm_8_16khz_snr_db": 1.04,
+        "xm125_60ghz_doppler_bw_hz": 20.27,
+        "passive_rf_burst_dbm": -115.82
+      },
+      "vector": [
+        76.39,
+        0.405,
+        1.04,
+        20.27,
+        -115.82
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-028",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 74.09,
+        "harmonic_ratio_h2_h1": 0.157,
+        "esc_pwm_8_16khz_snr_db": 0.38,
+        "xm125_60ghz_doppler_bw_hz": 18.93,
+        "passive_rf_burst_dbm": -110.04
+      },
+      "vector": [
+        74.09,
+        0.157,
+        0.38,
+        18.93,
+        -110.04
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-029",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 88.28,
+        "harmonic_ratio_h2_h1": 0.232,
+        "esc_pwm_8_16khz_snr_db": 1.37,
+        "xm125_60ghz_doppler_bw_hz": 2.0,
+        "passive_rf_burst_dbm": -108.79
+      },
+      "vector": [
+        88.28,
+        0.232,
+        1.37,
+        2.0,
+        -108.79
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-030",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 87.08,
+        "harmonic_ratio_h2_h1": 0.335,
+        "esc_pwm_8_16khz_snr_db": 0.67,
+        "xm125_60ghz_doppler_bw_hz": 39.6,
+        "passive_rf_burst_dbm": -109.25
+      },
+      "vector": [
+        87.08,
+        0.335,
+        0.67,
+        39.6,
+        -109.25
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-031",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 76.54,
+        "harmonic_ratio_h2_h1": 0.118,
+        "esc_pwm_8_16khz_snr_db": 2.55,
+        "xm125_60ghz_doppler_bw_hz": 9.13,
+        "passive_rf_burst_dbm": -111.56
+      },
+      "vector": [
+        76.54,
+        0.118,
+        2.55,
+        9.13,
+        -111.56
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-032",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 97.98,
+        "harmonic_ratio_h2_h1": 0.382,
+        "esc_pwm_8_16khz_snr_db": 0.91,
+        "xm125_60ghz_doppler_bw_hz": 2.0,
+        "passive_rf_burst_dbm": -106.73
+      },
+      "vector": [
+        97.98,
+        0.382,
+        0.91,
+        2.0,
+        -106.73
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-033",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 74.48,
+        "harmonic_ratio_h2_h1": 0.223,
+        "esc_pwm_8_16khz_snr_db": 1.83,
+        "xm125_60ghz_doppler_bw_hz": 2.0,
+        "passive_rf_burst_dbm": -106.28
+      },
+      "vector": [
+        74.48,
+        0.223,
+        1.83,
+        2.0,
+        -106.28
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-034",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 87.56,
+        "harmonic_ratio_h2_h1": 0.435,
+        "esc_pwm_8_16khz_snr_db": 1.12,
+        "xm125_60ghz_doppler_bw_hz": 2.0,
+        "passive_rf_burst_dbm": -110.53
+      },
+      "vector": [
+        87.56,
+        0.435,
+        1.12,
+        2.0,
+        -110.53
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-035",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 82.78,
+        "harmonic_ratio_h2_h1": 0.323,
+        "esc_pwm_8_16khz_snr_db": 1.77,
+        "xm125_60ghz_doppler_bw_hz": 2.0,
+        "passive_rf_burst_dbm": -109.0
+      },
+      "vector": [
+        82.78,
+        0.323,
+        1.77,
+        2.0,
+        -109.0
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-036",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 93.74,
+        "harmonic_ratio_h2_h1": 0.402,
+        "esc_pwm_8_16khz_snr_db": 2.64,
+        "xm125_60ghz_doppler_bw_hz": 8.85,
+        "passive_rf_burst_dbm": -104.68
+      },
+      "vector": [
+        93.74,
+        0.402,
+        2.64,
+        8.85,
+        -104.68
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-037",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 102.71,
+        "harmonic_ratio_h2_h1": 0.379,
+        "esc_pwm_8_16khz_snr_db": 1.52,
+        "xm125_60ghz_doppler_bw_hz": 24.93,
+        "passive_rf_burst_dbm": -110.39
+      },
+      "vector": [
+        102.71,
+        0.379,
+        1.52,
+        24.93,
+        -110.39
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-038",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 64.49,
+        "harmonic_ratio_h2_h1": 0.365,
+        "esc_pwm_8_16khz_snr_db": 0.46,
+        "xm125_60ghz_doppler_bw_hz": 13.63,
+        "passive_rf_burst_dbm": -109.75
+      },
+      "vector": [
+        64.49,
+        0.365,
+        0.46,
+        13.63,
+        -109.75
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-039",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 77.25,
+        "harmonic_ratio_h2_h1": 0.315,
+        "esc_pwm_8_16khz_snr_db": 0.0,
+        "xm125_60ghz_doppler_bw_hz": 14.9,
+        "passive_rf_burst_dbm": -107.26
+      },
+      "vector": [
+        77.25,
+        0.315,
+        0.0,
+        14.9,
+        -107.26
+      ]
+    },
+    {
+      "sample_id": "FINSIG-W26-05-040",
+      "class_index": 4,
+      "class_name": "CLASS_5_GENERAL_AVIATION_OR_WIND_CLUTTER",
+      "features": {
+        "f0_hz": 81.06,
+        "harmonic_ratio_h2_h1": 0.251,
+        "esc_pwm_8_16khz_snr_db": 1.58,
+        "xm125_60ghz_doppler_bw_hz": 38.72,
+        "passive_rf_burst_dbm": -109.82
+      },
+      "vector": [
+        81.06,
+        0.251,
+        1.58,
+        38.72,
+        -109.82
+      ]
+    }
+  ]
+}

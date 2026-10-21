@@ -1757,6 +1757,18 @@ class TestAerialObserverModule(unittest.TestCase):
         self.assertGreater(surge_sim["per_nest_heating_power_at_minus30c_w"], 250.0)
         self.assertGreater(surge_sim["single_pack_recharge_duration_min"], 30.0)
 
+        # 7. Verify Live-Stream Load Test, FIN-SIG-LIB v1.0 Dataset, [P12-BELT], [P12-HEATED], [P12-CAPTURE] & FIN-LAB-06 USV
+        live_lt = suite["finlab01_civilian_twin"]["uspace_live_stream_load_test"]
+        self.assertTrue(live_lt["live_load_test_passed"])
+        self.assertEqual(live_lt["dropped_packets"], 0)
+        self.assertEqual(suite["fin_sig_lib_v1_winter_signature_dataset"]["total_samples"], 200)
+        self.assertGreaterEqual(suite["fin_sig_lib_v1_winter_signature_dataset"]["overall_5class_accuracy"], 0.95)
+        self.assertGreaterEqual(suite["p12_belt_non_rf_corridor_sensing"]["corridor_detection_range_m"], 550.0)
+        self.assertEqual(suite["p12_heated_12cell_shelter_and_fast_climber"]["nest_cells_per_box"], 12)
+        self.assertLessEqual(suite["p12_capture_cooperative_apn_soft_net"]["terminal_miss_distance_m"], 0.85)
+        self.assertTrue(suite["p12_capture_cooperative_apn_soft_net"]["zero_firearms_zero_pyrotechnics"])
+        self.assertGreaterEqual(suite["finlab06_coastal_cable_usv"]["fleet_availability_pct"], 80.0)
+
 
 if __name__ == "__main__":
     print("=== Running Autonomous Aerial Observation & Guidance Module Test Suite ===")
