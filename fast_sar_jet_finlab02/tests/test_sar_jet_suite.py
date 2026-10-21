@@ -256,6 +256,68 @@ class TestArcticFastSarJetSuite(unittest.TestCase):
         self.assertGreater(res_skid.landing_rollout_m, 5.0)
         self.assertEqual(res_skid.max_ice_accretion_mm, 0.0)
 
+    def test_07_avionics_sensors_interference_and_fdir(self):
+        """Verify 3-domain avionics, sensor interference, hardware failure modes, and FDIR recovery."""
+        suite_rows = flight_sim.run_avionics_and_failure_mode_suite("VARIANT_H_EVO")
+        self.assertEqual(len(suite_rows), 7)
+        by_id = {r["preset_id"]: r for r in suite_rows}
+
+        # 1. Clean nominal run has zero FDIR events
+        self.assertTrue(by_id["NOMINAL_CLEAN"]["mission_success"])
+        self.assertEqual(by_id["NOMINAL_CLEAN"]["fdir_events"], 0)
+        self.assertEqual(by_id["NOMINAL_CLEAN"]["final_nav_mode"], "GNSS_INERTIAL_EKF3")
+
+        # 2. EW GNSS Jam & Spoof triggers VIO_BARO_DEM_DEAD_RECKONING and 940 nm Sky-Diode optical link
+        ew = by_id["EW_GNSS_JAM_AND_SPOOF"]
+        self.assertTrue(ew["mission_success"])
+        self.assertEqual(ew["final_nav_mode"], "VIO_BARO_DEM_DEAD_RECKONING")
+        self.assertEqual(ew["final_comms_mode"], "SKY_DIODE_OPTICAL_940NM_SILENT")
+        self.assertIn("GNSS_SPOOF_REJECTED_VIO", ew["fdir_codes"])
+
+        # 3. IMU1 bias & Mag storm fails over to Bosch BMI088 (IMU2) and rejects mag yaw drift
+        imu_row = by_id["IMU1_BIAS_AND_MAG_STORM"]
+        self.assertTrue(imu_row["mission_success"])
+        self.assertEqual(imu_row["final_active_imu"], "IMU2_BMI088_FAILOVER")
+        self.assertIn("MAG_REJECTED_VIO_YAW", imu_row["fdir_codes"])
+
+        # 4. EGT overtemp & Ruddervator jam clamps EGT < 760 C and reallocates control surfaces
+        egt_row = by_id["EGT_OVERTEMP_AND_RUDDERVATOR_JAM"]
+        self.assertTrue(egt_row["mission_success"])
+        self.assertLess(egt_row["max_fadec_egt_c"], 760.0)
+        self.assertIn("EGT_THERMAL_DERATE_ACTIVE", egt_row["fdir_codes"])
+        self.assertIn("SERVO_JAM_REALLOCATED", egt_row["fdir_codes"])
+
+        # 5. Full Arctic 12-fault stress test passes with FDIR active vs degrades when FDIR disabled
+        stress_row = by_id["FULL_ARCTIC_MULTI_FAULT_STRESS"]
+        self.assertTrue(stress_row["mission_success"])
+        self.assertGreaterEqual(stress_row["fdir_events"], 9)
+        self.assertLess(stress_row["capsule_cep_m"], 8.0)
+
+        # Compare against FDIR disabled under spoofing + EGT overtemp
+        no_fdir_cfg = flight_sim.InterferenceAndFaultConfig(
+            preset_id="UNPROTECTED_SPOOF_AND_EGT",
+            fdir_enabled=False,
+            gnss_spoofing_active=True,
+            gnss_spoof_start_s=25.0,
+            gnss_spoof_offset_m=380.0,
+            fault_egt_overtemp=True,
+            fault_egt_start_s=28.0,
+        )
+        res_no_fdir = flight_sim.run_end_to_end_6dof_mission(
+            config_id="VARIANT_H_EVO",
+            faults=no_fdir_cfg,
+        )
+        self.assertGreater(
+            res_no_fdir.avionics_health_summary["max_fadec_egt_c"],
+            760.0,
+            "Without FDIR thermal derate, EGT overtemp should exceed 760 C redline",
+        )
+        self.assertGreater(
+            res_no_fdir.capsule_landing_error_cep_m,
+            50.0,
+            "Without EKF3 spoof rejection, GNSS spoofing should pull capsule drop off target",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

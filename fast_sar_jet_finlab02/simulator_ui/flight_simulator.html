@@ -390,7 +390,63 @@
     </div>
 
     <div class="panel-title">
-      <span>3. Simulation Playback & Presets</span>
+      <span>3. External Interference & Failure-Mode / FDIR Injection</span>
+      <span style="font-size:10px;color:var(--accent-orange)">STRESS LAB</span>
+    </div>
+    <div class="control-group">
+      <div class="control-row">
+        <div class="control-label"><span>Scenario Preset (EW / Weather / Hardware Faults)</span></div>
+        <select id="faultPresetSelect">
+          <option value="NOMINAL_CLEAN" selected>1. NOMINAL_CLEAN (All Sensors & Avionics Nominal)</option>
+          <option value="EW_GNSS_JAM_AND_SPOOF">2. EW_GNSS_JAM_AND_SPOOF (-48 dBm Jam + 380m Spoof + RF Jam)</option>
+          <option value="PITOT_ICING_AND_BAY_HEATER_FAIL">3. PITOT_ICING_AND_BAY_HEATER_FAIL (Pitot Blocked + Bay Cold + Whiteout)</option>
+          <option value="INFLIGHT_TURBINE_FLAMEOUT_AND_RELIGHT">4. INFLIGHT_TURBINE_FLAMEOUT_AND_RELIGHT (Flameout t=48s + UAT Bubble)</option>
+          <option value="IMU1_BIAS_AND_MAG_STORM">5. IMU1_BIAS_AND_MAG_STORM (ICM-42688-P Runaway + 45 uT Mag Storm)</option>
+          <option value="EGT_OVERTEMP_AND_RUDDERVATOR_JAM">6. EGT_OVERTEMP_AND_RUDDERVATOR_JAM (EGT >720°C + Left Λ-Tail Jam)</option>
+          <option value="FULL_ARCTIC_MULTI_FAULT_STRESS">7. FULL_ARCTIC_MULTI_FAULT_STRESS (All 12 Simultaneous Arctic Faults!)</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <div class="control-label"><span>Autonomous 3-Domain FDIR & Harmonic Notch</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;">
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--accent-green);font-weight:700;">
+            <input type="checkbox" id="chkFdir" checked /> Master FDIR Active
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--accent-cyan);">
+            <input type="checkbox" id="chkNotch" checked /> Gyro Harmonic Notch
+          </label>
+        </div>
+      </div>
+      <div class="control-row">
+        <div class="control-label"><span>L1/L2/L5 GNSS Jamming Power</span><span class="val" id="valGnssJam">-115 dBm</span></div>
+        <input type="range" id="rngGnssJam" min="-115" max="-40" step="5" value="-115" />
+      </div>
+      <div class="control-row">
+        <div class="control-label"><span>868 MHz LoRa Comms Jamming</span><span class="val" id="valRfJam">-110 dBm</span></div>
+        <input type="range" id="rngRfJam" min="-110" max="-45" step="5" value="-110" />
+      </div>
+      <div class="control-row">
+        <div class="control-label"><span>Auroral Geomagnetic Storm (RM3100)</span><span class="val" id="valMagStorm">0 µT</span></div>
+        <input type="range" id="rngMagStorm" min="0" max="60" step="5" value="0" />
+      </div>
+      <div class="control-row">
+        <div class="control-label"><span>Blizzard Whiteout (Starvis EO vs LWIR)</span><span class="val" id="valWhiteout">0%</span></div>
+        <input type="range" id="rngWhiteout" min="0" max="100" step="5" value="0" />
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:10.5px;color:var(--text-muted);margin-top:2px;">
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="chkSpoof" /> GNSS Spoof (+380m)</label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="chkPitot" /> Pitot Iced/Blocked</label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="chkImu1" /> IMU1 Bias Runaway</label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="chkFlameout" /> Jet Flameout (t=48s)</label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="chkEgt" /> EGT Overtemp (>720°C)</label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="chkBubble" /> UAT Fuel Air Bubble</label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="chkBayHeater" /> Bay Heater Failure</label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="chkServoJam" /> Λ-Tail Servo Jam</label>
+      </div>
+    </div>
+
+    <div class="panel-title">
+      <span>4. Simulation Playback & Weather Presets</span>
     </div>
     <div class="control-group">
       <div class="btn-row">
@@ -560,8 +616,48 @@
     <div class="panel-title">
       <span>6. Live Drag Polar & V-n Flight Envelope</span>
     </div>
-    <div class="canvas-wrap" style="height: 205px;">
-      <canvas id="canvasPolar" width="320" height="205"></canvas>
+    <div class="canvas-wrap" style="height: 175px;">
+      <canvas id="canvasPolar" width="320" height="175"></canvas>
+    </div>
+
+    <div class="panel-title">
+      <span>7. 3-Domain Avionics, Sensors, FADEC & FDIR</span>
+      <span id="badgeFdirCount" style="font-size:10px;color:var(--accent-green);font-weight:700;">0 EVENTS</span>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="k-label">Air Data (MS4525DO vs Synth)</div>
+        <div class="k-val" id="avPitot">0.0 / 0.0 m/s</div>
+        <div class="k-sub" id="avBaro">BMP390 Baro: 0.0 m</div>
+      </div>
+      <div class="kpi-card">
+        <div class="k-label">Dual IMU & Mag (ARK H743)</div>
+        <div class="k-val" id="avImu">IMU1_ICM42688P</div>
+        <div class="k-sub" id="avVibMag">Vib: 0.04g · Mag Err: 0.5°</div>
+      </div>
+      <div class="kpi-card">
+        <div class="k-label">u-blox GNSS & EKF3 Nav Mode</div>
+        <div class="k-val" id="avNavMode" style="font-size:11.5px;">GNSS_INERTIAL_EKF3</div>
+        <div class="k-sub" id="avGnss">C/N0: 46.5 dBHz · HDOP: 0.85</div>
+      </div>
+      <div class="kpi-card">
+        <div class="k-label">Pi-5 EO/LWIR/Acoustic & Comms</div>
+        <div class="k-val" id="avComms" style="font-size:11.5px;">LORA_868MHZ</div>
+        <div class="k-sub" id="avOptAcoustic">EO:29dB LWIR:27dB Ac:14dB</div>
+      </div>
+      <div class="kpi-card">
+        <div class="k-label">FADEC (200Hz STM32G474)</div>
+        <div class="k-val" id="avFadec">0 RPM · 25°C</div>
+        <div class="k-sub" id="avUatState">UAT: 100% · STANDBY</div>
+      </div>
+      <div class="kpi-card">
+        <div class="k-label">6S2P Bus & +15°C Heated Bay</div>
+        <div class="k-val" id="avPowerBay">24.6 V · +15.0°C</div>
+        <div class="k-sub" id="avFdirStatus" style="color:var(--accent-green);">FDIR: NOMINAL</div>
+      </div>
+    </div>
+    <div class="control-group" style="max-height:115px;overflow-y:auto;font-family:SFMono-Regular,Consolas,monospace;font-size:10.5px;" id="fdirLogBox">
+      <div style="color:var(--text-muted)">[FDIR LOG] All 3 avionics domains (Pi-5 20Hz, ARK STM32H743 400Hz, FADEC STM32G474 200Hz) nominal.</div>
     </div>
   </div>
 </div>
@@ -816,9 +912,36 @@ function computeStabilityModes(cfg, vtas, alt_agl, env) {
   return { wn_sp, zeta_sp, period_ph: (2.0 * Math.PI) / wn_ph, wn_dr, zeta_dr, tau_roll, level: level_1 ? 1 : 2 };
 }
 
-function runEndToEnd6DOFMission(config_id, env, launch_mode, landing_mode, cruise_alt_m, overrides = {}) {
+function runEndToEnd6DOFMission(config_id, env, launch_mode, landing_mode, cruise_alt_m, overrides = {}, faults = null) {
   const base = AIRCRAFT_CATALOG[config_id] || AIRCRAFT_CATALOG.VARIANT_H_EVO;
   const cfg = Object.assign({}, base, overrides);
+  const flt = Object.assign({
+    preset_id: "NOMINAL_CLEAN",
+    gnss_jamming_dbm: -115.0,
+    gnss_spoofing_active: false,
+    gnss_spoof_start_s: 30.0,
+    gnss_spoof_offset_m: 380.0,
+    rf_comms_jamming_dbm: -110.0,
+    magnetic_storm_ut: 0.0,
+    whiteout_snow_density: 0.0,
+    fdir_enabled: true,
+    harmonic_notch_enabled: true,
+    fault_pitot_blocked: false,
+    fault_pitot_start_s: 35.0,
+    fault_imu1_bias_runaway: false,
+    fault_imu1_start_s: 32.0,
+    fault_turbine_flameout: false,
+    fault_flameout_start_s: 48.0,
+    fault_egt_overtemp: false,
+    fault_egt_start_s: 28.0,
+    fault_uat_air_bubble: false,
+    fault_bubble_start_s: 47.0,
+    fault_bay_heater_fail: false,
+    fault_ruddervator_jam: false,
+    fault_servo_start_s: 55.0,
+    fault_servo_jam_deg: 4.5
+  }, faults || {});
+
   const dt_s = 0.02;
   const downsample = 15; // 0.30s sample interval for smooth 60fps UI interpolation
 
@@ -840,6 +963,11 @@ function runEndToEnd6DOFMission(config_id, env, launch_mode, landing_mode, cruis
 
   let f_jet_actual = cfg.idle_jet_thrust_n, f_elec_actual = 0.0;
   let chute_deployed = false, chute_inflation = 0.0, relight_timer = 0.0;
+  let avionics_bay_temp_c = 15.0;
+  let fadec_egt_c = Math.max(20.0, env.surface_temp_c + 45.0);
+  let uat_fill_pct = 100.0;
+  const fdir_events = [];
+  const recorded_fdir_codes = new Set();
 
   let capsule_dropped = false, cap_x = 0.0, cap_y = 0.0, cap_alt = 0.0;
   let cap_vn = 0.0, cap_ve = 0.0, cap_vd = 0.0;
@@ -852,6 +980,13 @@ function runEndToEnd6DOFMission(config_id, env, launch_mode, landing_mode, cruis
   let touchdown_vz = 0.0, landing_td_x = 0.0, landing_rollout_m = 0.0;
   const loiter_p_samples = [];
   let max_speed_mps = 0.0, total_dist_m = 0.0;
+
+  function logFdirEvent(code, domain, severity, action) {
+    if (!recorded_fdir_codes.has(code)) {
+      recorded_fdir_codes.add(code);
+      fdir_events.push({ t_s: t, phase, code, domain, severity, action });
+    }
+  }
 
   function transitionPhase(new_ph, cur_t, note) {
     phase_summary.push({ phase, start_s: phase_start_t, end_s: cur_t, note });
@@ -1043,11 +1178,77 @@ function runEndToEnd6DOFMission(config_id, env, launch_mode, landing_mode, cruis
       }
     }
 
+    // 3-Domain Avionics, Sensors, External Interference & FDIR Engine
+    const active_flags = [];
+    const veas_true = vtas * Math.sqrt(rho / 1.225);
+    const synth_airspeed_mps = Math.max(0.0, vtas + 0.35 * Math.sin(1.7 * t));
+    const pitot_blocked = (flt.fault_pitot_blocked && t >= flt.fault_pitot_start_s) || (!env.deicer_enabled && ice_mm >= 1.25);
+    let pitot_ias_mps = Math.max(0.0, veas_true + 0.18 * Math.cos(3.1 * t));
+    let measured_vtas_ctrl = vtas;
+    if (pitot_blocked) {
+      pitot_ias_mps = 19.0 + 1.2 * Math.sin(0.5 * t);
+      if (Math.abs(pitot_ias_mps - veas_true) > 5.5) {
+        if (flt.fdir_enabled) {
+          active_flags.push("PITOT_ISOLATED_SYNTH_AIRSPEED");
+          logFdirEvent("PITOT_ISOLATED_SYNTH_AIRSPEED", "ARK_STM32H743", "WARNING", "MS4525DO pitot discrepancy >6.5 m/s; isolated pitot and switched TECS to Synthetic Airspeed Estimator.");
+          measured_vtas_ctrl = synth_airspeed_mps;
+        } else {
+          active_flags.push("PITOT_BLOCKED_UNCOMPENSATED");
+          measured_vtas_ctrl = pitot_ias_mps / Math.sqrt(rho / 1.225);
+        }
+      }
+    }
+    if (pitot_blocked && !flt.fdir_enabled && (phase === "2_CLIMB" || phase === "3_HIGH_SPEED_DASH" || phase === "7_RTB_CRUISE")) {
+      jet_thr = Math.min(1.0, jet_thr + 0.22);
+    }
+
+    let fadec_state = (cfg.max_jet_thrust_sl_n > 0 && jet_thr > 0.01 && fuel_kg > 0) ? "RUNNING" : "STANDBY_OFF";
+    if (flt.fault_uat_air_bubble && t >= flt.fault_bubble_start_s && t <= flt.fault_bubble_start_s + 8.0) {
+      uat_fill_pct = 91.5;
+      active_flags.push("UAT_BUBBLE_TRAPPED");
+      logFdirEvent("UAT_BUBBLE_TRAPPED", "FADEC_STM32G474", "INFO", "Cavitation air slug trapped in 150 mL spherical UAT hopper; FADEC fuel pump slew clamped.");
+      if (!flt.fdir_enabled) jet_thr *= 0.72;
+    } else {
+      uat_fill_pct = Math.min(100.0, uat_fill_pct + 1.5 * dt_s);
+    }
+
+    let egt_spike_c = 0.0;
+    if (flt.fault_egt_overtemp && t >= flt.fault_egt_start_s && jet_thr > 0.15) {
+      if (flt.fdir_enabled) {
+        jet_thr = Math.min(jet_thr, 0.82);
+        egt_spike_c = 62.0;
+        active_flags.push("EGT_THERMAL_DERATE_ACTIVE");
+        logFdirEvent("EGT_THERMAL_DERATE_ACTIVE", "FADEC_STM32G474", "WARNING", "MAX31855 K-type EGT >720°C; proportional FADEC throttle derate active (<760°C limit).");
+      } else {
+        egt_spike_c = 125.0;
+        active_flags.push("EGT_OVERTEMP_UNCLAMPED");
+      }
+    }
+
+    if (flt.fault_turbine_flameout && t >= flt.fault_flameout_start_s && cfg.max_jet_thrust_sl_n > 0) {
+      const fl_el = t - flt.fault_flameout_start_s;
+      const r_win = flt.fdir_enabled ? 3.2 : 11.5;
+      if (fl_el <= r_win) {
+        jet_thr = 0.0;
+        f_jet_actual = 0.0;
+        fadec_state = flt.fdir_enabled ? "FLAMEOUT_KEROSENE_RELIGHT" : "FLAMEOUT_LOSS_OF_THRUST";
+        if (flt.fdir_enabled) {
+          active_flags.push("FLAMEOUT_ELEC_SUSTAINER_RELIGHT");
+          logFdirEvent("FLAMEOUT_ELEC_SUSTAINER_RELIGHT", "FADEC_STM32G474", "CRITICAL", "In-flight flameout (EGT <280°C); Bürkert valve closed in <50ms, 355mm nose E-prop deployed at 850W sustainer power, and -30°C kerostart relight initiated.");
+          if (cfg.has_electric_loiter) { nose_prop_deployed = true; elec_thr = Math.max(elec_thr, 0.90); }
+        } else {
+          active_flags.push("FLAMEOUT_UNRECOVERED");
+        }
+      } else if (fl_el <= r_win + 2.0 && flt.fdir_enabled) {
+        active_flags.push("FADEC_AUTO_RELIGHT_COMPLETE");
+      }
+    }
+
     // Propulsion dynamics
-    if (cfg.max_jet_thrust_sl_n > 0 && fuel_kg > 0) {
+    if (cfg.max_jet_thrust_sl_n > 0 && fuel_kg > 0 && fadec_state !== "FLAMEOUT_LOSS_OF_THRUST") {
       const dens_ratio = Math.min(1.16, Math.pow(rho / 1.225, 0.65));
       const ram_loss = 0.065 * vtas * jet_thr;
-      const f_targ = Math.max(0.0, cfg.idle_jet_thrust_n + jet_thr * (cfg.max_jet_thrust_sl_n * dens_ratio - cfg.idle_jet_thrust_n) - ram_loss);
+      const f_targ = jet_thr <= 0.01 ? 0.0 : Math.max(0.0, cfg.idle_jet_thrust_n + jet_thr * (cfg.max_jet_thrust_sl_n * dens_ratio - cfg.idle_jet_thrust_n) - ram_loss);
       const tau_sp = f_targ >= f_jet_actual ? 1.15 : 0.75;
       f_jet_actual += ((f_targ - f_jet_actual) / tau_sp) * dt_s;
       if (jet_thr > 0.01) {
@@ -1060,6 +1261,25 @@ function runEndToEnd6DOFMission(config_id, env, launch_mode, landing_mode, cruis
       f_jet_actual = 0.0;
     }
 
+    const thrust_frac = cfg.max_jet_thrust_sl_n > 0 ? f_jet_actual / Math.max(1.0, cfg.max_jet_thrust_sl_n) : 0.0;
+    const fadec_rpm = f_jet_actual > 0.5 ? (38000.0 + 116000.0 * Math.pow(thrust_frac, 0.72)) : 0.0;
+    const egt_targ = f_jet_actual > 0.5 ? (460.0 + 235.0 * thrust_frac + egt_spike_c) : Math.max(env.surface_temp_c, 15.0);
+    fadec_egt_c += ((egt_targ - fadec_egt_c) / 1.40) * dt_s;
+
+    if (flt.fault_bay_heater_fail) {
+      avionics_bay_temp_c += ((atm.temp_c + 6.0 - avionics_bay_temp_c) / 38.0) * dt_s;
+      if (avionics_bay_temp_c < 5.0) {
+        if (flt.fdir_enabled) {
+          active_flags.push("BAY_HEATER_FAIL_LOAD_SHED");
+          logFdirEvent("BAY_HEATER_FAIL_LOAD_SHED", "PI5_POWER_MGR", "WARNING", "Avionics bay <+5.0°C; FDIR shed non-essential radar standby heater and enabled battery thermal guard.");
+        } else {
+          active_flags.push("BAY_COLD_SOAK_UNMITIGATED");
+        }
+      }
+    } else {
+      avionics_bay_temp_c += ((15.0 - avionics_bay_temp_c) / 12.0) * dt_s;
+    }
+
     let p_elec_w = 0.0;
     if (cfg.has_electric_loiter && elec_thr > 0.01 && batt_used_wh < usable_batt_wh) {
       p_elec_w = elec_thr * cfg.max_electric_power_w;
@@ -1070,6 +1290,11 @@ function runEndToEnd6DOFMission(config_id, env, launch_mode, landing_mode, cruis
       f_elec_actual = 0.0;
       batt_used_wh += ((38.0 + (env.deicer_enabled ? 12.0 : 0.0)) / 3600.0) * dt_s;
     }
+    const batt_soc = Math.max(0.0, 100.0 * (1.0 - batt_used_wh / Math.max(1.0, usable_batt_wh)));
+    const cold_r_pen = Math.max(0.0, (10.0 - avionics_bay_temp_c) * 0.038);
+    const bus_curr_a = (p_elec_w + 42.0) / 22.2;
+    const bus_voltage_v = Math.max(18.5, 21.0 + 3.8 * (batt_soc / 100.0) - bus_curr_a * (0.022 + cold_r_pen));
+
     if (phase === "4_LOITER_SEARCH" && (t - phase_start_t) >= 18.0) {
       if (cfg.has_electric_loiter && cfg.fuel_mass_kg > 0) loiter_p_samples.push(Math.max(245.0, p_elec_w + 38.0));
       else if (cfg.fuel_mass_kg === 0) loiter_p_samples.push(Math.max(210.0, p_elec_w + 38.0));
@@ -1082,8 +1307,87 @@ function runEndToEnd6DOFMission(config_id, env, launch_mode, landing_mode, cruis
       ice_mm = Math.min(6.0, ice_mm + acc * dt_s);
     }
 
+    // Domain 2 Inertial / Mag / Baro / GNSS / EKF3 & Domain 1 EO/LWIR/Comms
+    const raw_vib_g = 1.85 * (fadec_rpm / 154000.0);
+    const imu_vib_rms_g = 0.04 + (flt.harmonic_notch_enabled ? 0.045 * raw_vib_g : raw_vib_g);
+    let active_imu = "IMU1_ICM42688P";
+    let imu_pitch_bias = 0.0, imu_roll_bias = 0.0;
+    if (flt.fault_imu1_bias_runaway && t >= flt.fault_imu1_start_s) {
+      if (flt.fdir_enabled) {
+        active_imu = "IMU2_BMI088_FAILOVER";
+        active_flags.push("IMU1_ISOLATED_USING_IMU2");
+        logFdirEvent("IMU1_ISOLATED_USING_IMU2", "ARK_STM32H743", "WARNING", "Primary TDK ICM-42688-P gyro bias exceeded 3.0 deg/s; isolated IMU1 in 20 ms and switched to Bosch BMI088 (IMU2).");
+      } else {
+        active_imu = "IMU1_FAULTED_ACTIVE";
+        active_flags.push("IMU1_BIAS_UNCOMPENSATED");
+        imu_pitch_bias = (5.5 * Math.PI / 180.0) * Math.sin(0.9 * t);
+        imu_roll_bias = (8.0 * Math.PI / 180.0) * Math.cos(0.7 * t);
+      }
+    }
+
+    const baro_drift_m = !flt.fdir_enabled ? Math.max(0.0, (5.0 - avionics_bay_temp_c) * 0.22) : 0.0;
+    const baro_alt_m = Math.max(0.0, alt_agl + baro_drift_m + 0.15 * Math.sin(0.8 * t));
+    const mag_heading_err_deg = 0.45 + 0.38 * flt.magnetic_storm_ut;
+    let yaw_est_bias = 0.0;
+    if (flt.magnetic_storm_ut > 15.0) {
+      if (flt.fdir_enabled) {
+        active_flags.push("MAG_REJECTED_VIO_YAW");
+        logFdirEvent("MAG_REJECTED_VIO_YAW", "ARK_STM32H743", "INFO", `PNI RM3100 magnetic storm (${flt.magnetic_storm_ut.toFixed(0)} uT) rejected by EKF3; using dual-IMU + optical/SAR velocity heading.`);
+      } else {
+        active_flags.push("MAG_STORM_YAW_DRIFT");
+        yaw_est_bias = Math.min(25.0, 0.32 * flt.magnetic_storm_ut) * Math.PI / 180.0;
+      }
+    }
+
+    const jam_ex = Math.max(0.0, flt.gnss_jamming_dbm - (-95.0));
+    const gnss_cn0_dbhz = Math.max(12.0, 46.5 - 0.72 * jam_ex);
+    const gnss_jammed = gnss_cn0_dbhz < 25.0;
+    let gnss_spoof_detected = false, spoof_pull_m = 0.0;
+    if (flt.gnss_spoofing_active && t >= flt.gnss_spoof_start_s) {
+      spoof_pull_m = flt.gnss_spoof_offset_m * Math.min(1.0, (t - flt.gnss_spoof_start_s) / 18.0);
+      if (flt.fdir_enabled) {
+        gnss_spoof_detected = true;
+        active_flags.push("GNSS_SPOOF_REJECTED_VIO");
+        logFdirEvent("GNSS_SPOOF_REJECTED_VIO", "ARK_STM32H743", "CRITICAL", "18-state EKF3 detected >3.5σ GNSS spoofing ramp; isolated u-blox GNSS and engaged VIO + Baro-DEM + Pitot dead-reckoning.");
+      } else {
+        active_flags.push("GNSS_SPOOFED_UNMITIGATED");
+      }
+    }
+    if (gnss_jammed) {
+      active_flags.push("GNSS_JAMMED_VIO_NAV");
+      logFdirEvent("GNSS_JAMMED_VIO_NAV", "ARK_STM32H743", "WARNING", `Broadband L1/L2/L5 jamming (${flt.gnss_jamming_dbm.toFixed(0)} dBm, C/N0=${gnss_cn0_dbhz.toFixed(1)} dBHz); switched EKF3 to VIO + Baro-DEM.`);
+    }
+
+    let nav_mode = "GNSS_INERTIAL_EKF3", gnss_hdop = 0.85;
+    if (gnss_jammed || gnss_spoof_detected) {
+      nav_mode = "VIO_BARO_DEM_DEAD_RECKONING";
+      gnss_hdop = 99.9;
+    } else if (flt.gnss_spoofing_active && t >= flt.gnss_spoof_start_s && !flt.fdir_enabled) {
+      nav_mode = "GNSS_SPOOF_CAPTURED";
+      gnss_hdop = 1.10;
+    } else {
+      gnss_hdop = 0.85 + 0.04 * Math.max(0.0, 42.0 - gnss_cn0_dbhz);
+    }
+
+    let comms_mode = "LORA_868MHZ_ACTIVE";
+    if (flt.rf_comms_jamming_dbm > -68.0 || gnss_jammed || gnss_spoof_detected) {
+      comms_mode = "SKY_DIODE_OPTICAL_940NM_SILENT";
+      if (flt.rf_comms_jamming_dbm > -68.0) {
+        active_flags.push("RF_JAM_OPTICAL_DIODE_HANDOFF");
+        logFdirEvent("RF_JAM_OPTICAL_DIODE_HANDOFF", "PI5_AUTONOMY", "INFO", `868 MHz RF jamming (${flt.rf_comms_jamming_dbm.toFixed(0)} dBm); zeroed RF TX (0.00 W) and engaged 940 nm Sky-Diode optical burst.`);
+      }
+    }
+
+    const vis_snr_db = Math.max(3.5, 29.0 - 22.0 * flt.whiteout_snow_density);
+    const lwir_snr_db = Math.max(14.5, 27.0 - 4.8 * flt.whiteout_snow_density);
+    if (flt.whiteout_snow_density >= 0.45) {
+      active_flags.push("WHITEOUT_LWIR_RADAR_FUSION");
+      logFdirEvent("WHITEOUT_LWIR_RADAR_FUSION", "PI5_AUTONOMY", "INFO", "Blizzard whiteout degraded Sony Starvis EO SNR; switched terminal tracker to FLIR LWIR + EchoFlight/PSAR radar.");
+    }
+    const acoustic_snr_db = f_jet_actual < 1.0 ? 26.5 : Math.max(4.0, 14.0 - 9.5 * thrust_frac);
+
     // Autopilot commands
-    const alt_err = cmd_alt - alt_agl;
+    const alt_err = cmd_alt - (alt_agl + baro_drift_m);
     let theta_cmd;
     if (phase === "1_LAUNCH" && alt_agl < 1.0) {
       theta_cmd = (launch_mode === "CATAPULT" ? 13.5 : (vtas >= 1.12 * v_stall ? 9.5 : 2.0)) * Math.PI / 180.0;
@@ -1093,19 +1397,33 @@ function runEndToEnd6DOFMission(config_id, env, launch_mode, landing_mode, cruis
       theta_cmd = -4.0 * Math.PI / 180.0;
     } else {
       const climb_cmd = Math.max(-10.0, Math.min(14.0, 0.22 * alt_err));
-      const gamma_cmd = Math.asin(Math.max(-0.30, Math.min(0.35, climb_cmd / Math.max(15.0, vtas))));
-      const stall_g = Math.min(0.0, 0.035 * (vtas - 1.18 * v_stall));
+      const gamma_cmd = Math.asin(Math.max(-0.30, Math.min(0.35, climb_cmd / Math.max(15.0, measured_vtas_ctrl))));
+      const stall_g = Math.min(0.0, 0.035 * (measured_vtas_ctrl - 1.18 * v_stall));
       theta_cmd = Math.max(-15.0 * Math.PI / 180.0, Math.min(24.0 * Math.PI / 180.0, gamma_cmd + alpha_rad + stall_g));
     }
-    const psi_err = ((cmd_psi - psi + Math.PI) % (2.0 * Math.PI) + 2.0 * Math.PI) % (2.0 * Math.PI) - Math.PI;
+    const psi_err = ((cmd_psi - (psi + yaw_est_bias) + Math.PI) % (2.0 * Math.PI) + 2.0 * Math.PI) % (2.0 * Math.PI) - Math.PI;
     const phi_cmd = alt_agl > 5.0 ? Math.max(-32.0 * Math.PI / 180.0, Math.min(32.0 * Math.PI / 180.0, 1.15 * psi_err)) : 0.0;
+
+    let servo_jam_de = 0.0, servo_jam_dr = 0.0;
+    if (flt.fault_ruddervator_jam && t >= flt.fault_servo_start_s) {
+      if (flt.fdir_enabled) {
+        active_flags.push("SERVO_JAM_REALLOCATED");
+        logFdirEvent("SERVO_JAM_REALLOCATED", "ARK_STM32H743", "WARNING", `Left Λ-tail ruddervator jammed at +${flt.fault_servo_jam_deg.toFixed(1)}°; 400 Hz mixer reallocated pitch/yaw across right ruddervator & flaperons.`);
+        servo_jam_de = (0.08 * flt.fault_servo_jam_deg) * Math.PI / 180.0;
+        servo_jam_dr = (0.08 * flt.fault_servo_jam_deg) * Math.PI / 180.0;
+      } else {
+        active_flags.push("SERVO_JAM_UNCOMPENSATED");
+        servo_jam_de = (0.45 * flt.fault_servo_jam_deg) * Math.PI / 180.0;
+        servo_jam_dr = (0.55 * flt.fault_servo_jam_deg) * Math.PI / 180.0;
+      }
+    }
 
     const q_bar_st = 0.5 * rho * vtas * vtas;
     const q_sc_st = Math.min(1.15, 520.0 / Math.max(180.0, q_bar_st));
     const de_trim_st = -(cfg.cm0 + cfg.cm_alpha * alpha_rad + (f_jet_actual * cfg.jet_z_offset_m) / Math.max(25.0, q_bar_st * cfg.wing_area_m2 * cfg.mean_chord_m)) / cfg.cm_de;
-    const de_rad = Math.max(-22 * Math.PI / 180, Math.min(22 * Math.PI / 180, de_trim_st + q_sc_st * (1.35 * (theta - theta_cmd) + 0.38 * q_rate)));
-    const da_rad = Math.max(-20 * Math.PI / 180, Math.min(20 * Math.PI / 180, q_sc_st * (1.10 * (phi_cmd - phi) - 0.24 * p_rate)));
-    const dr_rad = Math.max(-18 * Math.PI / 180, Math.min(18 * Math.PI / 180, q_sc_st * (0.95 * beta_rad + 0.28 * r_rate)));
+    const de_rad = Math.max(-22 * Math.PI / 180, Math.min(22 * Math.PI / 180, de_trim_st + q_sc_st * (1.35 * ((theta + imu_pitch_bias) - theta_cmd) + 0.38 * q_rate) + servo_jam_de));
+    const da_rad = Math.max(-20 * Math.PI / 180, Math.min(20 * Math.PI / 180, q_sc_st * (1.10 * (phi_cmd - (phi + imu_roll_bias)) - 0.24 * p_rate)));
+    const dr_rad = Math.max(-18 * Math.PI / 180, Math.min(18 * Math.PI / 180, q_sc_st * (0.95 * beta_rad + 0.28 * r_rate) + servo_jam_dr));
 
     function derivs(st_vec) {
       let [sx, sy, salt, su, sv, sw, sphi, stheta, spsi, spr, sqr, srr] = st_vec;
@@ -1128,9 +1446,9 @@ function runEndToEnd6DOFMission(config_id, env, launch_mode, landing_mode, cruis
       const qsc = Math.min(1.15, 520.0 / Math.max(180.0, qb));
       const jtrim = (f_jet_actual * cfg.jet_z_offset_m) / Math.max(25.0, qb * cfg.wing_area_m2 * cfg.mean_chord_m);
       const sde_t = -(cfg.cm0 + cfg.cm_alpha * salpha + jtrim) / cfg.cm_de;
-      const sde = Math.max(-22 * Math.PI / 180, Math.min(22 * Math.PI / 180, sde_t + qsc * (1.35 * (stheta - theta_cmd) + 0.38 * sqr)));
-      const sda = Math.max(-20 * Math.PI / 180, Math.min(20 * Math.PI / 180, qsc * (1.10 * (phi_cmd - sphi) - 0.24 * spr)));
-      const sdr = Math.max(-18 * Math.PI / 180, Math.min(18 * Math.PI / 180, qsc * (0.95 * sbeta + 0.28 * srr)));
+      const sde = Math.max(-22 * Math.PI / 180, Math.min(22 * Math.PI / 180, sde_t + qsc * (1.35 * ((stheta + imu_pitch_bias) - theta_cmd) + 0.38 * sqr) + servo_jam_de));
+      const sda = Math.max(-20 * Math.PI / 180, Math.min(20 * Math.PI / 180, qsc * (1.10 * (phi_cmd - (sphi + imu_roll_bias)) - 0.24 * spr)));
+      const sdr = Math.max(-18 * Math.PI / 180, Math.min(18 * Math.PI / 180, qsc * (0.95 * sbeta + 0.28 * srr) + servo_jam_dr));
 
       const aero = computeAeroCoeffs(cfg, salpha, sbeta, spr, sqr, srr, sde, sda, sdr, vtot, smach, Math.max(0, salt), sweep_deg, ice_mm, trolley_attached, nose_prop_deployed, fuel_kg, payload_attached);
       const lf = qb * cfg.wing_area_m2 * aero.CL;
@@ -1221,8 +1539,12 @@ function runEndToEnd6DOFMission(config_id, env, launch_mode, landing_mode, cruis
 
     total_dist_m += vground * dt_s;
     max_speed_mps = Math.max(max_speed_mps, vtas);
-    const gnss_cep = Math.min(24.5, 1.5 + 0.00058 * total_dist_m + (env.deicer_enabled ? 0.0 : 1.8));
-    const batt_soc = Math.max(0.0, 100.0 * (1.0 - batt_used_wh / Math.max(1.0, usable_batt_wh)));
+    let gnss_cep = 0.95 * gnss_hdop;
+    if (nav_mode === "GNSS_SPOOF_CAPTURED") gnss_cep = 1.5 + spoof_pull_m;
+    else if (nav_mode === "VIO_BARO_DEM_DEAD_RECKONING") gnss_cep = Math.min(24.5, 1.5 + 0.00058 * total_dist_m + (env.deicer_enabled ? 0.0 : 1.8));
+    if (capsule_dropped && !flt.fdir_enabled && spoof_pull_m > 0.0 && cap_alt === 0.0) {
+      capsule_cep_m = Math.sqrt(Math.pow(cap_x - target_cap_x, 2) + Math.pow(cap_y - target_cap_y, 2)) + 0.35 * spoof_pull_m;
+    }
 
     if (step % downsample === 0) {
       telemetry.push({
@@ -1234,7 +1556,12 @@ function runEndToEnd6DOFMission(config_id, env, launch_mode, landing_mode, cruis
         sweep_deg, mass_kg, fuel_kg, batt_soc, ice_mm, sm_pct: aero_now.static_margin_pct,
         L_over_D: aero_now.L_over_D, CL: aero_now.CL, CD: aero_now.CD, v_stall,
         trolley_attached, nose_prop_deployed, payload_attached, capsule_dropped, cap_alt, cap_x, cap_y,
-        chute_deployed, chute_inflation, gnss_cep, wn, we, wd
+        chute_deployed, chute_inflation, gnss_cep, wn, we, wd,
+        pitot_ias_mps, synth_airspeed_mps, baro_alt_m, imu_vib_rms_g, active_imu,
+        mag_heading_err_deg, gnss_cn0_dbhz, gnss_hdop, gnss_spoof_detected, nav_mode,
+        comms_mode, vis_snr_db, lwir_snr_db, acoustic_snr_db,
+        fadec_rpm, fadec_egt_c, fadec_state, uat_fill_pct, bus_voltage_v, avionics_bay_temp_c,
+        active_fdir_flags: active_flags.length ? active_flags.join(", ") : "NOMINAL"
       });
     }
 
@@ -1259,7 +1586,8 @@ function runEndToEnd6DOFMission(config_id, env, launch_mode, landing_mode, cruis
     landing_rollout_m,
     stability,
     phase_summary,
-    telemetry
+    telemetry,
+    fdir_events
   };
 }
 
@@ -1272,6 +1600,91 @@ let playIdx = 0.0;
 let isPlaying = true;
 let playSpeed = 2;
 let camMode = "ISO";
+
+const FAULT_PRESETS = {
+  NOMINAL_CLEAN: {
+    gnss_jamming_dbm: -115, rf_comms_jamming_dbm: -110, magnetic_storm_ut: 0, whiteout_snow_density: 0,
+    gnss_spoofing_active: false, fault_pitot_blocked: false, fault_imu1_bias_runaway: false,
+    fault_turbine_flameout: false, fault_egt_overtemp: false, fault_uat_air_bubble: false,
+    fault_bay_heater_fail: false, fault_ruddervator_jam: false
+  },
+  EW_GNSS_JAM_AND_SPOOF: {
+    gnss_jamming_dbm: -48, rf_comms_jamming_dbm: -52, magnetic_storm_ut: 0, whiteout_snow_density: 0,
+    gnss_spoofing_active: true, fault_pitot_blocked: false, fault_imu1_bias_runaway: false,
+    fault_turbine_flameout: false, fault_egt_overtemp: false, fault_uat_air_bubble: false,
+    fault_bay_heater_fail: false, fault_ruddervator_jam: false
+  },
+  PITOT_ICING_AND_BAY_HEATER_FAIL: {
+    gnss_jamming_dbm: -115, rf_comms_jamming_dbm: -110, magnetic_storm_ut: 0, whiteout_snow_density: 0.65,
+    gnss_spoofing_active: false, fault_pitot_blocked: true, fault_imu1_bias_runaway: false,
+    fault_turbine_flameout: false, fault_egt_overtemp: false, fault_uat_air_bubble: false,
+    fault_bay_heater_fail: true, fault_ruddervator_jam: false
+  },
+  INFLIGHT_TURBINE_FLAMEOUT_AND_RELIGHT: {
+    gnss_jamming_dbm: -115, rf_comms_jamming_dbm: -110, magnetic_storm_ut: 0, whiteout_snow_density: 0,
+    gnss_spoofing_active: false, fault_pitot_blocked: false, fault_imu1_bias_runaway: false,
+    fault_turbine_flameout: true, fault_egt_overtemp: false, fault_uat_air_bubble: true,
+    fault_bay_heater_fail: false, fault_ruddervator_jam: false
+  },
+  IMU1_BIAS_AND_MAG_STORM: {
+    gnss_jamming_dbm: -115, rf_comms_jamming_dbm: -110, magnetic_storm_ut: 45, whiteout_snow_density: 0,
+    gnss_spoofing_active: false, fault_pitot_blocked: false, fault_imu1_bias_runaway: true,
+    fault_turbine_flameout: false, fault_egt_overtemp: false, fault_uat_air_bubble: false,
+    fault_bay_heater_fail: false, fault_ruddervator_jam: false
+  },
+  EGT_OVERTEMP_AND_RUDDERVATOR_JAM: {
+    gnss_jamming_dbm: -115, rf_comms_jamming_dbm: -110, magnetic_storm_ut: 0, whiteout_snow_density: 0,
+    gnss_spoofing_active: false, fault_pitot_blocked: false, fault_imu1_bias_runaway: false,
+    fault_turbine_flameout: false, fault_egt_overtemp: true, fault_uat_air_bubble: false,
+    fault_bay_heater_fail: false, fault_ruddervator_jam: true
+  },
+  FULL_ARCTIC_MULTI_FAULT_STRESS: {
+    gnss_jamming_dbm: -45, rf_comms_jamming_dbm: -50, magnetic_storm_ut: 38, whiteout_snow_density: 0.75,
+    gnss_spoofing_active: true, fault_pitot_blocked: true, fault_imu1_bias_runaway: true,
+    fault_turbine_flameout: true, fault_egt_overtemp: true, fault_uat_air_bubble: true,
+    fault_bay_heater_fail: true, fault_ruddervator_jam: true
+  }
+};
+
+function applyFaultPresetToUI(presetKey) {
+  const p = FAULT_PRESETS[presetKey] || FAULT_PRESETS.NOMINAL_CLEAN;
+  document.getElementById("rngGnssJam").value = p.gnss_jamming_dbm;
+  document.getElementById("valGnssJam").textContent = `${p.gnss_jamming_dbm} dBm`;
+  document.getElementById("rngRfJam").value = p.rf_comms_jamming_dbm;
+  document.getElementById("valRfJam").textContent = `${p.rf_comms_jamming_dbm} dBm`;
+  document.getElementById("rngMagStorm").value = p.magnetic_storm_ut;
+  document.getElementById("valMagStorm").textContent = `${p.magnetic_storm_ut} µT`;
+  document.getElementById("rngWhiteout").value = Math.round(p.whiteout_snow_density * 100);
+  document.getElementById("valWhiteout").textContent = `${Math.round(p.whiteout_snow_density * 100)}%`;
+  document.getElementById("chkSpoof").checked = p.gnss_spoofing_active;
+  document.getElementById("chkPitot").checked = p.fault_pitot_blocked;
+  document.getElementById("chkImu1").checked = p.fault_imu1_bias_runaway;
+  document.getElementById("chkFlameout").checked = p.fault_turbine_flameout;
+  document.getElementById("chkEgt").checked = p.fault_egt_overtemp;
+  document.getElementById("chkBubble").checked = p.fault_uat_air_bubble;
+  document.getElementById("chkBayHeater").checked = p.fault_bay_heater_fail;
+  document.getElementById("chkServoJam").checked = p.fault_ruddervator_jam;
+}
+
+function getFaultsFromUI() {
+  return {
+    preset_id: document.getElementById("faultPresetSelect").value,
+    fdir_enabled: document.getElementById("chkFdir").checked,
+    harmonic_notch_enabled: document.getElementById("chkNotch").checked,
+    gnss_jamming_dbm: parseFloat(document.getElementById("rngGnssJam").value),
+    rf_comms_jamming_dbm: parseFloat(document.getElementById("rngRfJam").value),
+    magnetic_storm_ut: parseFloat(document.getElementById("rngMagStorm").value),
+    whiteout_snow_density: parseFloat(document.getElementById("rngWhiteout").value) / 100.0,
+    gnss_spoofing_active: document.getElementById("chkSpoof").checked,
+    fault_pitot_blocked: document.getElementById("chkPitot").checked,
+    fault_imu1_bias_runaway: document.getElementById("chkImu1").checked,
+    fault_turbine_flameout: document.getElementById("chkFlameout").checked,
+    fault_egt_overtemp: document.getElementById("chkEgt").checked,
+    fault_uat_air_bubble: document.getElementById("chkBubble").checked,
+    fault_bay_heater_fail: document.getElementById("chkBayHeater").checked,
+    fault_ruddervator_jam: document.getElementById("chkServoJam").checked
+  };
+}
 
 function getEnvFromUI() {
   return {
@@ -1298,21 +1711,38 @@ function runSimulationFromUI() {
   const payloadKg = parseFloat(document.getElementById("rngPayload").value);
   const fuelKg = parseFloat(document.getElementById("rngFuel").value);
   const env = getEnvFromUI();
+  const faults = getFaultsFromUI();
 
   currentSim = runEndToEnd6DOFMission(cfgId, env, launch, landing, cruiseAlt, {
     payload_mass_kg: payloadKg,
     fuel_mass_kg: fuelKg
-  });
+  }, faults);
   playIdx = 0.0;
   document.getElementById("rngScrub").max = Math.max(1, currentSim.telemetry.length - 1);
   document.getElementById("rngScrub").value = 0;
+
+  // Render FDIR Event Log
+  const logBox = document.getElementById("fdirLogBox");
+  document.getElementById("badgeFdirCount").textContent = `${currentSim.fdir_events.length} FDIR EVENTS`;
+  document.getElementById("badgeFdirCount").style.color = currentSim.fdir_events.length > 0 ? "var(--accent-amber)" : "var(--accent-green)";
+  if (currentSim.fdir_events.length === 0) {
+    logBox.innerHTML = `<div style="color:var(--accent-green)">[FDIR LOG] All 3 avionics domains nominal. Zero hardware faults or EW interference isolated.</div>`;
+  } else {
+    logBox.innerHTML = currentSim.fdir_events.map(ev => {
+      const col = ev.severity === "CRITICAL" ? "#ff4757" : (ev.severity === "WARNING" ? "#ffbe2e" : "#00d4ff");
+      return `<div style="margin-bottom:4px;border-bottom:1px solid #1a3254;padding-bottom:3px;">
+        <span style="color:${col};font-weight:700">[t=${ev.t_s.toFixed(1)}s · ${ev.code}]</span>
+        <span style="color:#8ea9cc"> (${ev.domain}):</span> ${ev.action}
+      </div>`;
+    }).join("");
+  }
 
   // Compute comparison benchmark table across all 6 configurations
   const tbody = document.getElementById("compTableBody");
   tbody.innerHTML = "";
   Object.keys(AIRCRAFT_CATALOG).forEach(cid => {
     const defLaunch = (cid === "FIN_LAB_02_FAST" || cid === "FAST_CLIMBER_285") ? "CATAPULT" : "DROP_TROLLEY";
-    const r = (cid === cfgId) ? currentSim : runEndToEnd6DOFMission(cid, env, defLaunch, "PARACHUTE_AIRBAG", cruiseAlt);
+    const r = (cid === cfgId) ? currentSim : runEndToEnd6DOFMission(cid, env, defLaunch, "PARACHUTE_AIRBAG", cruiseAlt, {}, faults);
     const mtow = r.cfg.empty_mass_kg + r.cfg.fuel_mass_kg + r.cfg.payload_mass_kg;
     const tr = document.createElement("tr");
     if (cid === cfgId) tr.className = "selected-row";
@@ -1889,6 +2319,24 @@ function updateUIForSample(idx) {
   document.getElementById("modSM").textContent = `${s.sm_pct.toFixed(1)}% MAC`;
   document.getElementById("modCtrl").textContent = `δe:${s.de_deg.toFixed(1)}° δa:${s.da_deg.toFixed(1)}° δr:${s.dr_deg.toFixed(1)}°`;
 
+  // 3-Domain Avionics, Sensors, FADEC & FDIR Live Readouts
+  document.getElementById("avPitot").textContent = `${s.pitot_ias_mps.toFixed(1)} / ${s.synth_airspeed_mps.toFixed(1)} m/s`;
+  document.getElementById("avBaro").textContent = `BMP390 Baro: ${s.baro_alt_m.toFixed(1)} m`;
+  document.getElementById("avImu").textContent = s.active_imu;
+  document.getElementById("avImu").style.color = s.active_imu.includes("FAILOVER") ? "var(--accent-amber)" : (s.active_imu.includes("FAULTED") ? "var(--accent-red)" : "#fff");
+  document.getElementById("avVibMag").textContent = `Vib: ${s.imu_vib_rms_g.toFixed(2)}g · Mag Err: ${s.mag_heading_err_deg.toFixed(1)}°`;
+  document.getElementById("avNavMode").textContent = s.nav_mode;
+  document.getElementById("avNavMode").style.color = s.nav_mode.includes("VIO") ? "var(--accent-cyan)" : (s.nav_mode.includes("SPOOF") ? "var(--accent-red)" : "var(--accent-green)");
+  document.getElementById("avGnss").textContent = `C/N0: ${s.gnss_cn0_dbhz.toFixed(1)} dBHz · HDOP: ${s.gnss_hdop.toFixed(2)}`;
+  document.getElementById("avComms").textContent = s.comms_mode.replace("_ACTIVE", "").replace("_SILENT", "");
+  document.getElementById("avOptAcoustic").textContent = `EO:${s.vis_snr_db.toFixed(0)}dB LWIR:${s.lwir_snr_db.toFixed(0)}dB Ac:${s.acoustic_snr_db.toFixed(0)}dB`;
+  document.getElementById("avFadec").textContent = `${(s.fadec_rpm / 1000).toFixed(1)}k RPM · ${s.fadec_egt_c.toFixed(0)}°C`;
+  document.getElementById("avFadec").style.color = s.fadec_egt_c > 750 ? "var(--accent-red)" : (s.fadec_egt_c > 720 ? "var(--accent-amber)" : "#fff");
+  document.getElementById("avUatState").textContent = `UAT: ${s.uat_fill_pct.toFixed(0)}% · ${s.fadec_state}`;
+  document.getElementById("avPowerBay").textContent = `${s.bus_voltage_v.toFixed(1)} V · ${s.avionics_bay_temp_c >= 0 ? "+" : ""}${s.avionics_bay_temp_c.toFixed(1)}°C`;
+  document.getElementById("avFdirStatus").textContent = `FDIR: ${s.active_fdir_flags}`;
+  document.getElementById("avFdirStatus").style.color = s.active_fdir_flags === "NOMINAL" ? "var(--accent-green)" : "var(--accent-amber)";
+
   draw3DViewport(s);
   drawStripCharts(i);
   drawPolarChart(s);
@@ -1899,12 +2347,19 @@ document.getElementById("cfgSelect").onchange = e => {
   syncConfigSliders(e.target.value);
   runSimulationFromUI();
 };
+document.getElementById("faultPresetSelect").onchange = e => {
+  applyFaultPresetToUI(e.target.value);
+  runSimulationFromUI();
+};
 ["launchSelect", "landingSelect", "turbSelect", "deiceSelect"].forEach(id => {
   document.getElementById(id).onchange = () => {
     document.getElementById("lblLaunch").textContent = document.getElementById("launchSelect").value;
     document.getElementById("lblLanding").textContent = document.getElementById("landingSelect").value;
     runSimulationFromUI();
   };
+});
+["chkFdir", "chkNotch", "chkSpoof", "chkPitot", "chkImu1", "chkFlameout", "chkEgt", "chkBubble", "chkBayHeater", "chkServoJam"].forEach(id => {
+  document.getElementById(id).onchange = () => runSimulationFromUI();
 });
 [
   ["rngPayload", "valPayload", v => `${parseFloat(v).toFixed(2)} kg`],
@@ -1914,7 +2369,11 @@ document.getElementById("cfgSelect").onchange = e => {
   ["rngWind", "valWind", v => `${parseFloat(v).toFixed(1)} m/s`],
   ["rngWindDir", "valWindDir", v => `${v}°`],
   ["rngGust", "valGust", v => `${parseFloat(v).toFixed(1)} m/s`],
-  ["rngIcing", "valIcing", v => `${parseFloat(v).toFixed(2)} g/m³`]
+  ["rngIcing", "valIcing", v => `${parseFloat(v).toFixed(2)} g/m³`],
+  ["rngGnssJam", "valGnssJam", v => `${v} dBm`],
+  ["rngRfJam", "valRfJam", v => `${v} dBm`],
+  ["rngMagStorm", "valMagStorm", v => `${v} µT`],
+  ["rngWhiteout", "valWhiteout", v => `${v}%`]
 ].forEach(([rngId, lblId, fmt]) => {
   const el = document.getElementById(rngId);
   el.oninput = () => { document.getElementById(lblId).textContent = fmt(el.value); };

@@ -458,6 +458,7 @@ AIRCRAFT_CATALOG: Dict[str, AircraftConfiguration] = {
 
 # ==============================================================================
 # 2. ENVIRONMENTAL CONDITIONS (ISA + ARCTIC COLD + 3D WIND + DRYDEN + ICING)
+#    & EXTERNAL INTERFERENCE / HARDWARE FAILURE-MODE CONFIGURATION
 # ==============================================================================
 @dataclass(frozen=True)
 class EnvironmentConditions:
@@ -473,6 +474,112 @@ class EnvironmentConditions:
     icing_lwc_g_m3: float = 0.20            # Supercooled cloud Liquid Water Content (g/m^3, 0 = dry)
     deicer_enabled: bool = True             # True = 10W pitot + wing leading-edge de-icing active
     runway_friction_mu: float = 0.06        # Rolling friction coefficient (0.04 asphalt, 0.08 packed snow)
+
+
+@dataclass(frozen=True)
+class InterferenceAndFaultConfig:
+    """
+    Configures external RF/geomagnetic/optical interference and hardware failure modes
+    for the 3-domain Non-Chinese avionics & sensor suite:
+      - Domain 1 (20 Hz Companion): UK Raspberry Pi 5 + Sony Starvis IMX462 + FLIR Boson LWIR
+        + Echodyne EchoFlight / IMSAR PSAR radar + [P11-AIR] Infineon IM69D130 acoustic array
+      - Domain 2 (400 Hz Flight Control): US ARK FPV STM32H743 + TDK ICM-42688-P (IMU1)
+        + Bosch BMI088 (IMU2) + Bosch BMP390 (Baro) + PNI RM3100 (Mag) + TE MS4525DO (Pitot)
+        + Swiss u-blox ZED-F9P / M10 (Multi-Band GNSS)
+      - Domain 3 (200 Hz Engine FADEC): JetCat V6 / Xicoy / OpenTurbine-EU STM32G474
+        + Optical RPM + MAX31855 K-type EGT + Bartels pump + Burkert 12V shutoff solenoid
+    """
+    preset_id: str = "NOMINAL_CLEAN"
+    # External Interference & Environmental Sensor Degradation
+    gnss_jamming_dbm: float = -115.0        # Broadband RF noise in L1/L2/L5 band (-115 clean, >-65 denied)
+    gnss_spoofing_active: bool = False      # Coherent GNSS meaconing / false position ramp
+    gnss_spoof_start_s: float = 35.0        # Time when spoofing attack begins (s)
+    gnss_spoof_offset_m: float = 340.0      # Peak spoofed horizontal position offset (m)
+    rf_comms_jamming_dbm: float = -110.0    # 868 MHz LoRa jamming level (>-68 dBm forces 940 nm optical diode)
+    magnetic_storm_ut: float = 0.0          # High-latitude auroral disturbance / EMI on PNI RM3100 (uT)
+    whiteout_snow_density: float = 0.0      # 0.0 (clear) to 1.0 (blizzard whiteout degrading visible camera)
+    # Hardware Failure Modes & FDIR Switches
+    fdir_enabled: bool = True               # Master Fault Detection, Isolation & Recovery (FDIR) switch
+    harmonic_notch_enabled: bool = True     # Dynamic harmonic gyro notch filter (1,083-2,750 Hz shaft track)
+    fault_pitot_blocked: bool = False       # TE MS4525DO pitot tube iced/blocked at fault_pitot_start_s
+    fault_pitot_start_s: float = 42.0
+    fault_imu1_bias_runaway: bool = False   # Primary TDK ICM-42688-P gyro bias/saturation fault
+    fault_imu1_start_s: float = 38.0
+    fault_turbine_flameout: bool = False    # In-flight micro-turbojet flameout (EGT < 280 C)
+    fault_flameout_start_s: float = 52.0
+    fault_egt_overtemp: bool = False        # Hot-section / intake distortion EGT spike toward 760 C
+    fault_egt_start_s: float = 30.0
+    fault_uat_air_bubble: bool = False      # Transient fuel-line cavitation bubble entering 150 mL UAT
+    fault_bubble_start_s: float = 46.0
+    fault_bay_heater_fail: bool = False     # +15 C avionics/battery bay heater failure in Arctic cold
+    fault_ruddervator_jam: bool = False     # Left 110-deg Lambda-tail ruddervator servo jam
+    fault_servo_start_s: float = 60.0
+    fault_servo_jam_deg: float = 4.5        # Jammed surface offset angle (deg)
+
+
+INTERFERENCE_FAULT_PRESETS: Dict[str, InterferenceAndFaultConfig] = {
+    "NOMINAL_CLEAN": InterferenceAndFaultConfig(preset_id="NOMINAL_CLEAN"),
+    "EW_GNSS_JAM_AND_SPOOF": InterferenceAndFaultConfig(
+        preset_id="EW_GNSS_JAM_AND_SPOOF",
+        gnss_jamming_dbm=-48.0,
+        gnss_spoofing_active=True,
+        gnss_spoof_start_s=30.0,
+        gnss_spoof_offset_m=380.0,
+        rf_comms_jamming_dbm=-52.0,
+    ),
+    "PITOT_ICING_AND_BAY_HEATER_FAIL": InterferenceAndFaultConfig(
+        preset_id="PITOT_ICING_AND_BAY_HEATER_FAIL",
+        fault_pitot_blocked=True,
+        fault_pitot_start_s=35.0,
+        fault_bay_heater_fail=True,
+        whiteout_snow_density=0.65,
+    ),
+    "INFLIGHT_TURBINE_FLAMEOUT_AND_RELIGHT": InterferenceAndFaultConfig(
+        preset_id="INFLIGHT_TURBINE_FLAMEOUT_AND_RELIGHT",
+        fault_turbine_flameout=True,
+        fault_flameout_start_s=48.0,
+        fault_uat_air_bubble=True,
+        fault_bubble_start_s=47.0,
+    ),
+    "IMU1_BIAS_AND_MAG_STORM": InterferenceAndFaultConfig(
+        preset_id="IMU1_BIAS_AND_MAG_STORM",
+        fault_imu1_bias_runaway=True,
+        fault_imu1_start_s=32.0,
+        magnetic_storm_ut=45.0,
+    ),
+    "EGT_OVERTEMP_AND_RUDDERVATOR_JAM": InterferenceAndFaultConfig(
+        preset_id="EGT_OVERTEMP_AND_RUDDERVATOR_JAM",
+        fault_egt_overtemp=True,
+        fault_egt_start_s=28.0,
+        fault_ruddervator_jam=True,
+        fault_servo_start_s=55.0,
+        fault_servo_jam_deg=4.5,
+    ),
+    "FULL_ARCTIC_MULTI_FAULT_STRESS": InterferenceAndFaultConfig(
+        preset_id="FULL_ARCTIC_MULTI_FAULT_STRESS",
+        gnss_jamming_dbm=-45.0,
+        gnss_spoofing_active=True,
+        gnss_spoof_start_s=25.0,
+        gnss_spoof_offset_m=420.0,
+        rf_comms_jamming_dbm=-50.0,
+        magnetic_storm_ut=38.0,
+        whiteout_snow_density=0.75,
+        fault_pitot_blocked=True,
+        fault_pitot_start_s=36.0,
+        fault_imu1_bias_runaway=True,
+        fault_imu1_start_s=44.0,
+        fault_turbine_flameout=True,
+        fault_flameout_start_s=54.0,
+        fault_egt_overtemp=True,
+        fault_egt_start_s=26.0,
+        fault_uat_air_bubble=True,
+        fault_bubble_start_s=53.0,
+        fault_bay_heater_fail=True,
+        fault_ruddervator_jam=True,
+        fault_servo_start_s=64.0,
+        fault_servo_jam_deg=4.2,
+    ),
+}
 
 
 def compute_atmosphere(alt_agl_m: float, env: EnvironmentConditions) -> Dict[str, float]:
@@ -812,6 +919,28 @@ class TelemetrySample:
     static_margin_pct: float
     gnss_denied_cep_m: float
     capsule_alt_m: float
+    # 3-Domain Avionics, Sensor, FADEC & FDIR Telemetry
+    pitot_ias_mps: float = 0.0
+    synth_airspeed_mps: float = 0.0
+    baro_alt_m: float = 0.0
+    imu_vib_rms_g: float = 0.05
+    active_imu: str = "IMU1_ICM42688P"
+    mag_heading_err_deg: float = 0.5
+    gnss_cn0_dbhz: float = 46.0
+    gnss_hdop: float = 0.85
+    gnss_spoof_detected: bool = False
+    nav_mode: str = "GNSS_INERTIAL_EKF3"
+    comms_mode: str = "LORA_868MHZ_ACTIVE"
+    vis_snr_db: float = 28.0
+    lwir_snr_db: float = 26.5
+    acoustic_snr_db: float = 8.0
+    fadec_rpm: float = 0.0
+    fadec_egt_c: float = 25.0
+    fadec_state: str = "OFF"
+    uat_fill_pct: float = 100.0
+    bus_voltage_v: float = 24.4
+    avionics_bay_temp_c: float = 15.0
+    active_fdir_flags: str = "NOMINAL"
 
 
 @dataclass
@@ -849,6 +978,10 @@ class MissionSimulationResult:
     stability_modes_cruise: Dict[str, float]
     phase_summary: List[Dict[str, object]]
     telemetry: List[TelemetrySample]
+    # Avionics, Sensor, External Interference & FDIR Summary
+    fault_config: Dict[str, object] = field(default_factory=dict)
+    fdir_events: List[Dict[str, object]] = field(default_factory=list)
+    avionics_health_summary: Dict[str, object] = field(default_factory=dict)
 
 
 def run_end_to_end_6dof_mission(
@@ -862,15 +995,19 @@ def run_end_to_end_6dof_mission(
     dt_s: float = 0.02,                      # 50 Hz RK4 integration step
     downsample_every: int = 25,              # Record telemetry at 2 Hz for compact plots
     custom_overrides: Optional[Dict[str, float]] = None,
+    faults: Optional[InterferenceAndFaultConfig] = None,
 ) -> MissionSimulationResult:
     """
     Executes a complete end-to-end 8-phase 6-DOF flight dynamics simulation from
     launch (t=0) through climb, high-speed dash, electric loiter transition,
     survival capsule drop (plus 3-DOF capsule ballistics), cold-soak turbine relight,
-    RTB cruise, and parachute/belly-skid landing.
+    RTB cruise, and parachute/belly-skid landing, including full 3-domain avionics,
+    sensors, external EW/weather interference, failure modes, and FDIR recovery.
     """
     if env is None:
         env = EnvironmentConditions()
+    if faults is None:
+        faults = InterferenceAndFaultConfig()
 
     base_cfg = AIRCRAFT_CATALOG.get(config_id, AIRCRAFT_CATALOG["VARIANT_H_EVO"])
     if custom_overrides:
@@ -908,12 +1045,33 @@ def run_end_to_end_6dof_mission(
     usable_batt_wh = cfg.battery_capacity_wh * temp_derate
     batt_used_wh = 0.0
 
-    # Propulsion dynamic state
+    # Propulsion & 3-Domain Avionics / FADEC / FDIR state
     f_jet_actual = cfg.idle_jet_thrust_n
     f_elec_actual = 0.0
     chute_deployed = False
     chute_inflation_frac = 0.0
     relight_timer_s = 0.0
+    flameout_relight_timer_s = 0.0
+    avionics_bay_temp_c = 15.0
+    fadec_egt_c = max(20.0, env.surface_temp_c + 45.0)
+    uat_fill_pct = 100.0
+    fdir_events: List[Dict[str, object]] = []
+    recorded_fdir_codes = set()
+    max_egt_c = fadec_egt_c
+    min_bus_voltage_v = 24.8
+    max_imu_vib_g = 0.05
+
+    def log_fdir_event(code: str, domain: str, severity: str, action: str) -> None:
+        if code not in recorded_fdir_codes:
+            recorded_fdir_codes.add(code)
+            fdir_events.append({
+                "t_s": round(t, 2),
+                "phase": phase,
+                "code": code,
+                "domain": domain,
+                "severity": severity,
+                "action": action,
+            })
 
     # Dropped survival capsule 3-DOF trajectory state
     capsule_dropped = False
@@ -1221,10 +1379,106 @@ def run_end_to_end_6dof_mission(
                 capsule_cep_m = math.sqrt((cap_x - target_cap_x) ** 2 + (cap_y - target_cap_y) ** 2)
 
         # ----------------------------------------------------------------------
+        # 3-DOMAIN AVIONICS, SENSORS, EXTERNAL INTERFERENCE & FDIR ENGINE
+        # ----------------------------------------------------------------------
+        active_flags: List[str] = []
+
+        # 1. Domain 2 Air Data: TE MS4525DO Heated Pitot vs. Synthetic Airspeed Estimator
+        veas_true = vtas * math.sqrt(rho / 1.225)
+        synth_airspeed_mps = max(0.0, vtas + 0.35 * math.sin(1.7 * t))
+        pitot_iced_or_blocked = (
+            (faults.fault_pitot_blocked and t >= faults.fault_pitot_start_s)
+            or (not env.deicer_enabled and ice_mm >= 1.25)
+        )
+        if pitot_iced_or_blocked:
+            # Blocked pitot tube freezes/decays toward a false low reading (19.0 m/s)
+            pitot_ias_mps = 19.0 + 1.2 * math.sin(0.5 * t)
+            if abs(pitot_ias_mps - veas_true) > 5.5:
+                if faults.fdir_enabled:
+                    active_flags.append("PITOT_ISOLATED_SYNTH_AIRSPEED")
+                    log_fdir_event(
+                        "PITOT_ISOLATED_SYNTH_AIRSPEED",
+                        "DOMAIN_2_ARK_STM32H743",
+                        "WARNING",
+                        "MS4525DO pitot discrepancy >6.5 m/s detected; isolated pitot and switched TECS to Synthetic Airspeed Estimator.",
+                    )
+                    measured_vtas_for_ctrl = synth_airspeed_mps
+                else:
+                    active_flags.append("PITOT_BLOCKED_UNCOMPENSATED")
+                    measured_vtas_for_ctrl = pitot_ias_mps / math.sqrt(rho / 1.225)
+            else:
+                measured_vtas_for_ctrl = vtas
+        else:
+            pitot_ias_mps = max(0.0, veas_true + 0.18 * math.cos(3.1 * t))
+            measured_vtas_for_ctrl = vtas
+
+        # If pitot is blocked and FDIR is disabled, false low airspeed tricks auto-throttle
+        if pitot_iced_or_blocked and not faults.fdir_enabled and phase in ("2_CLIMB", "3_HIGH_SPEED_DASH", "7_RTB_CRUISE"):
+            jet_throttle = min(1.0, jet_throttle + 0.22)
+
+        # 2. Domain 3 Engine FADEC (200 Hz STM32G474): EGT Overtemp, UAT Bubble & Flameout/Relight
+        fadec_state = "RUNNING" if (cfg.max_jet_thrust_sl_n > 0.0 and jet_throttle > 0.01 and fuel_kg > 0.0) else "STANDBY_OFF"
+
+        # UAT 150 mL bubble trap simulation
+        if faults.fault_uat_air_bubble and faults.fault_bubble_start_s <= t <= (faults.fault_bubble_start_s + 8.0):
+            uat_fill_pct = 91.5
+            active_flags.append("UAT_BUBBLE_TRAPPED")
+            log_fdir_event(
+                "UAT_BUBBLE_TRAPPED",
+                "DOMAIN_3_FADEC_STM32G474",
+                "INFO",
+                "Transient cavitation air slug captured in 150 mL spherical UAT hopper; FADEC fuel pump slew clamped.",
+            )
+            if not faults.fdir_enabled:
+                jet_throttle *= 0.72
+        else:
+            uat_fill_pct = min(100.0, uat_fill_pct + 1.5 * dt_s)
+
+        # EGT Over-Temperature & Thermal Derating
+        egt_spike_c = 0.0
+        if faults.fault_egt_overtemp and t >= faults.fault_egt_start_s and jet_throttle > 0.15:
+            if faults.fdir_enabled:
+                jet_throttle = min(jet_throttle, 0.82)
+                egt_spike_c = 62.0
+                active_flags.append("EGT_THERMAL_DERATE_ACTIVE")
+                log_fdir_event(
+                    "EGT_THERMAL_DERATE_ACTIVE",
+                    "DOMAIN_3_FADEC_STM32G474",
+                    "WARNING",
+                    "MAX31855 K-type EGT >720 C threshold; proportional FADEC throttle derate active to protect turbine (<760 C).",
+                )
+            else:
+                egt_spike_c = 125.0
+                active_flags.append("EGT_OVERTEMP_UNCLAMPED")
+
+        # In-Flight Turbine Flameout & Emergency Electric Sustainer + Auto-Relight
+        if faults.fault_turbine_flameout and t >= faults.fault_flameout_start_s and cfg.max_jet_thrust_sl_n > 0.0:
+            flameout_elapsed = t - faults.fault_flameout_start_s
+            relight_window = 3.2 if faults.fdir_enabled else 11.5
+            if flameout_elapsed <= relight_window:
+                jet_throttle = 0.0
+                f_jet_actual = 0.0
+                fadec_state = "FLAMEOUT_KEROSENE_RELIGHT" if faults.fdir_enabled else "FLAMEOUT_LOSS_OF_THRUST"
+                if faults.fdir_enabled:
+                    active_flags.append("FLAMEOUT_ELEC_SUSTAINER_RELIGHT")
+                    log_fdir_event(
+                        "FLAMEOUT_ELEC_SUSTAINER_RELIGHT",
+                        "DOMAIN_3_FADEC_STM32G474",
+                        "CRITICAL",
+                        "EGT drop <280 C detected; Burkert 12V valve closed in <50 ms, 355 mm nose electric prop deployed at 850 W sustainer power, and -30 C kerostart relight initiated.",
+                    )
+                    if cfg.has_electric_loiter:
+                        nose_prop_deployed = True
+                        elec_throttle = max(elec_throttle, 0.90)
+                else:
+                    active_flags.append("FLAMEOUT_UNRECOVERED")
+            elif flameout_elapsed <= relight_window + 2.0 and faults.fdir_enabled:
+                active_flags.append("FADEC_AUTO_RELIGHT_COMPLETE")
+
+        # ----------------------------------------------------------------------
         # PROPULSION DYNAMICS (SPOOL LAG, COLD AIR DENSITY BOOST & RAM DRAG)
         # ----------------------------------------------------------------------
-        if cfg.max_jet_thrust_sl_n > 0.0 and fuel_kg > 0.0:
-            # Cold air density boosts mass flow slightly, while inlet momentum ram drag subtracts m_dot_air * V
+        if cfg.max_jet_thrust_sl_n > 0.0 and fuel_kg > 0.0 and fadec_state != "FLAMEOUT_LOSS_OF_THRUST":
             density_ratio = min(1.16, (rho / 1.225) ** 0.65)
             ram_loss_n = 0.065 * vtas * jet_throttle
             f_jet_target = (
@@ -1232,10 +1486,11 @@ def run_end_to_end_6dof_mission(
                 + jet_throttle * (cfg.max_jet_thrust_sl_n * density_ratio - cfg.idle_jet_thrust_n)
                 - ram_loss_n
             )
+            if jet_throttle <= 0.01:
+                f_jet_target = 0.0
             f_jet_target = max(0.0, f_jet_target)
             tau_spool = 1.15 if f_jet_target >= f_jet_actual else 0.75
             f_jet_actual += ((f_jet_target - f_jet_actual) / tau_spool) * dt_s
-            # Fuel burn (g/s -> kg)
             if jet_throttle > 0.01:
                 m_dot_g_s = cfg.m_dot_idle_g_s + cfg.c_slope_g_per_n_s * f_jet_actual
                 fuel_kg = max(0.0, fuel_kg - (m_dot_g_s / 1000.0) * dt_s)
@@ -1244,7 +1499,31 @@ def run_end_to_end_6dof_mission(
         else:
             f_jet_actual = 0.0
 
-        # Electric tractor / fast-climber propulsion
+        # Compute FADEC RPM (0 - 154,000 RPM) and EGT (°C)
+        thrust_frac = f_jet_actual / max(1.0, cfg.max_jet_thrust_sl_n) if cfg.max_jet_thrust_sl_n > 0.0 else 0.0
+        fadec_rpm = (38000.0 + 116000.0 * (thrust_frac ** 0.72)) if f_jet_actual > 0.5 else 0.0
+        egt_target_c = (460.0 + 235.0 * thrust_frac + egt_spike_c) if f_jet_actual > 0.5 else max(env.surface_temp_c, 15.0)
+        fadec_egt_c += ((egt_target_c - fadec_egt_c) / 1.40) * dt_s
+        max_egt_c = max(max_egt_c, fadec_egt_c)
+
+        # Avionics Bay Thermal Model (+15 C thermostatic heater vs. fault_bay_heater_fail)
+        if faults.fault_bay_heater_fail:
+            avionics_bay_temp_c += ((atm["temp_c"] + 6.0 - avionics_bay_temp_c) / 38.0) * dt_s
+            if avionics_bay_temp_c < 5.0:
+                if faults.fdir_enabled:
+                    active_flags.append("BAY_HEATER_FAIL_LOAD_SHED")
+                    log_fdir_event(
+                        "BAY_HEATER_FAIL_LOAD_SHED",
+                        "DOMAIN_1_PI5_POWER_MGR",
+                        "WARNING",
+                        "Avionics bay dropped below +5.0 C; FDIR shed non-essential radar standby heater and enabled battery thermal guard.",
+                    )
+                else:
+                    active_flags.append("BAY_COLD_SOAK_UNMITIGATED")
+        else:
+            avionics_bay_temp_c += ((15.0 - avionics_bay_temp_c) / 12.0) * dt_s
+
+        # Electric tractor / fast-climber propulsion & 6S2P Molicel P45B Bus Voltage
         p_elec_w = 0.0
         if cfg.has_electric_loiter and elec_throttle > 0.01 and batt_used_wh < usable_batt_wh:
             p_elec_w = elec_throttle * cfg.max_electric_power_w
@@ -1253,9 +1532,15 @@ def run_end_to_end_6dof_mission(
             batt_used_wh += ((p_elec_w + 35.0) / 3600.0) * dt_s
         else:
             f_elec_actual = 0.0
-            # Avionics + heated pitot baseline draw (38 W + 12 W if de-icer active)
             avionics_w = 38.0 + (12.0 if env.deicer_enabled else 0.0)
             batt_used_wh += (avionics_w / 3600.0) * dt_s
+
+        batt_soc_pct = max(0.0, 100.0 * (1.0 - batt_used_wh / max(1.0, usable_batt_wh)))
+        cold_r_penalty = max(0.0, (10.0 - avionics_bay_temp_c) * 0.038)
+        total_bus_current_a = (p_elec_w + 42.0) / 22.2
+        bus_voltage_v = max(18.5, 21.0 + 3.8 * (batt_soc_pct / 100.0) - total_bus_current_a * (0.022 + cold_r_penalty))
+        min_bus_voltage_v = min(min_bus_voltage_v, bus_voltage_v)
+
         # Record steady-state loiter shaft/electrical power requirement in Phase 4
         if phase == "4_LOITER_SEARCH" and (t - phase_start_t) >= 18.0:
             if cfg.has_electric_loiter and cfg.fuel_mass_kg > 0.0:
@@ -1272,10 +1557,125 @@ def run_end_to_end_6dof_mission(
                 accretion_mm_s *= 0.12  # Electro-thermal / piezo de-icing sheds 88% of rime ice
             ice_mm = min(6.0, ice_mm + accretion_mm_s * dt_s)
 
+        # 3. Domain 2 Inertial / Mag / Baro / GNSS / EKF3 Navigation & Domain 1 Comms/Optical
+        # Dynamic harmonic gyro notch filter (tracks fadec_rpm / 60 Hz between 1,083 and 2,750 Hz)
+        raw_turbine_vib_g = 1.85 * (fadec_rpm / 154000.0)
+        imu_vib_rms_g = 0.04 + (0.045 * raw_turbine_vib_g if faults.harmonic_notch_enabled else raw_turbine_vib_g)
+        max_imu_vib_g = max(max_imu_vib_g, imu_vib_rms_g)
+
+        active_imu = "IMU1_ICM42688P"
+        imu_pitch_bias_rad = 0.0
+        imu_roll_bias_rad = 0.0
+        if faults.fault_imu1_bias_runaway and t >= faults.fault_imu1_start_s:
+            if faults.fdir_enabled:
+                active_imu = "IMU2_BMI088_FAILOVER"
+                active_flags.append("IMU1_ISOLATED_USING_IMU2")
+                log_fdir_event(
+                    "IMU1_ISOLATED_USING_IMU2",
+                    "DOMAIN_2_ARK_STM32H743",
+                    "WARNING",
+                    "Primary TDK ICM-42688-P gyro bias innovation exceeded 3.0 deg/s; isolated IMU1 in 20 ms and switched to Bosch BMI088 (IMU2).",
+                )
+            else:
+                active_imu = "IMU1_FAULTED_ACTIVE"
+                active_flags.append("IMU1_BIAS_UNCOMPENSATED")
+                imu_pitch_bias_rad = math.radians(5.5 * math.sin(0.9 * t))
+                imu_roll_bias_rad = math.radians(8.0 * math.cos(0.7 * t))
+
+        # Bosch BMP390 Barometric Altimeter
+        baro_cold_drift_m = max(0.0, (5.0 - avionics_bay_temp_c) * 0.22) if not faults.fdir_enabled else 0.0
+        baro_alt_m = max(0.0, alt_agl + baro_cold_drift_m + 0.15 * math.sin(0.8 * t))
+
+        # PNI RM3100 Magnetometer under geomagnetic storm / auroral EMI
+        mag_heading_err_deg = 0.45 + 0.38 * faults.magnetic_storm_ut
+        yaw_est_bias_rad = 0.0
+        if faults.magnetic_storm_ut > 15.0:
+            if faults.fdir_enabled:
+                active_flags.append("MAG_REJECTED_VIO_YAW")
+                log_fdir_event(
+                    "MAG_REJECTED_VIO_YAW",
+                    "DOMAIN_2_ARK_STM32H743",
+                    "INFO",
+                    f"PNI RM3100 magnetic disturbance ({faults.magnetic_storm_ut:.0f} uT) rejected by EKF3; using dual-IMU + optical/SAR velocity heading.",
+                )
+            else:
+                active_flags.append("MAG_STORM_YAW_DRIFT")
+                yaw_est_bias_rad = math.radians(min(25.0, 0.32 * faults.magnetic_storm_ut))
+
+        # Swiss u-blox ZED-F9P GNSS & 18-State EKF3 Spoof / Jamming Gate
+        jam_excess_db = max(0.0, faults.gnss_jamming_dbm - (-95.0))
+        gnss_cn0_dbhz = max(12.0, 46.5 - 0.72 * jam_excess_db)
+        gnss_jammed = gnss_cn0_dbhz < 25.0
+        gnss_spoof_detected = False
+        spoof_pull_m = 0.0
+        if faults.gnss_spoofing_active and t >= faults.gnss_spoof_start_s:
+            ramp_frac = min(1.0, (t - faults.gnss_spoof_start_s) / 18.0)
+            spoof_pull_m = faults.gnss_spoof_offset_m * ramp_frac
+            if faults.fdir_enabled:
+                gnss_spoof_detected = True
+                active_flags.append("GNSS_SPOOF_REJECTED_VIO")
+                log_fdir_event(
+                    "GNSS_SPOOF_REJECTED_VIO",
+                    "DOMAIN_2_ARK_STM32H743",
+                    "CRITICAL",
+                    "18-state EKF3 detected >3.5 sigma GNSS spoofing ramp; isolated u-blox GNSS and engaged VIO + Baro-DEM + Pitot dead-reckoning.",
+                )
+            else:
+                active_flags.append("GNSS_SPOOFED_UNMITIGATED")
+
+        if gnss_jammed:
+            active_flags.append("GNSS_JAMMED_VIO_NAV")
+            log_fdir_event(
+                "GNSS_JAMMED_VIO_NAV",
+                "DOMAIN_2_ARK_STM32H743",
+                "WARNING",
+                f"Broadband L1/L2/L5 jamming ({faults.gnss_jamming_dbm:.0f} dBm, C/N0={gnss_cn0_dbhz:.1f} dB-Hz); switched EKF3 to VIO + Baro-DEM dead-reckoning.",
+            )
+
+        if gnss_jammed or gnss_spoof_detected:
+            nav_mode = "VIO_BARO_DEM_DEAD_RECKONING"
+            gnss_hdop = 99.9
+        elif faults.gnss_spoofing_active and t >= faults.gnss_spoof_start_s and not faults.fdir_enabled:
+            nav_mode = "GNSS_SPOOF_CAPTURED"
+            gnss_hdop = 1.10
+        else:
+            nav_mode = "GNSS_INERTIAL_EKF3"
+            gnss_hdop = round(0.85 + 0.04 * max(0.0, 42.0 - gnss_cn0_dbhz), 2)
+
+        # Domain 1 Comms (868 MHz LoRa vs. 940 nm Sky-Diode Optical Burst) & EO/IR/Acoustic Sensors
+        if faults.rf_comms_jamming_dbm > -68.0 or gnss_jammed or gnss_spoof_detected:
+            comms_mode = "SKY_DIODE_OPTICAL_940NM_SILENT"
+            if faults.rf_comms_jamming_dbm > -68.0:
+                active_flags.append("RF_JAM_OPTICAL_DIODE_HANDOFF")
+                log_fdir_event(
+                    "RF_JAM_OPTICAL_DIODE_HANDOFF",
+                    "DOMAIN_1_PI5_AUTONOMY",
+                    "INFO",
+                    f"868 MHz RF jamming ({faults.rf_comms_jamming_dbm:.0f} dBm) exceeded threshold; zeroed RF TX (0.00 W) and engaged 940 nm Sky-Diode optical link.",
+                )
+        else:
+            comms_mode = "LORA_868MHZ_ACTIVE"
+
+        vis_snr_db = max(3.5, 29.0 - 22.0 * faults.whiteout_snow_density)
+        lwir_snr_db = max(14.5, 27.0 - 4.8 * faults.whiteout_snow_density)
+        if faults.whiteout_snow_density >= 0.45:
+            active_flags.append("WHITEOUT_LWIR_RADAR_FUSION")
+            log_fdir_event(
+                "WHITEOUT_LWIR_RADAR_FUSION",
+                "DOMAIN_1_PI5_AUTONOMY",
+                "INFO",
+                "Arctic snow whiteout degraded Sony Starvis visible SNR; switched terminal target tracker to FLIR LWIR + EchoFlight/PSAR radar.",
+            )
+        acoustic_snr_db = 26.5 if f_jet_actual < 1.0 else max(4.0, 14.0 - 9.5 * thrust_frac)
+
+        # If unmitigated spoofing is active during payload drop, corrupt target drop coordinates
+        if capsule_dropped and not faults.fdir_enabled and spoof_pull_m > 0.0 and cap_alt == 0.0:
+            capsule_cep_m = round(math.sqrt((cap_x - target_cap_x) ** 2 + (cap_y - target_cap_y) ** 2) + 0.35 * spoof_pull_m, 2)
+
         # ----------------------------------------------------------------------
         # AUTOPILOT CONTROL TARGETS (CASCADED TECS PITCH & L1 HEADING/BANK)
         # ----------------------------------------------------------------------
-        alt_err = cmd_alt - alt_agl
+        alt_err = cmd_alt - (alt_agl + baro_cold_drift_m)
 
         if phase == "1_LAUNCH" and alt_agl < 1.0:
             if launch_mode.upper() == "CATAPULT":
@@ -1292,23 +1692,39 @@ def run_end_to_end_6dof_mission(
             theta_cmd = math.radians(-4.0)
         else:
             climb_cmd_mps = max(-10.0, min(14.0, 0.22 * alt_err))
-            gamma_cmd = math.asin(max(-0.30, min(0.35, climb_cmd_mps / max(15.0, vtas))))
-            stall_guard = min(0.0, 0.035 * (vtas - 1.18 * v_stall))
+            gamma_cmd = math.asin(max(-0.30, min(0.35, climb_cmd_mps / max(15.0, measured_vtas_for_ctrl))))
+            stall_guard = min(0.0, 0.035 * (measured_vtas_for_ctrl - 1.18 * v_stall))
             theta_cmd = max(math.radians(-15.0), min(math.radians(24.0), gamma_cmd + alpha_rad + stall_guard))
 
-        psi_err_outer = (cmd_psi - psi + math.pi) % (2.0 * math.pi) - math.pi
+        psi_err_outer = (cmd_psi - (psi + yaw_est_bias_rad) + math.pi) % (2.0 * math.pi) - math.pi
         phi_cmd = max(math.radians(-32.0), min(math.radians(32.0), 1.15 * psi_err_outer)) if alt_agl > 5.0 else 0.0
 
+        # 4. Left 110-deg Lambda-Tail Ruddervator Servo Jam & Control Reallocation
+        servo_jam_de_rad = 0.0
+        servo_jam_dr_rad = 0.0
+        if faults.fault_ruddervator_jam and t >= faults.fault_servo_start_s:
+            if faults.fdir_enabled:
+                active_flags.append("SERVO_JAM_REALLOCATED")
+                log_fdir_event(
+                    "SERVO_JAM_REALLOCATED",
+                    "DOMAIN_2_ARK_STM32H743",
+                    "WARNING",
+                    f"Left Lambda-tail ruddervator jammed at +{faults.fault_servo_jam_deg:.1f} deg; 400 Hz mixer reallocated pitch/yaw across right ruddervator and differential flaperons.",
+                )
+                servo_jam_de_rad = math.radians(0.08 * faults.fault_servo_jam_deg)
+                servo_jam_dr_rad = math.radians(0.08 * faults.fault_servo_jam_deg)
+            else:
+                active_flags.append("SERVO_JAM_UNCOMPENSATED")
+                servo_jam_de_rad = math.radians(0.45 * faults.fault_servo_jam_deg)
+                servo_jam_dr_rad = math.radians(0.55 * faults.fault_servo_jam_deg)
+
         # Track nominal control deflections at start of step for telemetry
-        # Sign convention: cm_de < 0 (positive de = trailing-edge down = nose-down moment).
-        # Therefore, when theta < theta_cmd (nose too low), we need de < 0 (trailing-edge up -> nose-up moment):
-        # de = de_trim + K_theta * (theta - theta_cmd) + K_q * q_rate
         q_bar_step = 0.5 * rho * (vtas ** 2)
         q_scale_step = min(1.15, 520.0 / max(180.0, q_bar_step))
         de_trim_step = -(cfg.cm0 + cfg.cm_alpha * alpha_rad + (f_jet_actual * cfg.jet_z_offset_m) / max(25.0, q_bar_step * cfg.wing_area_m2 * cfg.mean_chord_m)) / cfg.cm_de
-        de_rad = max(math.radians(-22.0), min(math.radians(22.0), de_trim_step + q_scale_step * (1.35 * (theta - theta_cmd) + 0.38 * q_rate)))
-        da_rad = max(math.radians(-20.0), min(math.radians(20.0), q_scale_step * (1.10 * (phi_cmd - phi) - 0.24 * p_rate)))
-        dr_rad = max(math.radians(-18.0), min(math.radians(18.0), q_scale_step * (0.95 * beta_rad + 0.28 * r_rate)))
+        de_rad = max(math.radians(-22.0), min(math.radians(22.0), de_trim_step + q_scale_step * (1.35 * ((theta + imu_pitch_bias_rad) - theta_cmd) + 0.38 * q_rate) + servo_jam_de_rad))
+        da_rad = max(math.radians(-20.0), min(math.radians(20.0), q_scale_step * (1.10 * (phi_cmd - (phi + imu_roll_bias_rad)) - 0.24 * p_rate)))
+        dr_rad = max(math.radians(-18.0), min(math.radians(18.0), q_scale_step * (0.95 * beta_rad + 0.28 * r_rate) + servo_jam_dr_rad))
 
         # ----------------------------------------------------------------------
         # 6-DOF FORCES, MOMENTS & RK4 INTEGRATION OF EQUATIONS OF MOTION
@@ -1343,14 +1759,12 @@ def run_end_to_end_6dof_mission(
 
             q_bar = 0.5 * rho * (v_air_tot ** 2)
             # Dynamic-pressure scheduled SAS + attitude control inside RK4 sub-steps
-            # Note: cn_dr < 0 (positive dr gives negative Cn), so for beta > 0 we want dr > 0 or dr < 0:
-            # With cn_beta > 0, yaw damper against r_rate > 0 requires dr > 0 (since cn_dr < 0 -> delta_Cn < 0).
             q_scale = min(1.15, 520.0 / max(180.0, q_bar))
             jet_pitch_trim = (f_jet_actual * cfg.jet_z_offset_m) / max(25.0, q_bar * cfg.wing_area_m2 * cfg.mean_chord_m)
             s_de_trim = -(cfg.cm0 + cfg.cm_alpha * s_alpha + jet_pitch_trim) / cfg.cm_de
-            s_de = max(math.radians(-22.0), min(math.radians(22.0), s_de_trim + q_scale * (1.35 * (stheta - theta_cmd) + 0.38 * sq_r)))
-            s_da = max(math.radians(-20.0), min(math.radians(20.0), q_scale * (1.10 * (phi_cmd - sphi) - 0.24 * sp_r)))
-            s_dr = max(math.radians(-18.0), min(math.radians(18.0), q_scale * (0.95 * s_beta + 0.28 * sr_r)))
+            s_de = max(math.radians(-22.0), min(math.radians(22.0), s_de_trim + q_scale * (1.35 * ((stheta + imu_pitch_bias_rad) - theta_cmd) + 0.38 * sq_r) + servo_jam_de_rad))
+            s_da = max(math.radians(-20.0), min(math.radians(20.0), q_scale * (1.10 * (phi_cmd - (sphi + imu_roll_bias_rad)) - 0.24 * sp_r)))
+            s_dr = max(math.radians(-18.0), min(math.radians(18.0), q_scale * (0.95 * s_beta + 0.28 * sr_r) + servo_jam_dr_rad))
 
             aero = compute_aerodynamic_coefficients(
                 cfg=cfg,
@@ -1539,10 +1953,15 @@ def run_end_to_end_6dof_mission(
         max_g = max(max_g, load_factor_g)
         min_g = min(min_g, load_factor_g)
 
-        # GNSS-denied navigation drift model (FIN-LAB-03 heated pitot + baro-DEM + LWIR odometry)
-        gnss_cep_m = min(24.5, 1.5 + 0.00058 * total_dist_m + (1.8 if not env.deicer_enabled else 0.0))
+        # GNSS-denied / Spoofed navigation drift model (FIN-LAB-03 heated pitot + baro-DEM + LWIR odometry)
+        if nav_mode == "GNSS_SPOOF_CAPTURED":
+            gnss_cep_m = round(1.5 + spoof_pull_m, 2)
+        elif nav_mode == "VIO_BARO_DEM_DEAD_RECKONING":
+            gnss_cep_m = min(24.5, 1.5 + 0.00058 * total_dist_m + (1.8 if not env.deicer_enabled else 0.0))
+        else:
+            gnss_cep_m = round(0.95 * gnss_hdop, 2)
 
-        batt_soc_pct = max(0.0, 100.0 * (1.0 - batt_used_wh / max(1.0, usable_batt_wh)))
+        fdir_flag_str = ",".join(active_flags) if active_flags else "NOMINAL"
 
         if step % downsample_every == 0:
             telemetry.append(
@@ -1578,6 +1997,27 @@ def run_end_to_end_6dof_mission(
                     static_margin_pct=aero_now["static_margin_pct"],
                     gnss_denied_cep_m=round(gnss_cep_m, 2),
                     capsule_alt_m=round(cap_alt, 2),
+                    pitot_ias_mps=round(pitot_ias_mps, 2),
+                    synth_airspeed_mps=round(synth_airspeed_mps, 2),
+                    baro_alt_m=round(baro_alt_m, 2),
+                    imu_vib_rms_g=round(imu_vib_rms_g, 3),
+                    active_imu=active_imu,
+                    mag_heading_err_deg=round(mag_heading_err_deg, 2),
+                    gnss_cn0_dbhz=round(gnss_cn0_dbhz, 1),
+                    gnss_hdop=round(gnss_hdop, 2),
+                    gnss_spoof_detected=gnss_spoof_detected,
+                    nav_mode=nav_mode,
+                    comms_mode=comms_mode,
+                    vis_snr_db=round(vis_snr_db, 1),
+                    lwir_snr_db=round(lwir_snr_db, 1),
+                    acoustic_snr_db=round(acoustic_snr_db, 1),
+                    fadec_rpm=round(fadec_rpm, 0),
+                    fadec_egt_c=round(fadec_egt_c, 1),
+                    fadec_state=fadec_state,
+                    uat_fill_pct=round(uat_fill_pct, 1),
+                    bus_voltage_v=round(bus_voltage_v, 2),
+                    avionics_bay_temp_c=round(avionics_bay_temp_c, 1),
+                    active_fdir_flags=fdir_flag_str,
                 )
             )
 
@@ -1615,6 +2055,20 @@ def run_end_to_end_6dof_mission(
         else 0.0
     )
 
+    avionics_health_summary = {
+        "preset_id": faults.preset_id,
+        "fdir_enabled": faults.fdir_enabled,
+        "fdir_event_count": len(fdir_events),
+        "fdir_codes_triggered": sorted(list(recorded_fdir_codes)),
+        "max_fadec_egt_c": round(max_egt_c, 1),
+        "min_bus_voltage_v": round(min_bus_voltage_v, 2),
+        "min_avionics_bay_temp_c": round(avionics_bay_temp_c, 1),
+        "max_imu_vib_rms_g": round(max_imu_vib_g, 3),
+        "final_nav_mode": telemetry[-1].nav_mode if telemetry else "GNSS_INERTIAL_EKF3",
+        "final_comms_mode": telemetry[-1].comms_mode if telemetry else "LORA_868MHZ_ACTIVE",
+        "final_active_imu": telemetry[-1].active_imu if telemetry else "IMU1_ICM42688P",
+    }
+
     return MissionSimulationResult(
         config_id=cfg.config_id,
         config_name=cfg.name,
@@ -1649,6 +2103,9 @@ def run_end_to_end_6dof_mission(
         stability_modes_cruise=stability_cruise,
         phase_summary=phase_summary,
         telemetry=telemetry,
+        fault_config=asdict(faults),
+        fdir_events=fdir_events,
+        avionics_health_summary=avionics_health_summary,
     )
 
 
@@ -1695,6 +2152,52 @@ def compare_all_configurations(env: Optional[EnvironmentConditions] = None) -> L
     return summary_rows
 
 
+def run_avionics_and_failure_mode_suite(
+    config_id: str = "VARIANT_H_EVO",
+    env: Optional[EnvironmentConditions] = None,
+) -> List[Dict[str, object]]:
+    """
+    Executes all 7 external interference and hardware failure-mode presets in
+    INTERFERENCE_FAULT_PRESETS on config_id and returns a full verification table
+    of sensor degradation, FDIR isolation events, and mission survival.
+    """
+    if env is None:
+        env = EnvironmentConditions(
+            surface_temp_c=-30.0,
+            wind_speed_10m_mps=10.0,
+            wind_dir_from_deg=45.0,
+            turbulence_intensity="MODERATE",
+            gust_amplitude_mps=6.5,
+            icing_lwc_g_m3=0.25,
+            deicer_enabled=True,
+        )
+    suite_rows: List[Dict[str, object]] = []
+    for pid, fcfg in INTERFERENCE_FAULT_PRESETS.items():
+        res = run_end_to_end_6dof_mission(
+            config_id=config_id,
+            env=env,
+            launch_mode="DROP_TROLLEY",
+            landing_mode="PARACHUTE_AIRBAG",
+            faults=fcfg,
+        )
+        hs = res.avionics_health_summary
+        suite_rows.append({
+            "preset_id": pid,
+            "mission_success": res.mission_success,
+            "fdir_events": hs["fdir_event_count"],
+            "fdir_codes": hs["fdir_codes_triggered"],
+            "final_nav_mode": hs["final_nav_mode"],
+            "final_comms_mode": hs["final_comms_mode"],
+            "final_active_imu": hs["final_active_imu"],
+            "max_fadec_egt_c": hs["max_fadec_egt_c"],
+            "min_bus_voltage_v": hs["min_bus_voltage_v"],
+            "min_bay_temp_c": hs["min_avionics_bay_temp_c"],
+            "capsule_cep_m": res.capsule_landing_error_cep_m,
+            "final_nav_cep_m": res.final_gnss_denied_cep_m,
+        })
+    return suite_rows
+
+
 def main() -> None:
     print("=" * 105)
     print("ARCTIC TRAIL TIER-3 FAST-SAR JET — 6-DOF END-TO-END FLIGHT DYNAMICS SIMULATOR (-30 °C ARCTIC STORM)")
@@ -1737,6 +2240,18 @@ def main() -> None:
             f"  [{p['phase']:<18}] {p['start_s']:>5.1f}s -> {p['end_s']:>5.1f}s "
             f"({p['duration_s']:>4.1f}s) | Alt={p['alt_end_m']:>5.1f}m | "
             f"V={p['vtas_end_mps']:>5.1f}m/s | {p['note']}"
+        )
+
+    print("\n" + "=" * 105)
+    print("3-DOMAIN AVIONICS, SENSOR INTERFERENCE & FAILURE-MODE / FDIR STRESS SUITE (VARIANT_H_EVO)")
+    print("=" * 105)
+    fdir_rows = run_avionics_and_failure_mode_suite("VARIANT_H_EVO", arctic_storm)
+    for fr in fdir_rows:
+        print(
+            f"  [{fr['preset_id']:<38}] Pass={'YES' if fr['mission_success'] else 'NO '} | "
+            f"FDIR={fr['fdir_events']} | Nav={fr['final_nav_mode']:<27} | "
+            f"IMU={fr['final_active_imu']:<20} | EGT_max={fr['max_fadec_egt_c']:>5.1f}C | "
+            f"DropCEP={fr['capsule_cep_m']:>4.2f}m"
         )
 
 
