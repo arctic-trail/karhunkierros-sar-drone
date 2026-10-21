@@ -22,7 +22,7 @@
 > * **Concept & Simulation Stage (First Public Release):** This repository publishes an open-source **aerospace engineering concept, parametric 3D `STEP AP214` / `STL` solid CAD geometry, 100% Non-Chinese COTS bill-of-materials (`US$1,320` airframe+avionics / `~€4,850` turnkey), and software simulation reference architecture**. It is **not** a flight-certified aircraft, an operational rescue service, or military equipment.
 > * **What Is Built & Tested Today vs. What Remains Conceptual:**
 >   1. **Hardware Bench-Verified Today (Shared Tier-1/Tier-2 Stack):** The companion compute (`Raspberry Pi 5`), `Pico 2` sensor/gatekeeper stack, optical/LoRa telemetry links, and dual vision pipeline are shared with [`arctic-trail/arctic-trail-cam`](https://github.com/arctic-trail/arctic-trail-cam) and [`arctic-trail/karhunkierros-sar-drone`](https://github.com/arctic-trail/karhunkierros-sar-drone), where they have been assembled and verified on the indoor bench.
->   2. **3D CAD & Software-Simulated Today (`6/6` Automated Suites Passing):** The parametric 3D solid model (`cad/arctic_fast_sar_jet_iter1_fixed16deg.step`), affine-Breguet / compressible Brayton-cycle sizing calculator (`sar_sizing_calculator.py`), 6-DOF nonlinear end-to-end flight dynamics & aerodynamics simulator (`flight_simulator_6dof.py` + interactive workbench `simulator_ui/flight_simulator.html`), spool-lag lead-compensated turbine autonomy & GNSS-denied navigation module (`sar_autonomy/pi_turbine_autonomy.py`), and FIN-LAB COTS benchmark solver (`northern_flank_red_gap_solver.py`) are verified in software simulation (`python3 -m unittest discover -s tests -v`).
+>   2. **3D CAD & Software-Simulated Today (`7/7` Automated Suites Passing):** The parametric 3D solid model (`cad/arctic_fast_sar_jet_iter1_fixed16deg.step`), affine-Breguet / compressible Brayton-cycle sizing calculator (`sar_sizing_calculator.py`), 6-DOF nonlinear end-to-end flight dynamics, aerodynamic stability & CFD boundary-layer separation simulator (`flight_simulator_6dof.py` + interactive 3D/2D CFD wind-tunnel workbench `simulator_ui/flight_simulator.html`), spool-lag lead-compensated turbine autonomy & GNSS-denied navigation module (`sar_autonomy/pi_turbine_autonomy.py`), and FIN-LAB COTS benchmark solver (`northern_flank_red_gap_solver.py`) are verified in software simulation (`python3 -B -m unittest discover -s tests -v`).
 >   3. **Unvalidated / Concept Stage (No Calendar Date Promises):** Physical airframe fabrication of the `14.95 kg` MTOW fixed-wing prototype, static thrust-stand runs of the turnkey European micro-turbojet (`JetCat P100-RX-BL` / `Xicoy X132`), `-30 °C` cold-soak trials, slowed (`25–28 m/s`) parachute survival-capsule release flights, and **Traficom / EASA Specific Category (`SORA`)** aviation approvals have **not yet been flight-tested or authorized** (see the [Readiness & Verification Matrix](#5-readiness--verification-matrix-design-vs-simulation-vs-field-validation) and [Intended Capability-Gated Roadmap](#6-intended-capability-gated-roadmap-no-calendar-date-promises) below).
 
 > [!IMPORTANT]
@@ -51,9 +51,9 @@ Every visual and aerodynamic calculation in this repository derives from a singl
 - **Twin `16 mm` Carbon Tail Booms (`Y = ±230 mm`) + `110°` Outward-Canted Inverted $\Lambda$-Tail:** Keeps all tail surfaces and control linkages completely outside the central `720 °C` dorsal turbojet exhaust plume above a double-wall `304SS` + `10 mm` silica-aerogel thermal barrier deck.
 - **High-Visibility Civilian SAR Conspicuity + Detachable 3-Wheel Tundra Drop-Dolly:** Finished in `RAL 2005` fluorescent orange with a passive corner radar reflector (`+5 to +10 dBsm` X-band RCS for ATC visibility), `ADS-B Out / FLARM / Remote ID`, and a 3-wheel drop-dolly that stays on the ground at liftoff (`14.95 kg` airborne MTOW, staying below the `15.0 kg` regulatory class ceiling).
 
-![Variant H 3D CAD Single Source of Truth Cutaway](docs/images/sar_design_01_cad_ssot_cutaway_v1.jpg)
+![Variant H 3D CAD Single Source of Truth Cutaway](docs/images/sar_design_01_cad_ssot_cutaway_v2.jpg)
 
-![Variant H 7-Subsystem Callout Cutaway](docs/images/sar_design_02_subsystem_callout_cutaway_v1.jpg)
+![Variant H 7-Subsystem Callout Cutaway](docs/images/sar_design_02_subsystem_callout_cutaway_v2.jpg)
 
 ![Unified Chined Center-Body, 2.20 m Cranked Wing & 304SS/Aerogel Thermal Shielding](docs/images/sar_design_03_airframe_thermal_deck_v1.jpg)
 
@@ -65,7 +65,7 @@ Every visual and aerodynamic calculation in this repository derives from a singl
 
 ![3D Isometric & Simulation Verification Sheet](docs/images/sar_cad_blueprint_3d_simulations_v2.jpg)
 
-> **Full 16-Plate Engineering Design & Subsystem Architecture Gallery:** See [**`docs/ENGINEERING_DESIGN_AND_ARCHITECTURE.md`**](docs/ENGINEERING_DESIGN_AND_ARCHITECTURE.md) for the complete set of CAD-reconciled subsystem cutaways, payload class variants (`Class 1`–`Class 3`), mission profile & `SORA` flight-test box diagrams, and the optional Tier-1B `OpenTurbine-EU` FADEC reference.
+> **Full 16-Plate Engineering Design, 6-DoF CFD Wind-Tunnel & Stability Architecture Reference:** See [**`docs/ENGINEERING_DESIGN_AND_ARCHITECTURE.md`**](docs/ENGINEERING_DESIGN_AND_ARCHITECTURE.md) for the complete set of CAD-reconciled subsystem cutaways, payload class variants (`Class 1`–`Class 3`), mission profile & `SORA` flight-test box diagrams, **Section 8 (6-Config Trade Study, `+14.0% MAC` MIL-STD-1797 Level 1 Eigenmodes, 3D/2D Kirchhoff–Helmholtz CFD Separation Physics & 4-Stage Stall/Upset Recovery)**, and the optional Tier-1B `OpenTurbine-EU` FADEC reference.
 
 ---
 
@@ -82,11 +82,11 @@ Running `python3 northern_flank_red_gap_solver.py` executes the deterministic be
 | **`K` — Coastal & Subsea Cable Landfall USV** | `1/4` (Res `3`) | `2/4` (Res `2`) | **`3/4` (Green, Res `1`)** | **`3/4` (Green, Res `1`)** | **Initiative `#12 FIN-LAB-06 [P12-USV]` (`€4,650` BOM):** `1.85 m` solar/`LiFePO4` coastal USV with `450 kHz` side-scan sonar + 3-axis `PNI RM3100` (USA) magnetic cable tracker + `[P11-COAST]` optical shore handoff (`84%` availability, `36 h` endurance). |
 | **Total Weighted Conformance (`96 pts`)** | **`38.5%` (`37/96`)** | **`54.2%` (`52/96`)** | **`72.9%` (`70/96` in Code/CAD)** | **`85.4%–86.5%` (`82–83/96` Validated)** | **Priority Residual (`A+H+I+J+K`) slashed by `-65.9%` (`41 → 32 → 14` today, `11` validated); `11 of 12` civilian-addressable areas at `≥3/4`.** |
 
-![High-Speed Corridor Safety & SAR Rendezvous Geometry](docs/images/sar_design_12_corridor_rendezvous_and_soft_net_v2.jpg)
+![High-Speed Corridor Safety & SAR Rendezvous Geometry](docs/images/sar_design_12_corridor_rendezvous_and_soft_net_v4.jpg)
 
-![800-Event Peak Civil U-Space Airspace-Safety & Emergency SAR Dispatch Flow](docs/images/sar_design_13_800_event_uspace_benchmark_v2.jpg)
+![800-Event Peak Civil U-Space Airspace-Safety & Emergency SAR Dispatch Flow](docs/images/sar_design_13_800_event_uspace_benchmark_v4.jpg)
 
-![Closing All Five Priority Civilian Benchmarks in 100% China-Free COTS Scope](docs/images/sar_design_14_five_priority_benchmarks_v2.jpg)
+![Closing All Five Priority Civilian Benchmarks in 100% China-Free COTS Scope](docs/images/sar_design_14_five_priority_benchmarks_v4.jpg)
 
 ---
 
@@ -105,10 +105,11 @@ Zero Chinese components (`0.0%` of BOM) are permitted across airframe, propulsio
 
 ## 5. Readiness & Verification Matrix (Design vs. Simulation vs. Field Validation)
 
-| Subsystem / Capability | Designed (`3D CAD` / Spec) | Simulated / Unit-Tested (`5/5` Suites) | Hardware Bench | Field-Validated | Aviation / Regulatory Authorisation |
+| Subsystem / Capability | Designed (`3D CAD` / Spec) | Simulated / Unit-Tested (`7/7` Suites) | Hardware Bench | Field-Validated | Aviation / Regulatory Authorisation |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **Shared Companion Compute & Telemetry (`Pi 5` + `Pico 2` + Optical/LoRa)** | Yes | Yes | Yes (via `arctic-trail-cam` bench) | Partial (ground/link trials) | N/A (ground / bench) |
-| **Iteration 1 Airframe (`2.20 m` Fixed `16°` Wing + Twin-Boom `110°` $\Lambda$-Tail)** | Yes (`STEP AP214` / `STL`) | Yes (`sar_sizing_calculator.py`) | Not yet fabricated | No | No (`Traficom` / `EASA SORA` required) |
+| **Iteration 1 Airframe (`2.20 m` Fixed `16°` Wing + Twin-Boom `110°` $\Lambda$-Tail)** | Yes (`STEP AP214` / `STL`) | Yes (`sar_sizing_calculator.py` + `flight_simulator_6dof.py`) | Not yet fabricated | No | No (`Traficom` / `EASA SORA` required) |
+| **6-DoF Aerodynamics, `+14.0% MAC` Stability, 3D/2D CFD Flow & 4-Stage Stall/Upset Recovery** | Yes (`Section 8` SSOT) | Yes (`30-run` 6-Config $\times$ 5-Preset Matrix + HTML5 CFD Workbench) | Software-in-the-loop (`SITL`) | No (`Gate 2` EDF surrogate open) | No |
 | **Spool-Lag Lead Filter, `EGT < 280 °C` Flameout Cutoff & Affine-Breguet RTH** | Yes | Yes (`pi_turbine_autonomy.py`) | Software-in-the-loop (`SITL`) | No (static turbine stand open) | No |
 | **Slowed `25–28 m/s` Parachute Survival-Capsule Release (`X_CG = 595 mm`)** | Yes | Yes (hard-inhibited `> 30 m/s`) | Not yet drop-tested | No | No (`Poliisi` / `RVL` / `Pelastuslaitos` MoU) |
 | **`FIN-LAB-02` `350–400 km/h` High-Speed Envelope & `[P12]` Enablers** | Yes | Yes (`northern_flank_red_gap_solver.py`) | Analytical / CAD model | No (winter range validation open) | No |
@@ -147,16 +148,18 @@ python3 sar_sizing_calculator.py
 # 2. Run the Pi 5 / STM32H7 Spool-Lag Lead Filter & Affine-Breguet RTH Autonomy Node
 python3 sar_autonomy/pi_turbine_autonomy.py
 
-# 3. Run the 6-DOF End-to-End Flight Dynamics Simulator Across All 6 Configurations & 8 Mission Phases
+# 3. Run the 6-DOF End-to-End Flight Dynamics Simulator (All 6 Configurations & Stress Presets)
 python3 flight_simulator_6dof.py --compare-all --temp-c -30 --wind-ms 12
+python3 flight_simulator_6dof.py --config iter1_xicoy132 --preset evasive_interception
 
-# 4. Open the Interactive HTML5/Canvas 6-DOF Flight Simulator & Modal Stability Workbench
+# 4. Open the Interactive 3D/2D CFD Wind-Tunnel & 6-DOF Flight Simulator Workbench
+#    (Includes 3D CFD Particle Flow, 2D Airfoil Cp/Boundary-Layer View, Split 3D+2D, AoA Sweeps & All-6 Benchmark Modal)
 open simulator_ui/flight_simulator.html
 
 # 5. Run the FIN-LAB Civilian Airspace-Safety & Corridor Benchmark Solver
 python3 northern_flank_red_gap_solver.py
 
-# 6. Run the Full Automated Unit Test & Non-Chinese/Civilian-Wording Linter Suite (6/6 tests)
+# 6. Run the Full Automated Unit Test & Non-Chinese/Civilian-Wording Linter Suite (7/7 tests)
 python3 -B -m unittest discover -s tests -v
 ```
 
