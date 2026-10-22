@@ -1141,7 +1141,81 @@
           </div>
         </div>
 
-        <div class="operator-dock" style="gap:11px;padding:11px;">
+        <div class="operator-dock" style="gap:10px;padding:10px;">
+
+          <!-- =============================================================== -->
+          <!-- APPLE CARD 0: ASK AI AUTO-CONTROLLER (NATURAL LANGUAGE PROMPT)  -->
+          <!-- =============================================================== -->
+          <div class="apple-card" style="border-color:rgba(10,132,255,0.45);background:linear-gradient(180deg,rgba(10,132,255,0.12),rgba(28,28,32,0.94));">
+            <div class="apple-section-title">
+              <span>✨ Ask AI Auto-Controller</span>
+              <button class="win-btn" onclick="toggleLlmApiKeyPanel()" id="btnToggleApiKeyPanel" style="font-size:10.5px;padding:2px 8px;border-radius:999px;" title="Optional: Add OpenAI / Gemini / Claude API Key">🔑 API Key</button>
+            </div>
+
+            <!-- Main Apple Spotlight / ChatGPT Style Prompt Box -->
+            <div style="display:flex;gap:6px;align-items:center;">
+              <input
+                type="text"
+                id="txtAiCopilotPrompt"
+                placeholder="Tell drones what to do (e.g. 'Follow snowmobile & talk')..."
+                onkeydown="if(event.key==='Enter')submitAiCopilotPrompt()"
+                style="flex:1;background:rgba(0,0,0,0.45);color:#ffffff;border:1px solid rgba(10,132,255,0.55);border-radius:10px;padding:8px 11px;font-size:12px;outline:none;"
+              />
+              <button class="apple-pill-btn follow active" onclick="submitAiCopilotPrompt()" style="padding:8px 13px;border-radius:10px;font-size:12px;">
+                ↑ Run
+              </button>
+            </div>
+
+            <!-- 1-Tap Example Prompts -->
+            <div class="apple-phrase-grid" style="gap:5px;">
+              <button class="apple-phrase-chip" onclick="submitAiCopilotPrompt('Follow the snowmobile and ask if they are OK')" style="font-size:11px;padding:5px 7px;">
+                🛸 "Follow snowmobile &amp; ask if OK"
+              </button>
+              <button class="apple-phrase-chip" onclick="submitAiCopilotPrompt('Follow the lost hiker and drop the warm survival barrel')" style="font-size:11px;padding:5px 7px;">
+                🚶 "Follow hiker &amp; drop supply"
+              </button>
+              <button class="apple-phrase-chip" onclick="submitAiCopilotPrompt('Fly close to the snowmobile and tell them to stop')" style="font-size:11px;padding:5px 7px;">
+                🛑 "Stop snowmobile &amp; talk"
+              </button>
+              <button class="apple-phrase-chip" onclick="submitAiCopilotPrompt('All 4 drones scan the canyon at 55m')" style="font-size:11px;padding:5px 7px;">
+                🔄 "All 4 drones scan canyon"
+              </button>
+            </div>
+
+            <!-- Live AI Response Bubble -->
+            <div id="lblAiCopilotResponse" style="font-size:11.5px;color:#d4d4d8;background:rgba(0,0,0,0.32);border:1px solid rgba(255,255,255,0.08);padding:7px 9px;border-radius:9px;line-height:1.36;">
+              💬 Type any instruction above (or tap a chip) — e.g. <em>"Send Drone 2 to follow the snowmobile and ask if they need help"</em>.
+            </div>
+
+            <!-- Optional API Key Drawer (Opens right here when 🔑 API Key is clicked) -->
+            <div id="llmApiKeyPanelWrap" style="display:none;flex-direction:column;gap:6px;padding:8px 9px;background:rgba(10,132,255,0.12);border:1px solid rgba(10,132,255,0.45);border-radius:9px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <strong style="font-size:11px;color:#64d2ff;">🔑 Optional Cloud LLM API Key</strong>
+                <span id="lblApiKeyStatusBadge" style="font-size:10px;font-family:var(--font-mono);color:#4ade80;">Built-In AI Ready</span>
+              </div>
+              <select id="selLlmProviderModel" class="select-input" style="width:100%;padding:4px 6px;font-size:11px;">
+                <option value="openai|gpt-5.4-mini" selected>OpenAI • gpt-5.4-mini</option>
+                <option value="openai|gpt-4.1-mini">OpenAI • gpt-4.1-mini</option>
+                <option value="gemini|gemini-2.5-flash">Google Gemini • gemini-2.5-flash</option>
+                <option value="anthropic|claude-haiku-4-5-20251001">Anthropic • claude-haiku-4-5</option>
+                <option value="anthropic|claude-sonnet-4-6">Anthropic • claude-sonnet-4-6</option>
+              </select>
+              <div style="display:flex;gap:4px;align-items:center;">
+                <input type="password" id="txtLlmApiKey" placeholder="Paste API Key (sk-... or AIza...)" autocomplete="off" style="flex:1;background:#0e0e12;color:#f5f5f7;border:1px solid var(--border-strong);border-radius:6px;padding:5px 8px;font-family:var(--font-mono);font-size:11px;" />
+                <button class="win-btn" onclick="toggleApiKeyVisibility()" id="btnShowHideApiKey" style="font-size:10px;padding:4px 7px;">👁️</button>
+              </div>
+              <input type="password" id="txtGoogleMapsApiKey" placeholder="Optional Google Maps Key" autocomplete="off" style="display:none;" />
+              <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-primary);cursor:pointer;">
+                <input type="checkbox" id="chkSaveKeyToDisk" checked style="accent-color:var(--accent-blue);" />
+                <span>Save key to disk (<code>chmod 0600</code>)</span>
+              </label>
+              <div style="display:flex;gap:5px;">
+                <button class="btn success" onclick="saveAndActivateLlmApiKey()" style="flex:1;padding:5px 8px;font-size:11px;">✓ Save Key</button>
+                <button class="btn danger" onclick="clearSavedLlmApiKey()" style="padding:5px 8px;font-size:11px;">🗑️ Clear</button>
+                <button class="btn" onclick="cancelApiKeyPromptAndUseOffline()" style="padding:5px 8px;font-size:11px;">✕</button>
+              </div>
+            </div>
+          </div>
 
           <!-- =============================================================== -->
           <!-- APPLE CARD 1: FLIGHT MODE, SPEED & ACTIVE DRONE                 -->
@@ -1372,7 +1446,6 @@
                   <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;">
                     <span class="field-label">Mission Profile</span>
                     <div style="display:flex;gap:4px;align-items:center;">
-                      <button class="win-btn" onclick="toggleLlmApiKeyPanel()" id="btnToggleApiKeyPanel" style="font-size:10px;padding:1px 6px;">🔑 API Key</button>
                       <button class="win-btn" onclick="togglePlaybookEditor()" id="btnTogglePbEditor" style="font-size:10px;padding:1px 6px;color:#38bdf8;">⚙️ Parameters</button>
                     </div>
                   </div>
@@ -1382,34 +1455,6 @@
                     <option value="PLAYBOOK_03_STRANDED_SNOWMOBILE_CORRIDOR">3. Snowmobile Corridor Escort (65m/45m)</option>
                     <option value="PLAYBOOK_04_EW_DENIED_PASSIVE_RECON">4. High Altitude Sweep (85m/35m)</option>
                   </select>
-
-                  <div id="llmApiKeyPanelWrap" style="display:none;flex-direction:column;gap:6px;margin-top:6px;padding:7px 8px;background:rgba(10,132,255,0.10);border:1px solid rgba(10,132,255,0.45);border-radius:6px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;">
-                      <strong style="font-size:11px;color:#64d2ff;">🔑 LLM &amp; Google Maps API Keys</strong>
-                      <span id="lblApiKeyStatusBadge" style="font-size:10px;font-family:var(--font-mono);color:#fbbf24;">Earth: 0-Key Live</span>
-                    </div>
-                    <select id="selLlmProviderModel" class="select-input" style="width:100%;padding:3px 5px;font-size:10.5px;">
-                      <option value="openai|gpt-5.4-mini" selected>OpenAI • gpt-5.4-mini</option>
-                      <option value="openai|gpt-4.1-mini">OpenAI • gpt-4.1-mini</option>
-                      <option value="gemini|gemini-2.5-flash">Google Gemini • gemini-2.5-flash</option>
-                      <option value="anthropic|claude-haiku-4-5-20251001">Anthropic • claude-haiku-4-5</option>
-                      <option value="anthropic|claude-sonnet-4-6">Anthropic • claude-sonnet-4-6</option>
-                    </select>
-                    <div style="display:flex;gap:4px;align-items:center;">
-                      <input type="password" id="txtLlmApiKey" placeholder="LLM API Key (sk-...)" autocomplete="off" style="flex:1;background:#0e0e12;color:#f5f5f7;border:1px solid var(--border-strong);border-radius:5px;padding:4px 7px;font-family:var(--font-mono);font-size:11px;" />
-                      <button class="win-btn" onclick="toggleApiKeyVisibility()" id="btnShowHideApiKey" style="font-size:10px;padding:3px 6px;">👁️</button>
-                    </div>
-                    <input type="password" id="txtGoogleMapsApiKey" placeholder="Optional Google Maps Key (AIza...)" autocomplete="off" style="width:100%;background:#0e0e12;color:#f5f5f7;border:1px solid var(--border-subtle);border-radius:5px;padding:4px 7px;font-family:var(--font-mono);font-size:10.5px;" />
-                    <label style="display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--text-primary);cursor:pointer;">
-                      <input type="checkbox" id="chkSaveKeyToDisk" checked style="accent-color:var(--accent-blue);" />
-                      <span>Save API keys to disk (<code>chmod 0600</code>)</span>
-                    </label>
-                    <div style="display:flex;gap:5px;">
-                      <button class="btn success" onclick="saveAndActivateLlmApiKey()" style="flex:1;padding:4px 7px;font-size:11px;">✓ Save</button>
-                      <button class="btn danger" onclick="clearSavedLlmApiKey()" style="padding:4px 7px;font-size:10.5px;">🗑️ Clear</button>
-                      <button class="btn" onclick="cancelApiKeyPromptAndUseOffline()" style="padding:4px 7px;font-size:10.5px;">✕</button>
-                    </div>
-                  </div>
 
                   <div id="playbookEditorWrap" style="display:none;flex-direction:column;gap:5px;margin-top:6px;padding:6px 7px;background:rgba(15,23,42,0.85);border:1px solid rgba(56,189,248,0.35);border-radius:6px;">
                     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">
@@ -4149,6 +4194,103 @@
         const dVeh = Math.hypot(lostVehicle.x - d.x, lostVehicle.y - d.y);
         const dPer = Math.hypot(lostPerson.x - d.x, lostPerson.y - d.y);
         assignDroneToAutoTrack(dVeh <= dPer + 25 ? 'VEHICLE' : 'PERSON', dIdx, false);
+      }
+    }
+
+    function executeAiActionPlan(plan, replyText = null, engineName = 'AI Auto-Controller') {
+      if (!plan) return;
+      if (plan.sim_speed !== null && plan.sim_speed !== undefined) {
+        setSimSpeed(plan.sim_speed);
+      }
+      if (plan.search_altitude_agl_m !== null && plan.search_altitude_agl_m !== undefined) {
+        aidState.compiled.searchAltM = Math.max(28, Math.min(120, Number(plan.search_altitude_agl_m) || 55));
+      }
+      if (plan.tracking_altitude_agl_m !== null && plan.tracking_altitude_agl_m !== undefined) {
+        aidState.compiled.trackAltM = Math.max(20, Math.min(120, Number(plan.tracking_altitude_agl_m) || 28));
+      }
+      syncStructuredFormFieldsFromRules(aidState.compiled);
+
+      const dIdx = (plan.drone_idx !== null && plan.drone_idx !== undefined)
+        ? Math.max(0, Math.min(3, parseInt(plan.drone_idx, 10) || 0))
+        : getActiveSelectedDroneIndex();
+
+      if (plan.mode === 'MANUAL_FLY') {
+        startManualPracticeMission();
+        selectAppleActiveDrone(dIdx);
+      } else if (plan.mode === 'AUTO_SEARCH') {
+        setAppleFlightMode('AUTO_SEARCH');
+      } else {
+        const d = drones[dIdx] || drones[0];
+        const dVeh = Math.hypot(lostVehicle.x - d.x, lostVehicle.y - d.y);
+        const dPer = Math.hypot(lostPerson.x - d.x, lostPerson.y - d.y);
+        const tType = plan.target_type || (dVeh <= dPer + 25 ? 'VEHICLE' : 'PERSON');
+        assignDroneToAutoTrack(tType, dIdx, !!plan.close_talk);
+        if (plan.custom_voice_message) {
+          const inp = document.getElementById('txtVoiceIntercomInput');
+          if (inp) inp.value = plan.custom_voice_message;
+          sendCustomVoiceIntercomMessage();
+        } else if (plan.voice_preset) {
+          sendVoiceIntercomPreset(plan.voice_preset);
+        } else if (plan.close_talk) {
+          sendVoiceIntercomPreset('HALT_LISTEN');
+        }
+      }
+
+      if (plan.drop_action === 'QUEUE_DROP') {
+        queueDropNearActiveTarget(true);
+      } else if (plan.drop_action === 'RELEASE_NOW') {
+        if (payloadState.status === 'READY_ABOARD') queueDropNearActiveTarget(true);
+        executeImmediateDrop(true);
+      } else if (plan.drop_action === 'CANCEL_DROP') {
+        cancelPendingDrop();
+      }
+
+      const respEl = document.getElementById('lblAiCopilotResponse');
+      if (respEl && replyText) {
+        respEl.innerHTML = `<div style="color:#4ade80;font-weight:600;">${replyText}</div><div style="font-size:10px;color:#71717a;margin-top:2px;">Executed via ${engineName}</div>`;
+      }
+      if (replyText) {
+        updateAidBannerUI(replyText);
+      }
+    }
+
+    function submitAiCopilotPrompt(presetPrompt = null) {
+      const inp = document.getElementById('txtAiCopilotPrompt');
+      const rawPrompt = (presetPrompt !== null ? presetPrompt : (inp ? inp.value : '')).trim();
+      if (!rawPrompt) {
+        if (inp) inp.focus();
+        return;
+      }
+      if (inp && presetPrompt !== null) {
+        inp.value = rawPrompt;
+      }
+      const respEl = document.getElementById('lblAiCopilotResponse');
+      if (respEl) {
+        respEl.innerHTML = `<span style="color:#64d2ff;">⏳ AI Auto-Controller planning: "${rawPrompt}"...</span>`;
+      }
+
+      // Send to backend /api/playbook/command (which calls OpenAI/Gemini/Anthropic when API key is configured, or built-in structured planner)
+      if (window.location.protocol.startsWith('http')) {
+        fetch('/api/playbook/command', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: rawPrompt,
+            telemetry: {
+              target_lock_active: targetLockActive,
+              guided_target_type: guidedTargetType,
+              assigned_drone_idx: assignedTrackDroneIdx
+            }
+          })
+        }).then(r => r.json()).then(res => {
+          if (res && res.ok && res.action_plan) {
+            if (res.compiled_rules) {
+              hydrateCompiledRulesFromBackend(res.compiled_rules);
+            }
+            executeAiActionPlan(res.action_plan, res.assistant_reply, res.engine || 'AI Auto-Controller');
+            if (inp && presetPrompt === null) inp.value = '';
+          }
+        }).catch(() => {});
       }
     }
 

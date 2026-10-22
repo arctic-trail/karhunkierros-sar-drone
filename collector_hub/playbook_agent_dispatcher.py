@@ -1771,6 +1771,329 @@ class PlaybookAgentDispatcher:
             self.decision_log = self.decision_log[-40:]
         return record
 
+    def execute_operator_command(
+        self,
+        prompt_text: str,
+        telemetry: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Execute a natural-language operator prompt via the External LLM API (when configured)
+        or via a deterministic zero-regex structured semantic slot planner when running offline,
+        followed by Stage-3 Physical Safety Verification (`build_structured_playbook_rules`).
+        """
+        t0 = time.perf_counter()
+        raw_prompt = (prompt_text or "").strip()
+        if not raw_prompt:
+            return {
+                "ok": False,
+                "error": "Empty command",
+                "assistant_reply": "Please type an instruction for the drones (e.g., 'Follow the snowmobile and ask if they are OK').",
+            }
+
+        eff_key = self._get_effective_api_key()
+        is_real_key = bool(eff_key) and not eff_key.startswith("sk-test-")
+        llm_plan: Optional[Dict[str, Any]] = None
+        llm_error: Optional[str] = None
+
+        if is_real_key:
+            sys_msg = (
+                "You are the AI Mission Auto-Controller for a 4-drone Arctic Search & Rescue swarm (Drone 1..4). "
+                "Convert the human operator's instruction into a single JSON object with keys:\n"
+                '- "mode": one of ["AUTO_FOLLOW", "AUTO_SEARCH", "MANUAL_FLY", null]\n'
+                '- "target_type": one of ["VEHICLE", "PERSON", null] ("VEHICLE" = Snowmobile, "PERSON" = Lost Hiker)\n'
+                '- "drone_idx": integer 0..3 (0=Drone 1, 1=Drone 2, 2=Drone 3, 3=Drone 4) or null\n'
+                '- "close_talk": boolean (true if operator wants to talk/speak/fly close/halt/check status)\n'
+                '- "voice_preset": one of ["HALT_LISTEN", "STATUS_CHECK", "FOLLOW_LIGHT", "STAND_CLEAR_DROP", null]\n'
+                '- "custom_voice_message": string (if operator specifies custom words to say over the drone speaker, else null)\n'
+                '- "drop_action": one of ["QUEUE_DROP", "RELEASE_NOW", "CANCEL_DROP", null]\n'
+                '- "search_altitude_agl_m": number (28..120) or null\n'
+                '- "tracking_altitude_agl_m": number (20..120) or null\n'
+                '- "sim_speed": number (0.5, 1, 2, 5, 10, 25, 100) or null\n'
+                '- "assistant_reply": concise 1-sentence confirmation of the exact drone actions being executed.'
+            )
+            user_msg = json.dumps({"operator_prompt": raw_prompt, "telemetry": telemetry or {}})
+            try:
+                if self.llm_provider == "anthropic":
+                    model_id = self.llm_model or "claude-haiku-4-5-20251001"
+                    body = json.dumps(
+                        {
+                            "model": model_id,
+                            "max_tokens": 350,
+                            "system": sys_msg,
+                            "messages": [{"role": "user", "content": user_msg}],
+                        }
+                    ).encode("utf-8")
+                    raw = self._https_post_json(
+                        host="api.anthropic.com",
+                        path="/v1/messages",
+                        body_bytes=body,
+                        headers={
+                            "Content-Type": "application/json",
+                            "x-api-key": eff_key,
+                            "anthropic-version": "2023-06-01",
+                        },
+                        timeout_s=3.5,
+                    )
+                    blocks = raw.get("content", [])
+                    txt = blocks[0].get("text", "{}") if blocks else "{}"
+                elif self.llm_provider == "gemini":
+                    model_id = self.llm_model or "gemini-2.5-flash"
+                    if model_id.startswith("models/"):
+                        model_id = model_id[len("models/") :]
+                    body = json.dumps(
+                        {
+                            "systemInstruction": {"parts": [{"text": sys_msg}]},
+                            "contents": [{"role": "user", "parts": [{"text": user_msg}]}],
+                            "generationConfig": {"temperature": 0.0, "maxOutputTokens": 350, "responseMimeType": "application/json"},
+                        }
+                    ).encode("utf-8")
+                    raw = self._https_post_json(
+                        host="generativelanguage.googleapis.com",
+                        path=f"/v1beta/models/{model_id}:generateContent?key={eff_key}",
+                        body_bytes=body,
+                        headers={"Content-Type": "application/json"},
+                        timeout_s=3.5,
+                    )
+                    cands = raw.get("candidates", [])
+                    parts = cands[0].get("content", {}).get("parts", []) if cands else []
+                    txt = parts[0].get("text", "{}") if parts else "{}"
+                else:
+                    model_id = self.llm_model or "gpt-5.4-mini"
+                    req_d: Dict[str, Any] = {
+                        "model": model_id,
+                        "max_completion_tokens": 350,
+                        "response_format": {"type": "json_object"},
+                        "messages": [
+                            {"role": "system", "content": sys_msg},
+                            {"role": "user", "content": user_msg},
+                        ],
+                    }
+                    if model_id.startswith("gpt-5"):
+                        req_d["reasoning_effort"] = "none"
+                    req_d["temperature"] = 0.0
+                    body = json.dumps(req_d).encode("utf-8")
+                    raw = self._https_post_json(
+                        host="api.openai.com",
+                        path="/v1/chat/completions",
+                        body_bytes=body,
+                        headers={"Content-Type": "application/json", "Authorization": f"Bearer {eff_key}"},
+                        timeout_s=3.5,
+                    )
+                    choices = raw.get("choices", [])
+                    txt = choices[0].get("message", {}).get("content", "{}") if choices else "{}"
+                llm_plan = json.loads(self._strip_json_code_fence(txt))
+            except Exception as exc:
+                llm_error = f"{type(exc).__name__}: {str(exc)[:100]}"
+
+        # Deterministic Zero-Regex Semantic Slot Planner (used when offline or to fill missing slots)
+        low = raw_prompt.lower()
+        clean_chars = []
+        for ch in low:
+            clean_chars.append(ch if (ch.isalnum() or ch in (".", "-", "_")) else " ")
+        tokens = "".join(clean_chars).split()
+        tok_set = set(tokens)
+
+        # 1. Drone index slot (Drone 1..4)
+        drone_idx: Optional[int] = None
+        for idx, name_toks in enumerate(
+            [
+                ("1", "one", "sierra", "d1", "drone1"),
+                ("2", "two", "kilo", "d2", "drone2"),
+                ("3", "three", "echo", "d3", "drone3"),
+                ("4", "four", "foxtrot", "d4", "drone4"),
+            ]
+        ):
+            if any(nt in tok_set for nt in name_toks[2:]):
+                drone_idx = idx
+                break
+            for i in range(len(tokens) - 1):
+                if tokens[i] == "drone" and tokens[i + 1] in name_toks[:2]:
+                    drone_idx = idx
+                    break
+
+        # 2. Target slot (Snowmobile vs Hiker)
+        has_snowmobile = any(w in tok_set for w in ("snowmobile", "vehicle", "sled", "rider", "skidoo", "motor"))
+        has_hiker = any(w in tok_set for w in ("hiker", "person", "victim", "walker", "survivor", "skier", "man", "woman"))
+        target_type: Optional[str] = "VEHICLE" if has_snowmobile else ("PERSON" if has_hiker else None)
+
+        # 3. Talk / Voice Intercom slot
+        wants_talk = any(
+            w in tok_set
+            for w in ("talk", "speak", "say", "ask", "tell", "voice", "intercom", "speaker", "loudhailer", "close", "hail", "stop", "wait", "halt")
+        )
+        voice_preset: Optional[str] = None
+        custom_voice_msg: Optional[str] = None
+
+        # Extract quoted speech if operator wrote quotes: e.g. say "Hello there"
+        q_start = raw_prompt.find('"')
+        q_end = raw_prompt.rfind('"')
+        if q_start != -1 and q_end > q_start + 1:
+            custom_voice_msg = raw_prompt[q_start + 1 : q_end].strip()
+            wants_talk = True
+        elif "say " in low:
+            after_say = raw_prompt[low.find("say ") + 4 :].strip()
+            if len(after_say) >= 2:
+                custom_voice_msg = after_say
+                wants_talk = True
+
+        if wants_talk and not custom_voice_msg:
+            if any(w in tok_set for w in ("ok", "okay", "injured", "injury", "status", "hurt", "medical", "check")):
+                voice_preset = "STATUS_CHECK"
+            elif any(w in tok_set for w in ("guide", "safety", "hut", "bridge", "road", "lead", "light", "escort")) and "stop" not in tok_set:
+                voice_preset = "FOLLOW_LIGHT"
+            elif any(w in tok_set for w in ("clear", "stand", "back", "drop", "barrel", "cask", "supply")):
+                voice_preset = "STAND_CLEAR_DROP"
+            else:
+                voice_preset = "HALT_LISTEN"
+
+        # 4. Supply Drop slot
+        drop_action: Optional[str] = None
+        if any(w in tok_set for w in ("drop", "barrel", "cask", "supply", "payload", "blanket", "package")):
+            if any(w in tok_set for w in ("cancel", "abort", "veto", "no", "dont", "stop")):
+                drop_action = "CANCEL_DROP"
+            elif any(w in tok_set for w in ("now", "immediate", "immediately", "release")):
+                drop_action = "RELEASE_NOW"
+            else:
+                drop_action = "QUEUE_DROP"
+
+        # 5. Flight Mode slot
+        mode: Optional[str] = None
+        if any(w in tok_set for w in ("manual", "practice", "stick", "steer", "myself", "keyboard", "wasd")):
+            mode = "MANUAL_FLY"
+        elif any(w in tok_set for w in ("follow", "track", "autotrack", "auto-track", "lock", "escort", "intercept", "chase")) or wants_talk or target_type is not None:
+            mode = "AUTO_FOLLOW"
+        elif any(w in tok_set for w in ("scan", "search", "patrol", "sweep", "grid", "sectors", "canyon", "resume")):
+            mode = "AUTO_SEARCH"
+
+        # 6. Numeric Altitude & Speed slots (zero regex: inspect adjacent tokens)
+        search_alt_m: Optional[float] = None
+        track_alt_m: Optional[float] = None
+        sim_speed: Optional[float] = None
+        for i, tok in enumerate(tokens):
+            if tok.endswith("m") and len(tok) > 1:
+                num_part = tok[:-1]
+                try:
+                    val = float(num_part)
+                    if 18.0 <= val <= 150.0:
+                        if mode == "AUTO_FOLLOW":
+                            track_alt_m = val
+                        else:
+                            search_alt_m = val
+                except ValueError:
+                    pass
+            elif tok.endswith("x") and len(tok) > 1:
+                num_part = tok[:-1]
+                try:
+                    s_val = float(num_part)
+                    if 0.1 <= s_val <= 100.0:
+                        sim_speed = s_val
+                except ValueError:
+                    pass
+            else:
+                try:
+                    val = float(tok)
+                    next_tok = tokens[i + 1] if i + 1 < len(tokens) else ""
+                    if next_tok in ("m", "meters", "metres", "agl") and 18.0 <= val <= 150.0:
+                        if mode == "AUTO_FOLLOW":
+                            track_alt_m = val
+                        else:
+                            search_alt_m = val
+                except ValueError:
+                    pass
+
+        if "realtime" in tok_set or "real-time" in tok_set or ("normal" in tok_set and "speed" in tok_set):
+            sim_speed = 1.0
+
+        plan: Dict[str, Any] = {
+            "mode": mode or "AUTO_FOLLOW",
+            "target_type": target_type,
+            "drone_idx": drone_idx,
+            "close_talk": wants_talk,
+            "voice_preset": voice_preset,
+            "custom_voice_message": custom_voice_msg,
+            "drop_action": drop_action,
+            "search_altitude_agl_m": search_alt_m,
+            "tracking_altitude_agl_m": track_alt_m,
+            "sim_speed": sim_speed,
+        }
+        if isinstance(llm_plan, dict):
+            for k in plan:
+                if llm_plan.get(k) is not None:
+                    plan[k] = llm_plan[k]
+
+        # Apply structured parameters through Stage-3 safety clamping
+        struct_overrides: Dict[str, Any] = {}
+        if plan.get("search_altitude_agl_m") is not None:
+            struct_overrides["search_altitude_agl_m"] = float(plan["search_altitude_agl_m"])
+        if plan.get("tracking_altitude_agl_m") is not None:
+            struct_overrides["tracking_altitude_agl_m"] = float(plan["tracking_altitude_agl_m"])
+        if plan.get("target_type") in ("PERSON", "VEHICLE"):
+            struct_overrides["preferred_target_type"] = plan["target_type"]
+            struct_overrides["preempt_on_vehicle"] = plan["target_type"] == "VEHICLE"
+            struct_overrides["preempt_on_person"] = True
+        if plan.get("drop_action") == "CANCEL_DROP":
+            struct_overrides["drop_policy"] = "MANUAL_ONLY"
+        elif plan.get("drop_action") in ("QUEUE_DROP", "RELEASE_NOW"):
+            struct_overrides["drop_policy"] = "AUTO_RELEASE_AT_OFFSET"
+
+        if struct_overrides:
+            self.set_playbook(self.active_playbook_id, structured_params=struct_overrides)
+        if plan.get("mode") in ("AUTO_FOLLOW", "AUTO_SEARCH"):
+            self.aid_mode = "CLOUD_LLM_JEV" if is_real_key else "OFFLINE_DETERMINISTIC"
+        elif plan.get("mode") == "MANUAL_FLY":
+            self.aid_mode = "MANUAL_HUMAN_ONLY"
+
+        # Build human-friendly Apple Copilot summary if LLM didn't supply one
+        reply = (llm_plan or {}).get("assistant_reply") if isinstance(llm_plan, dict) else None
+        if not reply:
+            d_label = f"Drone {(plan['drone_idx'] + 1)}" if plan.get("drone_idx") is not None else "Active Drone"
+            t_label = "Snowmobile (+34.0°C)" if plan.get("target_type") == "VEHICLE" else (
+                "Lost Hiker (+31.4°C)" if plan.get("target_type") == "PERSON" else "closest target"
+            )
+            parts = []
+            if plan["mode"] == "MANUAL_FLY":
+                parts.append(f"Switched {d_label} to 1x Real-Time Manual Flight")
+            elif plan["mode"] == "AUTO_SEARCH":
+                alt_s = int(self.compiled_rules.search_altitude_agl_m)
+                parts.append(f"Commanded all 4 drones to cooperative canyon scan at {alt_s}m AGL")
+            else:
+                if plan.get("close_talk"):
+                    parts.append(f"Assigned {d_label} to fly close (8m standoff, 20m AGL) & auto-track {t_label}")
+                else:
+                    alt_t = int(self.compiled_rules.tracking_altitude_agl_m)
+                    parts.append(f"Assigned {d_label} to auto-track & follow {t_label} at {alt_t}m AGL")
+            if plan.get("custom_voice_message"):
+                parts.append(f'speaking over 85 dBA speaker: "{plan["custom_voice_message"]}"')
+            elif plan.get("voice_preset") == "STATUS_CHECK":
+                parts.append("asking if they are OK over the 2-way speaker/mic intercom")
+            elif plan.get("voice_preset") == "HALT_LISTEN":
+                parts.append("asking them to stop and talk to the drone")
+            elif plan.get("voice_preset") == "FOLLOW_LIGHT":
+                parts.append("guiding them to safety with the green Opaslyhty beam")
+            elif plan.get("voice_preset") == "STAND_CLEAR_DROP":
+                parts.append("warning them to stand 15m clear for supply drop")
+            if plan.get("drop_action") == "QUEUE_DROP":
+                parts.append("queuing +42°C warm survival barrel drop at 15m standoff")
+            elif plan.get("drop_action") == "RELEASE_NOW":
+                parts.append("releasing +42°C warm survival barrel immediately")
+            elif plan.get("drop_action") == "CANCEL_DROP":
+                parts.append("canceling pending payload drop")
+            if plan.get("sim_speed") is not None:
+                parts.append(f"speed set to {plan['sim_speed']:g}x")
+            reply = "✅ " + ", ".join(parts) + "."
+
+        return {
+            "ok": True,
+            "prompt": raw_prompt,
+            "engine": f"LIVE_LLM ({self.llm_provider}:{self.llm_model})" if (llm_plan is not None) else "STRUCTURED_AI_PLANNER (<1ms)",
+            "llm_error": llm_error,
+            "action_plan": plan,
+            "assistant_reply": reply,
+            "compiled_rules": asdict(self.compiled_rules),
+            "epoch_id": self.veto_registry.current_epoch,
+            "latency_ms": round((time.perf_counter() - t0) * 1000.0, 2),
+        }
+
     def get_status(self) -> Dict[str, Any]:
         return {
             "active_playbook_id": self.active_playbook_id,

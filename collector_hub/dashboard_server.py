@@ -1126,6 +1126,24 @@ def make_command_center_handler(alerts_dir, verbose=False):
         def do_POST(self):
             parsed = urlparse(self.path)
             clean_path = unquote(parsed.path)
+            if clean_path == "/api/playbook/command":
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                try:
+                    content_len = min(16384, max(0, int(self.headers.get("Content-Length", "0"))))
+                    raw_body = self.rfile.read(content_len).decode("utf-8") if content_len > 0 else "{}"
+                    payload = json.loads(raw_body) if raw_body.strip() else {}
+                    import playbook_agent_dispatcher
+                    disp = playbook_agent_dispatcher.GLOBAL_PLAYBOOK_DISPATCHER
+                    prompt_txt = str(payload.get("prompt") or payload.get("command") or "")
+                    res = disp.execute_operator_command(prompt_txt, telemetry=payload.get("telemetry"))
+                except Exception as e:
+                    res = {"ok": False, "error": str(e)}
+                self.wfile.write(json.dumps(res).encode("utf-8"))
+                return
             if clean_path in ("/api/playbook/structured", "/api/playbook/select"):
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
