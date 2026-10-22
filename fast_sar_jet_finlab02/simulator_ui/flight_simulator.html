@@ -5485,7 +5485,18 @@ const fpvSim = {
   crashImpactBank_deg: 0.0,
   preset: "CANYON_DIRECT",
   controlLaw: "DIRECT_LAW", // "DIRECT_LAW" (Raw Servos - No Envelope Protection), "ALTERNATE_LAW", "NORMAL_LAW"
-  mouseYokeEnabled: false,
+  mouseYokeEnabled: true,   // Trackpad absolute bounds mode enabled by default!
+  invertTrackpadY: false,   // false: bottom of trackpad = pull back (nose up), top = push forward (nose down); toggle with [I]
+  hwTrackpadConnected: false,
+  hwTrackpadTouching: false,
+  hwTrackpadFingers: 0,
+  hwPadX: 0.5,              // Normalized physical trackpad X [0.0 = left side .. 0.5 = middle .. 1.0 = right side]
+  hwPadY: 0.5,              // Normalized physical trackpad Y [0.0 = bottom side .. 0.5 = middle .. 1.0 = top side]
+  hwStickX: 0.0,
+  hwStickY: 0.0,
+  browserPointerActive: false,
+  browserPointerDown: false,
+  browserLastMoveMs: 0.0,
   mouseYokeX: 0.0,
   mouseYokeY: 0.0,
   draggingStick: null, // "LEFT" | "RIGHT" | null
@@ -5827,20 +5838,48 @@ function stepLiveFpvPhysics(dtFrame) {
     }
   }
 
-  // Combine with Mouse Yoke or On-Screen Dragged Gimbal Sticks
-  if (fpvSim.mouseYokeEnabled || fpvSim.draggingStick === "RIGHT") {
-    cmdRoll  = Math.max(-1.0, Math.min(1.0, cmdRoll + fpvSim.mouseYokeX));
-    cmdPitch = Math.max(-1.0, Math.min(1.0, cmdPitch + fpvSim.mouseYokeY));
+  // Combine with Hardware MacBook Trackpad (MultitouchSupport 0..1 bounds) or Browser Viewport Trackpad Bounds
+  const nowMs = (typeof performance !== "undefined" && performance.now) ? performance.now() : Date.now();
+  let directTrackpadActive = false;
+
+  if (fpvSim.draggingStick === "RIGHT") {
+    cmdRoll  = fpvSim.mouseYokeX;
+    cmdPitch = fpvSim.mouseYokeY;
+    directTrackpadActive = true;
+  } else if (fpvSim.mouseYokeEnabled) {
+    if (fpvSim.hwTrackpadConnected) {
+      // Physical MacBook Trackpad via MultitouchSupport.framework:
+      // - Finger OFF trackpad or in MIDDLE of trackpad -> stick in middle (0, 0)
+      // - Finger ANYWHERE on trackpad -> stick points to that direction with physical trackpad sides as bounds!
+      if (fpvSim.hwTrackpadTouching) {
+        cmdRoll  = fpvSim.hwStickX;
+        cmdPitch = fpvSim.invertTrackpadY ? -fpvSim.hwStickY : fpvSim.hwStickY;
+      }
+      directTrackpadActive = true;
+    } else {
+      // Browser Viewport Trackpad Fallback:
+      // Finger moving/pressing inside viewport maps viewport sides as bounds; lifting/stopping finger returns to (0, 0)
+      const fingerActiveInBrowser = fpvSim.browserPointerDown || ((nowMs - fpvSim.browserLastMoveMs) < 240.0 && fpvSim.browserPointerActive);
+      if (fingerActiveInBrowser) {
+        cmdRoll  = fpvSim.mouseYokeX;
+        cmdPitch = fpvSim.invertTrackpadY ? -fpvSim.mouseYokeY : fpvSim.mouseYokeY;
+      } else {
+        fpvSim.mouseYokeX = 0.0;
+        fpvSim.mouseYokeY = 0.0;
+      }
+    }
   }
   if (fpvSim.draggingStick === "LEFT") {
     cmdYaw = Math.max(-1.0, Math.min(1.0, cmdYaw + fpvSim.stickYaw));
   }
 
-  // Smooth pilot stick position (realistic human stick rate ~0.25s full throw, unless dragging gimbal directly)
-  const stickRate = 4.5 * dtFrame;
+  // Smooth pilot stick position (fast 1:1 response when using physical trackpad, ~0.22s throw on keyboard)
+  const stickRate = (directTrackpadActive ? 22.0 : 4.5) * dtFrame;
   if (fpvSim.draggingStick !== "RIGHT") {
     fpvSim.stickPitch += (cmdPitch - fpvSim.stickPitch) * Math.min(1.0, stickRate);
     fpvSim.stickRoll  += (cmdRoll  - fpvSim.stickRoll)  * Math.min(1.0, stickRate);
+    if (Math.abs(cmdPitch) < 0.005 && Math.abs(fpvSim.stickPitch) < 0.01) fpvSim.stickPitch = 0.0;
+    if (Math.abs(cmdRoll)  < 0.005 && Math.abs(fpvSim.stickRoll)  < 0.01) fpvSim.stickRoll  = 0.0;
   }
   if (fpvSim.draggingStick !== "LEFT") {
     fpvSim.stickYaw   += (cmdYaw   - fpvSim.stickYaw)   * Math.min(1.0, stickRate);
@@ -6774,24 +6813,30 @@ function drawFpvCockpitHUD(ctx, x0, y0, w, h, sample, flow, cfg, env, flt) {
     fpvSim.hudHitBoxes.push({ x: px, y: py, w: pw, h: ph, action: onClickFn });
   }
 
-  // Row 1: 3 Flight Control Laws + Mouse Yoke Toggle
+  // Row 1: 3 Flight Control Laws + Trackpad Bounds Toggle + Invert Y Toggle
   const row1Y = topBarY + 3;
-  const lawW = Math.min(138, (w - 150) / 3);
-  addHudPill(x0 + 14, row1Y, lawW, 17, "[1] DIRECT LAW (RAW SERVOS)", fpvSim.controlLaw === "DIRECT_LAW", "#ff4757", () => {
+  const lawW = Math.min(122, (w - 224) / 3);
+  addHudPill(x0 + 12, row1Y, lawW, 17, "[1] DIRECT LAW (RAW)", fpvSim.controlLaw === "DIRECT_LAW", "#ff4757", () => {
     fpvSim.controlLaw = "DIRECT_LAW";
     syncLiveFpvHeaderButton();
   });
-  addHudPill(x0 + 18 + lawW, row1Y, lawW, 17, "[2] ALTERNATE LAW (SAS)", fpvSim.controlLaw === "ALTERNATE_LAW", "#ffbe2e", () => {
+  addHudPill(x0 + 16 + lawW, row1Y, lawW, 17, "[2] ALTERNATE (SAS)", fpvSim.controlLaw === "ALTERNATE_LAW", "#ffbe2e", () => {
     fpvSim.controlLaw = "ALTERNATE_LAW";
     syncLiveFpvHeaderButton();
   });
-  addHudPill(x0 + 22 + lawW * 2, row1Y, lawW, 17, "[3] NORMAL LAW (PROTECTED)", fpvSim.controlLaw === "NORMAL_LAW", "#18e07f", () => {
+  addHudPill(x0 + 20 + lawW * 2, row1Y, lawW, 17, "[3] NORMAL LAW (FBW)", fpvSim.controlLaw === "NORMAL_LAW", "#18e07f", () => {
     fpvSim.controlLaw = "NORMAL_LAW";
     syncLiveFpvHeaderButton();
   });
-  addHudPill(x0 + w - 122, row1Y, 108, 17, fpvSim.mouseYokeEnabled ? "🖱️ MOUSE YOKE: ON" : "🖱️ MOUSE YOKE [M]", fpvSim.mouseYokeEnabled, "#00d8ff", () => {
+  const tpLabel = !fpvSim.mouseYokeEnabled
+    ? "🍏 TRACKPAD: OFF [M]"
+    : (fpvSim.hwTrackpadConnected ? "🍏 HW TRACKPAD: LIVE" : "🍏 TRACKPAD: ON [M]");
+  addHudPill(x0 + w - 196, row1Y, 114, 17, tpLabel, fpvSim.mouseYokeEnabled, fpvSim.hwTrackpadConnected ? "#18e07f" : "#00d8ff", () => {
     fpvSim.mouseYokeEnabled = !fpvSim.mouseYokeEnabled;
     if (!fpvSim.mouseYokeEnabled) { fpvSim.mouseYokeX = 0; fpvSim.mouseYokeY = 0; }
+  });
+  addHudPill(x0 + w - 78, row1Y, 66, 17, fpvSim.invertTrackpadY ? "[I] Y:POINT" : "[I] Y:PULL", fpvSim.invertTrackpadY, "#ffbe2e", () => {
+    fpvSim.invertTrackpadY = !fpvSim.invertTrackpadY;
   });
 
   // Row 2: 5 Spawn Scenarios
@@ -6820,11 +6865,11 @@ function drawFpvCockpitHUD(ctx, x0, y0, w, h, sample, flow, cfg, env, flt) {
   ctx.textAlign = "center";
   ctx.fillText(fpvSim.protBanner, cx, topBarY + 57);
 
-  // 10. Bottom On-Screen Draggable Mode-2 Dual RC Gimbals & Action Switches
+  // 10. Bottom On-Screen Left Gimbal + Right Rectangular Trackpad Bounds Visualizer & Action Switches
   const gimR = Math.min(36, h * 0.105);
   const gimY = y0 + h - gimR - 14;
-  const leftGimX  = cx - Math.min(135, w * 0.26);
-  const rightGimX = cx + Math.min(135, w * 0.26);
+  const leftGimX  = cx - Math.min(138, w * 0.27);
+  const rightGimX = cx + Math.min(138, w * 0.27);
 
   function drawGimbal(gx, gy, gr, normX, normY, titleLbl, stickTag) {
     ctx.fillStyle = "rgba(5, 13, 25, 0.85)";
@@ -6859,10 +6904,67 @@ function drawFpvCockpitHUD(ctx, x0, y0, w, h, sample, flow, cfg, env, flt) {
     });
   }
 
+  // Draw Rectangular MacBook Trackpad Bounds Surface (16:10 aspect ratio: sides = bounds, middle or off = center)
+  function drawTrackpadBoundsSurface(gx, gy, padHalfW, padHalfH) {
+    const px0 = gx - padHalfW;
+    const py0 = gy - padHalfH;
+    const pw = padHalfW * 2;
+    const ph = padHalfH * 2;
+    const isTouching = fpvSim.hwTrackpadConnected
+      ? fpvSim.hwTrackpadTouching
+      : (fpvSim.draggingStick === "RIGHT" || fpvSim.browserPointerDown || (Math.hypot(fpvSim.stickRoll, fpvSim.stickPitch) > 0.01));
+
+    ctx.fillStyle = "rgba(5, 13, 25, 0.88)";
+    ctx.strokeStyle = isTouching ? "#18e07f" : "rgba(0, 216, 255, 0.55)";
+    ctx.lineWidth = isTouching ? 1.8 : 1.3;
+    ctx.fillRect(px0, py0, pw, ph);
+    ctx.strokeRect(px0, py0, pw, ph);
+
+    // Inner usable bound frame & center deadzone circle ("MIDDLE = 0,0")
+    ctx.strokeStyle = "rgba(157, 200, 255, 0.22)";
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(px0 + 4, gy); ctx.lineTo(px0 + pw - 4, gy);
+    ctx.moveTo(gx, py0 + 4); ctx.lineTo(gx, py0 + ph - 4);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(gx, gy, 5.5, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Stick position mapped inside the rectangular trackpad bounds
+    const sx = gx + Math.max(-1, Math.min(1, fpvSim.stickRoll)) * (padHalfW - 7);
+    const sy = gy + Math.max(-1, Math.min(1, fpvSim.stickPitch)) * (padHalfH - 7);
+    ctx.strokeStyle = isTouching ? "#18e07f" : "#00d8ff";
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(gx, gy);
+    ctx.lineTo(sx, sy);
+    ctx.stroke();
+
+    ctx.fillStyle = isTouching ? "#18e07f" : "#00d8ff";
+    ctx.beginPath();
+    ctx.arc(sx, sy, isTouching ? 6.5 : 5.0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = isTouching ? "#18e07f" : "#9dc8ff";
+    ctx.font = "bold 7.8px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(
+      isTouching
+        ? `🍏 FINGER ON PAD (R:${(fpvSim.stickRoll * 100).toFixed(0)}% P:${(fpvSim.stickPitch * 100).toFixed(0)}%)`
+        : "🍏 FINGER OFF / MID → STICK (0,0)",
+      gx, py0 - 4
+    );
+    fpvSim.hudHitBoxes.push({
+      x: px0, y: py0, w: pw, h: ph,
+      stickTag: "RIGHT", gx, gy, gr: padHalfW, padHalfW, padHalfH
+    });
+  }
+
   // Left Gimbal: Throttle (Y: top=100%, bottom=0%) & Rudder Yaw (X: left/right)
   drawGimbal(leftGimX, gimY, gimR, fpvSim.stickYaw, 1.0 - 2.0 * fpvSim.throttleCmd, "THR [Shift/Ctrl] · YAW [Q/E]", "LEFT");
-  // Right Gimbal: Pitch (Y: down=+pull nose up, up=-push nose down) & Roll (X: left/right)
-  drawGimbal(rightGimX, gimY, gimR, fpvSim.stickRoll, fpvSim.stickPitch, "PITCH [W/S] · ROLL [A/D]", "RIGHT");
+  // Right Trackpad Surface: Rectangular Trackpad Bounds (Sides = ±100% Bounds, Middle or Finger Off = Centered)
+  drawTrackpadBoundsSurface(rightGimX, gimY, Math.round(gimR * 1.38), gimR);
 
   // Center Bottom Action Pills (Flaps, Crow Airbrake, Trim Reset, Drop SAR Capsule, Recovery Chute)
   const actW = 68;
@@ -6888,7 +6990,7 @@ function drawFpvCockpitHUD(ctx, x0, y0, w, h, sample, flow, cfg, env, flt) {
   ctx.fillStyle = "#8cb4d8";
   ctx.font = "8px sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("KEYS: [W/S or ↑/↓] Pitch · [A/D or ←/→] Roll · [Q/E] Yaw · [Shift/Ctrl] Throttle · [T/G] Pitch Trim · [1/2/3] Flight Law · [R] Respawn", cx, y0 + h - 4);
+  ctx.fillText("TRACKPAD: Finger in Middle or Off = Center (0,0) · Finger Anywhere = Stick Points There (Sides = Bounds) · [I] Invert Y · [Shift/Ctrl] Thr · [R] Respawn", cx, y0 + h - 4);
 
   // 11. FORENSIC CRASH & STRUCTURAL FAILURE OVERLAY (When Crashed)
   if (fpvSim.crashed) {
@@ -6955,7 +7057,61 @@ document.getElementById("btnToggleLiveFpv").onclick = () => {
   }
 };
 
-// Mouse Interaction on canvasAircraft3D for FPV HUD Buttons, Dual Gimbals & Mouse Yoke
+// Connect to Local macOS Hardware Multitouch Trackpad Bridge (127.0.0.1:8765)
+// Reads physical MacBook glass trackpad normalized [0..1] finger coordinates at 60 Hz:
+// - Finger OFF trackpad or in MIDDLE of trackpad -> stick in middle (0, 0)
+// - Finger ANYWHERE on trackpad -> stick points to that direction with physical trackpad sides as bounds
+let macTrackpadEventSource = null;
+function connectMacHardwareTrackpadStream() {
+  if (typeof EventSource === "undefined") return;
+  try {
+    if (macTrackpadEventSource) macTrackpadEventSource.close();
+    macTrackpadEventSource = new EventSource("http://127.0.0.1:8765/trackpad-stream");
+    macTrackpadEventSource.onopen = () => {
+      fpvSim.hwTrackpadConnected = true;
+    };
+    macTrackpadEventSource.onmessage = evt => {
+      try {
+        const d = JSON.parse(evt.data);
+        fpvSim.hwTrackpadConnected = true;
+        fpvSim.hwTrackpadTouching = Boolean(d.touching);
+        fpvSim.hwTrackpadFingers  = d.n_fingers || 0;
+        fpvSim.hwPadX   = d.pad_x !== undefined ? d.pad_x : 0.5;
+        fpvSim.hwPadY   = d.pad_y !== undefined ? d.pad_y : 0.5;
+        fpvSim.hwStickX = d.stick_x !== undefined ? d.stick_x : 0.0;
+        fpvSim.hwStickY = d.stick_y !== undefined ? d.stick_y : 0.0;
+      } catch (_) {}
+    };
+    macTrackpadEventSource.onerror = () => {
+      fpvSim.hwTrackpadConnected = false;
+      fpvSim.hwTrackpadTouching = false;
+      fpvSim.hwStickX = 0.0;
+      fpvSim.hwStickY = 0.0;
+      if (macTrackpadEventSource) {
+        macTrackpadEventSource.close();
+        macTrackpadEventSource = null;
+      }
+      setTimeout(connectMacHardwareTrackpadStream, 3000);
+    };
+  } catch (_) {}
+}
+connectMacHardwareTrackpadStream();
+
+// Helper to map a 2D point inside a rectangular bound [cx, cy, halfW, halfH] with center deadzone
+function mapRectBoundsToStick(dx, dy, halfW, halfH) {
+  const deadX = halfW * 0.07;
+  const deadY = halfH * 0.07;
+  let sx = 0.0, sy = 0.0;
+  if (Math.abs(dx) > deadX) {
+    sx = Math.sign(dx) * Math.min(1.0, (Math.abs(dx) - deadX) / Math.max(1.0, halfW - deadX));
+  }
+  if (Math.abs(dy) > deadY) {
+    sy = Math.sign(dy) * Math.min(1.0, (Math.abs(dy) - deadY) / Math.max(1.0, halfH - deadY));
+  }
+  return [sx, sy];
+}
+
+// Mouse / Trackpad Interaction on canvasAircraft3D for FPV HUD Buttons, Dual Gimbals & Viewport Bounds
 const fpvCanvas = document.getElementById("canvasAircraft3D");
 fpvCanvas.addEventListener("mousedown", e => {
   if (camMode !== "FPV_COCKPIT" && camMode !== "FPV_SPLIT") return;
@@ -6967,8 +7123,10 @@ fpvCanvas.addEventListener("mousedown", e => {
     if (mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h) {
       if (b.stickTag) {
         fpvSim.draggingStick = b.stickTag;
-        const nx = Math.max(-1, Math.min(1, (mx - b.gx) / (b.gr - 8)));
-        const ny = Math.max(-1, Math.min(1, (my - b.gy) / (b.gr - 8)));
+        const hw = b.padHalfW || (b.gr - 8);
+        const hh = b.padHalfH || (b.gr - 8);
+        const nx = Math.max(-1, Math.min(1, (mx - b.gx) / hw));
+        const ny = Math.max(-1, Math.min(1, (my - b.gy) / hh));
         if (b.stickTag === "RIGHT") {
           fpvSim.stickRoll = nx;
           fpvSim.stickPitch = ny;
@@ -6985,6 +7143,15 @@ fpvCanvas.addEventListener("mousedown", e => {
       return;
     }
   }
+
+  // Clicking/pressing anywhere else in the FPV viewport engages immediate Trackpad Bounds deflection
+  fpvSim.browserPointerDown = true;
+  fpvSim.browserPointerActive = true;
+  fpvSim.browserLastMoveMs = performance.now();
+  const subW = camMode === "FPV_SPLIT" ? rect.width * 0.55 : rect.width;
+  const [sx, sy] = mapRectBoundsToStick(mx - subW * 0.5, my - rect.height * 0.5, subW * 0.44, rect.height * 0.42);
+  fpvSim.mouseYokeX = sx;
+  fpvSim.mouseYokeY = sy;
 });
 
 window.addEventListener("mousemove", e => {
@@ -6996,8 +7163,10 @@ window.addEventListener("mousemove", e => {
   if (fpvSim.draggingStick) {
     for (const b of fpvSim.hudHitBoxes) {
       if (b.stickTag === fpvSim.draggingStick) {
-        const nx = Math.max(-1, Math.min(1, (mx - b.gx) / (b.gr - 8)));
-        const ny = Math.max(-1, Math.min(1, (my - b.gy) / (b.gr - 8)));
+        const hw = b.padHalfW || (b.gr - 8);
+        const hh = b.padHalfH || (b.gr - 8);
+        const nx = Math.max(-1, Math.min(1, (mx - b.gx) / hw));
+        const ny = Math.max(-1, Math.min(1, (my - b.gy) / hh));
         if (b.stickTag === "RIGHT") {
           fpvSim.stickRoll = nx;
           fpvSim.stickPitch = ny;
@@ -7012,13 +7181,29 @@ window.addEventListener("mousemove", e => {
     }
   } else if (fpvSim.mouseYokeEnabled && mx >= 0 && mx <= rect.width && my >= 0 && my <= rect.height) {
     const subW = camMode === "FPV_SPLIT" ? rect.width * 0.55 : rect.width;
-    fpvSim.mouseYokeX = Math.max(-1.0, Math.min(1.0, (mx - subW * 0.5) / (subW * 0.32)));
-    fpvSim.mouseYokeY = Math.max(-1.0, Math.min(1.0, (my - rect.height * 0.5) / (rect.height * 0.32)));
+    if (mx <= subW) {
+      fpvSim.browserPointerActive = true;
+      fpvSim.browserLastMoveMs = performance.now();
+      const [sx, sy] = mapRectBoundsToStick(mx - subW * 0.5, my - rect.height * 0.5, subW * 0.44, rect.height * 0.42);
+      fpvSim.mouseYokeX = sx;
+      fpvSim.mouseYokeY = sy;
+    }
+  }
+});
+
+fpvCanvas.addEventListener("mouseleave", () => {
+  // Finger/cursor left the trackpad viewport -> center stick immediately to (0, 0)
+  fpvSim.browserPointerActive = false;
+  fpvSim.browserPointerDown = false;
+  if (!fpvSim.draggingStick) {
+    fpvSim.mouseYokeX = 0.0;
+    fpvSim.mouseYokeY = 0.0;
   }
 });
 
 window.addEventListener("mouseup", () => {
-  if (fpvSim.draggingStick === "RIGHT" && !fpvSim.mouseYokeEnabled) {
+  fpvSim.browserPointerDown = false;
+  if (fpvSim.draggingStick === "RIGHT") {
     fpvSim.mouseYokeX = 0.0;
     fpvSim.mouseYokeY = 0.0;
   }
@@ -7040,6 +7225,7 @@ window.addEventListener("keydown", e => {
   else if (e.code === "KeyV") { fpvSim.flapsDeployed = !fpvSim.flapsDeployed; }
   else if (e.code === "KeyB") { fpvSim.crowBrakeDeployed = !fpvSim.crowBrakeDeployed; }
   else if (e.code === "KeyP") { fpvSim.chuteDeployed = !fpvSim.chuteDeployed; }
+  else if (e.code === "KeyI") { fpvSim.invertTrackpadY = !fpvSim.invertTrackpadY; }
   else if (e.code === "KeyM") {
     fpvSim.mouseYokeEnabled = !fpvSim.mouseYokeEnabled;
     if (!fpvSim.mouseYokeEnabled) { fpvSim.mouseYokeX = 0; fpvSim.mouseYokeY = 0; }
