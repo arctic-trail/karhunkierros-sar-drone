@@ -1866,6 +1866,8 @@
         searchAltM: 55,
         overlapPct: 0,
         trackAltM: 28,
+        canopyFloorM: 18,
+        ceilingM: 120,
         preferredTarget: 'PERSON',
         preemptPerson: true,
         preemptVehicle: false,
@@ -1877,46 +1879,87 @@
         vetoBubbleRadiusM: 60,
         rthBatteryPct: 22
       };
+      let rawSearchAlt = null;
+      let rawTrackAlt = null;
       const lines = (mdText || '').split('\n').map(s => s.trim()).filter(Boolean);
       for (const ln of lines) {
         if (ln.startsWith('#')) continue;
-        const cl = ln.toLowerCase();
-        const hasNeg = /\b(do\s+not|don't|never|no|prohibit)\b/.test(cl);
-        if (cl.includes('search') || cl.includes('overlap') || cl.includes('strips')) {
-          const mAlt = cl.match(/at\s+(\d{2,3})\s*m/);
-          if (mAlt) rules.searchAltM = Math.max(28, Math.min(120, parseInt(mAlt[1], 10)));
-          const mOv = cl.match(/(\d{1,2})\s*%\s*overlap/);
-          if (mOv) rules.overlapPct = Math.max(0, Math.min(50, parseInt(mOv[1], 10)));
-        } else if (cl.includes('vehicle policy')) {
-          if (hasNeg) rules.preemptVehicle = false;
-        } else if (cl.includes('preemption') || cl.includes('prioritize') || cl.includes('track detected')) {
-          if (cl.includes('snowmobile') || cl.includes('prioritize stranded vehicle')) {
-            rules.preemptVehicle = !hasNeg;
-            if (!hasNeg) rules.preferredTarget = 'VEHICLE';
+        // [RT2-04] Split into sub-clauses without breaking decimal numbers like 0.85
+        const subs = ln.toLowerCase().split(/(?<!\d)\.(?!\d)|;|\band then\b|,\s*and\b|\band\b(?=\s+(?:queue|drop|release|track|lock|require|do\s+not))/i).map(s => s.trim()).filter(Boolean);
+        for (const cl of subs) {
+          const hasNeg = /\b(do\s+not|don't|never|no|prohibit|ignore)\b/.test(cl);
+          if (cl.includes('search') || cl.includes('overlap') || cl.includes('strips') || cl.includes('scan at')) {
+            const mAlt = cl.match(/at\s+(\d{2,3}(?:\.\d+)?)\s*m/);
+            if (mAlt) rawSearchAlt = parseFloat(mAlt[1]);
+            const mOv = cl.match(/(\d{1,2}(?:\.\d+)?)\s*%\s*overlap/);
+            if (mOv) rules.overlapPct = Math.max(0, Math.min(50, parseFloat(mOv[1])));
           }
-          const mTAlt = cl.match(/at\s+(\d{2,3})\s*m/);
-          if (mTAlt) rules.trackAltM = Math.max(28, Math.min(100, parseInt(mTAlt[1], 10)));
-        } else if (cl.includes('payload drop') || cl.includes('rescue cask') || cl.includes('auto-drop')) {
-          const reqHuman = /require\s+(explicit\s+)?human/.test(cl);
-          if (hasNeg || reqHuman) {
-            rules.autoReleaseDrop = false;
-            rules.requireHumanDropConfirm = true;
-            rules.autoQueueDrop = cl.includes('queue');
-          } else {
-            rules.autoReleaseDrop = true;
-            rules.requireHumanDropConfirm = false;
-            rules.autoQueueDrop = true;
+          if (cl.includes('canopy')) {
+            const mCan = cl.match(/(\d{1,2}(?:\.\d+)?)\s*m\s*(?:boreal\s+)?(?:tree\s+)?canopy|canopy\s+(?:is\s+)?(\d{1,2}(?:\.\d+)?)\s*m/);
+            if (mCan) rules.canopyFloorM = Math.max(15, Math.min(35, parseFloat(mCan[1] || mCan[2])));
           }
-          const mOff = cl.match(/(\d{1,2})\s*m\s*(horizontal\s+)?(offset|standoff)/);
-          if (mOff) rules.dropOffsetM = Math.max(15, parseInt(mOff[1], 10));
-        } else if (cl.includes('safety') || cl.includes('veto') || cl.includes('battery')) {
-          const mVeto = cl.match(/veto(?:es)?\s+for\s+(\d{2,4})\s*s/);
-          if (mVeto) rules.vetoCooldownS = Math.max(30, parseInt(mVeto[1], 10));
-          const mBatt = cl.match(/battery\s+(?:drops\s+)?(?:below|<|<=)\s*(\d{2})\s*%/);
-          if (mBatt) rules.rthBatteryPct = Math.max(20, parseInt(mBatt[1], 10));
+          if (cl.includes('ceiling')) {
+            const mCeil = cl.match(/(?:below|<|<=|under|max)\s*(\d{2,3}(?:\.\d+)?)\s*m\s*(?:agl\s*)?ceiling|ceiling\s*(?:of\s*|is\s*)?(\d{2,3}(?:\.\d+)?)\s*m/);
+            if (mCeil) rules.ceilingM = Math.max(20, Math.min(150, parseFloat(mCeil[1] || mCeil[2])));
+          }
+          if (cl.includes('vehicle policy')) {
+            if (hasNeg) rules.preemptVehicle = false;
+          }
+          if (cl.includes('preemption') || cl.includes('prioritize') || cl.includes('track detected') || cl.includes('when a lost person') || cl.includes('lock and follow') || cl.includes('lock at')) {
+            if (cl.includes('snowmobile') || cl.includes('prioritize stranded vehicle') || cl.includes('vehicle')) {
+              rules.preemptVehicle = !hasNeg;
+              if (!hasNeg && (cl.includes('snowmobile') || cl.includes('prioritize'))) rules.preferredTarget = 'VEHICLE';
+            }
+            if (cl.includes('person') || cl.includes('hiker')) {
+              rules.preemptPerson = !hasNeg;
+            }
+            const mTAlt = cl.match(/at\s+(\d{2,3}(?:\.\d+)?)\s*m/);
+            if (mTAlt) rawTrackAlt = parseFloat(mTAlt[1]);
+          }
+          if (cl.includes('payload drop') || cl.includes('rescue cask') || cl.includes('auto-drop') || cl.includes('drop') || cl.includes('human confirm')) {
+            const reqHuman = /require\s+(explicit\s+)?human/.test(cl);
+            if (hasNeg || reqHuman) {
+              rules.autoReleaseDrop = false;
+              rules.requireHumanDropConfirm = true;
+              if (cl.includes('queue')) rules.autoQueueDrop = true;
+            } else if (cl.includes('queue') || cl.includes('release') || cl.includes('auto')) {
+              rules.autoReleaseDrop = true;
+              rules.requireHumanDropConfirm = false;
+              rules.autoQueueDrop = true;
+            }
+            const mOff = cl.match(/(\d{1,2}(?:\.\d+)?)\s*m\s*(horizontal\s+)?(offset|standoff)/);
+            if (mOff) rules.dropOffsetM = Math.max(15, parseFloat(mOff[1]));
+          }
+          if (cl.includes('safety') || cl.includes('veto') || cl.includes('battery')) {
+            const mVeto = cl.match(/veto(?:es)?\s+for\s+(\d{2,4})\s*s/);
+            if (mVeto) rules.vetoCooldownS = Math.max(30, parseInt(mVeto[1], 10));
+            const mBatt = cl.match(/battery\s+(?:drops\s+)?(?:below|<|<=)\s*(\d{2}(?:\.\d+)?)\s*%/);
+            if (mBatt) rules.rthBatteryPct = Math.max(20, parseFloat(mBatt[1]));
+          }
         }
       }
+      const lowerBound = Math.max(28, rules.canopyFloorM + 10);
+      if (lowerBound > rules.ceilingM) rules.ceilingM = 120;
+      if (rawSearchAlt !== null) rules.searchAltM = Math.min(rules.ceilingM, Math.max(lowerBound, rawSearchAlt));
+      if (rawTrackAlt !== null) rules.trackAltM = Math.min(rules.ceilingM, Math.max(lowerBound, rawTrackAlt));
       return rules;
+    }
+
+    function hydrateCompiledRulesFromBackend(cr) {
+      if (!cr) return;
+      aidState.compiled.searchAltM = cr.search_altitude_agl_m ?? aidState.compiled.searchAltM;
+      aidState.compiled.overlapPct = cr.sector_overlap_pct ?? aidState.compiled.overlapPct;
+      aidState.compiled.trackAltM = cr.tracking_altitude_agl_m ?? aidState.compiled.trackAltM;
+      aidState.compiled.preferredTarget = cr.preferred_target_type ?? aidState.compiled.preferredTarget;
+      aidState.compiled.preemptPerson = cr.preempt_on_person ?? aidState.compiled.preemptPerson;
+      aidState.compiled.preemptVehicle = cr.preempt_on_vehicle ?? aidState.compiled.preemptVehicle;
+      aidState.compiled.autoQueueDrop = cr.auto_queue_drop ?? aidState.compiled.autoQueueDrop;
+      aidState.compiled.autoReleaseDrop = cr.auto_release_drop ?? aidState.compiled.autoReleaseDrop;
+      aidState.compiled.requireHumanDropConfirm = cr.require_human_drop_confirm ?? aidState.compiled.requireHumanDropConfirm;
+      aidState.compiled.dropOffsetM = cr.drop_offset_m ?? aidState.compiled.dropOffsetM;
+      aidState.compiled.vetoCooldownS = cr.human_cancel_veto_cooldown_s ?? aidState.compiled.vetoCooldownS;
+      aidState.compiled.vetoBubbleRadiusM = cr.veto_bubble_radius_m ?? aidState.compiled.vetoBubbleRadiusM;
+      aidState.compiled.rthBatteryPct = cr.rth_battery_floor_pct ?? aidState.compiled.rthBatteryPct;
     }
 
     function updateAidBannerUI(decisionText = null) {
@@ -2015,7 +2058,12 @@
       aidState.compiled = compileNaturalLanguagePlaybookJS(md);
       applyCompiledPlaybookToControls();
       if (window.location.protocol.startsWith('http')) {
-        fetch(`/api/playbook/select?id=${encodeURIComponent(pbId)}`).catch(() => {});
+        fetch(`/api/playbook/select?id=${encodeURIComponent(pbId)}`).then(r => r.json()).then(st => {
+          if (st && st.compiled_rules) {
+            hydrateCompiledRulesFromBackend(st.compiled_rules);
+            applyCompiledPlaybookToControls();
+          }
+        }).catch(() => {});
       }
     }
 
@@ -2025,7 +2073,12 @@
       aidState.compiled = compileNaturalLanguagePlaybookJS(md);
       applyCompiledPlaybookToControls();
       if (window.location.protocol.startsWith('http')) {
-        fetch(`/api/playbook/select?id=CUSTOM_NL_PLAYBOOK&markdown=${encodeURIComponent(md)}`).catch(() => {});
+        fetch(`/api/playbook/select?id=CUSTOM_NL_PLAYBOOK&markdown=${encodeURIComponent(md)}`).then(r => r.json()).then(st => {
+          if (st && st.compiled_rules) {
+            hydrateCompiledRulesFromBackend(st.compiled_rules);
+            applyCompiledPlaybookToControls();
+          }
+        }).catch(() => {});
       }
     }
 
