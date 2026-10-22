@@ -9116,15 +9116,30 @@ fpvCanvas.addEventListener("mousedown", e => {
     }
   }
 
-  // Engage 1:1 Trackpad Bounds deflection on mousedown anywhere inside the flight viewport
+  // Click anywhere inside the flight viewport to toggle Trackpad Follow ON <-> PAUSED & CENTERED (0%, 0%)!
+  // This lets the pilot immediately stop steering and move the cursor out of the viewport without pulling to one side.
   if (my >= 36 && my <= rect.height - 20) {
-    fpvSim.browserPointerDown = true;
-    fpvSim.browserPointerActive = true;
-    fpvSim.browserLastMoveMs = performance.now();
     const subW = camMode === "FPV_SPLIT" ? rect.width * 0.55 : rect.width;
-    const [sx, sy] = mapRectBoundsToStick(mx - subW * 0.5, (rect.height * 0.5) - my, subW * 0.42, (rect.height - 110) * 0.44);
-    fpvSim.mouseYokeX = sx;
-    fpvSim.mouseYokeY = sy;
+    if (mx <= subW) {
+      if (fpvSim.mouseYokeEnabled && (fpvSim.browserPointerActive || Math.hypot(fpvSim.mouseYokeX, fpvSim.mouseYokeY) > 0.02)) {
+        // Disarm & center immediately on click so pilot can move cursor away without banking hard to one side!
+        fpvSim.mouseYokeEnabled = false;
+        fpvSim.browserPointerDown = false;
+        fpvSim.browserPointerActive = false;
+        fpvSim.mouseYokeX = 0.0;
+        fpvSim.mouseYokeY = 0.0;
+        fpvSim.stickRoll = 0.0;
+        fpvSim.stickPitch = 0.0;
+      } else {
+        fpvSim.mouseYokeEnabled = true;
+        fpvSim.browserPointerDown = true;
+        fpvSim.browserPointerActive = true;
+        fpvSim.browserLastMoveMs = performance.now();
+        const [sx, sy] = mapRectBoundsToStick(mx - subW * 0.5, (rect.height * 0.5) - my, subW * 0.42, (rect.height - 110) * 0.44);
+        fpvSim.mouseYokeX = sx;
+        fpvSim.mouseYokeY = sy;
+      }
+    }
   }
 });
 
@@ -9156,7 +9171,9 @@ window.addEventListener("mousemove", e => {
   } else if (fpvSim.mouseYokeEnabled && mx >= 0 && mx <= rect.width && my >= 36 && my <= rect.height - 16) {
     // Check if cursor is hovering over a clickable HUD button; if not, follow finger 1:1 across the flight viewport!
     const overButton = fpvSim.hudHitBoxes.some(b => !b.stickTag && mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h);
-    if (overButton) {
+    const subW = camMode === "FPV_SPLIT" ? rect.width * 0.55 : rect.width;
+    // Also auto-center if cursor exits into the right half of FPV_SPLIT (mx > subW) or outer 10px exit border!
+    if (overButton || mx > subW - 10 || mx < 10 || my < 42 || my > rect.height - 22) {
       fpvSim.cursorInsideFlightViewport = false;
       fpvSim.browserPointerActive = false;
       fpvSim.mouseYokeX = 0.0;
@@ -9164,14 +9181,11 @@ window.addEventListener("mousemove", e => {
       return;
     }
     fpvSim.cursorInsideFlightViewport = true;
-    const subW = camMode === "FPV_SPLIT" ? rect.width * 0.55 : rect.width;
-    if (mx <= subW) {
-      fpvSim.browserPointerActive = true;
-      fpvSim.browserLastMoveMs = performance.now();
-      const [sx, sy] = mapRectBoundsToStick(mx - subW * 0.5, (rect.height * 0.5) - my, subW * 0.42, (rect.height - 110) * 0.44);
-      fpvSim.mouseYokeX = sx;
-      fpvSim.mouseYokeY = sy;
-    }
+    fpvSim.browserPointerActive = true;
+    fpvSim.browserLastMoveMs = performance.now();
+    const [sx, sy] = mapRectBoundsToStick(mx - subW * 0.5, (rect.height * 0.5) - my, subW * 0.42, (rect.height - 110) * 0.44);
+    fpvSim.mouseYokeX = sx;
+    fpvSim.mouseYokeY = sy;
   } else if (!fpvSim.draggingStick) {
     // Outside flight viewport -> center stick
     fpvSim.cursorInsideFlightViewport = false;
@@ -9238,9 +9252,13 @@ window.addEventListener("keydown", e => {
   else if (e.code === "KeyB") { fpvSim.crowBrakeDeployed = !fpvSim.crowBrakeDeployed; }
   else if (e.code === "KeyP") { fpvSim.chuteDeployed = !fpvSim.chuteDeployed; }
   else if (e.code === "KeyI") { fpvSim.invertTrackpadY = !fpvSim.invertTrackpadY; }
-  else if (e.code === "KeyM") {
-    fpvSim.mouseYokeEnabled = !fpvSim.mouseYokeEnabled;
-    if (!fpvSim.mouseYokeEnabled) { fpvSim.mouseYokeX = 0; fpvSim.mouseYokeY = 0; }
+  else if (e.code === "KeyM" || e.code === "KeyC" || e.code === "Escape") {
+    fpvSim.mouseYokeEnabled = (e.code === "KeyM") ? !fpvSim.mouseYokeEnabled : false;
+    fpvSim.browserPointerActive = false;
+    fpvSim.mouseYokeX = 0.0;
+    fpvSim.mouseYokeY = 0.0;
+    fpvSim.stickRoll = 0.0;
+    fpvSim.stickPitch = 0.0;
   } else if (e.code === "Space") {
     if (!fpvSim.capsuleDropped) {
       fpvSim.capsuleDropped = true;
