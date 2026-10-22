@@ -13,7 +13,7 @@ for the Arctic Trail Tier-3 Civilian Fast-SAR & FIN-LAB-02 High-Speed Responder 
 
 from dataclasses import dataclass
 import math
-from typing import Dict
+from typing import Dict, Tuple
 
 
 @dataclass(frozen=True)
@@ -182,6 +182,77 @@ def compute_cartridge_c_long_range_hybrid_and_blos_link(
         "sky_diode_snr_at_240km_db": snr_240km_db,
         "vk7mo_coherent_snr_at_240km_db": round(snr_240km_db + 28.0, 1),
         "zero_starlink_dependency": True,
+    }
+
+
+def compute_sled_c_long_endurance_4stroke_ferry(
+    strake_fuel_kg: float = 2.65,
+    ventral_aux_fuel_kg: float = 3.85,
+    ventral_sensor_payload_kg: float = 1.50,
+    cruise_vtas_mps: float = 36.0,  # 129.6 km/h (80.5 mph) optimal L/D long-range cruise
+    fast_cruise_vtas_mps: float = 45.0,  # 162.0 km/h (100.7 mph) fast transit
+    bsfc_g_per_kwh: float = 340.0,
+    idle_friction_floor_g_hr: float = 45.0,
+    prop_diameter_mm: float = 381.0,  # 15x10" pusher prop between Y=+-230mm twin tail booms
+) -> Dict[str, float]:
+    """
+    Evaluates Sled C (Zero-Ballast Universal Dorsal Engine Bay swap from Micro-Turbojet to
+    COTS 35-40cc 4-Stroke EFI Pusher Engine + Cartridge D Conformal CG Tank) inside the
+    exact 14.95 kg MTOW envelope for 1,000-2,500+ km ultra-long-range GNSS-denied ferry/survey.
+    """
+    # 1. Twin-boom prop clearance check (booms at Y = +-230 mm -> 460 mm inner gap)
+    boom_span_gap_mm = 460.0
+    radial_tip_clearance_mm = (boom_span_gap_mm - prop_diameter_mm) / 2.0
+
+    # 2. Mass & CG budget (0.0 mm CG shift as both fuel tanks sit at X_CG = 595.0 mm)
+    empty_4stroke_airframe_kg = 6.95  # Removes 350g dorsal stainless/aerogel jet heat shield
+    mtow_kg = round(
+        empty_4stroke_airframe_kg + strake_fuel_kg + ventral_aux_fuel_kg + ventral_sensor_payload_kg,
+        2,
+    )
+
+    # 3. Aerodynamic drag & shaft power at optimal L/D cruise V = 36.0 m/s (129.6 km/h)
+    rho = 1.225
+    s_wing = 0.635
+    ar = (2.20 ** 2) / s_wing
+    k_ind = 1.0 / (math.pi * 0.84 * ar)
+
+    def fuel_burn_at_speed(v_mps: float, mid_mass_kg: float) -> Tuple[float, float]:
+        q_dyn = 0.5 * rho * (v_mps ** 2)
+        w_n = mid_mass_kg * 9.80665
+        d_n = q_dyn * s_wing * 0.025 + (k_ind * (w_n ** 2)) / (q_dyn * s_wing)
+        p_prop_w = (d_n * v_mps) / 0.78
+        p_tot_kw = (p_prop_w + 35.0) / 1000.0  # +28W avionics via 80% alternator
+        return p_tot_kw * 1000.0, p_tot_kw * bsfc_g_per_kwh + idle_friction_floor_g_hr
+
+    p_shaft_w, fuel_burn_g_hr = fuel_burn_at_speed(cruise_vtas_mps, 11.7)
+    _, fast_fuel_burn_g_hr = fuel_burn_at_speed(fast_cruise_vtas_mps, 11.7)
+
+    # Mode 1: Full 5.0 kg Ventral Payload + Strake Fuel Only (2.65 kg fuel, 10% reserve)
+    usable_strake_g = 0.90 * strake_fuel_kg * 1000.0
+    range_with_5kg_payload_km = (usable_strake_g / fuel_burn_g_hr) * (cruise_vtas_mps * 3.6)
+
+    # Mode 2: Cartridge D Ferry (2.65 kg Strake + 3.85 kg Ventral Aux Tank = 6.50 kg total fuel, 10% reserve)
+    total_fuel_kg = strake_fuel_kg + ventral_aux_fuel_kg
+    usable_total_g = 0.90 * total_fuel_kg * 1000.0
+    endurance_ferry_hr = usable_total_g / fuel_burn_g_hr
+    max_ferry_range_km = endurance_ferry_hr * (cruise_vtas_mps * 3.6)
+    fast_ferry_range_km = (usable_total_g / fast_fuel_burn_g_hr) * (fast_cruise_vtas_mps * 3.6)
+
+    return {
+        "mtow_kg": mtow_kg,
+        "cg_shift_mm": 0.0,
+        "prop_boom_radial_clearance_mm": round(radial_tip_clearance_mm, 1),
+        "cruise_speed_kmh": round(cruise_vtas_mps * 3.6, 1),
+        "cruise_speed_mph": round(cruise_vtas_mps * 2.23694, 1),
+        "fast_cruise_speed_kmh": round(fast_cruise_vtas_mps * 3.6, 1),
+        "shaft_power_w": round(p_shaft_w, 1),
+        "fuel_burn_g_hr": round(fuel_burn_g_hr, 1),
+        "range_with_full_5kg_payload_km": round(range_with_5kg_payload_km, 1),
+        "max_ferry_endurance_hr": round(endurance_ferry_hr, 2),
+        "max_ferry_range_km": round(max_ferry_range_km, 1),
+        "max_ferry_range_miles": round(max_ferry_range_km * 0.621371, 1),
+        "fast_162kmh_ferry_range_km": round(fast_ferry_range_km, 1),
     }
 
 

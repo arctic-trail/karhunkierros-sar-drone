@@ -721,6 +721,7 @@
       <span class="subtitle">Coupled 6-DOF RK4 Solver · Click Any Stage or Branch Node Below to Simulate From That Point Forward</span>
     </div>
     <div class="header-badges">
+      <button class="badge btn-badge" id="btnToggleLiveFpv" style="background:linear-gradient(90deg,#0d5c3a,#18a866);border-color:#18e07f;color:#fff;font-size:11px;padding:3px 10px;box-shadow:0 0 10px rgba(24,224,127,0.35);" title="Fly the UAV yourself in 100% realistic 6-DoF FPV Cockpit mode (Direct Law / Alternate Law / Normal Law)">🕹️ FLY LIVE FPV (100% REAL 6-DOF)</button>
       <span class="badge cyan" id="hdrConfigBadge">VARIANT_H_EVO (14.95 kg)</span>
       <span class="badge orange" id="hdrPhaseBadge">STAGE 1: LAUNCH</span>
       <span class="badge green" id="hdrQualBadge">MIL-STD-1797 LEVEL 1</span>
@@ -914,6 +915,8 @@
           <div class="vp-header">
             <span id="vpAircraftTitle">Variant H UAV — 3D & 2D CFD Airflow</span>
             <div class="cam-pills">
+              <button id="camFpvCockpit" style="border-color:#18e07f;color:#18e07f;font-weight:800;" title="100% Realistic First-Person Cockpit HUD & Live 6-DoF Manual Flight">🕹️ FPV HUD</button>
+              <button id="camFpvSplit" style="border-color:#00d8ff;color:#00d8ff;" title="Split View: Live 3D FPV Cockpit HUD (Left) + Live 3D/2D Wing CFD Airflow (Right)">FPV+CFD</button>
               <button id="camIso" class="active" title="3D Volumetric Aircraft + CFD Particle Streamlines">3D CFD</button>
               <button id="camAirfoil2D" title="High-Resolution 2D Wing + Λ-Tail Airfoil Cross-Section Wind Tunnel">🔬 2D Airfoil</button>
               <button id="camSplitCFD" title="Split View: 3D Volumetric CFD (Left) + 2D Airfoil Cross-Section (Right)">Split 3D+2D</button>
@@ -3064,6 +3067,12 @@ function drawIsometricTerrainMap(sample, curIdx) {
   // Map each telemetry sample index to normalized mission path (u, v, alt)
   function sampleToUVAlt(idx) {
     const d = data[idx];
+    if (d && d.fpv_live) {
+      const uLive = Math.max(-0.15, Math.min(1.15, 0.08 + (d.x_m / 6500.0) * 0.84));
+      const vLive = Math.max(-0.54, Math.min(0.54, d.y_m / 2400.0));
+      const altLive = d.alt_msl !== undefined ? d.alt_msl : d.alt_agl;
+      return [uLive, vLive, altLive];
+    }
     const u = idx / Math.max(1, N - 1);
     let v = 0.0;
     if (d.phase === "4_LOITER_SEARCH") {
@@ -3928,6 +3937,24 @@ function draw3DAircraftViewport(sample) {
   // Dedicated full-panel 2D Airfoil Wind-Tunnel Mode
   if (camMode === "AIRFOIL_2D") {
     draw2DAirfoilCFD(ctx, 0, 0, W, H, sample, flow, cfg, env);
+    return;
+  }
+
+  // Dedicated 100% Realistic 6-DoF First-Person Cockpit HUD Mode (Full or Split with 2D Airfoil CFD)
+  if (camMode === "FPV_COCKPIT") {
+    drawFpvCockpitHUD(ctx, 0, 0, W, H, sample, flow, cfg, env, fltAc);
+    return;
+  }
+  if (camMode === "FPV_SPLIT") {
+    const wFpv = Math.floor(W * 0.55);
+    drawFpvCockpitHUD(ctx, 0, 0, wFpv, H, sample, flow, cfg, env, fltAc);
+    draw2DAirfoilCFD(ctx, wFpv + 2, 0, W - wFpv - 2, H, sample, flow, cfg, env);
+    ctx.strokeStyle = "#2b8aff";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(wFpv + 1, 0);
+    ctx.lineTo(wFpv + 1, H);
+    ctx.stroke();
     return;
   }
 
@@ -5267,8 +5294,11 @@ function attach3DCameraControls(canvasId, camObj, onClickShortFn) {
       camObj.panX += dx;
       camObj.panY += dy;
     } else {
-      if (canvasId === "canvasAircraft3D" && camMode !== "SPLIT_CFD" && camMode !== "AIRFOIL_2D") {
+      if (canvasId === "canvasAircraft3D" && camMode !== "SPLIT_CFD" && camMode !== "AIRFOIL_2D" && camMode !== "FPV_COCKPIT" && camMode !== "FPV_SPLIT") {
         camMode = "ISO";
+      }
+      if (canvasId === "canvasAircraft3D" && (camMode === "FPV_COCKPIT" || camMode === "FPV_SPLIT")) {
+        return;
       }
       camObj.yaw += dx * 0.0085;
       camObj.pitch = Math.max(-1.25, Math.min(1.45, camObj.pitch + dy * 0.0075));
@@ -5387,8 +5417,10 @@ document.getElementById("rngScrub").oninput = e => {
   updateUIForSample(playIdx);
 };
 
-const CAM_BTN_IDS = ["camIso", "camAirfoil2D", "camSplitCFD", "camSide", "camTop", "camFront"];
+const CAM_BTN_IDS = ["camFpvCockpit", "camFpvSplit", "camIso", "camAirfoil2D", "camSplitCFD", "camSide", "camTop", "camFront"];
 [
+  ["camFpvCockpit", "FPV_COCKPIT"],
+  ["camFpvSplit", "FPV_SPLIT"],
   ["camIso", "ISO"],
   ["camAirfoil2D", "AIRFOIL_2D"],
   ["camSplitCFD", "SPLIT_CFD"],
@@ -5396,12 +5428,20 @@ const CAM_BTN_IDS = ["camIso", "camAirfoil2D", "camSplitCFD", "camSide", "camTop
   ["camTop", "TOP"],
   ["camFront", "FRONT"]
 ].forEach(([btnId, mode]) => {
-  document.getElementById(btnId).onclick = () => {
+  const el = document.getElementById(btnId);
+  if (!el) return;
+  el.onclick = () => {
     camMode = mode;
     aircraftCam.dragMode = "ORBIT";
     document.getElementById("camPan").classList.remove("active");
-    CAM_BTN_IDS.forEach(id => document.getElementById(id).classList.remove("active"));
-    document.getElementById(btnId).classList.add("active");
+    CAM_BTN_IDS.forEach(id => {
+      const b = document.getElementById(id);
+      if (b) b.classList.remove("active");
+    });
+    el.classList.add("active");
+    if ((mode === "FPV_COCKPIT" || mode === "FPV_SPLIT") && !fpvSim.active) {
+      initLiveFpvFlight("CANYON_DIRECT");
+    }
     updateUIForSample(playIdx);
   };
 });
@@ -5410,14 +5450,1608 @@ document.getElementById("camPan").onclick = () => {
   document.getElementById("camPan").classList.toggle("active", aircraftCam.dragMode === "PAN");
 };
 document.getElementById("camReset").onclick = () => {
+  fpvSim.active = false;
+  syncLiveFpvHeaderButton();
   camMode = "ISO";
   aircraftCam.yaw = -0.62; aircraftCam.pitch = 0.36; aircraftCam.zoom = 1.0; aircraftCam.panX = 0; aircraftCam.panY = 0;
   aircraftCam.dragMode = "ORBIT";
   document.getElementById("camPan").classList.remove("active");
-  CAM_BTN_IDS.forEach(id => document.getElementById(id).classList.remove("active"));
+  CAM_BTN_IDS.forEach(id => {
+    const b = document.getElementById(id);
+    if (b) b.classList.remove("active");
+  });
   document.getElementById("camIso").classList.add("active");
   updateUIForSample(playIdx);
 };
+
+// ============================================================================
+// 100% REALISTIC 6-DOF RIGID-BODY FPV FLIGHT SIMULATOR & COCKPIT HUD (NO ARCADE)
+// ============================================================================
+// Physical 12-State Newton-Euler Integration at 240 Hz (4x RK4 sub-steps per 60 FPS frame):
+// State: [x_N, y_E, h_MSL, u_b, v_b, w_b, phi, theta, psi, p, q, r]
+// Plus actuator states: throttle_cmd, spool_rpm_frac (tau=1.35s), da, de, dr, flap_deg, crow_deg
+const fpvSim = {
+  active: false,
+  paused: false,
+  crashed: false,
+  crashTitle: "",
+  crashReason: "",
+  crashRemediation: "",
+  crashTime_s: 0.0,
+  crashImpactSpeed_kmh: 0.0,
+  crashImpactVertical_mps: 0.0,
+  crashImpactG: 1.0,
+  crashImpactAoA_deg: 0.0,
+  crashImpactBank_deg: 0.0,
+  preset: "CANYON_DIRECT",
+  controlLaw: "DIRECT_LAW", // "DIRECT_LAW" (Raw Servos - No Envelope Protection), "ALTERNATE_LAW", "NORMAL_LAW"
+  mouseYokeEnabled: false,
+  mouseYokeX: 0.0,
+  mouseYokeY: 0.0,
+  draggingStick: null, // "LEFT" | "RIGHT" | null
+  hudHitBoxes: [],
+  keys: {},
+  // Rigid-body 12-state vector
+  t_s: 0.0,
+  x_n: 450.0,      // North distance along canyon axis (m)
+  y_e: 0.0,        // East cross-canyon offset (m)
+  h_msl: 145.0,    // Altitude above runway MSL datum (m)
+  u_b: 56.8,       // Forward body velocity (m/s)
+  v_b: 0.35,       // Rightward body sideslip velocity (m/s)
+  w_b: 2.15,       // Downward body velocity (m/s)
+  phi: 0.055,      // Roll angle (rad) — nonzero initial disturbance in Direct Law
+  theta: 0.048,    // Pitch angle (rad)
+  psi: 0.015,      // Heading angle (rad, 0 = North along canyon)
+  p: 0.02,         // Roll rate (rad/s)
+  q: -0.012,       // Pitch rate (rad/s)
+  r: 0.008,        // Yaw rate (rad/s)
+  // Pilot & actuator states
+  stickPitch: 0.0, // [-1..+1] +1 = pull back (nose up)
+  stickRoll: 0.0,  // [-1..+1] +1 = roll right
+  stickYaw: 0.0,   // [-1..+1] +1 = yaw right
+  throttleCmd: 0.62,
+  spoolFrac: 0.60, // Actual turbine N1 spool fraction (lags throttleCmd with tau=1.35s)
+  trimPitch: 0.0,  // Elevator trim tab [-0.35..+0.35] (untrimmed in Direct Law -> requires pilot trim!)
+  trimRoll: 0.0,   // Aileron trim tab [-0.25..+0.25]
+  da_deg: 0.0,     // Actual flaperon differential deflection (deg)
+  de_deg: 0.0,     // Actual V-tail ruddervator elevator deflection (deg)
+  dr_deg: 0.0,     // Actual V-tail ruddervator rudder deflection (deg)
+  flapsDeployed: false,
+  crowBrakeDeployed: false,
+  capsuleDropped: false,
+  chuteDeployed: false,
+  engineLit: true,
+  negGTimer_s: 0.0,
+  stallTimer_s: 0.0,
+  spinTurns: 0.0,
+  onGround: false,
+  fuel_kg: 3.50,
+  payload_kg: 2.00,
+  // Derived aero/flight states for HUD
+  tas_mps: 56.8,
+  ias_mps: 56.8,
+  alpha_deg: 2.2,
+  beta_deg: 0.3,
+  nz_g: 1.0,
+  ny_g: 0.0,
+  maxG: 1.0,
+  minG: 1.0,
+  climbRate_mps: 0.0,
+  fpvPitch_deg: 0.0,
+  fpvHeading_deg: 0.0,
+  terrain_msl: 0.0,
+  alt_agl: 145.0,
+  canyonCenter_y: 0.0,
+  protBanner: "DIRECT LAW — RAW SERVO STICK (NO ENVELOPE PROTECTION · TRIM & FLY HANDS-ON!)",
+  handsOffTimer_s: 0.0,
+  dropDistance_m: null
+};
+
+// Analytical 3D Winding Arctic Canyon & Fell Elevation Model (matches Left 3D Terrain Viewport)
+function getArcticCanyonCenterY(x_n) {
+  // Runway is straight from x_n = -200m to +700m, then winds through the Oulanka-style canyon
+  if (x_n <= 650.0) return 0.0;
+  const s = (x_n - 650.0) / 950.0;
+  return 210.0 * Math.sin(s) + 85.0 * Math.sin(s * 2.35);
+}
+
+function getArcticCanyonTerrainMSL(x_n, y_e) {
+  const yCenter = getArcticCanyonCenterY(x_n);
+  const dy = y_e - yCenter;
+  // Runway & flat valley floor width: ±95m around runway, narrowing to ±115m in the canyon
+  const halfFloor = x_n < 700.0 ? 115.0 : 95.0 + 18.0 * Math.cos(x_n * 0.0025);
+  const excess = Math.max(0.0, Math.abs(dy) - halfFloor);
+  // Steep Arctic canyon walls rising up to 240m-310m fells on both sides
+  let wallH = 265.0 * (1.0 - Math.exp(-Math.pow(excess / 215.0, 1.65)));
+  // Add the 4 prominent mountain peaks visible on the 3D terrain map
+  const peaks = [
+    { x: 1450.0, y: -520.0, h: 225.0, r: 340.0 },
+    { x: 2950.0, y: -580.0, h: 285.0, r: 390.0 },
+    { x: 4550.0, y: -490.0, h: 245.0, r: 360.0 },
+    { x: 3750.0, y:  510.0, h: 195.0, r: 340.0 }
+  ];
+  for (const pk of peaks) {
+    const d2 = Math.pow(x_n - pk.x, 2) + Math.pow(y_e - pk.y, 2);
+    wallH += pk.h * Math.exp(-d2 / (pk.r * pk.r));
+  }
+  // Gentle valley floor undulation beyond the runway (x_n > 800m)
+  const floorUndulation = x_n > 800.0
+    ? 11.0 * Math.sin((x_n - 800.0) * 0.0032) * Math.exp(-Math.pow(excess / 180.0, 2))
+    : 0.0;
+  return Math.max(0.0, wallH + floorUndulation);
+}
+
+function syncLiveFpvHeaderButton() {
+  const btn = document.getElementById("btnToggleLiveFpv");
+  if (!btn) return;
+  if (fpvSim.active) {
+    btn.classList.add("active");
+    btn.textContent = fpvSim.crashed
+      ? "💥 FPV CRASHED — CLICK OR [R] TO RESPAWN"
+      : `🕹️ LIVE 6-DOF FPV ACTIVE (${fpvSim.controlLaw.replace("_LAW", "")}) · CLICK TO EXIT`;
+  } else {
+    btn.classList.remove("active");
+    btn.textContent = "🕹️ FLY LIVE FPV (100% REAL 6-DOF)";
+  }
+}
+
+function initLiveFpvFlight(presetName) {
+  if (presetName) fpvSim.preset = presetName;
+  const cfg = currentSim ? currentSim.cfg : buildConfigFromUI();
+  fpvSim.active = true;
+  fpvSim.paused = false;
+  fpvSim.crashed = false;
+  fpvSim.crashTitle = "";
+  fpvSim.crashReason = "";
+  fpvSim.crashRemediation = "";
+  fpvSim.t_s = 0.0;
+  fpvSim.fuel_kg = cfg.fuel_mass_kg;
+  fpvSim.payload_kg = cfg.payload_mass_kg;
+  fpvSim.capsuleDropped = false;
+  fpvSim.chuteDeployed = false;
+  fpvSim.engineLit = !(currentSim && currentSim.faults && currentSim.faults.flameout_Threat);
+  fpvSim.negGTimer_s = 0.0;
+  fpvSim.stallTimer_s = 0.0;
+  fpvSim.spinTurns = 0.0;
+  fpvSim.handsOffTimer_s = 0.0;
+  fpvSim.dropDistance_m = null;
+  fpvSim.stickPitch = 0.0;
+  fpvSim.stickRoll = 0.0;
+  fpvSim.stickYaw = 0.0;
+  fpvSim.mouseYokeX = 0.0;
+  fpvSim.mouseYokeY = 0.0;
+  fpvSim.maxG = 1.0;
+  fpvSim.minG = 1.0;
+
+  if (fpvSim.preset === "TAKEOFF_ROLL") {
+    // Runway threshold (0 km/h on snow runway): Pilot must spool up, hold centerline with rudder, and rotate at 115 km/h
+    fpvSim.controlLaw = "DIRECT_LAW";
+    fpvSim.x_n = 0.0;
+    fpvSim.y_e = 0.0;
+    fpvSim.h_msl = 0.25;
+    fpvSim.u_b = 1.0;
+    fpvSim.v_b = 0.0;
+    fpvSim.w_b = 0.0;
+    fpvSim.phi = 0.0;
+    fpvSim.theta = 0.02;
+    fpvSim.psi = 0.0;
+    fpvSim.p = 0.0; fpvSim.q = 0.0; fpvSim.r = 0.0;
+    fpvSim.throttleCmd = 0.15;
+    fpvSim.spoolFrac = 0.15;
+    fpvSim.trimPitch = 0.04;
+    fpvSim.trimRoll = 0.0;
+    fpvSim.flapsDeployed = true;
+    fpvSim.crowBrakeDeployed = false;
+    fpvSim.onGround = true;
+  } else if (fpvSim.preset === "CANYON_SPRINT") {
+    // Low-level 255 km/h sprint deep inside winding canyon walls (78m AGL)
+    fpvSim.controlLaw = "DIRECT_LAW";
+    fpvSim.x_n = 1550.0;
+    fpvSim.y_e = getArcticCanyonCenterY(1550.0) + 12.0;
+    const terr = getArcticCanyonTerrainMSL(fpvSim.x_n, fpvSim.y_e);
+    fpvSim.h_msl = terr + 78.0;
+    fpvSim.u_b = 68.0;
+    fpvSim.v_b = 0.2;
+    fpvSim.w_b = 0.35;
+    fpvSim.phi = 0.12;
+    fpvSim.theta = 0.015;
+    fpvSim.psi = 0.18;
+    fpvSim.p = 0.02; fpvSim.q = 0.0; fpvSim.r = 0.01;
+    fpvSim.throttleCmd = 0.72;
+    fpvSim.spoolFrac = 0.72;
+    fpvSim.trimPitch = 0.03;
+    fpvSim.trimRoll = 0.0;
+    fpvSim.flapsDeployed = false;
+    fpvSim.crowBrakeDeployed = false;
+    fpvSim.onGround = false;
+  } else if (fpvSim.preset === "FINAL_APPROACH") {
+    // Final Approach to Snow Runway (1.25 km out, aligned with PAPI 3° glideslope)
+    fpvSim.controlLaw = "DIRECT_LAW";
+    fpvSim.x_n = -1250.0;
+    fpvSim.y_e = 6.0;
+    fpvSim.h_msl = 72.0;
+    fpvSim.u_b = 41.0; // ~148 km/h approach speed
+    fpvSim.v_b = -0.2;
+    fpvSim.w_b = 1.4;
+    fpvSim.phi = -0.03;
+    fpvSim.theta = 0.015;
+    fpvSim.psi = 0.0;
+    fpvSim.p = 0.0; fpvSim.q = 0.0; fpvSim.r = 0.0;
+    fpvSim.throttleCmd = 0.42;
+    fpvSim.spoolFrac = 0.42;
+    fpvSim.trimPitch = 0.06;
+    fpvSim.trimRoll = 0.0;
+    fpvSim.flapsDeployed = true;
+    fpvSim.crowBrakeDeployed = false;
+    fpvSim.onGround = false;
+  } else if (fpvSim.preset === "UPSET_STALL_SPIN") {
+    // Extreme Nose-High +24 deg Pitch, +38 deg Bank Incipient Stall/Spin Departure at low speed
+    fpvSim.controlLaw = "DIRECT_LAW";
+    fpvSim.x_n = 1100.0;
+    fpvSim.y_e = getArcticCanyonCenterY(1100.0);
+    fpvSim.h_msl = 225.0;
+    fpvSim.u_b = 22.5;
+    fpvSim.v_b = 2.2;
+    fpvSim.w_b = 6.8; // AoA ~ 16.8 deg (STALLED!)
+    fpvSim.phi = 0.66; // +38 deg right bank
+    fpvSim.theta = 0.38; // +22 deg pitch up
+    fpvSim.psi = 0.12;
+    fpvSim.p = 0.55; // rolling into right spin!
+    fpvSim.q = -0.12;
+    fpvSim.r = 0.48;
+    fpvSim.throttleCmd = 0.25;
+    fpvSim.spoolFrac = 0.25;
+    fpvSim.trimPitch = 0.0;
+    fpvSim.trimRoll = 0.0;
+    fpvSim.flapsDeployed = false;
+    fpvSim.crowBrakeDeployed = false;
+    fpvSim.onGround = false;
+  } else {
+    // Default "CANYON_DIRECT": Raw Hands-On Canyon Entry (Direct Law, untrimmed in crosswind turbulence)
+    // If the pilot takes hands off the controls, dorsal thrust pitch-down + spiral bank divergence crashes into the canyon in ~12s!
+    fpvSim.preset = "CANYON_DIRECT";
+    fpvSim.controlLaw = "DIRECT_LAW";
+    fpvSim.x_n = 480.0;
+    fpvSim.y_e = 18.0;
+    fpvSim.h_msl = 135.0;
+    fpvSim.u_b = 52.0; // 187 km/h
+    fpvSim.v_b = 0.45;
+    fpvSim.w_b = 0.55;
+    fpvSim.phi = 0.11; // +6.3 deg initial right bank disturbance
+    fpvSim.theta = 0.012;
+    fpvSim.psi = 0.04;
+    fpvSim.p = 0.035;
+    fpvSim.q = -0.015;
+    fpvSim.r = 0.018;
+    fpvSim.throttleCmd = 0.62;
+    fpvSim.spoolFrac = 0.60;
+    fpvSim.trimPitch = 0.0; // Untrimmed! Pilot must trim [T]/[G] or hold back-pressure against dorsal jet pitch-down
+    fpvSim.trimRoll = 0.0;
+    fpvSim.flapsDeployed = false;
+    fpvSim.crowBrakeDeployed = false;
+    fpvSim.onGround = false;
+  }
+
+  fpvSim.da_deg = 0.0;
+  fpvSim.de_deg = 0.0;
+  fpvSim.dr_deg = 0.0;
+  isPlaying = false;
+  document.getElementById("btnPlayPause").textContent = "▶ PLAY";
+
+  if (camMode !== "FPV_COCKPIT" && camMode !== "FPV_SPLIT") {
+    camMode = "FPV_COCKPIT";
+    CAM_BTN_IDS.forEach(id => {
+      const b = document.getElementById(id);
+      if (b) b.classList.remove("active");
+    });
+    const fpvBtn = document.getElementById("camFpvCockpit");
+    if (fpvBtn) fpvBtn.classList.add("active");
+  }
+  syncLiveFpvHeaderButton();
+  // Seed initial telemetry sample and update UI
+  stepLiveFpvPhysics(1.0 / 60.0);
+  if (currentSim) updateUIForSample(playIdx);
+}
+
+function triggerFpvCrash(title, reason, remediation) {
+  if (fpvSim.crashed) return;
+  fpvSim.crashed = true;
+  fpvSim.crashTitle = title;
+  fpvSim.crashReason = reason;
+  fpvSim.crashRemediation = remediation;
+  fpvSim.crashTime_s = fpvSim.t_s;
+  fpvSim.crashImpactSpeed_kmh = fpvSim.tas_mps * 3.6;
+  fpvSim.crashImpactVertical_mps = -fpvSim.climbRate_mps;
+  fpvSim.crashImpactG = fpvSim.nz_g;
+  fpvSim.crashImpactAoA_deg = fpvSim.alpha_deg;
+  fpvSim.crashImpactBank_deg = (fpvSim.phi * 180.0) / Math.PI;
+  syncLiveFpvHeaderButton();
+}
+
+// Poll Keyboard + Mouse Yoke + USB Gamepad and advance 4x 240Hz RK4 Rigid-Body Substeps
+function stepLiveFpvPhysics(dtFrame) {
+  if (!fpvSim.active) return;
+  const cfg = currentSim ? currentSim.cfg : buildConfigFromUI();
+  const env = currentSim ? currentSim.env : buildEnvFromUI();
+  const flt = currentSim ? currentSim.faults : buildFaultsFromUI();
+
+  if (fpvSim.crashed || fpvSim.paused) return;
+
+  // 1. Poll Keyboard & Gamepad Inputs
+  const k = fpvSim.keys;
+  let cmdPitch = 0.0; // +1 = pull nose up
+  let cmdRoll  = 0.0; // +1 = roll right
+  let cmdYaw   = 0.0; // +1 = yaw right
+
+  // Pitch: S or ArrowDown = Pull Back (Nose Up); W or ArrowUp = Push Forward (Nose Down)
+  if (k["KeyS"] || k["ArrowDown"]) cmdPitch += 0.85;
+  if (k["KeyW"] || k["ArrowUp"])   cmdPitch -= 0.85;
+  // Roll: D or ArrowRight = Roll Right; A or ArrowLeft = Roll Left
+  if (k["KeyD"] || k["ArrowRight"]) cmdRoll += 0.85;
+  if (k["KeyA"] || k["ArrowLeft"])  cmdRoll -= 0.85;
+  // Yaw: E = Yaw Right; Q = Yaw Left
+  if (k["KeyE"]) cmdYaw += 0.85;
+  if (k["KeyQ"]) cmdYaw -= 0.85;
+
+  // Throttle: ShiftLeft/ShiftRight = Increase, ControlLeft/ControlRight/KeyZ = Decrease
+  if (k["ShiftLeft"] || k["ShiftRight"] || k["PageUp"]) {
+    fpvSim.throttleCmd = Math.min(1.0, fpvSim.throttleCmd + 0.45 * dtFrame);
+  }
+  if (k["ControlLeft"] || k["ControlRight"] || k["KeyZ"] || k["PageDown"]) {
+    fpvSim.throttleCmd = Math.max(0.0, fpvSim.throttleCmd - 0.45 * dtFrame);
+  }
+
+  // Continuous trim adjustment via [T]/[G] (Pitch Trim) and [BracketLeft]/[BracketRight] (Roll Trim)
+  if (k["KeyT"]) fpvSim.trimPitch = Math.min(0.35, fpvSim.trimPitch + 0.12 * dtFrame);
+  if (k["KeyG"]) fpvSim.trimPitch = Math.max(-0.35, fpvSim.trimPitch - 0.12 * dtFrame);
+  if (k["BracketRight"]) fpvSim.trimRoll = Math.min(0.25, fpvSim.trimRoll + 0.10 * dtFrame);
+  if (k["BracketLeft"])  fpvSim.trimRoll = Math.max(-0.25, fpvSim.trimRoll - 0.10 * dtFrame);
+
+  // HTML5 USB Gamepad support (Mode 2 RC controller or Xbox/PS/HOTAS joystick)
+  if (navigator.getGamepads) {
+    const pads = navigator.getGamepads();
+    for (let i = 0; i < pads.length; i++) {
+      const gp = pads[i];
+      if (gp && gp.connected && gp.axes.length >= 2) {
+        const deadzone = v => Math.abs(v) < 0.06 ? 0.0 : v;
+        const rx = deadzone(gp.axes[2] !== undefined ? gp.axes[2] : gp.axes[0]);
+        const ry = deadzone(gp.axes[3] !== undefined ? gp.axes[3] : gp.axes[1]);
+        if (Math.abs(rx) > 0.01) cmdRoll = rx;
+        if (Math.abs(ry) > 0.01) cmdPitch = ry;
+        if (gp.axes.length >= 4) {
+          const lx = deadzone(gp.axes[0]);
+          if (Math.abs(lx) > 0.01) cmdYaw = lx;
+        }
+        break;
+      }
+    }
+  }
+
+  // Combine with Mouse Yoke or On-Screen Dragged Gimbal Sticks
+  if (fpvSim.mouseYokeEnabled || fpvSim.draggingStick === "RIGHT") {
+    cmdRoll  = Math.max(-1.0, Math.min(1.0, cmdRoll + fpvSim.mouseYokeX));
+    cmdPitch = Math.max(-1.0, Math.min(1.0, cmdPitch + fpvSim.mouseYokeY));
+  }
+  if (fpvSim.draggingStick === "LEFT") {
+    cmdYaw = Math.max(-1.0, Math.min(1.0, cmdYaw + fpvSim.stickYaw));
+  }
+
+  // Smooth pilot stick position (unless dragging gimbal directly)
+  const stickRate = 11.0 * dtFrame;
+  if (fpvSim.draggingStick !== "RIGHT") {
+    fpvSim.stickPitch += (cmdPitch - fpvSim.stickPitch) * Math.min(1.0, stickRate);
+    fpvSim.stickRoll  += (cmdRoll  - fpvSim.stickRoll)  * Math.min(1.0, stickRate);
+  }
+  if (fpvSim.draggingStick !== "LEFT") {
+    fpvSim.stickYaw   += (cmdYaw   - fpvSim.stickYaw)   * Math.min(1.0, stickRate);
+  }
+
+  // Track hands-off duration (to warn & demonstrate natural divergence in Direct Law)
+  if (Math.abs(fpvSim.stickPitch) < 0.03 && Math.abs(fpvSim.stickRoll) < 0.03 && Math.abs(fpvSim.stickYaw) < 0.03) {
+    fpvSim.handsOffTimer_s += dtFrame;
+  } else {
+    fpvSim.handsOffTimer_s = 0.0;
+  }
+
+  // 2. Run 4 sub-steps of 240 Hz RK4 / Semi-Implicit Rigid-Body 6-DoF Physics
+  const N_SUB = 4;
+  const dt = Math.min(0.025, dtFrame) / N_SUB;
+  const g = 9.80665;
+  const S_wing = cfg.wing_area_m2 || 0.72;
+  const b_span = cfg.wingspan_m || 2.15;
+  const c_bar = S_wing / b_span;
+  const AR = (b_span * b_span) / S_wing;
+
+  // Air density at Arctic temperature & altitude
+  const T_kelvin = 273.15 + env.ambient_temp_c - 0.0065 * fpvSim.h_msl;
+  const P_pa = 101325.0 * Math.pow(Math.max(0.5, 1.0 - (0.0065 * fpvSim.h_msl) / 288.15), 5.25588);
+  const rho = P_pa / (287.05 * T_kelvin);
+
+  for (let sub = 0; sub < N_SUB; sub++) {
+    fpvSim.t_s += dt;
+    const totalMass = Math.max(8.5, cfg.dry_mass_kg + (fpvSim.capsuleDropped ? 0.0 : fpvSim.payload_kg) + fpvSim.fuel_kg);
+    // Principal moments of inertia (kg·m^2) for 2.15m wingspan, 1.60m fuselage fast SAR jet
+    const Ixx = 1.42 + 0.08 * fpvSim.fuel_kg;
+    const Iyy = 2.68 + 0.14 * (fpvSim.capsuleDropped ? 0.0 : fpvSim.payload_kg);
+    const Izz = 3.75 + 0.16 * fpvSim.fuel_kg;
+
+    // 3D Atmospheric Wind Vector (North, East, Down) + Canyon Shear + Dryden Gusts + Microburst
+    const windRad = ((env.wind_direction_deg || 35.0) * Math.PI) / 180.0;
+    const altShear = Math.pow(Math.max(2.0, fpvSim.alt_agl) / 10.0, 0.16);
+    const gustPhase = fpvSim.t_s * 1.85 + fpvSim.x_n * 0.012;
+    const gustMag = env.gust_amplitude_mps * (0.55 * Math.sin(gustPhase) + 0.45 * Math.cos(gustPhase * 1.63));
+    const windSpeedNow = env.wind_speed_10m_mps * altShear + gustMag;
+    let w_n = -windSpeedNow * Math.cos(windRad);
+    let w_e = -windSpeedNow * Math.sin(windRad);
+    // Mechanical canyon downdraft/updraft rotor near canyon walls & turbulence
+    const yCanyon = getArcticCanyonCenterY(fpvSim.x_n);
+    const wallOffset = fpvSim.y_e - yCanyon;
+    let w_d = 0.18 * env.gust_amplitude_mps * Math.sin(fpvSim.t_s * 2.4 + fpvSim.y_e * 0.04)
+            + 0.012 * windSpeedNow * Math.sin(wallOffset * 0.035);
+    if (env.microburst_enabled) {
+      const dMb = Math.hypot(fpvSim.x_n - 2400.0, fpvSim.y_e - 80.0);
+      if (dMb < 450.0) {
+        w_d += 14.5 * Math.exp(-Math.pow(dMb / 240.0, 2)); // strong downdraft core
+      }
+    }
+
+    // Direction Cosine Matrix (Body to NED and NED to Body)
+    const cp = Math.cos(fpvSim.phi),   sp = Math.sin(fpvSim.phi);
+    const ct = Math.cos(fpvSim.theta), st = Math.sin(fpvSim.theta);
+    const cy = Math.cos(fpvSim.psi),   sy = Math.sin(fpvSim.psi);
+
+    // Transform wind from NED [w_n, w_e, w_d] to Body frame [uw_b, vw_b, ww_b]
+    const uw_b = (ct * cy) * w_n + (ct * sy) * w_e - st * w_d;
+    const vw_b = (sp * st * cy - cp * sy) * w_n + (sp * st * sy + cp * cy) * w_e + (sp * ct) * w_d;
+    const ww_b = (cp * st * cy + sp * sy) * w_n + (cp * st * sy - sp * cy) * w_e + (cp * ct) * w_d;
+
+    // Air-relative velocity in body frame
+    const ua = fpvSim.u_b - uw_b;
+    const va = fpvSim.v_b - vw_b;
+    const wa = fpvSim.w_b - ww_b;
+    const V_tas = Math.max(0.5, Math.hypot(ua, va, wa));
+    const V_eas = V_tas * Math.sqrt(rho / 1.225);
+    const qbar = 0.5 * rho * V_tas * V_tas;
+
+    const alpha_rad = Math.atan2(wa, Math.max(0.5, ua));
+    const beta_rad  = Math.asin(Math.max(-0.99, Math.min(0.99, va / V_tas)));
+    const alpha_deg = (alpha_rad * 180.0) / Math.PI;
+    const beta_deg  = (beta_rad  * 180.0) / Math.PI;
+
+    fpvSim.tas_mps = V_tas;
+    fpvSim.ias_mps = V_eas;
+    fpvSim.alpha_deg = alpha_deg;
+    fpvSim.beta_deg = beta_deg;
+
+    // Stall threshold (reduced by icing or high bank load)
+    const icePenalty_deg = (env.icing_lwc_g_m3 > 0.1 && env.deice_mode === "OFF") ? 3.8 : 0.0;
+    const alpha_stall_deg = (fpvSim.flapsDeployed ? 13.4 : 14.5) - icePenalty_deg;
+    const alpha_prot_deg  = 10.5 - icePenalty_deg * 0.6;
+    const alpha_max_deg   = 12.2 - icePenalty_deg * 0.7;
+
+    // 3. Flight Control Laws (DIRECT_LAW vs ALTERNATE_LAW vs NORMAL_LAW)
+    let target_de_deg = 0.0;
+    let target_da_deg = 0.0;
+    let target_dr_deg = 0.0;
+    let togaOverride  = false;
+
+    const rawPitchStick = Math.max(-1.0, Math.min(1.0, fpvSim.stickPitch + fpvSim.trimPitch));
+    const rawRollStick  = Math.max(-1.0, Math.min(1.0, fpvSim.stickRoll  + fpvSim.trimRoll));
+    const rawYawStick   = Math.max(-1.0, Math.min(1.0, fpvSim.stickYaw));
+
+    if (fpvSim.controlLaw === "DIRECT_LAW") {
+      // 100% RAW SERVO DEFLECTION — ZERO ENVELOPE PROTECTION, ZERO RATE DAMPING
+      // Positive de_deg = trailing-edge UP (nose-up pitching moment)
+      target_de_deg = rawPitchStick * 22.0;
+      target_da_deg = rawRollStick  * 20.0;
+      target_dr_deg = rawYawStick   * 18.0;
+      fpvSim.protBanner = "DIRECT LAW [RAW SERVOS] — NO AoA / G / BANK PROTECTION (HANDS-OFF WILL DIVERGE & CRASH)";
+    } else if (fpvSim.controlLaw === "ALTERNATE_LAW") {
+      // Rate-damped SAS + Synthetic IAS fallback, but NO hard AoA or Bank Wall
+      const q_deg_s = (fpvSim.q * 180.0) / Math.PI;
+      const p_deg_s = (fpvSim.p * 180.0) / Math.PI;
+      const r_deg_s = (fpvSim.r * 180.0) / Math.PI;
+      target_de_deg = rawPitchStick * 20.0 - 0.18 * q_deg_s;
+      target_da_deg = rawRollStick  * 18.0 - 0.12 * p_deg_s;
+      target_dr_deg = rawYawStick   * 16.0 - 0.22 * r_deg_s + 0.30 * beta_deg;
+      if (alpha_deg > alpha_max_deg) {
+        // Soft buffet warning nibble only — pilot can still pull through into a stall!
+        fpvSim.protBanner = `ALTERNATE LAW — STALL WARNING (α=${alpha_deg.toFixed(1)}° > ${alpha_max_deg.toFixed(1)}° · REDUCE PITCH!)`;
+      } else {
+        fpvSim.protBanner = "ALTERNATE LAW [SAS + SYNTH IAS] — RATE DAMPED · SOFT LIMITS ONLY (STALL & OVER-G POSSIBLE)";
+      }
+    } else {
+      // NORMAL LAW (Full Airbus/FIN-LAB-02 Envelope Protection: High-AoA Wall, Stick-Pusher, +3.8G/-1.5G, ±60° Bank, TOGA Floor)
+      const q_deg_s = (fpvSim.q * 180.0) / Math.PI;
+      const p_deg_s = (fpvSim.p * 180.0) / Math.PI;
+      const r_deg_s = (fpvSim.r * 180.0) / Math.PI;
+      const phi_deg = (fpvSim.phi * 180.0) / Math.PI;
+
+      // Bank Angle Protection: ±60° hard wall, returns to ±33° when stick released
+      const maxBank_deg = Math.abs(fpvSim.stickRoll) > 0.15 ? 60.0 : 33.0;
+      let bankRollCmd_deg = rawRollStick * 18.0 - 0.16 * p_deg_s;
+      if (phi_deg > maxBank_deg && bankRollCmd_deg > 0) {
+        bankRollCmd_deg = -0.45 * (phi_deg - maxBank_deg) - 0.22 * p_deg_s;
+      } else if (phi_deg < -maxBank_deg && bankRollCmd_deg < 0) {
+        bankRollCmd_deg = -0.45 * (phi_deg + maxBank_deg) - 0.22 * p_deg_s;
+      } else if (Math.abs(fpvSim.stickRoll) < 0.05 && !fpvSim.onGround) {
+        // Gentle wing-leveler when stick centered in Normal Law
+        bankRollCmd_deg = -0.22 * phi_deg - 0.16 * p_deg_s;
+      }
+      target_da_deg = bankRollCmd_deg;
+
+      // Pitch & AoA / G-Load Envelope Protection
+      let pitchCmd_deg = rawPitchStick * 18.0 - 0.24 * q_deg_s + 1.8; // auto-trim compensation for dorsal jet
+      if (alpha_deg > alpha_prot_deg) {
+        const excessAoa = alpha_deg - alpha_prot_deg;
+        pitchCmd_deg = Math.min(pitchCmd_deg, 4.0 - 2.4 * excessAoa - 0.30 * q_deg_s);
+        if (alpha_deg >= alpha_max_deg - 0.5 && fpvSim.engineLit) {
+          togaOverride = true;
+          fpvSim.throttleCmd = 1.0;
+        }
+      }
+      if (fpvSim.nz_g > 3.65 && pitchCmd_deg > 0) {
+        pitchCmd_deg -= 6.5 * (fpvSim.nz_g - 3.65);
+      } else if (fpvSim.nz_g < -1.35 && pitchCmd_deg < 0) {
+        pitchCmd_deg -= 6.5 * (fpvSim.nz_g + 1.35);
+      }
+      // High-Speed V_NE protection (110 m/s = 396 km/h)
+      if (V_eas > 108.0) {
+        pitchCmd_deg = Math.max(pitchCmd_deg, 2.5 + 0.45 * (V_eas - 108.0));
+        fpvSim.throttleCmd = Math.min(fpvSim.throttleCmd, 0.35);
+      }
+      target_de_deg = pitchCmd_deg;
+      target_dr_deg = rawYawStick * 14.0 - 0.28 * r_deg_s + 0.42 * beta_deg; // automatic turn coordination
+      fpvSim.protBanner = togaOverride
+        ? `NORMAL LAW [ALPHA FLOOR + TOGA ACTIVE] — α=${alpha_deg.toFixed(1)}° CLAMPED ≤ ${alpha_max_deg.toFixed(1)}°`
+        : `NORMAL LAW [FBW PROTECTED] — α ≤ ${alpha_max_deg.toFixed(1)}° · +3.8G/-1.5G · ±60° BANK WALL ACTIVE`;
+    }
+
+    // Apply Servo Lag (60 ms time constant) & Left Aileron Servo Jam Fault if enabled
+    const servoAlpha = Math.min(1.0, dt / 0.055);
+    fpvSim.de_deg += (Math.max(-24.0, Math.min(24.0, target_de_deg)) - fpvSim.de_deg) * servoAlpha;
+    fpvSim.da_deg += (Math.max(-22.0, Math.min(22.0, target_da_deg)) - fpvSim.da_deg) * servoAlpha;
+    fpvSim.dr_deg += (Math.max(-20.0, Math.min(20.0, target_dr_deg)) - fpvSim.dr_deg) * servoAlpha;
+    if (flt.servo_jam_active) {
+      // Left aileron mechanically jammed at +7.5 deg -> induces continuous roll/yaw asymmetry!
+      fpvSim.da_deg += 5.2 * servoAlpha;
+    }
+
+    // 4. Turbine Spool Dynamics (Real 1.35s spool-up lag & 0.75s spool-down lag + fuel consumption)
+    if (fpvSim.fuel_kg <= 0.0 || flt.flameout_Threat) {
+      fpvSim.engineLit = false;
+    }
+    const targetSpool = fpvSim.engineLit ? Math.max(0.07, fpvSim.throttleCmd) : 0.0;
+    const tauSpool = targetSpool > fpvSim.spoolFrac ? 1.35 : 0.75;
+    fpvSim.spoolFrac += ((targetSpool - fpvSim.spoolFrac) / tauSpool) * dt;
+    // Non-linear turbojet thrust relation: F_jet ~ spoolFrac^2.15 * maxThrust
+    const maxThrust_N = (cfg.max_thrust_n || 200.0) * Math.pow(rho / 1.225, 0.7);
+    const thrust_N = fpvSim.engineLit ? maxThrust_N * Math.pow(Math.max(0.0, fpvSim.spoolFrac), 2.1) : 0.0;
+    // Fuel burn (TSFC ~ 0.145 kg/N/hr)
+    if (fpvSim.engineLit && fpvSim.fuel_kg > 0) {
+      fpvSim.fuel_kg = Math.max(0.0, fpvSim.fuel_kg - (thrust_N * 0.0000405) * dt);
+    }
+
+    // 5. Full Nonlinear Aerodynamic Forces & Moments (with Post-Stall Lift Collapse & Spin Autorotation)
+    const flap_deg = fpvSim.flapsDeployed ? 18.0 : 0.0;
+    const crow_deg = fpvSim.crowBrakeDeployed ? 28.0 : 0.0;
+    const CL0 = 0.24 + 0.016 * flap_deg - 0.005 * crow_deg;
+    const CLa = 5.05; // per rad (AR=6.42 tapered SD7037/RG-15 wing)
+    const alpha_stall_rad = (alpha_stall_deg * Math.PI) / 180.0;
+
+    let CL = 0.0;
+    let stallSeverity = 0.0;
+    if (alpha_deg <= alpha_stall_deg && alpha_deg >= -11.5) {
+      CL = CL0 + CLa * alpha_rad + 0.011 * fpvSim.de_deg;
+    } else if (alpha_deg > alpha_stall_deg) {
+      // Nonlinear post-stall lift drop-off + deep-stall flat-plate regime
+      const over_deg = alpha_deg - alpha_stall_deg;
+      stallSeverity = Math.min(1.0, over_deg / 8.0);
+      const CL_peak = CL0 + CLa * alpha_stall_rad;
+      CL = CL_peak * Math.exp(-0.14 * over_deg) + 1.05 * Math.sin(alpha_rad) * Math.cos(alpha_rad) * stallSeverity;
+    } else {
+      // Negative stall (inverted excessive pushover)
+      const under_deg = -11.5 - alpha_deg;
+      stallSeverity = Math.min(1.0, under_deg / 7.0);
+      CL = (CL0 - CLa * (11.5 * Math.PI / 180.0)) * Math.exp(-0.15 * under_deg);
+    }
+    if (env.icing_lwc_g_m3 > 0.1 && env.deice_mode === "OFF") {
+      CL *= 0.84;
+    }
+
+    // Drag coefficient CD (parasitic + induced + flap/crow + post-stall flat-plate drag spike + parachute)
+    const CD0 = 0.024 + 0.0008 * flap_deg + 0.0028 * crow_deg + (fpvSim.chuteDeployed ? 1.65 : 0.0);
+    const k_ind = 1.0 / (Math.PI * 0.81 * AR);
+    const CD_stall = stallSeverity > 0.0 ? 1.38 * Math.pow(Math.sin(alpha_rad), 2) * stallSeverity : 0.0;
+    const CD = CD0 + k_ind * CL * CL + CD_stall + 0.18 * beta_rad * beta_rad;
+
+    // Sideforce coefficient CY
+    const CY = -0.58 * beta_rad + 0.0032 * fpvSim.dr_deg;
+
+    // Convert Lift/Drag from Wind Axes to Body Axes [Fx_aero, Fy_aero, Fz_aero]
+    const Lift_N = qbar * S_wing * CL;
+    const Drag_N = qbar * S_wing * CD;
+    const Side_N = qbar * S_wing * CY;
+
+    const ca = Math.cos(alpha_rad), sa = Math.sin(alpha_rad);
+    const Fx_aero = -Drag_N * ca + Lift_N * sa;
+    const Fy_aero = Side_N;
+    const Fz_aero = -Drag_N * sa - Lift_N * ca;
+
+    // Aerodynamic & Propulsive Moments [L_roll, M_pitch, N_yaw]
+    const p_hat = (fpvSim.p * b_span) / (2.0 * Math.max(8.0, V_tas));
+    const q_hat = (fpvSim.q * c_bar)  / (2.0 * Math.max(8.0, V_tas));
+    const r_hat = (fpvSim.r * b_span) / (2.0 * Math.max(8.0, V_tas));
+
+    // Roll Moment L:
+    // In normal flight, Cl_p = -0.46 (damps roll).
+    // In a stall (alpha > alpha_stall), Cl_p FLIPS POSITIVE (+0.28 -> autorotation!) and aileron effectiveness reverses at the stalled wingtip!
+    const Cl_beta = -0.075; // dihedral effect
+    const Cl_p    = stallSeverity > 0.05 ? (-0.46 * (1.0 - 1.65 * stallSeverity)) : -0.46;
+    const Cl_r    = 0.14 + 0.18 * Math.max(0.0, CL); // spiral mode coupling (positive Cl_r drives spiral bank divergence!)
+    const aileronEff = stallSeverity > 0.25 ? (1.0 - 1.45 * stallSeverity) : 1.0; // adverse aileron stall in spin!
+    const stallWingDropAsym = stallSeverity > 0.05
+      ? stallSeverity * (0.045 * Math.sign(beta_deg + 0.15) + 0.032 * Math.sin(fpvSim.t_s * 7.5))
+      : 0.0;
+    const Cl_total = Cl_beta * beta_rad + Cl_p * p_hat + Cl_r * r_hat
+                   + (0.0072 * aileronEff) * fpvSim.da_deg
+                   + 0.0009 * fpvSim.dr_deg
+                   + stallWingDropAsym;
+
+    // Pitch Moment M:
+    // Includes static margin Cm_alpha, pitch damping Cm_q, elevator Cm_de, CG shift from fuel burn,
+    // AND dorsal turbojet thrust pitch-down moment (z_jet = -0.085m above CG -> nose-down moment when power increased!)
+    const cgShift_m = (3.5 - fpvSim.fuel_kg) * 0.006 - (fpvSim.capsuleDropped ? 0.008 : 0.0);
+    const Cm0 = 0.018 - 0.0035 * flap_deg;
+    const Cm_alpha = -0.68 + (cgShift_m / c_bar) * CLa;
+    const Cm_q = -11.5;
+    const Cm_de = 0.024; // positive de_deg = nose up
+    const deepStallNoseDown = stallSeverity > 0.0 ? -0.16 * stallSeverity : 0.0;
+    const Cm_total = Cm0 + Cm_alpha * alpha_rad + Cm_q * q_hat + Cm_de * fpvSim.de_deg + deepStallNoseDown;
+    const M_jet_Nm = -thrust_N * 0.085; // Dorsal turbine 85mm above CG pitches nose down!
+
+    // Yaw Moment N:
+    // Weathercock stability Cn_beta, yaw damping Cn_r, ruddervator Cn_dr, and adverse aileron yaw Cn_da
+    const Cn_beta = 0.105 * (1.0 - 0.45 * stallSeverity);
+    const Cn_p    = -0.038 * CL;
+    const Cn_r    = -0.165 * (1.0 - 0.55 * stallSeverity);
+    const Cn_da   = -0.0011 * Math.max(0.2, CL); // adverse yaw
+    const Cn_dr   = -0.0048; // positive dr_deg (+1 stickYaw) yaws nose right (+N) -> wait: let's make +dr_deg produce +N_yaw!
+    const Cn_total = Cn_beta * beta_rad + Cn_p * p_hat + Cn_r * r_hat
+                   + Cn_da * fpvSim.da_deg + 0.0048 * fpvSim.dr_deg;
+
+    let L_moment = qbar * S_wing * b_span * Cl_total;
+    let M_moment = qbar * S_wing * c_bar  * Cm_total + M_jet_Nm;
+    let N_moment = qbar * S_wing * b_span * Cn_total;
+
+    // Parachute stabilization if ballistic chute is deployed
+    if (fpvSim.chuteDeployed) {
+      L_moment -= 4.5 * fpvSim.phi + 2.2 * fpvSim.p;
+      M_moment -= 5.5 * (fpvSim.theta + 0.08) + 2.8 * fpvSim.q;
+      N_moment -= 2.5 * fpvSim.r;
+    }
+
+    // 6. Ground Contact / Snow Skid Gear Reaction Forces (during Takeoff Roll or Touchdown)
+    const terrainNow = getArcticCanyonTerrainMSL(fpvSim.x_n, fpvSim.y_e);
+    fpvSim.terrain_msl = terrainNow;
+    fpvSim.canyonCenter_y = getArcticCanyonCenterY(fpvSim.x_n);
+    const aglNow = fpvSim.h_msl - terrainNow;
+    fpvSim.alt_agl = Math.max(0.0, aglNow);
+
+    // Compute Load Factor n_z (felt G-load along body -Z axis)
+    fpvSim.nz_g = (-Fz_aero) / (totalMass * g);
+    fpvSim.ny_g = Fy_aero / (totalMass * g);
+    fpvSim.maxG = Math.max(fpvSim.maxG, fpvSim.nz_g);
+    fpvSim.minG = Math.min(fpvSim.minG, fpvSim.nz_g);
+
+    // Body-frame gravity components
+    const gx_b = -g * st;
+    const gy_b =  g * ct * sp;
+    const gz_b =  g * ct * cp;
+
+    // Total body accelerations (du/dt, dv/dt, dw/dt)
+    let u_dot = (Fx_aero + thrust_N) / totalMass + gx_b - fpvSim.q * fpvSim.w_b + fpvSim.r * fpvSim.v_b;
+    let v_dot = (Fy_aero)            / totalMass + gy_b - fpvSim.r * fpvSim.u_b + fpvSim.p * fpvSim.w_b;
+    let w_dot = (Fz_aero)            / totalMass + gz_b - fpvSim.p * fpvSim.v_b + fpvSim.q * fpvSim.u_b;
+
+    // Euler rotational accelerations (dp/dt, dq/dt, dr/dt)
+    let p_dot = (L_moment - (Izz - Iyy) * fpvSim.q * fpvSim.r) / Ixx;
+    let q_dot = (M_moment - (Ixx - Izz) * fpvSim.p * fpvSim.r) / Iyy;
+    let r_dot = (N_moment - (Iyy - Ixx) * fpvSim.p * fpvSim.q) / Izz;
+
+    // Integrate velocities & angular rates
+    fpvSim.u_b += u_dot * dt;
+    fpvSim.v_b += v_dot * dt;
+    fpvSim.w_b += w_dot * dt;
+    fpvSim.p   += p_dot * dt;
+    fpvSim.q   += q_dot * dt;
+    fpvSim.r   += r_dot * dt;
+
+    // Euler angle kinematics (unclamped 3D attitude with gimbal-lock protection near ±89.5 deg pitch)
+    const ctSafe = Math.abs(ct) < 0.01 ? (ct >= 0 ? 0.01 : -0.01) : ct;
+    const ttSafe = st / ctSafe;
+    const phi_dot   = fpvSim.p + (sp * fpvSim.q + cp * fpvSim.r) * ttSafe;
+    const theta_dot = cp * fpvSim.q - sp * fpvSim.r;
+    const psi_dot   = (sp * fpvSim.q + cp * fpvSim.r) / ctSafe;
+
+    fpvSim.phi   += phi_dot   * dt;
+    fpvSim.theta += theta_dot * dt;
+    fpvSim.psi   += psi_dot   * dt;
+
+    // Normalize roll and heading to [-pi, +pi] / [0, 2pi]
+    if (fpvSim.phi > Math.PI)  fpvSim.phi -= 2.0 * Math.PI;
+    if (fpvSim.phi < -Math.PI) fpvSim.phi += 2.0 * Math.PI;
+
+    // Inertial NED velocities
+    const v_north = (ct * cy) * fpvSim.u_b + (sp * st * cy - cp * sy) * fpvSim.v_b + (cp * st * cy + sp * sy) * fpvSim.w_b;
+    const v_east  = (ct * sy) * fpvSim.u_b + (sp * st * sy + cp * cy) * fpvSim.v_b + (cp * st * sy - sp * cy) * fpvSim.w_b;
+    const v_down  = (-st)     * fpvSim.u_b + (sp * ct)                 * fpvSim.v_b + (cp * ct)                 * fpvSim.w_b;
+    const h_dot   = -v_down;
+    fpvSim.climbRate_mps = h_dot;
+    fpvSim.fpvPitch_deg  = (Math.atan2(h_dot, Math.max(1.0, Math.hypot(v_north, v_east))) * 180.0) / Math.PI;
+    fpvSim.fpvHeading_deg = ((Math.atan2(v_east, v_north) * 180.0) / Math.PI + 360.0) % 360.0;
+
+    fpvSim.x_n   += v_north * dt;
+    fpvSim.y_e   += v_east  * dt;
+    fpvSim.h_msl += h_dot   * dt;
+
+    // Track Stall & Spin duration and Negative-G UAT Fuel Starvation
+    if (stallSeverity > 0.05 && !fpvSim.onGround) {
+      fpvSim.stallTimer_s += dt;
+      if (Math.abs(fpvSim.r) > 0.55) {
+        fpvSim.spinTurns += (Math.abs(fpvSim.r) * dt) / (2.0 * Math.PI);
+      }
+    } else {
+      fpvSim.stallTimer_s = Math.max(0.0, fpvSim.stallTimer_s - 2.0 * dt);
+    }
+
+    if (fpvSim.nz_g < -0.55 && fpvSim.engineLit) {
+      fpvSim.negGTimer_s += dt;
+      if (fpvSim.negGTimer_s > 3.2) {
+        // Negative-G uncovers UAT pickup -> air bubble ingested -> mid-air flameout!
+        fpvSim.engineLit = false;
+      }
+    } else {
+      fpvSim.negGTimer_s = Math.max(0.0, fpvSim.negGTimer_s - dt);
+    }
+
+    // 7. CHECK ALL 6 REAL-WORLD CRASH & STRUCTURAL FAILURE MODES
+    const newTerrain = getArcticCanyonTerrainMSL(fpvSim.x_n, fpvSim.y_e);
+    const newAgl = fpvSim.h_msl - newTerrain;
+
+    // Mode 4: Structural Over-G Main Carbon Spar Failure (+5.70G / -2.30G, or +3.40G with Flaps Deployed)
+    if (!fpvSim.onGround) {
+      const maxAllowedG = fpvSim.flapsDeployed ? 3.45 : 5.70;
+      if (fpvSim.nz_g > maxAllowedG || fpvSim.nz_g < -2.35) {
+        triggerFpvCrash(
+          fpvSim.flapsDeployed && fpvSim.nz_g > 3.45
+            ? "STRUCTURAL FAILURE — FLAPERON HINGE & SPAR OVER-G RIP"
+            : "CATACLYSMIC AIRFRAME BREAKUP — MAIN CARBON SPAR OVER-G FAILURE",
+          `Pulled ${fpvSim.nz_g >= 0 ? "+" : ""}${fpvSim.nz_g.toFixed(2)} G at ${(V_tas * 3.6).toFixed(0)} km/h (Ultimate Spar Limit: ${fpvSim.flapsDeployed ? "+3.45 G Flaps Down" : "+5.70 G / -2.35 G"} in ${fpvSim.controlLaw.replace("_", " ")}).`,
+          "Avoid full-deflection elevator yanks above 220 km/h (maneuvering speed Va = 185 km/h), or engage [3] NORMAL LAW (+3.8G/-1.5G load-factor limiter)."
+        );
+        break;
+      }
+    }
+
+    // Mode 5: Aeroelastic V-Tail / Flaperon Flutter Breakup (> 486 km/h / 135 m/s EAS)
+    if (V_eas > 135.0) {
+      triggerFpvCrash(
+        "AEROELASTIC FLUTTER BREAKUP — EXCEEDED V_NE / V_FLUTTER (486 KM/H)",
+        `Airspeed reached ${(V_eas * 3.6).toFixed(0)} km/h EAS (${V_eas.toFixed(1)} m/s) in a steep dive, exciting destructive 34 Hz V-tail ruddervator torsional flutter.`,
+        "Throttle back and deploy Crow Airbrakes [B] during steep descents, or enable [3] NORMAL LAW High-Speed Protection (V_NE = 396 km/h)."
+      );
+      break;
+    }
+
+    // Terrain / Runway Contact Check (newAgl <= 0.25m)
+    if (newAgl <= 0.25) {
+      const onRunwayStrip = (fpvSim.x_n >= -250.0 && fpvSim.x_n <= 750.0 && Math.abs(fpvSim.y_e) <= 38.0);
+      const sinkRate_mps = -h_dot;
+      const bankAbs_deg = Math.abs((fpvSim.phi * 180.0) / Math.PI);
+      const pitch_deg = (fpvSim.theta * 180.0) / Math.PI;
+
+      // Mode 1: Stall / Spin Impact into Terrain
+      if (stallSeverity > 0.15 || fpvSim.spinTurns >= 0.25) {
+        fpvSim.h_msl = newTerrain;
+        fpvSim.alt_agl = 0.0;
+        triggerFpvCrash(
+          "STALL / AUTOROTATIVE SPIN IMPACT INTO ARCTIC TERRAIN",
+          `Impacted terrain stalled at α = ${alpha_deg.toFixed(1)}° (Stall limit ${alpha_stall_deg.toFixed(1)}°), bank ${((fpvSim.phi * 180) / Math.PI).toFixed(1)}°, sink rate ${sinkRate_mps.toFixed(1)} m/s (${(V_tas * 3.6).toFixed(0)} km/h) in ${fpvSim.controlLaw.replace("_", " ")}.`,
+          "To recover from a stall/spin: apply PARE (Power idle/adjust, Ailerons NEUTRAL, Rudder [Q/E] OPPOSITE yaw, Elevator FORWARD [W] to break α < 11°), or fly in [3] NORMAL LAW."
+        );
+        break;
+      }
+
+      // Mode 2: CFIT into Canyon Wall or Mountain Ridge
+      if (!onRunwayStrip && newTerrain > 18.0 && !fpvSim.chuteDeployed) {
+        fpvSim.h_msl = newTerrain;
+        fpvSim.alt_agl = 0.0;
+        triggerFpvCrash(
+          "CFIT — CONTROLLED FLIGHT INTO ARCTIC CANYON WALL / FELL",
+          `Struck canyon ridge (${newTerrain.toFixed(0)} m MSL, ${(fpvSim.y_e - fpvSim.canyonCenter_y).toFixed(0)} m off canyon centerline) at ${(V_tas * 3.6).toFixed(0)} km/h and bank ${((fpvSim.phi * 180) / Math.PI).toFixed(1)}°.`,
+          "Keep the Velocity Vector (FPV ⊙) inside the winding canyon floor, trim out dorsal jet pitch-down [T/G], and bank early for canyon turns."
+        );
+        break;
+      }
+
+      // Mode 3: Hard Landing / Wingtip Cartwheel / Nose-In / V-Tail Exhaust Strike
+      if (!fpvSim.onGround && fpvSim.t_s > 0.5) {
+        const maxSink = fpvSim.chuteDeployed ? 7.5 : 3.8;
+        if (sinkRate_mps > maxSink || bankAbs_deg > 15.0 || pitch_deg < -5.5 || pitch_deg > 16.5) {
+          fpvSim.h_msl = newTerrain;
+          fpvSim.alt_agl = 0.0;
+          let subMode = "EXCESSIVE SINK RATE GEAR COLLAPSE";
+          if (bankAbs_deg > 15.0) subMode = `WINGTIP STRIKE & CARTWHEEL (|φ| = ${bankAbs_deg.toFixed(1)}° > 15°)`;
+          else if (pitch_deg < -5.5) subMode = `NOSE-DOWN RADOME CRUSH IMPACT (θ = ${pitch_deg.toFixed(1)}° < -5.5°)`;
+          else if (pitch_deg > 16.5) subMode = `V-TAIL EXHAUST TAIL-STRIKE AT TOUCHDOWN (θ = ${pitch_deg.toFixed(1)}° > +16.5°)`;
+          triggerFpvCrash(
+            `CRASH LANDING — ${subMode}`,
+            `Touchdown at ${(V_tas * 3.6).toFixed(0)} km/h with sink rate ${sinkRate_mps.toFixed(2)} m/s (limit 3.8 m/s), bank ${bankAbs_deg.toFixed(1)}°, pitch ${pitch_deg.toFixed(1)}°.`,
+            "Deploy Flaperons [V] and Crow Airbrakes [B] on approach, hold 135–150 km/h on the 3° PAPI glideslope, level wings (< 10° bank), and flare gently to < 2.5 m/s sink."
+          );
+          break;
+        }
+      }
+
+      // Safe ground roll on snow runway / flat valley snow floor
+      fpvSim.onGround = true;
+      fpvSim.h_msl = newTerrain + 0.25;
+      fpvSim.alt_agl = 0.0;
+      if (fpvSim.w_b > 0) fpvSim.w_b = 0.0;
+      // Level roll on snow skids & apply snow friction/braking
+      fpvSim.phi *= 0.85;
+      fpvSim.p   *= 0.75;
+      if (pitch_deg > 15.5 && V_tas > 18.0) {
+        triggerFpvCrash(
+          "RUNWAY ROTATION TAIL-STRIKE — V-TAIL STRUCK SNOW RUNWAY",
+          `Over-rotated to θ = ${pitch_deg.toFixed(1)}° (> 15.5° tail-clearance limit) at ${(V_tas * 3.6).toFixed(0)} km/h during ground roll.`,
+          "Wait until Vr = 115 km/h (32 m/s) before pulling back smoothly to +8°..+11° takeoff pitch attitude."
+        );
+        break;
+      }
+      fpvSim.theta = Math.max(0.0, Math.min(0.26, fpvSim.theta));
+      const muSnow = fpvSim.crowBrakeDeployed ? 0.18 : 0.045;
+      fpvSim.u_b = Math.max(0.0, fpvSim.u_b - muSnow * g * dt);
+      fpvSim.v_b *= 0.90;
+    } else {
+      fpvSim.onGround = false;
+    }
+  }
+
+  // 8. Push Live Telemetry Sample into currentSim.telemetry so all 3D Maps, Strip Charts & Gauges update live at 60 FPS!
+  if (currentSim && currentSim.telemetry) {
+    const template = currentSim.telemetry[currentSim.telemetry.length - 1] || {};
+    const egtNow = fpvSim.engineLit
+      ? 465.0 + 365.0 * fpvSim.spoolFrac + (flt.egt_overtemp_stress ? 85.0 : 0.0)
+      : Math.max(env.ambient_temp_c, (template.egt_c || 420.0) - 18.0 * dtFrame);
+    const liveSample = Object.assign({}, template, {
+      fpv_live: true,
+      t_s: (template.t_s || 0) + dtFrame,
+      phase: fpvSim.crashed ? "8_LANDING" : (fpvSim.alt_agl < 25.0 ? "1_LAUNCH" : "3_CANYON_PENETRATION"),
+      x_m: fpvSim.x_n,
+      y_m: fpvSim.y_e,
+      alt_msl: fpvSim.h_msl,
+      alt_agl: fpvSim.alt_agl,
+      tas_mps: fpvSim.tas_mps,
+      ias_mps: flt.pitot_blocked ? 84.0 : fpvSim.ias_mps,
+      synth_ias_mps: fpvSim.ias_mps,
+      groundspeed_mps: Math.hypot(fpvSim.u_b, fpvSim.v_b),
+      mach: fpvSim.tas_mps / 322.0,
+      pitch_deg: (fpvSim.theta * 180.0) / Math.PI,
+      roll_deg: (fpvSim.phi * 180.0) / Math.PI,
+      yaw_deg: ((fpvSim.psi * 180.0) / Math.PI + 360.0) % 360.0,
+      alpha_deg: fpvSim.alpha_deg,
+      beta_deg: fpvSim.beta_deg,
+      load_factor_g: fpvSim.nz_g,
+      thrust_n: fpvSim.engineLit ? (cfg.max_thrust_n || 200.0) * Math.pow(fpvSim.spoolFrac, 2.1) : 0.0,
+      rpm: fpvSim.engineLit ? Math.round(32000 + 93000 * fpvSim.spoolFrac) : 4500,
+      egt_c: egtNow,
+      fuel_kg: fpvSim.fuel_kg,
+      cg_x_mm: 525.0 + (3.5 - fpvSim.fuel_kg) * 5.2 - (fpvSim.capsuleDropped ? 7.5 : 0.0),
+      static_margin_pct: 12.4 - (3.5 - fpvSim.fuel_kg) * 0.45,
+      fdir_mode: fpvSim.crashed
+        ? `💥 CRASHED: ${fpvSim.crashTitle}`
+        : `🕹️ FPV ${fpvSim.controlLaw.replace("_", " ")}`,
+      active_fault_banners: fpvSim.crashed
+        ? [`💥 ${fpvSim.crashTitle}`, fpvSim.crashReason]
+        : [fpvSim.protBanner]
+    });
+    currentSim.telemetry.push(liveSample);
+    if (currentSim.telemetry.length > 950) {
+      currentSim.telemetry.shift();
+    }
+    playIdx = currentSim.telemetry.length - 1;
+  }
+}
+
+// Render 3D First-Person Cockpit HUD, Synthetic Vision Arctic Canyon, Pitch Ladder, Tapes & Dual Gimbals
+function drawFpvCockpitHUD(ctx, x0, y0, w, h, sample, flow, cfg, env, flt) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x0, y0, w, h);
+  ctx.clip();
+
+  fpvSim.hudHitBoxes = [];
+  const cx = x0 + w * 0.50;
+  const cy = y0 + h * 0.50;
+  const fovScale = Math.min(w, h) * 0.92; // 1 rad ~ 0.92 * min(w,h)
+
+  // Current aircraft state (from live fpvSim if active, otherwise from telemetry sample)
+  const phi   = fpvSim.active ? fpvSim.phi   : ((sample.roll_deg || 0) * Math.PI) / 180.0;
+  const theta = fpvSim.active ? fpvSim.theta : ((sample.pitch_deg || 2.5) * Math.PI) / 180.0;
+  const psi   = fpvSim.active ? fpvSim.psi   : ((sample.yaw_deg || 0) * Math.PI) / 180.0;
+  const xCam  = fpvSim.active ? fpvSim.x_n   : (sample.x_m || 800.0);
+  const yCam  = fpvSim.active ? fpvSim.y_e   : (sample.y_m || 0.0);
+  const hCam  = fpvSim.active ? fpvSim.h_msl : (sample.alt_agl || 140.0);
+  const agl   = fpvSim.active ? fpvSim.alt_agl : (sample.alt_agl || 140.0);
+  const tas_kmh = (fpvSim.active ? fpvSim.tas_mps : (sample.tas_mps || 58.0)) * 3.6;
+  const ias_kmh = (fpvSim.active ? fpvSim.ias_mps : (sample.ias_mps || 58.0)) * 3.6;
+  const alpha_deg = fpvSim.active ? fpvSim.alpha_deg : flow.alpha_deg;
+  const beta_deg  = fpvSim.active ? fpvSim.beta_deg  : flow.beta_deg;
+  const nz_g      = fpvSim.active ? fpvSim.nz_g      : (sample.load_factor_g || 1.0);
+  const vsi_mps   = fpvSim.active ? fpvSim.climbRate_mps : 0.0;
+
+  // 1. Draw Conformal Roll/Pitch Horizon Sky & Arctic Snow Ground
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(-phi);
+  const horizonY = Math.tan(theta) * fovScale;
+  const diag = Math.hypot(w, h) * 1.6;
+
+  // Sky gradient (Arctic twilight / storm sky)
+  const skyGrad = ctx.createLinearGradient(0, horizonY - diag, 0, horizonY);
+  skyGrad.addColorStop(0, "#040b18");
+  skyGrad.addColorStop(0.65, "#0b1f3a");
+  skyGrad.addColorStop(1, "#183b66");
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(-diag, horizonY - diag, diag * 2, diag);
+
+  // Ground gradient (Arctic snowpack & deep blue terrain grid)
+  const gndGrad = ctx.createLinearGradient(0, horizonY, 0, horizonY + diag);
+  gndGrad.addColorStop(0, "#162d4c");
+  gndGrad.addColorStop(0.25, "#0f223c");
+  gndGrad.addColorStop(1, "#081324");
+  ctx.fillStyle = gndGrad;
+  ctx.fillRect(-diag, horizonY, diag * 2, diag);
+
+  // Horizon glow line
+  ctx.strokeStyle = "rgba(0, 216, 255, 0.65)";
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.moveTo(-diag, horizonY);
+  ctx.lineTo(diag, horizonY);
+  ctx.stroke();
+  ctx.restore();
+
+  // 2. True 3D World-to-Camera Perspective Projection Helper (NED World [xN, yE, hMSL] -> Screen [sx, sy, zDepth])
+  const cp = Math.cos(phi),   sp = Math.sin(phi);
+  const ct = Math.cos(theta), st = Math.sin(theta);
+  const cyaw = Math.cos(psi), syaw = Math.sin(psi);
+
+  function projectWorldNED(xN, yE, hMSL) {
+    const dx = xN - xCam;
+    const dy = yE - yCam;
+    const dz = -(hMSL - hCam); // NED Down = -dAlt
+    // NED -> Body frame [xb (forward), yb (right), zb (down)]
+    const xb = (ct * cyaw) * dx + (ct * syaw) * dy - st * dz;
+    const yb = (sp * st * cyaw - cp * syaw) * dx + (sp * st * syaw + cp * cyaw) * dy + (sp * ct) * dz;
+    const zb = (cp * st * cyaw + sp * syaw) * dx + (cp * st * syaw - sp * cyaw) * dy + (cp * ct) * dz;
+    if (xb <= 4.0) return null; // behind camera near-plane
+    const sx = cx + (yb / xb) * fovScale;
+    const sy = cy + (zb / xb) * fovScale;
+    return [sx, sy, xb];
+  }
+
+  // 3. Render 3D Synthetic-Vision Arctic Canyon Floor & Mountain Walls Ahead of Aircraft
+  ctx.save();
+  for (let dStep = 2400; dStep >= 100; dStep -= 140) {
+    const xSlice = Math.floor((xCam + dStep) / 140.0) * 140.0;
+    const yCent = getArcticCanyonCenterY(xSlice);
+    const pts = [];
+    for (let k = -6; k <= 6; k++) {
+      const yPt = yCent + k * 95.0;
+      const hPt = getArcticCanyonTerrainMSL(xSlice, yPt);
+      const p = projectWorldNED(xSlice, yPt, hPt);
+      if (p) pts.push({ sx: p[0], sy: p[1], h: hPt, k });
+    }
+    if (pts.length >= 2) {
+      const alphaDist = Math.max(0.08, Math.min(0.55, 1.0 - dStep / 2600.0));
+      ctx.strokeStyle = `rgba(0, 216, 255, ${(alphaDist * 0.55).toFixed(2)})`;
+      ctx.lineWidth = dStep < 600 ? 1.5 : 1.0;
+      ctx.beginPath();
+      pts.forEach((pt, idx) => {
+        if (idx === 0) ctx.moveTo(pt.sx, pt.sy);
+        else ctx.lineTo(pt.sx, pt.sy);
+      });
+      ctx.stroke();
+    }
+  }
+  // Longitudinal canyon floor & wall ridge lines
+  [-480, -320, -180, -95, 0, 95, 180, 320, 480].forEach(latOff => {
+    ctx.strokeStyle = Math.abs(latOff) <= 95
+      ? "rgba(24, 224, 127, 0.25)"
+      : "rgba(95, 175, 255, 0.22)";
+    ctx.lineWidth = Math.abs(latOff) === 95 ? 1.4 : 0.9;
+    ctx.beginPath();
+    let started = false;
+    for (let dStep = 80; dStep <= 2200; dStep += 120) {
+      const xPt = xCam + dStep;
+      const yPt = getArcticCanyonCenterY(xPt) + latOff;
+      const hPt = getArcticCanyonTerrainMSL(xPt, yPt);
+      const p = projectWorldNED(xPt, yPt, hPt);
+      if (p) {
+        if (!started) { ctx.moveTo(p[0], p[1]); started = true; }
+        else ctx.lineTo(p[0], p[1]);
+      }
+    }
+    ctx.stroke();
+  });
+
+  // 4. Render 3D Snow Runway (-200m to +700m, width ±22m) + Centerline Dashes + 4-Light 3.0° PAPI Glideslope
+  const rwyC1 = projectWorldNED(-200, -22, 0.2);
+  const rwyC2 = projectWorldNED(-200,  22, 0.2);
+  const rwyC3 = projectWorldNED( 700,  22, 0.2);
+  const rwyC4 = projectWorldNED( 700, -22, 0.2);
+  if (rwyC1 && rwyC2 && rwyC3 && rwyC4) {
+    ctx.fillStyle = "rgba(185, 220, 255, 0.22)";
+    ctx.strokeStyle = "#00d8ff";
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(rwyC1[0], rwyC1[1]);
+    ctx.lineTo(rwyC2[0], rwyC2[1]);
+    ctx.lineTo(rwyC3[0], rwyC3[1]);
+    ctx.lineTo(rwyC4[0], rwyC4[1]);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
+  // Runway centerline dashes & edge lights
+  for (let rx = -180; rx <= 680; rx += 60) {
+    const pA = projectWorldNED(rx, 0, 0.3);
+    const pB = projectWorldNED(rx + 32, 0, 0.3);
+    if (pA && pB) {
+      ctx.strokeStyle = "#e8f4ff";
+      ctx.lineWidth = 2.0;
+      ctx.beginPath(); ctx.moveTo(pA[0], pA[1]); ctx.lineTo(pB[0], pB[1]); ctx.stroke();
+    }
+    [-22, 22].forEach(ry => {
+      const pL = projectWorldNED(rx, ry, 0.5);
+      if (pL) {
+        ctx.fillStyle = rx < 0 ? "#ffbe2e" : "#ffffff";
+        ctx.beginPath(); ctx.arc(pL[0], pL[1], 2.0, 0, Math.PI * 2); ctx.fill();
+      }
+    });
+  }
+  // 4-Light PAPI at Runway Touchdown Zone (x = 0, y = -30.. -42)
+  const distToRwy = Math.max(1.0, Math.hypot(xCam - 0.0, yCam - 0.0));
+  const gsAngle_deg = (Math.atan2(hCam, distToRwy) * 180.0) / Math.PI;
+  [2.5, 2.8, 3.2, 3.5].forEach((thresh_deg, idx) => {
+    const pPapi = projectWorldNED(0.0, -28.0 - idx * 4.5, 0.8);
+    if (pPapi) {
+      // White if above angle, Red if below angle (2 White + 2 Red = on 3.0° glideslope!)
+      ctx.fillStyle = gsAngle_deg >= thresh_deg ? "#ffffff" : "#ff4757";
+      ctx.beginPath();
+      ctx.arc(pPapi[0], pPapi[1], 3.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+
+  // 5. Render 3D SAR Distress Beacon & Drop Zone Ring at x = 2350m in the Canyon
+  const sarX = 2350.0;
+  const sarY = getArcticCanyonCenterY(sarX);
+  const sarH = getArcticCanyonTerrainMSL(sarX, sarY);
+  const pSar = projectWorldNED(sarX, sarY, sarH + 2.0);
+  if (pSar) {
+    ctx.strokeStyle = "#ff4757";
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    ctx.arc(pSar[0], pSar[1], 14, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = "#ffbe2e";
+    ctx.font = "bold 9.5px sans-serif";
+    ctx.textAlign = "center";
+    const dSar = Math.hypot(xCam - sarX, yCam - sarY);
+    ctx.fillText(`🎯 SAR DROP ZONE (${(dSar / 1000).toFixed(2)} km)`, pSar[0], pSar[1] - 18);
+  }
+  ctx.restore();
+
+  // 6. Render Conformal HUD Pitch Ladder (±45°), Roll Scale, Bore-Sight Crosshair (W) & Velocity Vector (FPV ⊙)
+  const hudColor = (alpha_deg > 12.2 || nz_g > 3.8 || agl < 25.0) ? "#ff4757" : "#18e07f";
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(-phi);
+  ctx.strokeStyle = hudColor;
+  ctx.fillStyle = hudColor;
+  ctx.font = "bold 9.5px monospace";
+  ctx.lineWidth = 1.5;
+
+  for (let pDeg = -40; pDeg <= 40; pDeg += 5) {
+    if (pDeg === 0) continue;
+    const pRad = (pDeg * Math.PI) / 180.0;
+    const yRung = Math.tan(theta - pRad) * fovScale;
+    if (Math.abs(yRung) > h * 0.36) continue;
+    const rungW = 36;
+    const gapW  = 16;
+    const tickH = pDeg > 0 ? 5 : -5;
+    if (pDeg < 0) ctx.setLineDash([4, 3]);
+    else ctx.setLineDash([]);
+    // Left rung
+    ctx.beginPath();
+    ctx.moveTo(-gapW - rungW, yRung + tickH);
+    ctx.lineTo(-gapW - rungW, yRung);
+    ctx.lineTo(-gapW, yRung);
+    ctx.stroke();
+    // Right rung
+    ctx.beginPath();
+    ctx.moveTo(gapW + rungW, yRung + tickH);
+    ctx.lineTo(gapW + rungW, yRung);
+    ctx.lineTo(gapW, yRung);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.textAlign = "right";
+    ctx.fillText(`${pDeg > 0 ? "+" : ""}${pDeg}`, -gapW - rungW - 4, yRung + 3);
+    ctx.textAlign = "left";
+    ctx.fillText(`${pDeg > 0 ? "+" : ""}${pDeg}`, gapW + rungW + 4, yRung + 3);
+  }
+  ctx.restore();
+
+  // Fixed Aircraft Bore-Sight Crosshair ("W" Waterline Symbol at dead center)
+  ctx.save();
+  ctx.strokeStyle = "#00d8ff";
+  ctx.lineWidth = 2.0;
+  ctx.beginPath();
+  ctx.moveTo(cx - 22, cy); ctx.lineTo(cx - 8, cy); ctx.lineTo(cx - 4, cy + 5);
+  ctx.lineTo(cx, cy);      ctx.lineTo(cx + 4, cy + 5); ctx.lineTo(cx + 8, cy);
+  ctx.lineTo(cx + 22, cy);
+  ctx.stroke();
+
+  // True Flight Path Vector / Velocity Vector (FPV ⊙) — shifts down by AoA (alpha) and sideways by Sideslip (beta)!
+  const fpvX = cx + Math.tan((-beta_deg * Math.PI) / 180.0) * fovScale;
+  const fpvY = cy + Math.tan((alpha_deg * Math.PI) / 180.0) * fovScale;
+  const clampedFpvX = Math.max(x0 + 85, Math.min(x0 + w - 85, fpvX));
+  const clampedFpvY = Math.max(y0 + 55, Math.min(y0 + h - 55, fpvY));
+  ctx.strokeStyle = hudColor;
+  ctx.lineWidth = 2.0;
+  ctx.beginPath();
+  ctx.arc(clampedFpvX, clampedFpvY, 7.5, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(clampedFpvX - 16, clampedFpvY); ctx.lineTo(clampedFpvX - 7.5, clampedFpvY);
+  ctx.moveTo(clampedFpvX + 7.5, clampedFpvY); ctx.lineTo(clampedFpvX + 16, clampedFpvY);
+  ctx.moveTo(clampedFpvX, clampedFpvY - 7.5); ctx.lineTo(clampedFpvX, clampedFpvY - 15);
+  ctx.stroke();
+  ctx.restore();
+
+  // 7. Left HUD Airspeed Tape (IAS / Synth IAS in km/h & m/s) + AoA & Stall Margin Bar
+  const tapeH = Math.min(210, h * 0.50);
+  const tapeTop = cy - tapeH * 0.5;
+  const spdX = x0 + 12;
+  const spdW = 64;
+  ctx.fillStyle = "rgba(6, 15, 29, 0.78)";
+  ctx.strokeStyle = "rgba(0, 216, 255, 0.45)";
+  ctx.lineWidth = 1.2;
+  ctx.fillRect(spdX, tapeTop, spdW, tapeH);
+  ctx.strokeRect(spdX, tapeTop, spdW, tapeH);
+
+  // Stall red barber-pole below Vs = 104 km/h & Overspeed red barber-pole above Vne = 396 km/h
+  const vs_kmh = fpvSim.flapsDeployed ? 94.0 : 105.0;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(spdX, tapeTop, spdW, tapeH); ctx.clip();
+  ctx.font = "9px monospace";
+  ctx.fillStyle = "#9dc8ff";
+  ctx.strokeStyle = "rgba(157, 200, 255, 0.45)";
+  for (let vTick = 0; vTick <= 520; vTick += 20) {
+    const dy = (ias_kmh - vTick) * 1.35;
+    const ty = cy + dy;
+    if (ty < tapeTop - 10 || ty > tapeTop + tapeH + 10) continue;
+    ctx.beginPath();
+    ctx.moveTo(spdX + spdW - 10, ty);
+    ctx.lineTo(spdX + spdW, ty);
+    ctx.stroke();
+    ctx.textAlign = "right";
+    ctx.fillStyle = (vTick <= vs_kmh || vTick >= 396) ? "#ff4757" : "#c6e2ff";
+    ctx.fillText(`${vTick}`, spdX + spdW - 13, ty + 3);
+  }
+  ctx.restore();
+  // Current IAS digital readout box
+  ctx.fillStyle = "#040d1a";
+  ctx.strokeStyle = ias_kmh < vs_kmh + 10 ? "#ff4757" : "#00d8ff";
+  ctx.lineWidth = 1.8;
+  ctx.fillRect(spdX - 2, cy - 12, spdW + 8, 24);
+  ctx.strokeRect(spdX - 2, cy - 12, spdW + 8, 24);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 11.5px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText(`${ias_kmh.toFixed(0)} km/h`, spdX + spdW * 0.5 + 2, cy + 4);
+  ctx.fillStyle = flt.pitot_blocked ? "#ffbe2e" : "#00d8ff";
+  ctx.font = "bold 8.5px sans-serif";
+  ctx.fillText(flt.pitot_blocked ? "SYNTH IAS" : `IAS (${(ias_kmh / 3.6).toFixed(0)} m/s)`, spdX + spdW * 0.5, tapeTop - 5);
+
+  // AoA & G-Meter Readout below Airspeed Tape
+  ctx.fillStyle = "rgba(6, 15, 29, 0.85)";
+  ctx.strokeStyle = alpha_deg > 11.5 ? "#ff4757" : "rgba(0, 216, 255, 0.42)";
+  ctx.fillRect(spdX, tapeTop + tapeH + 6, spdW + 22, 48);
+  ctx.strokeRect(spdX, tapeTop + tapeH + 6, spdW + 22, 48);
+  ctx.textAlign = "left";
+  ctx.font = "bold 9.5px monospace";
+  ctx.fillStyle = alpha_deg > 12.0 ? "#ff4757" : (alpha_deg > 9.5 ? "#ffbe2e" : "#18e07f");
+  ctx.fillText(`α AoA: ${alpha_deg >= 0 ? "+" : ""}${alpha_deg.toFixed(1)}°`, spdX + 5, tapeTop + tapeH + 19);
+  ctx.fillStyle = Math.abs(nz_g) > 3.8 ? "#ff4757" : "#00d8ff";
+  ctx.fillText(`G-LOAD: ${nz_g >= 0 ? "+" : ""}${nz_g.toFixed(2)}G`, spdX + 5, tapeTop + tapeH + 33);
+  ctx.fillStyle = "#8faec9";
+  ctx.font = "8.5px monospace";
+  ctx.fillText(`β Slip: ${beta_deg >= 0 ? "+" : ""}${beta_deg.toFixed(1)}°`, spdX + 5, tapeTop + tapeH + 46);
+
+  // 8. Right HUD Altimeter Tape (m AGL & MSL) + Vertical Speed (VSI) & Turbine Spool Bar
+  const altX = x0 + w - 76;
+  const altW = 64;
+  ctx.fillStyle = "rgba(6, 15, 29, 0.78)";
+  ctx.strokeStyle = "rgba(0, 216, 255, 0.45)";
+  ctx.lineWidth = 1.2;
+  ctx.fillRect(altX, tapeTop, altW, tapeH);
+  ctx.strokeRect(altX, tapeTop, altW, tapeH);
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(altX, tapeTop, altW, tapeH); ctx.clip();
+  ctx.font = "9px monospace";
+  ctx.strokeStyle = "rgba(157, 200, 255, 0.45)";
+  for (let aTick = 0; aTick <= 600; aTick += 25) {
+    const dy = (agl - aTick) * 1.25;
+    const ty = cy + dy;
+    if (ty < tapeTop - 10 || ty > tapeTop + tapeH + 10) continue;
+    ctx.beginPath();
+    ctx.moveTo(altX, ty);
+    ctx.lineTo(altX + 10, ty);
+    ctx.stroke();
+    ctx.textAlign = "left";
+    ctx.fillStyle = aTick <= 25 ? "#ff4757" : "#c6e2ff";
+    ctx.fillText(`${aTick}m`, altX + 13, ty + 3);
+  }
+  // Red cross-hatched ground brick rising from bottom when AGL < 80m
+  const groundTopY = cy + agl * 1.25;
+  if (groundTopY < tapeTop + tapeH) {
+    ctx.fillStyle = "rgba(255, 71, 87, 0.35)";
+    ctx.fillRect(altX, groundTopY, altW, tapeTop + tapeH - groundTopY);
+  }
+  ctx.restore();
+
+  ctx.fillStyle = "#040d1a";
+  ctx.strokeStyle = agl < 30.0 ? "#ff4757" : "#18e07f";
+  ctx.lineWidth = 1.8;
+  ctx.fillRect(altX - 6, cy - 12, altW + 8, 24);
+  ctx.strokeRect(altX - 6, cy - 12, altW + 8, 24);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 11.5px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText(`${agl.toFixed(0)}m AGL`, altX + altW * 0.5 - 2, cy + 4);
+  ctx.fillStyle = "#18e07f";
+  ctx.font = "bold 8.5px sans-serif";
+  ctx.fillText(`MSL ${hCam.toFixed(0)}m`, altX + altW * 0.5, tapeTop - 5);
+
+  // VSI & Turbine Spool / Trim Box below Altimeter Tape
+  ctx.fillStyle = "rgba(6, 15, 29, 0.85)";
+  ctx.strokeStyle = "rgba(0, 216, 255, 0.42)";
+  ctx.fillRect(altX - 22, tapeTop + tapeH + 6, altW + 22, 48);
+  ctx.strokeRect(altX - 22, tapeTop + tapeH + 6, altW + 22, 48);
+  ctx.textAlign = "left";
+  ctx.font = "bold 9.5px monospace";
+  ctx.fillStyle = vsi_mps < -4.0 ? "#ff4757" : "#00d8ff";
+  ctx.fillText(`VSI: ${vsi_mps >= 0 ? "+" : ""}${vsi_mps.toFixed(1)} m/s`, altX - 17, tapeTop + tapeH + 19);
+  ctx.fillStyle = fpvSim.engineLit ? "#ffbe2e" : "#ff4757";
+  ctx.fillText(
+    fpvSim.engineLit
+      ? `THR: ${(fpvSim.throttleCmd * 100).toFixed(0)}%→${(fpvSim.spoolFrac * 100).toFixed(0)}%`
+      : `THR: FLAMEOUT!`,
+    altX - 17, tapeTop + tapeH + 33
+  );
+  ctx.fillStyle = "#9dc8ff";
+  ctx.font = "8.5px monospace";
+  ctx.fillText(`TRIM P:${(fpvSim.trimPitch * 100).toFixed(0)}% Fuel:${fpvSim.fuel_kg.toFixed(1)}k`, altX - 17, tapeTop + tapeH + 46);
+
+  // 9. Top Interactive Scenario & Flight Control Law Selector Strip (Clickable right on the Canvas!)
+  const topBarY = y0 + 6;
+  ctx.fillStyle = "rgba(5, 13, 25, 0.88)";
+  ctx.strokeStyle = "rgba(0, 216, 255, 0.42)";
+  ctx.lineWidth = 1.0;
+  ctx.fillRect(x0 + 8, topBarY, w - 16, 44);
+  ctx.strokeRect(x0 + 8, topBarY, w - 16, 44);
+
+  function addHudPill(px, py, pw, ph, label, isActive, activeColor, onClickFn) {
+    ctx.fillStyle = isActive ? activeColor : "rgba(15, 32, 58, 0.85)";
+    ctx.strokeStyle = isActive ? "#ffffff" : "rgba(0, 216, 255, 0.38)";
+    ctx.lineWidth = isActive ? 1.5 : 1.0;
+    ctx.fillRect(px, py, pw, ph);
+    ctx.strokeRect(px, py, pw, ph);
+    ctx.fillStyle = isActive ? "#04101e" : "#d0e6ff";
+    ctx.font = isActive ? "bold 8.8px sans-serif" : "8.5px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(label, px + pw * 0.5, py + ph * 0.68);
+    fpvSim.hudHitBoxes.push({ x: px, y: py, w: pw, h: ph, action: onClickFn });
+  }
+
+  // Row 1: 3 Flight Control Laws + Mouse Yoke Toggle
+  const row1Y = topBarY + 3;
+  const lawW = Math.min(138, (w - 150) / 3);
+  addHudPill(x0 + 14, row1Y, lawW, 17, "[1] DIRECT LAW (RAW SERVOS)", fpvSim.controlLaw === "DIRECT_LAW", "#ff4757", () => {
+    fpvSim.controlLaw = "DIRECT_LAW";
+    syncLiveFpvHeaderButton();
+  });
+  addHudPill(x0 + 18 + lawW, row1Y, lawW, 17, "[2] ALTERNATE LAW (SAS)", fpvSim.controlLaw === "ALTERNATE_LAW", "#ffbe2e", () => {
+    fpvSim.controlLaw = "ALTERNATE_LAW";
+    syncLiveFpvHeaderButton();
+  });
+  addHudPill(x0 + 22 + lawW * 2, row1Y, lawW, 17, "[3] NORMAL LAW (PROTECTED)", fpvSim.controlLaw === "NORMAL_LAW", "#18e07f", () => {
+    fpvSim.controlLaw = "NORMAL_LAW";
+    syncLiveFpvHeaderButton();
+  });
+  addHudPill(x0 + w - 122, row1Y, 108, 17, fpvSim.mouseYokeEnabled ? "🖱️ MOUSE YOKE: ON" : "🖱️ MOUSE YOKE [M]", fpvSim.mouseYokeEnabled, "#00d8ff", () => {
+    fpvSim.mouseYokeEnabled = !fpvSim.mouseYokeEnabled;
+    if (!fpvSim.mouseYokeEnabled) { fpvSim.mouseYokeX = 0; fpvSim.mouseYokeY = 0; }
+  });
+
+  // Row 2: 5 Spawn Scenarios
+  const row2Y = topBarY + 23;
+  const scenW = (w - 36) / 5;
+  const scenarios = [
+    ["CANYON_DIRECT",    "🔥 Canyon Hands-On"],
+    ["TAKEOFF_ROLL",     "🛫 Runway T/O (0 km/h)"],
+    ["CANYON_SPRINT",    "🏔️ Low Canyon Sprint"],
+    ["FINAL_APPROACH",   "🎯 Approach & Land"],
+    ["UPSET_STALL_SPIN", "⚠️ Stall/Spin Recovery"]
+  ];
+  scenarios.forEach(([key, lbl], idx) => {
+    addHudPill(x0 + 14 + idx * (scenW + 2), row2Y, scenW - 2, 17, lbl, fpvSim.preset === key, "#00d8ff", () => {
+      initLiveFpvFlight(key);
+    });
+  });
+
+  // Active Flight Law & Envelope Banner just under Top Bar
+  ctx.fillStyle = fpvSim.controlLaw === "DIRECT_LAW"
+    ? "rgba(255, 71, 87, 0.22)"
+    : (fpvSim.controlLaw === "ALTERNATE_LAW" ? "rgba(255, 190, 46, 0.20)" : "rgba(24, 224, 127, 0.20)");
+  ctx.fillRect(x0 + 82, topBarY + 46, w - 164, 16);
+  ctx.fillStyle = fpvSim.controlLaw === "DIRECT_LAW" ? "#ff8a95" : (fpvSim.controlLaw === "ALTERNATE_LAW" ? "#ffbe2e" : "#18e07f");
+  ctx.font = "bold 8.5px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(fpvSim.protBanner, cx, topBarY + 57);
+
+  // 10. Bottom On-Screen Draggable Mode-2 Dual RC Gimbals & Action Switches
+  const gimR = Math.min(36, h * 0.105);
+  const gimY = y0 + h - gimR - 14;
+  const leftGimX  = cx - Math.min(135, w * 0.26);
+  const rightGimX = cx + Math.min(135, w * 0.26);
+
+  function drawGimbal(gx, gy, gr, normX, normY, titleLbl, stickTag) {
+    ctx.fillStyle = "rgba(5, 13, 25, 0.85)";
+    ctx.strokeStyle = "rgba(0, 216, 255, 0.45)";
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.arc(gx, gy, gr, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Crosshairs
+    ctx.strokeStyle = "rgba(157, 200, 255, 0.22)";
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(gx - gr + 4, gy); ctx.lineTo(gx + gr - 4, gy);
+    ctx.moveTo(gx, gy - gr + 4); ctx.lineTo(gx, gy + gr - 4);
+    ctx.stroke();
+    // Stick knob
+    const kx = gx + Math.max(-1, Math.min(1, normX)) * (gr - 8);
+    const ky = gy + Math.max(-1, Math.min(1, normY)) * (gr - 8);
+    ctx.strokeStyle = "#00d8ff";
+    ctx.lineWidth = 2.0;
+    ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(kx, ky); ctx.stroke();
+    ctx.fillStyle = fpvSim.draggingStick === stickTag ? "#18e07f" : "#00d8ff";
+    ctx.beginPath(); ctx.arc(kx, ky, 6.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#9dc8ff";
+    ctx.font = "bold 8px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(titleLbl, gx, gy - gr - 4);
+    fpvSim.hudHitBoxes.push({
+      x: gx - gr, y: gy - gr, w: gr * 2, h: gr * 2,
+      stickTag, gx, gy, gr
+    });
+  }
+
+  // Left Gimbal: Throttle (Y: top=100%, bottom=0%) & Rudder Yaw (X: left/right)
+  drawGimbal(leftGimX, gimY, gimR, fpvSim.stickYaw, 1.0 - 2.0 * fpvSim.throttleCmd, "THR [Shift/Ctrl] · YAW [Q/E]", "LEFT");
+  // Right Gimbal: Pitch (Y: down=+pull nose up, up=-push nose down) & Roll (X: left/right)
+  drawGimbal(rightGimX, gimY, gimR, fpvSim.stickRoll, fpvSim.stickPitch, "PITCH [W/S] · ROLL [A/D]", "RIGHT");
+
+  // Center Bottom Action Pills (Flaps, Crow Airbrake, Trim Reset, Drop SAR Capsule, Recovery Chute)
+  const actW = 68;
+  const actY1 = gimY - 22;
+  const actY2 = gimY + 1;
+  addHudPill(cx - actW - 3, actY1, actW, 18, `FLAPS [V]: ${fpvSim.flapsDeployed ? "18°" : "0°"}`, fpvSim.flapsDeployed, "#18e07f", () => {
+    fpvSim.flapsDeployed = !fpvSim.flapsDeployed;
+  });
+  addHudPill(cx + 3, actY1, actW, 18, `BRAKE [B]: ${fpvSim.crowBrakeDeployed ? "ON" : "OFF"}`, fpvSim.crowBrakeDeployed, "#ffbe2e", () => {
+    fpvSim.crowBrakeDeployed = !fpvSim.crowBrakeDeployed;
+  });
+  addHudPill(cx - actW - 3, actY2, actW, 18, fpvSim.capsuleDropped ? "📦 DROPPED" : "📦 DROP [Spc]", fpvSim.capsuleDropped, "#00d8ff", () => {
+    if (!fpvSim.capsuleDropped) {
+      fpvSim.capsuleDropped = true;
+      fpvSim.dropDistance_m = Math.hypot(fpvSim.x_n - 2350.0, fpvSim.y_e - getArcticCanyonCenterY(2350.0));
+    }
+  });
+  addHudPill(cx + 3, actY2, actW, 18, fpvSim.chuteDeployed ? "🪂 CHUTE OUT" : "🪂 CHUTE [P]", fpvSim.chuteDeployed, "#ff4757", () => {
+    fpvSim.chuteDeployed = !fpvSim.chuteDeployed;
+  });
+
+  // Hint footer at bottom center
+  ctx.fillStyle = "#8cb4d8";
+  ctx.font = "8px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("KEYS: [W/S or ↑/↓] Pitch · [A/D or ←/→] Roll · [Q/E] Yaw · [Shift/Ctrl] Throttle · [T/G] Pitch Trim · [1/2/3] Flight Law · [R] Respawn", cx, y0 + h - 4);
+
+  // 11. FORENSIC CRASH & STRUCTURAL FAILURE OVERLAY (When Crashed)
+  if (fpvSim.crashed) {
+    ctx.fillStyle = "rgba(25, 4, 10, 0.84)";
+    ctx.fillRect(x0 + 18, y0 + 66, w - 36, h - 132);
+    ctx.strokeStyle = "#ff4757";
+    ctx.lineWidth = 2.4;
+    ctx.strokeRect(x0 + 18, y0 + 66, w - 36, h - 132);
+
+    ctx.fillStyle = "#ff4757";
+    ctx.font = "bold 13px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(`💥 ${fpvSim.crashTitle}`, cx, y0 + 90);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "10px sans-serif";
+    ctx.fillText(fpvSim.crashReason, cx, y0 + 112);
+
+    ctx.fillStyle = "#ffbe2e";
+    ctx.font = "bold 9.5px monospace";
+    ctx.fillText(
+      `IMPACT TELEMETRY: Speed ${fpvSim.crashImpactSpeed_kmh.toFixed(0)} km/h · Sink ${fpvSim.crashImpactVertical_mps.toFixed(1)} m/s · Load ${fpvSim.crashImpactG >= 0 ? "+" : ""}${fpvSim.crashImpactG.toFixed(2)} G · AoA ${fpvSim.crashImpactAoA_deg.toFixed(1)}° · Bank ${fpvSim.crashImpactBank_deg.toFixed(1)}°`,
+      cx, y0 + 132
+    );
+
+    ctx.fillStyle = "#9dc8ff";
+    ctx.font = "9.5px sans-serif";
+    ctx.fillText(`🔧 FLIGHT INSTRUCTOR DIAGNOSIS: ${fpvSim.crashRemediation}`, cx, y0 + 152);
+
+    // Respawn / Switch Law buttons inside the Crash Overlay
+    const btnY = y0 + 168;
+    addHudPill(cx - 195, btnY, 125, 24, "🔄 [R] RETRY SCENARIO", true, "#18e07f", () => {
+      initLiveFpvFlight(fpvSim.preset);
+    });
+    addHudPill(cx - 62, btnY, 135, 24, "🛡️ RETRY IN NORMAL LAW [3]", false, "#00d8ff", () => {
+      initLiveFpvFlight(fpvSim.preset);
+      fpvSim.controlLaw = "NORMAL_LAW";
+      syncLiveFpvHeaderButton();
+    });
+    addHudPill(cx + 81, btnY, 125, 24, "🛫 SPAWN RUNWAY T/O", false, "#ffbe2e", () => {
+      initLiveFpvFlight("TAKEOFF_ROLL");
+    });
+  }
+
+  ctx.restore();
+}
+
+// Header Button Toggle for Live 6-DoF FPV Mode
+document.getElementById("btnToggleLiveFpv").onclick = () => {
+  if (!fpvSim.active) {
+    initLiveFpvFlight("CANYON_DIRECT");
+  } else if (fpvSim.crashed) {
+    initLiveFpvFlight(fpvSim.preset);
+  } else {
+    fpvSim.active = false;
+    camMode = "ISO";
+    CAM_BTN_IDS.forEach(id => {
+      const b = document.getElementById(id);
+      if (b) b.classList.remove("active");
+    });
+    document.getElementById("camIso").classList.add("active");
+    syncLiveFpvHeaderButton();
+    if (currentSim) updateUIForSample(playIdx);
+  }
+};
+
+// Mouse Interaction on canvasAircraft3D for FPV HUD Buttons, Dual Gimbals & Mouse Yoke
+const fpvCanvas = document.getElementById("canvasAircraft3D");
+fpvCanvas.addEventListener("mousedown", e => {
+  if (camMode !== "FPV_COCKPIT" && camMode !== "FPV_SPLIT") return;
+  const rect = fpvCanvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  for (const b of fpvSim.hudHitBoxes) {
+    if (mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h) {
+      if (b.stickTag) {
+        fpvSim.draggingStick = b.stickTag;
+        const nx = Math.max(-1, Math.min(1, (mx - b.gx) / (b.gr - 8)));
+        const ny = Math.max(-1, Math.min(1, (my - b.gy) / (b.gr - 8)));
+        if (b.stickTag === "RIGHT") {
+          fpvSim.stickRoll = nx;
+          fpvSim.stickPitch = ny;
+          fpvSim.mouseYokeX = nx;
+          fpvSim.mouseYokeY = ny;
+        } else {
+          fpvSim.stickYaw = nx;
+          fpvSim.throttleCmd = Math.max(0, Math.min(1, 0.5 * (1.0 - ny)));
+        }
+      } else if (b.action) {
+        b.action();
+        if (currentSim) updateUIForSample(playIdx);
+      }
+      return;
+    }
+  }
+});
+
+window.addEventListener("mousemove", e => {
+  if (camMode !== "FPV_COCKPIT" && camMode !== "FPV_SPLIT") return;
+  const rect = fpvCanvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  if (fpvSim.draggingStick) {
+    for (const b of fpvSim.hudHitBoxes) {
+      if (b.stickTag === fpvSim.draggingStick) {
+        const nx = Math.max(-1, Math.min(1, (mx - b.gx) / (b.gr - 8)));
+        const ny = Math.max(-1, Math.min(1, (my - b.gy) / (b.gr - 8)));
+        if (b.stickTag === "RIGHT") {
+          fpvSim.stickRoll = nx;
+          fpvSim.stickPitch = ny;
+          fpvSim.mouseYokeX = nx;
+          fpvSim.mouseYokeY = ny;
+        } else {
+          fpvSim.stickYaw = nx;
+          fpvSim.throttleCmd = Math.max(0, Math.min(1, 0.5 * (1.0 - ny)));
+        }
+        break;
+      }
+    }
+  } else if (fpvSim.mouseYokeEnabled && mx >= 0 && mx <= rect.width && my >= 0 && my <= rect.height) {
+    const subW = camMode === "FPV_SPLIT" ? rect.width * 0.55 : rect.width;
+    fpvSim.mouseYokeX = Math.max(-1.0, Math.min(1.0, (mx - subW * 0.5) / (subW * 0.32)));
+    fpvSim.mouseYokeY = Math.max(-1.0, Math.min(1.0, (my - rect.height * 0.5) / (rect.height * 0.32)));
+  }
+});
+
+window.addEventListener("mouseup", () => {
+  if (fpvSim.draggingStick === "RIGHT" && !fpvSim.mouseYokeEnabled) {
+    fpvSim.mouseYokeX = 0.0;
+    fpvSim.mouseYokeY = 0.0;
+  }
+  fpvSim.draggingStick = null;
+});
+
+// Keyboard Flight Controls (Active when FPV mode is on)
+window.addEventListener("keydown", e => {
+  if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "SELECT" || e.target.tagName === "TEXTAREA")) return;
+  fpvSim.keys[e.code] = true;
+  if (!fpvSim.active && camMode !== "FPV_COCKPIT" && camMode !== "FPV_SPLIT") return;
+
+  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) {
+    e.preventDefault();
+  }
+  if (e.code === "Digit1") { fpvSim.controlLaw = "DIRECT_LAW"; syncLiveFpvHeaderButton(); }
+  else if (e.code === "Digit2") { fpvSim.controlLaw = "ALTERNATE_LAW"; syncLiveFpvHeaderButton(); }
+  else if (e.code === "Digit3") { fpvSim.controlLaw = "NORMAL_LAW"; syncLiveFpvHeaderButton(); }
+  else if (e.code === "KeyV") { fpvSim.flapsDeployed = !fpvSim.flapsDeployed; }
+  else if (e.code === "KeyB") { fpvSim.crowBrakeDeployed = !fpvSim.crowBrakeDeployed; }
+  else if (e.code === "KeyP") { fpvSim.chuteDeployed = !fpvSim.chuteDeployed; }
+  else if (e.code === "KeyM") {
+    fpvSim.mouseYokeEnabled = !fpvSim.mouseYokeEnabled;
+    if (!fpvSim.mouseYokeEnabled) { fpvSim.mouseYokeX = 0; fpvSim.mouseYokeY = 0; }
+  } else if (e.code === "Space") {
+    if (!fpvSim.capsuleDropped) {
+      fpvSim.capsuleDropped = true;
+      fpvSim.dropDistance_m = Math.hypot(fpvSim.x_n - 2350.0, fpvSim.y_e - getArcticCanyonCenterY(2350.0));
+    }
+  } else if (e.code === "KeyR") {
+    initLiveFpvFlight(fpvSim.preset);
+  }
+});
+
+window.addEventListener("keyup", e => {
+  fpvSim.keys[e.code] = false;
+});
 
 // Interactive Wind-Tunnel Control Strip (AoA Slider + Sudden Maneuver & Snow/Ice Presets)
 const CFD_PILL_IDS = ["cfdSyncBtn", "cfdBtnAttached", "cfdBtnBuffet", "cfdBtnStall", "cfdBtnPullup", "cfdBtnSideslip", "cfdBtnSnowIce"];
@@ -5510,6 +7144,12 @@ window.addEventListener("resize", () => { if (currentSim) updateUIForSample(play
 function animateLoop() {
   cfdClock += 0.018;
   if (lightningFlashFrames > 0) lightningFlashFrames--;
+  if (fpvSim.active) {
+    stepLiveFpvPhysics(1.0 / 60.0);
+    if (currentSim) updateUIForSample(playIdx);
+    requestAnimationFrame(animateLoop);
+    return;
+  }
   if (currentSim && currentSim.telemetry.length > 0) {
     if (isPlaying) {
       playIdx += 0.22 * playSpeed;

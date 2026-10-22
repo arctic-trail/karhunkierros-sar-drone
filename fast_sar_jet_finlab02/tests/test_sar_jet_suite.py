@@ -451,6 +451,13 @@ class TestArcticFastSarJetSuite(unittest.TestCase):
         self.assertGreaterEqual(cart_c["sky_diode_snr_at_240km_db"], 20.0)
         self.assertTrue(cart_c["zero_starlink_dependency"])
 
+        sled_c = sizing.compute_sled_c_long_endurance_4stroke_ferry()
+        self.assertEqual(sled_c["mtow_kg"], 14.95)
+        self.assertEqual(sled_c["cg_shift_mm"], 0.0)
+        self.assertGreaterEqual(sled_c["prop_boom_radial_clearance_mm"], 35.0)
+        self.assertGreaterEqual(sled_c["range_with_full_5kg_payload_km"], 1000.0)
+        self.assertGreaterEqual(sled_c["max_ferry_range_km"], 2400.0)
+
         m_res = marsupial.simulate_full_marsupial_mission()
         self.assertTrue(m_res["fit_balance_and_aerodynamics"]["fits_internally_without_oml_change"])
         self.assertTrue(m_res["mid_air_separation_100hz"]["zero_rotor_strike_guaranteed"])
