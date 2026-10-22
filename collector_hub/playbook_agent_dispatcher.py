@@ -752,11 +752,13 @@ def verify_action_safety_gate(
 class PlaybookAgentDispatcher:
     """
     Manages the active Natural-Language Playbook, compiles it deterministically,
-    monitors LLM latency AND pre-filter state-flip thrashing (`[RT1-03]`), and runs
-    the JEV (Judge -> Evaluate -> Verify) decision cycle.
+    manages External LLM API Key configuration (in-memory session or optional `0600`
+    on-disk persistence in `_private/llm_api_credentials.json`), monitors LLM latency
+    AND pre-filter state-flip thrashing (`[RT1-03]`), and runs the JEV
+    (Judge -> Evaluate -> Verify) decision cycle.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, credentials_disk_path: Optional[str] = None) -> None:
         self.active_playbook_id: str = "PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY"
         self.active_markdown: str = DEFAULT_PLAYBOOKS[self.active_playbook_id]["markdown"]
         self.compiled_rules: CompiledPlaybookRules = compile_natural_language_playbook(
@@ -764,6 +766,19 @@ class PlaybookAgentDispatcher:
             playbook_id=self.active_playbook_id,
             title=DEFAULT_PLAYBOOKS[self.active_playbook_id]["title"],
         )
+        repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.credentials_disk_path: str = (
+            credentials_disk_path
+            if credentials_disk_path is not None
+            else os.path.join(repo_root, "_private", "llm_api_credentials.json")
+        )
+        self.llm_provider: str = "openai"
+        self.llm_model: str = "gpt-5.4-mini"
+        self._runtime_api_key: str = ""
+        self.api_key_saved_on_disk: bool = False
+        self.requires_api_key_prompt: bool = False
+        self._load_saved_api_key_from_disk()
+
         self.aid_mode: str = "OFFLINE_DETERMINISTIC"
         self.fallback_on_llm_unavailable: str = "OFFLINE_DETERMINISTIC"
         self.circuit_breaker_tripped: bool = False
@@ -774,6 +789,128 @@ class PlaybookAgentDispatcher:
         self.last_accepted_transition_ts: Optional[float] = None
         self.proposed_state_history: List[Tuple[float, str]] = []  # (ts, proposed_action)
         self.decision_log: List[Dict[str, Any]] = []
+
+    def _load_saved_api_key_from_disk(self) -> None:
+        """Load optional saved LLM API key from `_private/llm_api_credentials.json` if present."""
+        if not self.credentials_disk_path or not os.path.exists(self.credentials_disk_path):
+            return
+        try:
+            with open(self.credentials_disk_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            key = str(data.get("api_key", "")).strip()
+            if key:
+                self._runtime_api_key = key
+                self.llm_provider = str(data.get("provider", "openai")).strip() or "openai"
+                self.llm_model = str(data.get("model", "gpt-5.4-mini")).strip() or "gpt-5.4-mini"
+                self.api_key_saved_on_disk = True
+        except Exception:
+            pass
+
+    def _get_effective_api_key(self) -> str:
+        if self._runtime_api_key:
+            return self._runtime_api_key
+        return (
+            os.getenv("SAR_LLM_API_KEY")
+            or os.getenv("OPENAI_API_KEY")
+            or os.getenv("ANTHROPIC_API_KEY")
+            or ""
+        ).strip()
+
+    def has_llm_api_key(self) -> bool:
+        return bool(self._get_effective_api_key())
+
+    def get_masked_api_key(self) -> str:
+        key = self._get_effective_api_key()
+        if not key:
+            return "Not Configured"
+        if len(key) <= 8:
+            return f"{key[:2]}...{key[-2:]}"
+        return f"{key[:5]}...{key[-4:]}"
+
+    def configure_llm_api_key(
+        self,
+        api_key: str = "",
+        provider: str = "openai",
+        model: str = "gpt-5.4-mini",
+        save_to_disk: bool = False,
+        clear_key: bool = False,
+        activate_cloud_mode: bool = True,
+    ) -> Dict[str, Any]:
+        """
+        Configure or clear the External LLM API Key used by `CLOUD_LLM_JEV` mode.
+        When `save_to_disk=True`, atomically persists the key to `_private/llm_api_credentials.json`
+        with `0600` (owner read/write only) permissions inside the gitignored `_private/` folder.
+        When `save_to_disk=False`, keeps the key in memory only for the current session and removes
+        any previously persisted disk file.
+        """
+        if clear_key:
+            self._runtime_api_key = ""
+            self.api_key_saved_on_disk = False
+            self.requires_api_key_prompt = False
+            if self.credentials_disk_path and os.path.exists(self.credentials_disk_path):
+                try:
+                    os.remove(self.credentials_disk_path)
+                except Exception:
+                    pass
+            if self.aid_mode == "CLOUD_LLM_JEV" and not self.has_llm_api_key():
+                self.aid_mode = self.fallback_on_llm_unavailable
+                self.circuit_breaker_tripped = False
+                self.circuit_breaker_reason = f"API Key Cleared -> Switched to {self.aid_mode}"
+            return self.get_status()
+
+        clean_key = "".join(ch for ch in str(api_key).strip() if ch.isprintable() and not ch.isspace())
+        clean_provider = str(provider or "openai").strip().lower()
+        if clean_provider not in {"openai", "anthropic", "custom"}:
+            clean_provider = "openai"
+        clean_model = "".join(ch for ch in str(model or "gpt-5.4-mini").strip() if ch.isprintable())[:64]
+
+        if clean_key:
+            self._runtime_api_key = clean_key
+            self.llm_provider = clean_provider
+            self.llm_model = clean_model
+
+        if save_to_disk and self._runtime_api_key:
+            priv_dir = os.path.dirname(self.credentials_disk_path)
+            os.makedirs(priv_dir, mode=0o700, exist_ok=True)
+            tmp_path = f"{self.credentials_disk_path}.tmp.{os.getpid()}"
+            fd = os.open(tmp_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                json.dump(
+                    {
+                        "provider": self.llm_provider,
+                        "model": self.llm_model,
+                        "api_key": self._runtime_api_key,
+                        "saved_at_epoch": round(time.time(), 2),
+                    },
+                    f,
+                    indent=2,
+                )
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp_path, self.credentials_disk_path)
+            try:
+                os.chmod(self.credentials_disk_path, 0o600)
+            except Exception:
+                pass
+            self.api_key_saved_on_disk = True
+        elif not save_to_disk:
+            self.api_key_saved_on_disk = False
+            if self.credentials_disk_path and os.path.exists(self.credentials_disk_path):
+                try:
+                    os.remove(self.credentials_disk_path)
+                except Exception:
+                    pass
+
+        if activate_cloud_mode and self.has_llm_api_key():
+            self.aid_mode = "CLOUD_LLM_JEV"
+            self.requires_api_key_prompt = False
+            self.circuit_breaker_tripped = False
+            storage_label = "Saved to Disk (0600)" if self.api_key_saved_on_disk else "Session Memory Only"
+            self.circuit_breaker_reason = (
+                f"External LLM JEV Active ({self.llm_provider}:{self.llm_model}, {storage_label})"
+            )
+
+        return self.get_status()
 
     def set_playbook(self, playbook_id: str, custom_markdown: Optional[str] = None) -> Dict[str, Any]:
         if custom_markdown is not None and custom_markdown.strip():
@@ -804,20 +941,27 @@ class PlaybookAgentDispatcher:
             self.fallback_on_llm_unavailable = fallback_policy
 
         if self.aid_mode == "CLOUD_LLM_JEV":
-            has_api = bool(os.getenv("OPENAI_API_KEY") or os.getenv("ANTHROPIC_API_KEY"))
+            has_api = self.has_llm_api_key()
             if not has_api:
+                self.requires_api_key_prompt = True
                 self.circuit_breaker_tripped = True
                 self.aid_mode = self.fallback_on_llm_unavailable
                 self.circuit_breaker_reason = (
-                    f"External LLM API unreachable/unconfigured -> Auto-switched to {self.aid_mode}"
+                    f"External LLM API Key required -> Prompting operator (safe fallback: {self.aid_mode})"
                 )
             else:
+                self.requires_api_key_prompt = False
                 self.circuit_breaker_tripped = False
-                self.circuit_breaker_reason = "External LLM JEV Active (<=1,200 ms timeout & thrash guard)"
+                storage_label = "Saved to Disk" if self.api_key_saved_on_disk else "Session Key"
+                self.circuit_breaker_reason = (
+                    f"External LLM JEV Active ({self.llm_provider}:{self.llm_model}, {storage_label}, <=1,200 ms guard)"
+                )
         elif self.aid_mode == "MANUAL_HUMAN_ONLY":
+            self.requires_api_key_prompt = False
             self.circuit_breaker_tripped = False
             self.circuit_breaker_reason = "AID Turned OFF by Operator (100% Manual Human Control)"
         else:
+            self.requires_api_key_prompt = False
             self.circuit_breaker_tripped = False
             self.proposed_state_history.clear()
             self.circuit_breaker_reason = f"Active Mode: {self.aid_mode} (<1 ms local execution)"
@@ -868,6 +1012,8 @@ class PlaybookAgentDispatcher:
             prev_mode = self.aid_mode
             self.aid_mode = self.fallback_on_llm_unavailable
             self.veto_registry.bump_epoch(reason="AID Latency/Offline Circuit-Breaker")
+            if "request_epoch" not in telemetry:
+                req_epoch = self.veto_registry.current_epoch
             self.circuit_breaker_reason = (
                 f"AID Circuit-Breaker Tripped (LLM offline or latency {sim_llm_latency_ms:.0f}ms > 1200ms) -> "
                 f"Downgraded from {prev_mode} to {self.aid_mode}"
@@ -1081,6 +1227,12 @@ class PlaybookAgentDispatcher:
             "fallback_on_llm_unavailable": self.fallback_on_llm_unavailable,
             "circuit_breaker_tripped": self.circuit_breaker_tripped,
             "circuit_breaker_reason": self.circuit_breaker_reason,
+            "llm_api_key_configured": self.has_llm_api_key(),
+            "llm_api_key_masked": self.get_masked_api_key(),
+            "llm_api_key_saved_on_disk": self.api_key_saved_on_disk,
+            "llm_provider": self.llm_provider,
+            "llm_model": self.llm_model,
+            "requires_api_key_prompt": self.requires_api_key_prompt,
             "human_vetoes": {
                 "epoch_id": self.veto_registry.current_epoch,
                 "active_bubbles": [asdict(b) for b in self.veto_registry.bubbles],
