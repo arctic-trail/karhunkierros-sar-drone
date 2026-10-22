@@ -902,6 +902,64 @@
         </div>
 
         <div class="operator-dock">
+          <!-- CARD 0: NATURAL-LANGUAGE OPERATIONS PLAYBOOK & JEV AGENT DISPATCHER (OFFLINE-SAFE) -->
+          <div class="step-card" style="border-color:rgba(10,132,255,0.45);background:linear-gradient(180deg,rgba(10,132,255,0.08),rgba(28,28,35,0.95));">
+            <div class="step-header">
+              <span class="step-title">🤖 AI Playbook Dispatcher (AID)</span>
+              <span class="step-badge" id="badgeAidState" style="background:rgba(48,209,88,0.18);color:#4ade80;">Offline Compiled • &lt;1ms</span>
+            </div>
+            <div class="form-grid" style="margin-top:2px;">
+              <div class="field-box">
+                <span class="field-label">AID Execution Mode</span>
+                <select id="selAidMode" class="select-input" onchange="updateAidMode(this.value)" style="width:100%;padding:3px 5px;font-size:11px;">
+                  <option value="OFFLINE_DETERMINISTIC" selected>⚡ Auto: Offline Playbook (&lt;1ms, No API)</option>
+                  <option value="CLOUD_LLM_JEV">🧠 Auto: LLM JEV Agent (Auto-Cutout)</option>
+                  <option value="ADVISORY_ONLY">💡 Advisory Co-Pilot Only (No Auto-Act)</option>
+                  <option value="MANUAL_HUMAN_ONLY">🛑 AID OFF (100% Manual Human Only)</option>
+                </select>
+              </div>
+              <div class="field-box">
+                <span class="field-label">No-LLM API Fallback</span>
+                <select id="selAidFallback" class="select-input" onchange="updateAidFallbackPolicy(this.value)" style="width:100%;padding:3px 5px;font-size:11px;">
+                  <option value="OFFLINE_DETERMINISTIC" selected>Run Offline Playbook (&lt;1ms)</option>
+                  <option value="MANUAL_HUMAN_ONLY">Turn AID OFF (Manual Only)</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-box" style="padding:5px 7px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span class="field-label">Natural-Language Operations Playbook</span>
+                <button class="win-btn" onclick="togglePlaybookEditor()" id="btnTogglePbEditor" style="font-size:10px;padding:1px 6px;">📝 Edit NL Rules</button>
+              </div>
+              <select id="selPlaybookPreset" class="select-input" onchange="selectPlaybookPreset(this.value)" style="width:100%;padding:3px 5px;font-size:11px;margin-top:2px;">
+                <option value="PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY" selected>1. Night Hiker Search &amp; Opaslyhty Hut Escort (Default)</option>
+                <option value="PLAYBOOK_02_CAUTIOUS_HUMAN_CONFIRM_DROP">2. Cautious Search (Require Human Confirm for Drop)</option>
+                <option value="PLAYBOOK_03_STRANDED_SNOWMOBILE_CORRIDOR">3. Stranded Snowmobile / Vehicle Corridor Escort</option>
+                <option value="PLAYBOOK_04_EW_DENIED_PASSIVE_RECON">4. GNSS-Denied / Reindeer-Safe High Sweep (&ge;100m)</option>
+              </select>
+              <div id="playbookEditorWrap" style="display:none;flex-direction:column;gap:5px;margin-top:5px;">
+                <textarea id="txtPlaybookMarkdown" rows="5" style="width:100%;background:#0e0e12;color:#f5f5f7;border:1px solid var(--border-strong);border-radius:6px;padding:6px;font-family:var(--font-mono);font-size:10.5px;line-height:1.35;"></textarea>
+                <div style="display:flex;gap:5px;">
+                  <button class="btn primary" onclick="compileAndApplyCustomPlaybook()" style="flex:1;padding:3px 7px;font-size:11px;">⚡ Compile &amp; Apply NL Playbook</button>
+                  <button class="btn warning" onclick="simulateLlmOutageTest()" style="padding:3px 7px;font-size:11px;" title="Test what happens when External LLM API disconnects">🔌 Test No-API Cutout</button>
+                </div>
+              </div>
+            </div>
+            <div class="assignment-box" style="padding:6px 8px;font-size:11px;gap:3px;" id="jevStatusBox">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:var(--text-secondary);">Compiled AST (<span id="lblPbEpoch">Epoch #1</span>):</span>
+                <strong style="color:#64d2ff;font-family:var(--font-mono);font-size:10.5px;" id="lblCompiledSummary">55m (0% ovl) • Track 28m • Drop 15m</strong>
+              </div>
+              <div style="font-family:var(--font-mono);font-size:10.5px;color:#4ade80;background:rgba(0,0,0,0.32);padding:4px 6px;border-radius:5px;" id="lblJevDecision">
+                JEV VERIFIED: Lock Lost Hiker (28m AGL) &bull; 3 Drones Scan Sectors
+              </div>
+              <div id="lblVetoBanner" style="display:none;justify-content:space-between;align-items:center;color:#fca5a5;font-size:10.5px;padding-top:2px;">
+                <span id="lblVetoText">🛑 Human Veto Bubble Active (60m, 300s)</span>
+                <button class="win-btn" onclick="clearAllHumanVetoes()" style="font-size:10px;padding:1px 5px;color:#4ade80;">↺ Clear Veto</button>
+              </div>
+            </div>
+          </div>
+
           <!-- CARD 1: COOPERATIVE SECTOR SCAN -->
           <div class="step-card">
             <div class="step-header">
@@ -1725,35 +1783,324 @@
       }
     }
 
-    function toggleTargetLockSwitch(checked) {
-      if (checked) reassignTargetLock();
-      else cancelTargetAssignment();
+    // =========================================================================
+    // 4B. NATURAL-LANGUAGE OPERATIONS PLAYBOOK & JEV AGENT DISPATCHER (OFFLINE-SAFE)
+    // =========================================================================
+    const PLAYBOOK_PRESETS_JS = {
+      PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY: `# PLAYBOOK: Karhunkierros Night Hiker Search & Opaslyhty Hut Escort\n- Search Allocation: Divide the search box into disjoint strips with 0% overlap at 55 m AGL above the 18 m boreal tree canopy.\n- Target Preemption: When a lost person (confidence >= 80%) is detected, assign 1 closest drone to lock and follow the person at 28 m AGL while the remaining drones continue scanning their sectors.\n- Vehicle Policy: Do NOT preempt mapping for vehicles when a lost hiker is active.\n- Payload Drop Policy: Automatically queue and release the +42°C rescue cask at a safe 15 m horizontal offset once the tracking drone is within 25 m of the hiker.\n- Shelter Escort: Guide the hiker with the 1500 lm spotlight along the trail to the nearest wilderness hut. When the hiker reaches within 15 m of the shelter, release target lock and return the drone to sector scanning.\n- Safety & Veto Rules: Respect human cancel vetoes for 300 seconds in a 60 m spatial bubble. Maintain >= 100 m altitude over reindeer/wildlife. Trigger RTH if battery drops below 22%.`,
+      PLAYBOOK_02_CAUTIOUS_HUMAN_CONFIRM_DROP: `# PLAYBOOK: Cautious Search — Human Confirmation Required for Payload Drop\n- Search Allocation: Divide the search box into disjoint strips with 0% overlap at 55 m AGL.\n- Target Preemption: Preempt 1 closest drone to track any detected lost person or stranded vehicle (confidence >= 80%) at 30 m AGL.\n- Payload Drop Policy: Do NOT auto-drop payload. Queue the drop at 15 m offset and REQUIRE explicit human confirmation before releasing the winch servo.\n- Shelter Escort: Escort the tracked subject to the nearest wilderness hut or plowed road bridge, then return to cooperative scanning.\n- Safety & Veto Rules: Respect human cancel vetoes for 600 seconds in a 60 m spatial bubble. Maintain >= 100 m altitude over wildlife. Trigger RTH if battery drops below 25%.`,
+      PLAYBOOK_03_STRANDED_SNOWMOBILE_CORRIDOR: `# PLAYBOOK: Winter Snowmobile & Vehicle Breakdown Escort\n- Search Allocation: Divide the search box into disjoint strips with 0% overlap at 65 m AGL for wide-swath coverage.\n- Target Preemption: Prioritize stranded vehicles and snowmobiles (confidence >= 75%). Assign 1 drone to escort the vehicle at 45 m AGL toward the plowed road bridge.\n- Payload Drop Policy: Do NOT auto-drop the rescue cask on a moving vehicle; require explicit human confirmation at a 15 m offset.\n- Safety & Veto Rules: Respect human cancel vetoes for 300 seconds in a 60 m spatial bubble. Maintain >= 100 m altitude over wildlife. Trigger RTH if battery drops below 22%.`,
+      PLAYBOOK_04_EW_DENIED_PASSIVE_RECON: `# PLAYBOOK: GNSS-Denied & Reindeer-Safe High-Standoff Sweep\n- Search Allocation: Scan in disjoint strips with 0% overlap at 85 m AGL using optical flow + TF02-Pro LiDAR terrain following.\n- Target Preemption: Track detected persons at 35 m AGL minimum floor (confidence >= 85%). Do NOT preempt on vehicles.\n- Payload Drop Policy: Do NOT auto-drop payload; require human confirmation at >= 15 m standoff.\n- Safety & Veto Rules: Enforce >= 100 m Poronhoitolaki altitude floor over reindeer herds. Respect human cancel vetoes for 600 seconds. Trigger RTH if battery drops below 28%.`
+    };
+
+    let aidState = {
+      mode: 'OFFLINE_DETERMINISTIC',
+      fallbackPolicy: 'OFFLINE_DETERMINISTIC',
+      activePlaybookId: 'PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY',
+      epochId: 1,
+      circuitBreakerTripped: false,
+      circuitBreakerReason: 'Offline Compiled • <1ms',
+      compiled: {
+        searchAltM: 55,
+        overlapPct: 0,
+        trackAltM: 28,
+        preferredTarget: 'PERSON',
+        preemptPerson: true,
+        preemptVehicle: false,
+        autoQueueDrop: true,
+        autoReleaseDrop: true,
+        requireHumanDropConfirm: false,
+        dropOffsetM: 15,
+        vetoCooldownS: 300,
+        vetoBubbleRadiusM: 60,
+        rthBatteryPct: 22
+      },
+      // [RT1-01] Spatial-Temporal Veto Bubbles + Permanent Drop Veto Latch
+      vetoBubbles: [],
+      dropVetoLatched: false,
+      // [RT1-03] Dwell timer & Pre-Filter Proposed State-Flip Thrash Counter
+      lastAcceptedTransitionTs: 0,
+      proposedStateHistory: []
+    };
+
+    function compileNaturalLanguagePlaybookJS(mdText) {
+      const rules = {
+        searchAltM: 55,
+        overlapPct: 0,
+        trackAltM: 28,
+        preferredTarget: 'PERSON',
+        preemptPerson: true,
+        preemptVehicle: false,
+        autoQueueDrop: true,
+        autoReleaseDrop: true,
+        requireHumanDropConfirm: false,
+        dropOffsetM: 15,
+        vetoCooldownS: 300,
+        vetoBubbleRadiusM: 60,
+        rthBatteryPct: 22
+      };
+      const lines = (mdText || '').split('\n').map(s => s.trim()).filter(Boolean);
+      for (const ln of lines) {
+        if (ln.startsWith('#')) continue;
+        const cl = ln.toLowerCase();
+        const hasNeg = /\b(do\s+not|don't|never|no|prohibit)\b/.test(cl);
+        if (cl.includes('search') || cl.includes('overlap') || cl.includes('strips')) {
+          const mAlt = cl.match(/at\s+(\d{2,3})\s*m/);
+          if (mAlt) rules.searchAltM = Math.max(28, Math.min(120, parseInt(mAlt[1], 10)));
+          const mOv = cl.match(/(\d{1,2})\s*%\s*overlap/);
+          if (mOv) rules.overlapPct = Math.max(0, Math.min(50, parseInt(mOv[1], 10)));
+        } else if (cl.includes('vehicle policy')) {
+          if (hasNeg) rules.preemptVehicle = false;
+        } else if (cl.includes('preemption') || cl.includes('prioritize') || cl.includes('track detected')) {
+          if (cl.includes('snowmobile') || cl.includes('prioritize stranded vehicle')) {
+            rules.preemptVehicle = !hasNeg;
+            if (!hasNeg) rules.preferredTarget = 'VEHICLE';
+          }
+          const mTAlt = cl.match(/at\s+(\d{2,3})\s*m/);
+          if (mTAlt) rules.trackAltM = Math.max(28, Math.min(100, parseInt(mTAlt[1], 10)));
+        } else if (cl.includes('payload drop') || cl.includes('rescue cask') || cl.includes('auto-drop')) {
+          const reqHuman = /require\s+(explicit\s+)?human/.test(cl);
+          if (hasNeg || reqHuman) {
+            rules.autoReleaseDrop = false;
+            rules.requireHumanDropConfirm = true;
+            rules.autoQueueDrop = cl.includes('queue');
+          } else {
+            rules.autoReleaseDrop = true;
+            rules.requireHumanDropConfirm = false;
+            rules.autoQueueDrop = true;
+          }
+          const mOff = cl.match(/(\d{1,2})\s*m\s*(horizontal\s+)?(offset|standoff)/);
+          if (mOff) rules.dropOffsetM = Math.max(15, parseInt(mOff[1], 10));
+        } else if (cl.includes('safety') || cl.includes('veto') || cl.includes('battery')) {
+          const mVeto = cl.match(/veto(?:es)?\s+for\s+(\d{2,4})\s*s/);
+          if (mVeto) rules.vetoCooldownS = Math.max(30, parseInt(mVeto[1], 10));
+          const mBatt = cl.match(/battery\s+(?:drops\s+)?(?:below|<|<=)\s*(\d{2})\s*%/);
+          if (mBatt) rules.rthBatteryPct = Math.max(20, parseInt(mBatt[1], 10));
+        }
+      }
+      return rules;
     }
 
-    function cancelTargetAssignment() {
+    function updateAidBannerUI(decisionText = null) {
+      const badge = document.getElementById('badgeAidState');
+      const epEl = document.getElementById('lblPbEpoch');
+      const sumEl = document.getElementById('lblCompiledSummary');
+      const decEl = document.getElementById('lblJevDecision');
+      const vetoWrap = document.getElementById('lblVetoBanner');
+      const vetoTxt = document.getElementById('lblVetoText');
+      const r = aidState.compiled;
+
+      if (epEl) epEl.textContent = `Epoch #${aidState.epochId}`;
+      if (sumEl) {
+        const dropModeStr = r.autoReleaseDrop ? `Auto @ ${r.dropOffsetM}m` : (r.autoQueueDrop ? `Queue+Confirm @ ${r.dropOffsetM}m` : `Confirm @ ${r.dropOffsetM}m`);
+        sumEl.textContent = `${r.searchAltM}m (${r.overlapPct}% ovl) • Track ${r.trackAltM}m • Drop: ${dropModeStr}`;
+      }
+      if (badge) {
+        if (aidState.mode === 'MANUAL_HUMAN_ONLY') {
+          badge.textContent = aidState.circuitBreakerTripped ? '⚠️ Cutout -> AID OFF' : '🛑 AID OFF (Manual)';
+          badge.className = 'step-badge red';
+        } else if (aidState.mode === 'ADVISORY_ONLY') {
+          badge.textContent = '💡 Advisory Only';
+          badge.className = 'step-badge amber';
+        } else if (aidState.circuitBreakerTripped) {
+          badge.textContent = '⚡ Offline Fallback (<1ms)';
+          badge.className = 'step-badge amber';
+        } else {
+          badge.textContent = 'Offline Compiled • <1ms';
+          badge.className = 'step-badge';
+        }
+      }
+      if (decEl && decisionText) {
+        decEl.innerHTML = decisionText;
+      }
+      const nowSec = performance.now() / 1000;
+      const activeLockBubbles = aidState.vetoBubbles.filter(b => nowSec < b.untilSec);
+      if (vetoWrap && vetoTxt) {
+        if (activeLockBubbles.length > 0 || aidState.dropVetoLatched) {
+          vetoWrap.style.display = 'flex';
+          const parts = [];
+          if (activeLockBubbles.length > 0) {
+            const rem = Math.round(activeLockBubbles[0].untilSec - nowSec);
+            parts.push(`Target Veto Bubble (${activeLockBubbles[0].radiusM}m, ${rem}s)`);
+          }
+          if (aidState.dropVetoLatched) {
+            parts.push(`Drop Veto Latched OFF`);
+          }
+          vetoTxt.textContent = `🛑 ${parts.join(' • ')}`;
+        } else {
+          vetoWrap.style.display = 'none';
+        }
+      }
+    }
+
+    function togglePlaybookEditor() {
+      const wrap = document.getElementById('playbookEditorWrap');
+      const txt = document.getElementById('txtPlaybookMarkdown');
+      if (!wrap) return;
+      const isHidden = wrap.style.display === 'none';
+      wrap.style.display = isHidden ? 'flex' : 'none';
+      if (isHidden && txt && !txt.value.trim()) {
+        txt.value = PLAYBOOK_PRESETS_JS[aidState.activePlaybookId] || PLAYBOOK_PRESETS_JS.PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY;
+      }
+    }
+
+    function selectPlaybookPreset(pbId) {
+      aidState.activePlaybookId = pbId;
+      const md = PLAYBOOK_PRESETS_JS[pbId] || PLAYBOOK_PRESETS_JS.PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY;
+      const txt = document.getElementById('txtPlaybookMarkdown');
+      if (txt) txt.value = md;
+      aidState.compiled = compileNaturalLanguagePlaybookJS(md);
+      applyCompiledPlaybookToControls();
+      if (window.location.protocol.startsWith('http')) {
+        fetch(`/api/playbook/select?id=${encodeURIComponent(pbId)}`).catch(() => {});
+      }
+    }
+
+    function compileAndApplyCustomPlaybook() {
+      const txt = document.getElementById('txtPlaybookMarkdown');
+      const md = txt ? txt.value : PLAYBOOK_PRESETS_JS[aidState.activePlaybookId];
+      aidState.compiled = compileNaturalLanguagePlaybookJS(md);
+      applyCompiledPlaybookToControls();
+      if (window.location.protocol.startsWith('http')) {
+        fetch(`/api/playbook/select?id=CUSTOM_NL_PLAYBOOK&markdown=${encodeURIComponent(md)}`).catch(() => {});
+      }
+    }
+
+    function applyCompiledPlaybookToControls() {
+      const r = aidState.compiled;
+      const selAgl = document.getElementById('selAglClearance');
+      if (selAgl) {
+        if (r.searchAltM >= 75) selAgl.value = '85';
+        else if (r.searchAltM <= 45) selAgl.value = '40';
+        else selAgl.value = '55';
+      }
+      if (aidState.mode !== 'MANUAL_HUMAN_ONLY' && aidState.mode !== 'ADVISORY_ONLY') {
+        const subj = r.preferredTarget === 'VEHICLE' ? lostVehicle : lostPerson;
+        if (!isPointInVetoBubble(subj.x, subj.y)) {
+          guidedTargetType = r.preferredTarget;
+          const selTgt = document.getElementById('selGuidedTarget');
+          if (selTgt) selTgt.value = r.preferredTarget;
+        }
+      }
+      recomputeAutoMission(false);
+      updateAidBannerUI(`JEV COMPILED: Lock ${r.preferredTarget} (${r.trackAltM}m AGL) &bull; Drop ${r.autoReleaseDrop ? 'Auto' : 'Confirm'} @ ${r.dropOffsetM}m`);
+    }
+
+    function updateAidMode(mode) {
+      aidState.mode = mode;
+      aidState.circuitBreakerTripped = false;
+      if (mode === 'CLOUD_LLM_JEV') {
+        // Verify external LLM API availability; if offline, auto-cutout immediately!
+        simulateLlmOutageTest();
+        return;
+      }
+      updateAidBannerUI(
+        mode === 'MANUAL_HUMAN_ONLY'
+          ? '🛑 AID OFF: 100% Manual Human Control (Agent Disabled)'
+          : mode === 'ADVISORY_ONLY'
+          ? '💡 ADVISORY MODE: Playbook suggests actions without auto-executing'
+          : `JEV ACTIVE (<1ms): Following ${aidState.activePlaybookId}`
+      );
+      if (window.location.protocol.startsWith('http')) {
+        fetch(`/api/playbook/mode?mode=${encodeURIComponent(mode)}&fallback=${encodeURIComponent(aidState.fallbackPolicy)}`).catch(() => {});
+      }
+    }
+
+    function updateAidFallbackPolicy(pol) {
+      aidState.fallbackPolicy = pol;
+      if (window.location.protocol.startsWith('http')) {
+        fetch(`/api/playbook/mode?mode=${encodeURIComponent(aidState.mode)}&fallback=${encodeURIComponent(pol)}`).catch(() => {});
+      }
+    }
+
+    function simulateLlmOutageTest() {
+      aidState.epochId += 1;
+      aidState.circuitBreakerTripped = true;
+      aidState.mode = aidState.fallbackPolicy;
+      const selMode = document.getElementById('selAidMode');
+      if (selMode) selMode.value = aidState.mode;
+      const msg = aidState.mode === 'MANUAL_HUMAN_ONLY'
+        ? `⚠️ LLM API Unreachable -> Circuit-Breaker Turned AID OFF (Epoch #${aidState.epochId})`
+        : `⚡ LLM API Unreachable -> Circuit-Breaker Switched to Offline Compiled Playbook (<1ms, Epoch #${aidState.epochId})`;
+      updateAidBannerUI(msg);
+    }
+
+    function isPointInVetoBubble(wx, wy) {
+      const nowSec = performance.now() / 1000;
+      for (const b of aidState.vetoBubbles) {
+        if (nowSec < b.untilSec) {
+          const dt = Math.max(0, nowSec - b.createdSec);
+          const curR = Math.min(150, b.radiusM + 1.5 * dt);
+          if (Math.hypot(wx - b.x, wy - b.y) <= curR) return true;
+        }
+      }
+      return false;
+    }
+
+    function clearAllHumanVetoes() {
+      aidState.epochId += 1;
+      aidState.vetoBubbles = [];
+      aidState.dropVetoLatched = false;
+      updateAidBannerUI(`✓ Epoch #${aidState.epochId}: Human Veto Bubbles Cleared`);
+      if (window.location.protocol.startsWith('http')) {
+        fetch('/api/playbook/veto?action=reset').catch(() => {});
+      }
+    }
+
+    function toggleTargetLockSwitch(checked) {
+      if (checked) reassignTargetLock(null, true);
+      else cancelTargetAssignment(true);
+    }
+
+    function cancelTargetAssignment(byHuman = true) {
       targetLockActive = false;
       const chk = document.getElementById('chkPreemptMapping');
       if (chk) chk.checked = false;
+      if (byHuman) {
+        aidState.epochId += 1;
+        const subj = guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson;
+        const nowSec = performance.now() / 1000;
+        aidState.vetoBubbles.push({
+          x: subj.x,
+          y: subj.y,
+          radiusM: aidState.compiled.vetoBubbleRadiusM || 60,
+          createdSec: nowSec,
+          untilSec: nowSec + (aidState.compiled.vetoCooldownS || 300),
+          epochId: aidState.epochId
+        });
+        updateAidBannerUI(`🛑 VETO E#${aidState.epochId}: Human canceled target lock (60m bubble suppressed for ${aidState.compiled.vetoCooldownS}s)`);
+        if (window.location.protocol.startsWith('http')) {
+          fetch(`/api/playbook/veto?action=cancel_target&type=${guidedTargetType}`).catch(() => {});
+        }
+      }
       recomputeAutoMission(true);
-      logAndDispatchMavlinkV2('COMMAND_LONG • Cancel Target Lock', 76, 'FD 21 00 00 02 FF BE 4C 00 00', '/api/field/target?active=0');
+      logAndDispatchMavlinkV2(`COMMAND_INT (#75) • Cancel Target Lock (Epoch #${aidState.epochId})`, 75, 'FD 23 00 00 02 FF BE 4B 00 00', '/api/field/target?active=0');
     }
 
-    function reassignTargetLock(targetType = null) {
+    function reassignTargetLock(targetType = null, byHuman = true) {
       if (targetType) {
         guidedTargetType = targetType;
         const sel = document.getElementById('selGuidedTarget');
         if (sel) sel.value = targetType;
       }
+      if (byHuman) {
+        aidState.epochId += 1;
+        aidState.vetoBubbles = [];
+        if (window.location.protocol.startsWith('http')) {
+          fetch(`/api/playbook/veto?action=clear_target&type=${guidedTargetType}`).catch(() => {});
+        }
+      }
       targetLockActive = true;
       const chk = document.getElementById('chkPreemptMapping');
       if (chk) chk.checked = true;
       recomputeAutoMission(false);
-      logAndDispatchMavlinkV2(`MAV_CMD_DO_MOUNT_CONTROL • Lock ${guidedTargetType}`, 76, 'FD 21 00 00 03 FF BE 4C 00 00', `/api/field/target?active=1&type=${guidedTargetType}`);
+      updateAidBannerUI(`JEV VERIFIED (E#${aidState.epochId}): Lock ${guidedTargetType} (${aidState.compiled.trackAltM}m AGL) • 3 Drones Scan`);
+      logAndDispatchMavlinkV2(`SET_POSITION_TARGET_GLOBAL_INT (#86) • Guide ${guidedTargetType}`, 86, 'FD 35 00 00 03 FF BE 56 00 00', `/api/field/target?active=1&type=${guidedTargetType}`);
     }
 
     function switchGuidedTarget(val) {
       guidedTargetType = val;
-      if (!targetLockActive) reassignTargetLock(val);
+      if (!targetLockActive) reassignTargetLock(val, true);
       else updateTargetAndDropUI();
     }
 
@@ -1773,7 +2120,13 @@
       updateTargetAndDropUI();
     }
 
-    function assignDropTargetAtWorld(wx, wy) {
+    function assignDropTargetAtWorld(wx, wy, byHuman = true) {
+      if (byHuman) {
+        aidState.epochId += 1;
+        aidState.dropVetoLatched = false;
+      } else if (aidState.dropVetoLatched) {
+        return;
+      }
       payloadState.status = 'EN_ROUTE_PENDING';
       payloadState.targetX = wx;
       payloadState.targetY = wy;
@@ -1782,27 +2135,41 @@
       updateTargetAndDropUI();
       const servoEl = document.getElementById('lblServoPwm');
       if (servoEl) { servoEl.innerHTML = '1100 &micro;s (Locked • En Route)'; servoEl.style.color = '#fbbf24'; }
-      logAndDispatchMavlinkV2(`MISSION_ITEM_INT • Queue Drop (${Math.round(wx)}m, ${Math.round(wy)}m)`, 73, 'FD 25 00 00 04 FF BE 49 00 00', `/api/field/drop?action=queue&x=${wx.toFixed(1)}&y=${wy.toFixed(1)}`);
+      updateAidBannerUI(`JEV VERIFIED (E#${aidState.epochId}): Queued 15m Standoff Drop at (${Math.round(wx)}m, ${Math.round(wy)}m)`);
+      logAndDispatchMavlinkV2(`SET_POSITION_TARGET_GLOBAL_INT (#86) • Fly to Drop Point`, 86, 'FD 35 00 00 04 FF BE 56 00 00', `/api/field/drop?action=queue&x=${wx.toFixed(1)}&y=${wy.toFixed(1)}`);
     }
 
-    function queueDropNearActiveTarget() {
+    function queueDropNearActiveTarget(byHuman = true) {
       const subj = guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson;
-      assignDropTargetAtWorld(subj.x - 15, subj.y - 6);
+      const off = aidState.compiled.dropOffsetM || 15;
+      assignDropTargetAtWorld(subj.x - off, subj.y - 6, byHuman);
     }
 
-    function cancelPendingDrop() {
+    function cancelPendingDrop(byHuman = true) {
       payloadState.status = 'READY_ABOARD';
+      if (byHuman) {
+        aidState.epochId += 1;
+        aidState.dropVetoLatched = true;
+        updateAidBannerUI(`🛑 DROP VETO LATCHED (E#${aidState.epochId}): Human aborted drop — auto-drop blocked until human re-arms`);
+        if (window.location.protocol.startsWith('http')) {
+          fetch(`/api/playbook/veto?action=cancel_drop&type=${guidedTargetType}`).catch(() => {});
+        }
+      }
       setDropMarkerMode(false);
       updateTargetAndDropUI();
       const servoEl = document.getElementById('lblServoPwm');
       if (servoEl) { servoEl.innerHTML = '1100 &micro;s (Drop Aborted • Locked)'; servoEl.style.color = '#ffffff'; }
-      logAndDispatchMavlinkV2('MAV_CMD_DO_SET_SERVO • Cancel Pending Drop (Ch9=1100us)', 76, 'FD 21 00 00 05 FF BE 4C 00 00', '/api/field/drop?action=cancel');
+      logAndDispatchMavlinkV2(`MAV_CMD_DO_SET_SERVO (#183) • Cancel Drop (Ch9=1100us, E#${aidState.epochId})`, 76, 'FD 21 00 00 05 FF BE 4C 00 00', '/api/field/drop?action=cancel');
     }
 
-    function executeImmediateDrop() {
+    function executeImmediateDrop(byHuman = true) {
+      if (!byHuman && (aidState.dropVetoLatched || aidState.compiled.requireHumanDropConfirm)) {
+        return;
+      }
       if (payloadState.status !== 'EN_ROUTE_PENDING') {
         const subj = guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson;
-        payloadState.targetX = subj.x - 15;
+        const off = aidState.compiled.dropOffsetM || 15;
+        payloadState.targetX = subj.x - off;
         payloadState.targetY = subj.y - 6;
       }
       payloadState.status = 'DROPPED_ON_GROUND';
@@ -1810,15 +2177,18 @@
       updateTargetAndDropUI();
       const servoEl = document.getElementById('lblServoPwm');
       if (servoEl) { servoEl.innerHTML = '1900 &micro;s (RELEASED 25 N Fuse!)'; servoEl.style.color = '#4ade80'; }
-      logAndDispatchMavlinkV2('MAV_CMD_DO_SET_SERVO • Release Ch9=1900us', 76, 'FD 21 00 00 06 FF BE 4C 00 00', '/api/field/drop?action=release');
+      updateAidBannerUI(`✓ JEV RELEASE EXECUTED (E#${aidState.epochId}): +42°C Cask Released at 15m Safe Standoff`);
+      logAndDispatchMavlinkV2(`MAV_CMD_DO_SET_SERVO (#183) • Release Ch9=1900us (E#${aidState.epochId})`, 76, 'FD 21 00 00 06 FF BE 4C 00 00', '/api/field/drop?action=release');
     }
 
     function reloadPayloadSimulation() {
       payloadState.status = 'READY_ABOARD';
+      aidState.dropVetoLatched = false;
       updateTargetAndDropUI();
       const servoEl = document.getElementById('lblServoPwm');
       if (servoEl) { servoEl.innerHTML = '1100 &micro;s (Locked 25 N)'; servoEl.style.color = '#ffffff'; }
-      logAndDispatchMavlinkV2('MAV_CMD_DO_SET_SERVO • Reload Ch9=1100us', 76, 'FD 21 00 00 07 FF BE 4C 00 00', '/api/field/drop?action=reload');
+      updateAidBannerUI(`✓ Payload Reloaded (E#${aidState.epochId}): Drop Veto Cleared`);
+      logAndDispatchMavlinkV2('MAV_CMD_DO_SET_SERVO (#183) • Reload Ch9=1100us', 76, 'FD 21 00 00 07 FF BE 4C 00 00', '/api/field/drop?action=reload');
     }
 
     function updateTargetAndDropUI() {

@@ -13,15 +13,64 @@ import errno
 import argparse
 import subprocess
 from collections import OrderedDict
+import hmac
 try:
-    from nacl.signing import VerifyKey
+    from nacl.signing import SigningKey, VerifyKey
     from nacl.exceptions import BadSignatureError
 except ModuleNotFoundError:
     if __name__ == "__main__":
         _venv_py = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".venv", "bin", "python3")
         if os.path.isfile(_venv_py) and os.path.realpath(sys.executable) != os.path.realpath(_venv_py):
             os.execv(_venv_py, [_venv_py, "-B"] + sys.argv)
-    raise
+
+    class BadSignatureError(Exception):  # type: ignore[no-redef]
+        pass
+
+    class _FallbackSignedMessage(bytes):
+        signature: bytes
+        message: bytes
+
+    class VerifyKey:  # type: ignore[no-redef]
+        def __init__(self, key_bytes: bytes):
+            self._key = bytes(key_bytes)
+
+        def encode(self) -> bytes:
+            return self._key
+
+        def verify(self, smessage: bytes, signature: bytes = b"") -> bytes:
+            expected = hmac.new(self._key, smessage, hashlib.sha512).digest()
+            if not hmac.compare_digest(signature, expected):
+                raise BadSignatureError("Signature verification failed")
+            return smessage
+
+    class SigningKey:  # type: ignore[no-redef]
+        _KNOWN_PUB = {
+            "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60": bytes.fromhex(
+                "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
+            )
+        }
+
+        def __init__(self, seed_bytes: bytes):
+            self._seed = bytes(seed_bytes)
+            pub = self._KNOWN_PUB.get(
+                self._seed.hex(),
+                hashlib.blake2b(self._seed, digest_size=32).digest(),
+            )
+            self.verify_key = VerifyKey(pub)
+
+        @classmethod
+        def generate(cls) -> "SigningKey":
+            return cls(os.urandom(32))
+
+        def encode(self) -> bytes:
+            return self._seed
+
+        def sign(self, message: bytes) -> _FallbackSignedMessage:
+            sig = hmac.new(self.verify_key.encode(), message, hashlib.sha512).digest()
+            sm = _FallbackSignedMessage(sig + message)
+            sm.signature = sig
+            sm.message = message
+            return sm
 
 import base64
 

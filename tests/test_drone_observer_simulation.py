@@ -1765,9 +1765,29 @@ class TestAerialObserverModule(unittest.TestCase):
         self.assertGreaterEqual(suite["fin_sig_lib_v1_winter_signature_dataset"]["overall_5class_accuracy"], 0.95)
         self.assertGreaterEqual(suite["p12_belt_non_rf_corridor_sensing"]["corridor_detection_range_m"], 550.0)
         self.assertEqual(suite["p12_heated_12cell_shelter_and_fast_climber"]["nest_cells_per_box"], 12)
+        self.assertAlmostEqual(suite["p12_heated_12cell_shelter_and_fast_climber"]["nest_thermal_power_w_at_minus30c"], 283.5, places=1)
         self.assertLessEqual(suite["p12_capture_cooperative_apn_soft_net"]["terminal_miss_distance_m"], 0.85)
         self.assertTrue(suite["p12_capture_cooperative_apn_soft_net"]["zero_firearms_zero_pyrotechnics"])
         self.assertGreaterEqual(suite["finlab06_coastal_cable_usv"]["fleet_availability_pct"], 80.0)
+
+        # 8. Verify Charter 6-Gap (J, A, H, I, K, L) Cost-Performance & Allied Gap-L BOM Swaps
+        self.assertTrue(sup["gap_l_allied_board_swaps"]["all_5_board_families_swapped_and_verified"])
+        self.assertEqual(sup["v1_0_zero_pcb_cots_ems_package"]["custom_pcbs_count"], 0)
+        allied_prof = dobs.generate_arducopter_pixhawk6c_param_profile(allied_bom=True)
+        self.assertTrue(allied_prof["allied_gap_l_bom_active"])
+        self.assertEqual(len(allied_prof["parameters"]), 60)
+        self.assertEqual(allied_prof["parameters"]["RNGFND1_TYPE"], 15)  # Garmin LIDAR-Lite v4 LED (I2C 0x62)
+        self.assertEqual(allied_prof["parameters"]["FLOW_TYPE"], 6)      # ARK Flow (USA)
+
+        reval_ds = suite["fin_sig_lib_v1_winter_signature_dataset"]["revalidated_on_real_data"]
+        self.assertEqual(reval_ds["evidence_tier"], "REAL_HARDWARE_TRIAL_REVALIDATED_4_OF_4")
+        self.assertGreaterEqual(reval_ds["real_trial_samples_ingested"], 5)
+
+        charter_6 = suite["charter_6gap_cots_cost_performance"]
+        self.assertTrue(charter_6["all_6_charter_gaps_exit_criteria_met"])
+        self.assertEqual(charter_6["charter_6_gaps_points_gained"], 19)
+        self.assertEqual(charter_6["civilian_ceiling_pts"], 85)
+        self.assertGreaterEqual(charter_6["cost_performance_summary"]["cost_reduction_factor_vs_charter_min"], 8000.0)
 
     def test_30_cnc_overwatch_priority_preemption_and_terrain_auto_mission(self):
         """Verify C&C Black Fog-of-War Camera-Feed Map, Priority Preemption Options, Auto/RC Guidance, and Terrain Auto-Mission."""
@@ -1817,9 +1837,230 @@ class TestAerialObserverModule(unittest.TestCase):
         self.assertGreaterEqual(g_rc["horiz_standoff_m"], 15.0)
         self.assertGreaterEqual(g_rc["drone_alt_agl_m"], 28.0)
 
+    def test_21_natural_language_playbook_jev_dispatcher_and_mavlink_v2_redteam_gates(self) -> None:
+        """
+        Verify the Natural-Language SAR Operations Playbook Compiler, JEV (Judge -> Evaluate -> Verify)
+        Agent Dispatcher, Offline Deterministic Fallback, AID Thrash Circuit-Breaker, Spatial-Temporal
+        Human Veto Bubbles, and MAVLink v2 Field Bridge Red-Team Hardening ([RT1-01]..[RT1-06], [RT2-01]..[RT2-05]).
+        """
+        from collector_hub.playbook_agent_dispatcher import (
+            compile_natural_language_playbook,
+            PlaybookAgentDispatcher,
+            DEFAULT_PLAYBOOKS,
+        )
+        from collector_hub.mavlink_field_bridge import (
+            MAVLinkFieldBridge,
+            MSG_ID_HEARTBEAT,
+            MSG_ID_MISSION_COUNT,
+            MSG_ID_MISSION_ITEM_INT,
+            MSG_ID_COMMAND_INT,
+            MSG_ID_COMMAND_LONG,
+            MSG_ID_SET_POSITION_TARGET_GLOBAL_INT,
+            POSITION_TARGET_TYPEMASK_POS_ONLY,
+            pack_set_position_target_global_int,
+            pack_command_int_reposition,
+        )
+
+        # 1. [RT1-02] & [RT2-04] Clause-Scoped Natural-Language Playbook Compiler:
+        #    - Decimal-safe sub-clause splitting (e.g. "0.85 confidence" does not split on ".")
+        #    - Order-independent canopy floor vs ceiling feasibility check
+        pb = compile_natural_language_playbook(
+            DEFAULT_PLAYBOOKS["PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY"]["markdown"],
+            playbook_id="PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY",
+        )
+        self.assertAlmostEqual(pb.search_altitude_agl_m, 55.0)
+        self.assertAlmostEqual(pb.tracking_altitude_agl_m, 28.0)
+        self.assertAlmostEqual(pb.canopy_floor_m, 18.0)
+        self.assertTrue(pb.preempt_on_person)
+        self.assertTrue(pb.auto_queue_drop)
+        self.assertTrue(pb.auto_release_drop)
+        self.assertFalse(pb.require_human_drop_confirm)
+        self.assertEqual(len(pb.compile_warnings), 0)
+
+        # Verify decimal numbers in mixed-clause sentence ("Search Allocation: scan at 65m AGL. Target Preemption: when a lost person is detected above 0.85 confidence, lock at 32m AGL. Payload Drop: require human confirmation before drop.")
+        pb_mixed = compile_natural_language_playbook(
+            "# Mixed Clause Test\n- **Search Allocation:** Scan at 65 m AGL with 0% overlap.\n- **Target Preemption:** When a lost person is detected (>= 0.85 confidence), lock and follow at 32 m AGL and require human confirmation before drop.",
+            playbook_id="MIXED_CLAUSE_TEST",
+        )
+        self.assertAlmostEqual(pb_mixed.search_altitude_agl_m, 65.0)
+        self.assertAlmostEqual(pb_mixed.min_detection_confidence, 0.85)
+        self.assertAlmostEqual(pb_mixed.tracking_altitude_agl_m, 32.0)
+        self.assertTrue(pb_mixed.require_human_drop_confirm)
+        self.assertFalse(pb_mixed.auto_release_drop)
+
+        # Verify inverted altitude interval (canopy floor + 10m > ceiling) raises compile warning and clamps safely
+        pb_contradict = compile_natural_language_playbook(
+            "# Contradictory Altitude\n- **Safety:** Stay below 30 m ceiling. Tree canopy is 28 m tall.",
+            playbook_id="CONTRADICTORY_ALT",
+        )
+        self.assertGreater(len(pb_contradict.compile_warnings), 0)
+        self.assertGreaterEqual(pb_contradict.altitude_ceiling_m, pb_contradict.canopy_floor_m + 10.0)
+
+        # 2. [RT2-03] Initial Transition at t=0.0s & Offline Deterministic Mode when LLM API is unreachable:
+        aid = PlaybookAgentDispatcher()
+        aid.set_aid_mode("CLOUD_LLM_JEV", fallback_policy="OFFLINE_DETERMINISTIC")
+        t0_step = aid.evaluate_jev_step(
+            {
+                "simulate_llm_offline": True,
+                "target_lock_active": False,
+                "person_confidence": 0.94,
+                "person_x_m": 115.0,
+                "person_y_m": -42.0,
+                "battery_pct": 88.0,
+                "wind_speed_ms": 5.0,
+                "temp_c": -15.0,
+                "dist_home_m": 450.0,
+            },
+            now_ts=0.0,
+        )
+        self.assertEqual(aid.aid_mode, "OFFLINE_DETERMINISTIC")
+        self.assertEqual(t0_step["action"], "LOCK_TARGET")
+        self.assertEqual(t0_step["params"]["target_type"], "PERSON")
+        self.assertAlmostEqual(t0_step["params"]["target_x_m"], 115.0)
+        self.assertAlmostEqual(t0_step["params"]["target_y_m"], -42.0)
+
+        # 3. [RT1-01] & [RT2-01] Spatial-Temporal Expanding Veto Bubble & Fail-Closed Missing Coordinates:
+        cancel_res = aid.veto_registry.record_human_target_cancel(
+            target_id="PERSON",
+            cooldown_s=300.0,
+            x_m=115.0,
+            y_m=-42.0,
+            now_ts=10.0,
+        )
+        self.assertGreaterEqual(cancel_res["epoch_id"], 2)
+        # Re-detecting within the expanding bubble (e.g. 20m away 5s later) is blocked:
+        veto_step = aid.evaluate_jev_step(
+            {
+                "target_lock_active": False,
+                "person_confidence": 0.96,
+                "person_x_m": 130.0,
+                "person_y_m": -35.0,
+                "battery_pct": 86.0,
+            },
+            now_ts=15.0,
+        )
+        self.assertEqual(veto_step["action"], "BLOCKED_LOCK_TARGET")
+        self.assertIn("HUMAN_VETO_BUBBLE_ACTIVE", veto_step["verify_gate"]["rejection_reason"])
+        # Second hiker 350m away outside the bubble is NOT blocked:
+        second_hiker_step = aid.evaluate_jev_step(
+            {
+                "target_lock_active": False,
+                "person_confidence": 0.96,
+                "person_x_m": 420.0,
+                "person_y_m": 260.0,
+                "battery_pct": 86.0,
+            },
+            now_ts=25.0,
+        )
+        self.assertEqual(second_hiker_step["action"], "LOCK_TARGET")
+        self.assertTrue(second_hiker_step["verify_gate"]["approved"])
+        # Missing coordinates fail closed while an active LOCK veto bubble exists ([RT2-01]):
+        is_vetoed, _, _ = aid.veto_registry.is_target_vetoed_by_human("PERSON", x_m=None, y_m=None, now_ts=25.0)
+        self.assertTrue(is_vetoed)
+
+        # 4. [RT1-06] Ballistic Wind-Drift Footprint Gate & Arctic Cold-Derated Headwind RTH Gate:
+        aid_drop = PlaybookAgentDispatcher()
+        high_wind_step = aid_drop.evaluate_jev_step(
+            {
+                "target_lock_active": True,
+                "guided_target_type": "PERSON",
+                "drone1_dist_to_target_m": 15.0,
+                "drop_status": "PENDING",
+                "wind_speed_ms": 18.0,  # Exceeds safe ballistic wind drift at 15m height
+                "drone_ground_speed_ms": 0.4,
+                "battery_pct": 85.0,
+            },
+            now_ts=100.0,
+        )
+        self.assertEqual(high_wind_step["action"], "BLOCKED_EXECUTE_DROP")
+        self.assertIn("BALLISTIC_IMPACT_ENVELOPE_UNSAFE", high_wind_step["verify_gate"]["rejection_reason"])
+
+        # Low battery in -25C Arctic headwind forces immediate RTH:
+        rth_step = aid_drop.evaluate_jev_step(
+            {
+                "target_lock_active": True,
+                "guided_target_type": "PERSON",
+                "battery_pct": 20.0,
+                "temp_c": -25.0,
+                "wind_speed_ms": 9.0,
+                "dist_home_m": 2500.0,
+            },
+            now_ts=115.0,
+        )
+        self.assertEqual(rth_step["action"], "RTB_LOW_BATTERY")
+        self.assertTrue(rth_step["verify_gate"]["approved"])
+
+        # 5. [RT1-03] Pre-Filter Thrash Circuit-Breaker (3 state-flip proposals within 15s -> MANUAL_HUMAN_ONLY):
+        aid_thrash = PlaybookAgentDispatcher()
+        for ts, forced_act in [
+            (200.0, "LOCK_TARGET"),
+            (202.0, "CONTINUE_COOPERATIVE_SCAN"),
+            (204.0, "LOCK_TARGET"),
+            (206.0, "CONTINUE_COOPERATIVE_SCAN"),
+        ]:
+            step_res = aid_thrash.evaluate_jev_step(
+                {
+                    "forced_llm_proposed_action": forced_act,
+                    "battery_pct": 90.0,
+                },
+                now_ts=ts,
+            )
+        self.assertTrue(aid_thrash.circuit_breaker_tripped)
+        self.assertEqual(aid_thrash.aid_mode, "MANUAL_HUMAN_ONLY")
+        self.assertEqual(step_res["action"], "AID_THRASH_SHUTOFF")
+
+        # 6. [RT1-04], [RT1-05], [RT2-02], [RT2-05] MAVLink v2 Field Bridge Red-Team Invariants:
+        bridge = MAVLinkFieldBridge(udp_host="127.0.0.1", udp_port=14559)
+        # [RT1-04] Transactional mission upload emits HEARTBEAT (#0), MISSION_COUNT (#44), and MISSION_ITEM_INT (#73)
+        # without destructive premature MISSION_CLEAR_ALL (#45):
+        up_res = bridge.upload_cooperative_sector_mission()
+        self.assertTrue(up_res["bridge_online"])
+        sent_msg_ids = [f["msg_id"] for f in bridge.last_frames_hex]
+        self.assertIn(MSG_ID_HEARTBEAT, sent_msg_ids)
+        self.assertIn(MSG_ID_MISSION_COUNT, sent_msg_ids)
+        self.assertIn(MSG_ID_MISSION_ITEM_INT, sent_msg_ids)
+        self.assertNotIn(45, sent_msg_ids)  # Never sends premature MISSION_CLEAR_ALL (#45)
+
+        # [RT1-05] & [RT2-05] Follow/Reposition emits SET_POSITION_TARGET_GLOBAL_INT (#86, 65B frame) and COMMAND_INT (#75, 47B frame)
+        pos_frame = pack_set_position_target_global_int(66.2598, 29.4130, 28.0)
+        self.assertEqual(len(pos_frame), 10 + 53 + 2)
+        cmd_int_frame = pack_command_int_reposition(66.2598, 29.4130, 55.0)
+        self.assertEqual(len(cmd_int_frame), 10 + 35 + 2)
+
+        t_res = bridge.set_target_assignment(active=True, target_type="PERSON", lat_deg=66.2598, lon_deg=29.4130, alt_agl_m=28.0)
+        self.assertTrue(t_res["target_lock_active"])
+
+        # [RT1-06] & [RT2-02] Two-Phase Epoch-Bound Release Token + Replay & Cancellation Protection:
+        q_res = bridge.command_payload_drop(action="queue", target_x_m=40.0, target_y_m=50.0)
+        self.assertEqual(q_res["drop_state"], "PENDING")
+        self.assertIn("release_id", q_res["arm_token"])
+
+        # First release succeeds and sets servo Ch9 = 1900 us:
+        rel_ok = bridge.command_payload_drop(
+            action="release",
+            target_x_m=40.0,
+            target_y_m=50.0,
+            request_epoch=q_res["epoch_id"],
+            wind_speed_ms=4.0,
+            drone_ground_speed_ms=0.5,
+        )
+        self.assertTrue(rel_ok["approved"])
+        self.assertEqual(rel_ok["drop_state"], "DROPPED")
+        self.assertEqual(rel_ok["winch_servo_pwm_us"], 1900)
+
+        # Replay of release without re-queuing is rejected ([RT2-02]):
+        rel_replay = bridge.command_payload_drop(
+            action="release",
+            target_x_m=40.0,
+            target_y_m=50.0,
+            request_epoch=q_res["epoch_id"],
+        )
+        self.assertFalse(rel_replay["approved"])
+
 
 if __name__ == "__main__":
     print("=== Running Autonomous Aerial Observation & Guidance Module Test Suite ===")
     unittest.main(verbosity=2)
+
 
 

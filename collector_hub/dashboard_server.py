@@ -410,6 +410,59 @@ def make_command_center_handler(alerts_dir, verbose=False):
                 self.wfile.write(json.dumps(res).encode("utf-8"))
                 return
 
+            # 2d. API: Natural-Language Operations Playbook & JEV Agent Dispatcher
+            if clean_path.startswith("/api/playbook/"):
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                try:
+                    import playbook_agent_dispatcher
+                    disp = playbook_agent_dispatcher.GLOBAL_PLAYBOOK_DISPATCHER
+                    if clean_path == "/api/playbook/select":
+                        pb_id = query_params.get("id", "PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY")
+                        custom_md = query_params.get("markdown", None)
+                        res = disp.set_playbook(pb_id, custom_markdown=custom_md)
+                    elif clean_path == "/api/playbook/mode":
+                        mode = query_params.get("mode", "OFFLINE_DETERMINISTIC")
+                        fallback = query_params.get("fallback", None)
+                        res = disp.set_aid_mode(mode, fallback_policy=fallback)
+                    elif clean_path == "/api/playbook/veto":
+                        action = query_params.get("action", "cancel_target")
+                        t_type = query_params.get("type", "PERSON")
+                        if action == "cancel_target":
+                            res = disp.veto_registry.record_human_target_cancel(t_type)
+                        elif action == "clear_target":
+                            disp.veto_registry.clear_human_target_veto(t_type)
+                            res = {"cleared": t_type}
+                        elif action == "cancel_drop":
+                            res = disp.veto_registry.record_human_drop_cancel(t_type)
+                        elif action == "clear_drop":
+                            disp.veto_registry.clear_human_drop_veto(t_type)
+                            res = {"cleared_drop": t_type}
+                        else:
+                            disp.veto_registry.reset_all()
+                            res = {"reset": True}
+                    elif clean_path == "/api/playbook/step":
+                        telem = {
+                            "target_lock_active": query_params.get("lock", "1") in ("1", "true"),
+                            "guided_target_type": query_params.get("type", "PERSON"),
+                            "drone1_dist_to_target_m": float(query_params.get("dist", "18.0")),
+                            "drop_status": query_params.get("drop", "READY"),
+                            "battery_pct": float(query_params.get("batt", "84.0")),
+                            "person_at_shelter": query_params.get("person_safe", "0") in ("1", "true"),
+                            "vehicle_at_road": query_params.get("veh_safe", "0") in ("1", "true"),
+                            "simulate_llm_offline": query_params.get("llm_offline", "0") in ("1", "true"),
+                        }
+                        res = disp.evaluate_jev_step(telem)
+                    else:
+                        res = disp.get_status()
+                except Exception as e:
+                    res = {"playbook_online": False, "error": str(e)}
+                self.wfile.write(json.dumps(res).encode("utf-8"))
+                return
+
             # 3. Serve verified image captures from alerts_dir (with canonical commonpath containment & image-only extension allowlist)
             if clean_path.startswith("/alerts/"):
                 rel_file = os.path.basename(clean_path[len("/alerts/"):].lstrip("/"))

@@ -115,7 +115,10 @@ def build_nlos_serial_frames(alert_meta, img_bytes, signing_key_hex):
     Builds a sequence of CRC32-framed `DD\x01` (signed metadata) and `DD\x02` (chunk)
     packets wrapped in `NLOS` serial frames for one-way Sub-GHz transmission.
     """
-    from nacl.signing import SigningKey
+    try:
+        from nacl.signing import SigningKey
+    except ModuleNotFoundError:
+        from receiver_hub import SigningKey
 
     thumb_bytes = compress_for_subghz_nlos(img_bytes)
     thumb_sha256 = hashlib.sha256(thumb_bytes).hexdigest()

@@ -29,7 +29,11 @@ SigningKey: Any = None
 try:
     from nacl.signing import SigningKey  # type: ignore[import-not-found,no-redef]
 except ImportError:
-    pass
+    try:
+        sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../collector_hub")))
+        from receiver_hub import SigningKey  # type: ignore[import-not-found,no-redef]
+    except Exception:
+        pass
 
 # ==============================================================================
 # Node Identity & Network Constants
