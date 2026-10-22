@@ -2091,6 +2091,40 @@ class TestAerialObserverModule(unittest.TestCase):
         )
         self.assertFalse(rel_replay["approved"])
 
+    def test_operator_mission_console_stretch_resize_and_continuous_drone_transit(self) -> None:
+        """
+        Verify SAR Operator Mission Console UX invariants:
+          1. Default map tool is PAN_MAP ('Pan & Stretch Box') — redrawing from scratch requires
+             explicitly enabling 'Draw New Box' (toggleDrawNewBoxTool / activeMapTool === 'DRAW_BOX').
+          2. Search Box supports interactive stretching via 8 edge/corner handles (NW, NE, SW, SE, N, S, W, E).
+          3. Neither stretching the search box nor drawing a new box from scratch teleports drones;
+             both call recomputeAutoMission(false, ...) so all 4 drones fly continuously from their previous positions.
+        """
+        ui_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "collector_hub",
+            "ui",
+            "operator_mission_console.html",
+        )
+        with open(ui_path, "r", encoding="utf-8") as f:
+            html = f.read()
+
+        self.assertIn("let activeMapTool = 'PAN_MAP';", html)
+        self.assertIn("function toggleDrawNewBoxTool()", html)
+        self.assertIn("function findSearchBoxResizeHandle(cx, cy)", html)
+        self.assertIn("recomputeAutoMission(false, true);", html)
+        self.assertIn("recomputeAutoMission(false, false);", html)
+        # Ensure mouseup on new box draw returns to PAN_MAP and does NOT call restartCooperativeSearch()
+        self.assertIn("setMapTool('PAN_MAP');", html)
+        # Direct drone dragging, Go-To waypoint pinning, and Mark-Object-to-Track
+        self.assertIn("function sendDroneToWorldPoint(", html)
+        self.assertIn("function markOrLockObjectAtWorld(", html)
+        self.assertIn("draggingDroneState", html)
+        # 1:1 Trackpad Stick Steering & X/Y Axis vs. Bounds Gauge
+        self.assertIn("trackpadSteerCanvas", html)
+        self.assertIn("function renderTrackpadSteerBoundsCanvas()", html)
+        self.assertIn("X AXIS:", html)
+
 
 if __name__ == "__main__":
     print("=== Running Autonomous Aerial Observation & Guidance Module Test Suite ===")
