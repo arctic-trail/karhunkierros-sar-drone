@@ -818,14 +818,28 @@ class MAVLinkV2FieldBridge:
                 "mavlink_tx": tx,
             }
 
-        # Reload
-        self.drop_state = "READY"
-        self.drop_veto_latched = False
-        self.winch_servo_pwm_us = 1100
+        if act == "reload":
+            self.bump_epoch(reason="Explicit Human Payload Reload")
+            self.drop_state = "READY"
+            self.drop_veto_latched = False
+            self.active_arm_token = None
+            self.winch_servo_pwm_us = 1100
+            return {
+                "bridge_online": True,
+                "approved": True,
+                "epoch_id": self.current_epoch,
+                "drop_state": self.drop_state,
+                "drop_veto_latched": self.drop_veto_latched,
+                "winch_servo_pwm_us": self.winch_servo_pwm_us,
+            }
+
         return {
             "bridge_online": True,
+            "approved": False,
+            "rejection_reason": f"UNSUPPORTED_DROP_ACTION:{act}",
             "epoch_id": self.current_epoch,
             "drop_state": self.drop_state,
+            "drop_veto_latched": self.drop_veto_latched,
             "winch_servo_pwm_us": self.winch_servo_pwm_us,
         }
 

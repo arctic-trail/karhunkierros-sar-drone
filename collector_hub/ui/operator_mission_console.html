@@ -701,30 +701,37 @@
       <div class="brand">
         <div class="status-dot"></div>
         <span class="brand-title">Karhunkierros SAR</span>
-        <span class="brand-sub">Google Earth Cooperative Search &amp; Rescue Console</span>
+        <span class="brand-sub">Swarm C&amp;C &amp; Structured Playbook Console</span>
       </div>
 
       <div class="top-controls">
-        <!-- Quick Jump to Any Region on Google Earth + Arbitrary 112 SOS Coordinate Input -->
+        <!-- 3-Endpoint Ecosystem Switcher -->
+        <div class="pane-toggle-group" style="border-color:rgba(56,189,248,0.4);" title="Switch between the 3 live production SAR operator endpoints">
+          <a class="pane-pill on" href="/operator_mission_console.html" style="text-decoration:none;">🌍 1. Swarm C&amp;C</a>
+          <a class="pane-pill" href="/mothership_cockpit.html" style="text-decoration:none;">✈️ 2. Mothership Cockpit</a>
+          <a class="pane-pill" href="/mobile_responder.html" style="text-decoration:none;">🛷 4. Ground SAR</a>
+        </div>
+
+        <!-- Quick Jump to Any Region on Google Earth + Multi-Format 112 SOS Coordinate Input (ETRS-TM35FIN / DDM / WGS84) -->
         <select id="selGeoRegion" class="select-input" onchange="jumpToGoogleEarthRegion(this.value)" title="Jump anywhere on Google Earth and drag or stretch a Search Area">
-          <option value="OULANKA" selected>📍 Oulanka Canyon / Kiutaköngäs (66.3695°N, 29.3155°E)</option>
-          <option value="RUKA">📍 Ruka Fell &amp; Ski Village (66.1658°N, 29.1520°E)</option>
+          <option value="OULANKA" selected>📍 Oulanka Canyon (N 7362415 E 598784)</option>
+          <option value="RUKA">📍 Ruka Fell (66.1658°N, 29.1520°E)</option>
           <option value="JUUMA">📍 Juuma / Pieni Karhunkierros (66.2625°N, 29.3765°E)</option>
-          <option value="KUUSAMO">📍 Kuusamo Town &amp; Lakes (65.9645°N, 29.1830°E)</option>
+          <option value="KUUSAMO">📍 Kuusamo Town (65.9645°N, 29.1830°E)</option>
         </select>
-        <div style="display:flex;align-items:center;gap:4px;background:#1c1c23;border:1px solid var(--border-strong);border-radius:7px;padding:2px 5px;" title="Enter any real 112 emergency GPS coordinates (Lat, Lon) to jump the SAR mission there">
+        <div style="display:flex;align-items:center;gap:4px;background:#1c1c23;border:1px solid var(--border-strong);border-radius:7px;padding:2px 5px;" title="Enter 112 SOS coordinates in ETRS-TM35FIN (N 7362415 E 598784), Aviation DDM (66 22.17N 29 18.93E), or WGS84 Decimal (66.3695, 29.3155)">
           <span style="font-size:10.5px;color:#fbbf24;font-weight:700;">112 SOS:</span>
-          <input type="text" id="txtCustomSosCoords" placeholder="66.3695, 29.3155" onkeydown="if(event.key==='Enter')jumpToCustomSosCoords()" style="width:118px;background:transparent;border:none;color:#f5f5f7;font-family:var(--font-mono);font-size:11px;outline:none;" />
+          <input type="text" id="txtCustomSosCoords" placeholder="N 7362415 E 598784 or Lat,Lon" onkeydown="if(event.key==='Enter')jumpToCustomSosCoords()" style="width:136px;background:transparent;border:none;color:#f5f5f7;font-family:var(--font-mono);font-size:11px;outline:none;" />
           <button class="win-btn" onclick="jumpToCustomSosCoords()" style="padding:2px 6px;font-size:10.5px;color:#64d2ff;border-color:rgba(10,132,255,0.45);">🎯 Go</button>
         </div>
 
         <!-- Show / Hide Any View Pills -->
         <div class="pane-toggle-group" title="Show, hide, or restore any view panel">
-          <button class="pane-pill on" id="pillShowMap" onclick="togglePane('mapPane')">🌍 1. Google Earth Map</button>
-          <button class="pane-pill on" id="pillShowVideo" onclick="togglePane('videoPane')">📷 2. Drone Video</button>
-          <button class="pane-pill on" id="pillShowProfile" onclick="togglePane('profileBar')">⛰️ Elevation</button>
-          <button class="pane-pill on" id="pillShowControls" onclick="togglePane('controlPane')">⚙️ 3. Controls</button>
-          <button class="pane-pill" onclick="resetWorkspaceLayout()" title="Restore default balanced split layout">↺ Reset Views</button>
+          <button class="pane-pill on" id="pillShowMap" onclick="togglePane('mapPane')">🌍 Map</button>
+          <button class="pane-pill on" id="pillShowVideo" onclick="togglePane('videoPane')">📷 Video</button>
+          <button class="pane-pill on" id="pillShowProfile" onclick="togglePane('profileBar')">⛰️ DEM</button>
+          <button class="pane-pill on" id="pillShowControls" onclick="togglePane('controlPane')">⚙️ Controls</button>
+          <button class="pane-pill" onclick="resetWorkspaceLayout()" title="Restore default balanced split layout">↺ Reset</button>
         </div>
 
         <button class="btn success active" id="btnSimPlayPause" onclick="toggleSimPlayPause()">⏸ Sim Running</button>
@@ -919,43 +926,43 @@
         </div>
 
         <div class="operator-dock">
-          <!-- CARD 0: NATURAL-LANGUAGE OPERATIONS PLAYBOOK & JEV AGENT DISPATCHER (OFFLINE-SAFE) -->
+          <!-- CARD 0: STRUCTURED PLAYBOOK FEATURES OR MANUAL CONTROL (ZERO OFFLINE REGEX PARSING!) -->
           <div class="step-card" style="border-color:rgba(10,132,255,0.45);background:linear-gradient(180deg,rgba(10,132,255,0.08),rgba(28,28,35,0.95));">
             <div class="step-header">
-              <span class="step-title">🤖 AI Playbook Dispatcher (AID)</span>
-              <span class="step-badge" id="badgeAidState" style="background:rgba(48,209,88,0.18);color:#4ade80;">Offline Compiled • &lt;1ms</span>
+              <span class="step-title">🤖 Playbook &amp; Control Mode (AID)</span>
+              <span class="step-badge" id="badgeAidState" style="background:rgba(48,209,88,0.18);color:#4ade80;">Structured • &lt;1ms</span>
             </div>
             <div class="form-grid" style="margin-top:2px;">
               <div class="field-box">
-                <span class="field-label">AID Execution Mode</span>
+                <span class="field-label">Control Mode (No Regex!)</span>
                 <select id="selAidMode" class="select-input" onchange="updateAidMode(this.value)" style="width:100%;padding:3px 5px;font-size:11px;">
-                  <option value="OFFLINE_DETERMINISTIC" selected>⚡ Auto: Offline Playbook (&lt;1ms, No API)</option>
-                  <option value="CLOUD_LLM_JEV">🧠 Auto: LLM JEV Agent (Auto-Cutout)</option>
+                  <option value="OFFLINE_DETERMINISTIC" selected>⚡ Option A: Structured Playbook (&lt;1ms)</option>
+                  <option value="MANUAL_HUMAN_ONLY">🛑 Option B: Manual Control Only (No LLM)</option>
+                  <option value="CLOUD_LLM_JEV">🧠 Optional: Cloud LLM JEV (Auto-Cutout)</option>
                   <option value="ADVISORY_ONLY">💡 Advisory Co-Pilot Only (No Auto-Act)</option>
-                  <option value="MANUAL_HUMAN_ONLY">🛑 AID OFF (100% Manual Human Only)</option>
                 </select>
               </div>
               <div class="field-box">
-                <span class="field-label">No-LLM API Fallback</span>
+                <span class="field-label">When No LLM Available</span>
                 <select id="selAidFallback" class="select-input" onchange="updateAidFallbackPolicy(this.value)" style="width:100%;padding:3px 5px;font-size:11px;">
-                  <option value="OFFLINE_DETERMINISTIC" selected>Run Offline Playbook (&lt;1ms)</option>
-                  <option value="MANUAL_HUMAN_ONLY">Turn AID OFF (Manual Only)</option>
+                  <option value="OFFLINE_DETERMINISTIC" selected>Option A: Structured Playbook Fields</option>
+                  <option value="MANUAL_HUMAN_ONLY">Option B: Manual Control Only (No LLM)</option>
                 </select>
               </div>
             </div>
             <div class="field-box" style="padding:5px 7px;">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;">
-                <span class="field-label">Natural-Language Operations Playbook</span>
+                <span class="field-label">Predefined SAR Feature Profile</span>
                 <div style="display:flex;gap:4px;align-items:center;">
                   <button class="win-btn" onclick="toggleLlmApiKeyPanel()" id="btnToggleApiKeyPanel" style="font-size:10px;padding:1px 6px;" title="Configure External LLM API Key (Session or Save to Disk)">🔑 API Key</button>
-                  <button class="win-btn" onclick="togglePlaybookEditor()" id="btnTogglePbEditor" style="font-size:10px;padding:1px 6px;">📝 Edit NL Rules</button>
+                  <button class="win-btn" onclick="togglePlaybookEditor()" id="btnTogglePbEditor" style="font-size:10px;padding:1px 6px;color:#38bdf8;border-color:rgba(56,189,248,0.45);">⚙️ Structured Fields</button>
                 </div>
               </div>
               <select id="selPlaybookPreset" class="select-input" onchange="selectPlaybookPreset(this.value)" style="width:100%;padding:3px 5px;font-size:11px;margin-top:2px;">
-                <option value="PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY" selected>1. Night Hiker Search &amp; Opaslyhty Hut Escort (Default)</option>
+                <option value="PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY" selected>1. Night Hiker Search &amp; Opaslyhty Hut Escort (55m/28m)</option>
                 <option value="PLAYBOOK_02_CAUTIOUS_HUMAN_CONFIRM_DROP">2. Cautious Search (Require Human Confirm for Drop)</option>
-                <option value="PLAYBOOK_03_STRANDED_SNOWMOBILE_CORRIDOR">3. Stranded Snowmobile / Vehicle Corridor Escort</option>
-                <option value="PLAYBOOK_04_EW_DENIED_PASSIVE_RECON">4. GNSS-Denied / Reindeer-Safe High Sweep (&ge;100m)</option>
+                <option value="PLAYBOOK_03_STRANDED_SNOWMOBILE_CORRIDOR">3. Stranded Snowmobile / Vehicle Corridor Escort (65m/45m)</option>
+                <option value="PLAYBOOK_04_EW_DENIED_PASSIVE_RECON">4. GNSS-Denied / Reindeer-Safe High Sweep (85m/35m)</option>
               </select>
 
               <!-- EXTERNAL LLM & OPTIONAL GOOGLE MAPS TILE API KEY DRAWER -->
@@ -993,17 +1000,58 @@
                 </div>
               </div>
 
-              <div id="playbookEditorWrap" style="display:none;flex-direction:column;gap:5px;margin-top:5px;">
-                <textarea id="txtPlaybookMarkdown" rows="5" style="width:100%;background:#0e0e12;color:#f5f5f7;border:1px solid var(--border-strong);border-radius:6px;padding:6px;font-family:var(--font-mono);font-size:10.5px;line-height:1.35;"></textarea>
+              <!-- STRUCTURED PARAMETER FORM FIELDS (NO REGEX / NO FREE-TEXT PARSING!) -->
+              <div id="playbookEditorWrap" style="display:flex;flex-direction:column;gap:5px;margin-top:6px;padding:6px 7px;background:rgba(15,23,42,0.85);border:1px solid rgba(56,189,248,0.35);border-radius:6px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">
+                  <div>
+                    <label style="font-size:9.5px;color:#94a3b8;display:block;">Search Alt (m)</label>
+                    <input type="number" id="inpPbSearchAlt" min="28" max="120" step="1" value="55" style="width:100%;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:2px 5px;font-family:var(--font-mono);font-size:11px;" />
+                  </div>
+                  <div>
+                    <label style="font-size:9.5px;color:#94a3b8;display:block;">Track Alt (m)</label>
+                    <input type="number" id="inpPbTrackAlt" min="28" max="120" step="1" value="28" style="width:100%;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:2px 5px;font-family:var(--font-mono);font-size:11px;" />
+                  </div>
+                  <div>
+                    <label style="font-size:9.5px;color:#94a3b8;display:block;">Standoff (m)</label>
+                    <input type="number" id="inpPbDropOffset" min="15" max="50" step="1" value="15" style="width:100%;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:2px 5px;font-family:var(--font-mono);font-size:11px;" />
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+                  <div>
+                    <label style="font-size:9.5px;color:#94a3b8;display:block;">Target Priority</label>
+                    <select id="selPbTargetType" class="select-input" style="width:100%;padding:2px 4px;font-size:10.5px;">
+                      <option value="PERSON" selected>Lost Hiker (Person)</option>
+                      <option value="VEHICLE">Snowmobile (Vehicle)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style="font-size:9.5px;color:#94a3b8;display:block;">Payload Drop Policy</label>
+                    <select id="selPbDropPolicy" class="select-input" style="width:100%;padding:2px 4px;font-size:10.5px;">
+                      <option value="AUTO_RELEASE" selected>Auto Queue &amp; Release</option>
+                      <option value="REQUIRE_CONFIRM">Queue + Human Confirm</option>
+                      <option value="MANUAL_ONLY">Manual Drop Only</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+                  <div>
+                    <label style="font-size:9.5px;color:#94a3b8;display:block;">RTH Battery Floor (%)</label>
+                    <input type="number" id="inpPbRthBatt" min="20" max="50" step="1" value="22" style="width:100%;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:2px 5px;font-family:var(--font-mono);font-size:11px;" />
+                  </div>
+                  <div>
+                    <label style="font-size:9.5px;color:#94a3b8;display:block;">Veto Cooldown (s)</label>
+                    <input type="number" id="inpPbVetoSec" min="30" max="1800" step="30" value="300" style="width:100%;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:2px 5px;font-family:var(--font-mono);font-size:11px;" />
+                  </div>
+                </div>
                 <div style="display:flex;gap:5px;">
-                  <button class="btn primary" onclick="compileAndApplyCustomPlaybook()" style="flex:1;padding:3px 7px;font-size:11px;">⚡ Compile &amp; Apply NL Playbook</button>
-                  <button class="btn warning" onclick="simulateLlmOutageTest()" style="padding:3px 7px;font-size:11px;" title="Test what happens when External LLM API disconnects">🔌 Test No-API Cutout</button>
+                  <button class="btn primary" onclick="compileAndApplyCustomPlaybook()" style="flex:1;padding:3px 7px;font-size:11px;">⚡ Apply Structured Fields</button>
+                  <button class="btn warning" onclick="simulateLlmOutageTest()" style="padding:3px 7px;font-size:11px;" title="Test what happens when External LLM API disconnects">🔌 Test Cutout</button>
                 </div>
               </div>
             </div>
             <div class="assignment-box" style="padding:6px 8px;font-size:11px;gap:3px;" id="jevStatusBox">
               <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span style="color:var(--text-secondary);">Compiled AST (<span id="lblPbEpoch">Epoch #1</span>):</span>
+                <span style="color:var(--text-secondary);">Active Rules (<span id="lblPbEpoch">Epoch #1</span>):</span>
                 <strong style="color:#64d2ff;font-family:var(--font-mono);font-size:10.5px;" id="lblCompiledSummary">55m (0% ovl) • Track 28m • Drop 15m</strong>
               </div>
               <div style="font-family:var(--font-mono);font-size:10.5px;color:#4ade80;background:rgba(0,0,0,0.32);padding:4px 6px;border-radius:5px;" id="lblJevDecision">
@@ -1195,6 +1243,28 @@
               <button class="btn" onclick="exportQgcWaypoints()" style="flex:1;">
                 💾 QGC .waypoints
               </button>
+            </div>
+            <!-- Multi-Persona Ecosystem Sync (Personas 3, 4, 5, 6) -->
+            <div style="margin-top:6px;padding:6px 8px;background:rgba(15,23,42,0.85);border:1px solid rgba(56,189,248,0.35);border-radius:7px;font-size:10.5px;display:flex;flex-direction:column;gap:4px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <strong style="color:#38bdf8;">🛷 4. Ground SAR Responder:</strong>
+                <a href="/mobile_responder.html" style="color:#4ade80;font-weight:700;text-decoration:none;font-family:var(--font-mono);" id="lblGroundResponderAck">🟢 Open Responder App ↗</a>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:var(--text-secondary);">🌲 3. Trail-Cam + Sky-Diode:</span>
+                <span style="color:#4ade80;font-family:var(--font-mono);">3-Zone Vault OK • +55.8 dB</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:var(--text-secondary);">🔦 5. Opaslyhty &amp; 6. Heli Cap:</span>
+                <div style="display:flex;gap:4px;align-items:center;">
+                  <select id="selCncLanternLang" class="select-input" onchange="syncEcosystemLangOrHeli()" style="padding:1px 4px;font-size:10px;">
+                    <option value="FI" selected>🇫🇮 FI</option>
+                    <option value="EN">🇬🇧 EN</option>
+                    <option value="SE">🇸🇪 SE</option>
+                  </select>
+                  <button class="win-btn" id="btnHeliCeilingLock" onclick="toggleMannedHeliCeilingLock()" style="font-size:9.5px;padding:1px 5px;" title="Enforce 35m AGL Drone Ceiling for FINHEMS Manned Helicopter Co-Use">🚁 Heli 35m: OFF</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1446,25 +1516,45 @@
     function jumpToCustomSosCoords() {
       const inp = document.getElementById('txtCustomSosCoords');
       if (!inp || !inp.value.trim()) return;
-      const nums = inp.value.trim().match(/-?\d+(?:\.\d+)?/g);
+      const q = inp.value.trim();
+      const applyJump = (lat, lon, etrsLbl) => {
+        if (isNaN(lat) || isNaN(lon) || lat < -85 || lat > 85 || lon < -180 || lon > 180) {
+          updateAidBannerUI('⚠️ Coordinates out of valid range (-85..85°N, -180..180°E)');
+          return;
+        }
+        ORIGIN_LAT = lat;
+        ORIGIN_LON = lon;
+        mapCenter = { x: 0.0, y: -10.0 };
+        mapZoom = 0.88;
+        searchBox = { xMin: -230, yMin: -155, xMax: 230, yMax: 135 };
+        restartCooperativeSearch();
+        const gridTag = etrsLbl ? ` (${etrsLbl})` : '';
+        updateAidBannerUI(`🎯 112 SOS Locked: ${lat.toFixed(5)}°N, ${lon.toFixed(5)}°E${gridTag} • 4-Drone Search Deployed`);
+        logAndDispatchMavlinkV2(`MISSION_COUNT (#44) • 112 SOS Jump (${lat.toFixed(4)}N, ${lon.toFixed(4)}E)`, 44, 'FD 05 00 00 08 FF BE 2C 00 00', `/api/field/upload_mission?lat=${lat}&lon=${lon}`);
+      };
+      if (window.location.protocol.startsWith('http')) {
+        fetch(`/api/coords/convert?q=${encodeURIComponent(q)}`).then(r => r.json()).then(res => {
+          if (res && typeof res.lat === 'number' && typeof res.lon === 'number') {
+            applyJump(res.lat, res.lon, res.etrs_tm35fin_str || '');
+          }
+        }).catch(() => {});
+        return;
+      }
+      const nums = q.match(/-?\d+(?:\.\d+)?/g);
       if (!nums || nums.length < 2) {
-        updateAidBannerUI('⚠️ Invalid 112 SOS Coordinates — Enter Lat, Lon (e.g. 66.3695, 29.3155)');
+        updateAidBannerUI('⚠️ Invalid 112 SOS Coordinates — Enter ETRS-TM35FIN (N 7362415 E 598784) or Lat, Lon');
         return;
       }
-      const lat = parseFloat(nums[0]);
-      const lon = parseFloat(nums[1]);
-      if (isNaN(lat) || isNaN(lon) || lat < -85 || lat > 85 || lon < -180 || lon > 180) {
-        updateAidBannerUI('⚠️ Coordinates out of valid WGS84 range (-85..85°N, -180..180°E)');
-        return;
+      const v0 = parseFloat(nums[0]);
+      const v1 = parseFloat(nums[1]);
+      if (v0 > 6000000 && v1 > 50000) {
+        // Quick offline ETRS-TM35FIN approximation around Kuusamo/Oulanka
+        const lat = 66.3695 + (v0 - 7362415) / 111132.0;
+        const lon = 29.3155 + (v1 - 598784) / (111320.0 * Math.cos(66.3695 * Math.PI / 180.0));
+        applyJump(lat, lon, `N ${Math.round(v0)} E ${Math.round(v1)}`);
+      } else {
+        applyJump(v0, v1, '');
       }
-      ORIGIN_LAT = lat;
-      ORIGIN_LON = lon;
-      mapCenter = { x: 0.0, y: -10.0 };
-      mapZoom = 0.88;
-      searchBox = { xMin: -230, yMin: -155, xMax: 230, yMax: 135 };
-      restartCooperativeSearch();
-      updateAidBannerUI(`🎯 112 SOS Coordinates Locked: ${lat.toFixed(5)}°N, ${lon.toFixed(5)}°E • 4-Drone Search Deployed`);
-      logAndDispatchMavlinkV2(`MISSION_COUNT (#44) • 112 SOS Jump (${lat.toFixed(4)}N, ${lon.toFixed(4)}E)`, 44, 'FD 05 00 00 08 FF BE 2C 00 00', `/api/field/upload_mission?lat=${lat}&lon=${lon}`);
     }
 
     const mapCanvas = document.getElementById('cncMapCanvas');
@@ -2183,13 +2273,33 @@
     }
 
     // =========================================================================
-    // 4B. NATURAL-LANGUAGE OPERATIONS PLAYBOOK & JEV AGENT DISPATCHER (OFFLINE-SAFE)
+    // 4B. PREDEFINED STRUCTURED PLAYBOOK FEATURES OR MANUAL CONTROL (NO REGEX!)
     // =========================================================================
-    const PLAYBOOK_PRESETS_JS = {
-      PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY: `# PLAYBOOK: Karhunkierros Night Hiker Search & Opaslyhty Hut Escort\n- Search Allocation: Divide the search box into disjoint strips with 0% overlap at 55 m AGL above the 18 m boreal tree canopy.\n- Target Preemption: When a lost person (confidence >= 80%) is detected, assign 1 closest drone to lock and follow the person at 28 m AGL while the remaining drones continue scanning their sectors.\n- Vehicle Policy: Do NOT preempt mapping for vehicles when a lost hiker is active.\n- Payload Drop Policy: Automatically queue and release the +42°C rescue cask at a safe 15 m horizontal offset once the tracking drone is within 25 m of the hiker.\n- Shelter Escort: Guide the hiker with the 1500 lm spotlight along the trail to the nearest wilderness hut. When the hiker reaches within 15 m of the shelter, release target lock and return the drone to sector scanning.\n- Safety & Veto Rules: Respect human cancel vetoes for 300 seconds in a 60 m spatial bubble. Maintain >= 100 m altitude over reindeer/wildlife. Trigger RTH if battery drops below 22%.`,
-      PLAYBOOK_02_CAUTIOUS_HUMAN_CONFIRM_DROP: `# PLAYBOOK: Cautious Search — Human Confirmation Required for Payload Drop\n- Search Allocation: Divide the search box into disjoint strips with 0% overlap at 55 m AGL.\n- Target Preemption: Preempt 1 closest drone to track any detected lost person or stranded vehicle (confidence >= 80%) at 30 m AGL.\n- Payload Drop Policy: Do NOT auto-drop payload. Queue the drop at 15 m offset and REQUIRE explicit human confirmation before releasing the winch servo.\n- Shelter Escort: Escort the tracked subject to the nearest wilderness hut or plowed road bridge, then return to cooperative scanning.\n- Safety & Veto Rules: Respect human cancel vetoes for 600 seconds in a 60 m spatial bubble. Maintain >= 100 m altitude over wildlife. Trigger RTH if battery drops below 25%.`,
-      PLAYBOOK_03_STRANDED_SNOWMOBILE_CORRIDOR: `# PLAYBOOK: Winter Snowmobile & Vehicle Breakdown Escort\n- Search Allocation: Divide the search box into disjoint strips with 0% overlap at 65 m AGL for wide-swath coverage.\n- Target Preemption: Prioritize stranded vehicles and snowmobiles (confidence >= 75%). Assign 1 drone to escort the vehicle at 45 m AGL toward the plowed road bridge.\n- Payload Drop Policy: Do NOT auto-drop the rescue cask on a moving vehicle; require explicit human confirmation at a 15 m offset.\n- Safety & Veto Rules: Respect human cancel vetoes for 300 seconds in a 60 m spatial bubble. Maintain >= 100 m altitude over wildlife. Trigger RTH if battery drops below 22%.`,
-      PLAYBOOK_04_EW_DENIED_PASSIVE_RECON: `# PLAYBOOK: GNSS-Denied & Reindeer-Safe High-Standoff Sweep\n- Search Allocation: Scan in disjoint strips with 0% overlap at 85 m AGL using optical flow + TF02-Pro LiDAR terrain following.\n- Target Preemption: Track detected persons at 35 m AGL minimum floor (confidence >= 85%). Do NOT preempt on vehicles.\n- Payload Drop Policy: Do NOT auto-drop payload; require human confirmation at >= 15 m standoff.\n- Safety & Veto Rules: Enforce >= 100 m Poronhoitolaki altitude floor over reindeer herds. Respect human cancel vetoes for 600 seconds. Trigger RTH if battery drops below 28%.`
+    const STRUCTURED_PLAYBOOK_PRESETS_JS = {
+      PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY: {
+        searchAltM: 55, overlapPct: 0, trackAltM: 28, canopyFloorM: 18, ceilingM: 120,
+        preferredTarget: 'PERSON', preemptPerson: true, preemptVehicle: false,
+        autoQueueDrop: true, autoReleaseDrop: true, requireHumanDropConfirm: false,
+        dropOffsetM: 15, vetoCooldownS: 300, vetoBubbleRadiusM: 60, rthBatteryPct: 22
+      },
+      PLAYBOOK_02_CAUTIOUS_HUMAN_CONFIRM_DROP: {
+        searchAltM: 55, overlapPct: 0, trackAltM: 30, canopyFloorM: 18, ceilingM: 120,
+        preferredTarget: 'PERSON', preemptPerson: true, preemptVehicle: true,
+        autoQueueDrop: true, autoReleaseDrop: false, requireHumanDropConfirm: true,
+        dropOffsetM: 15, vetoCooldownS: 600, vetoBubbleRadiusM: 60, rthBatteryPct: 25
+      },
+      PLAYBOOK_03_STRANDED_SNOWMOBILE_CORRIDOR: {
+        searchAltM: 65, overlapPct: 0, trackAltM: 45, canopyFloorM: 18, ceilingM: 120,
+        preferredTarget: 'VEHICLE', preemptPerson: true, preemptVehicle: true,
+        autoQueueDrop: true, autoReleaseDrop: false, requireHumanDropConfirm: true,
+        dropOffsetM: 15, vetoCooldownS: 300, vetoBubbleRadiusM: 60, rthBatteryPct: 22
+      },
+      PLAYBOOK_04_EW_DENIED_PASSIVE_RECON: {
+        searchAltM: 85, overlapPct: 0, trackAltM: 35, canopyFloorM: 18, ceilingM: 120,
+        preferredTarget: 'PERSON', preemptPerson: true, preemptVehicle: false,
+        autoQueueDrop: true, autoReleaseDrop: false, requireHumanDropConfirm: true,
+        dropOffsetM: 15, vetoCooldownS: 600, vetoBubbleRadiusM: 60, rthBatteryPct: 28
+      }
     };
 
     let aidState = {
@@ -2198,117 +2308,82 @@
       activePlaybookId: 'PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY',
       epochId: 1,
       circuitBreakerTripped: false,
-      circuitBreakerReason: 'Offline Compiled • <1ms',
+      circuitBreakerReason: 'Structured Playbook • <1ms',
       llmApiKeyConfigured: false,
       llmApiKeyMasked: 'Not Configured',
       llmApiKeySavedOnDisk: false,
       llmProvider: 'openai',
       llmModel: 'gpt-5.4-mini',
-      compiled: {
-        searchAltM: 55,
-        overlapPct: 0,
-        trackAltM: 28,
-        preferredTarget: 'PERSON',
-        preemptPerson: true,
-        preemptVehicle: false,
-        autoQueueDrop: true,
-        autoReleaseDrop: true,
-        requireHumanDropConfirm: false,
-        dropOffsetM: 15,
-        vetoCooldownS: 300,
-        vetoBubbleRadiusM: 60,
-        rthBatteryPct: 22
-      },
-      // [RT1-01] Spatial-Temporal Veto Bubbles + Permanent Drop Veto Latch
+      compiled: Object.assign({}, STRUCTURED_PLAYBOOK_PRESETS_JS.PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY),
       vetoBubbles: [],
       dropVetoLatched: false,
-      // [RT1-03] Dwell timer & Pre-Filter Proposed State-Flip Thrash Counter
       lastAcceptedTransitionTs: 0,
       proposedStateHistory: []
     };
 
-    function compileNaturalLanguagePlaybookJS(mdText) {
-      const rules = {
-        searchAltM: 55,
-        overlapPct: 0,
-        trackAltM: 28,
-        canopyFloorM: 18,
-        ceilingM: 120,
-        preferredTarget: 'PERSON',
-        preemptPerson: true,
-        preemptVehicle: false,
-        autoQueueDrop: true,
-        autoReleaseDrop: true,
-        requireHumanDropConfirm: false,
-        dropOffsetM: 15,
-        vetoCooldownS: 300,
-        vetoBubbleRadiusM: 60,
-        rthBatteryPct: 22
-      };
-      let rawSearchAlt = null;
-      let rawTrackAlt = null;
-      const lines = (mdText || '').split('\n').map(s => s.trim()).filter(Boolean);
-      for (const ln of lines) {
-        if (ln.startsWith('#')) continue;
-        // [RT2-04] Split into sub-clauses without breaking decimal numbers like 0.85
-        const subs = ln.toLowerCase().split(/(?<!\d)\.(?!\d)|;|\band then\b|,\s*and\b|\band\b(?=\s+(?:queue|drop|release|track|lock|require|do\s+not))/i).map(s => s.trim()).filter(Boolean);
-        for (const cl of subs) {
-          const hasNeg = /\b(do\s+not|don't|never|no|prohibit|ignore)\b/.test(cl);
-          if (cl.includes('search') || cl.includes('overlap') || cl.includes('strips') || cl.includes('scan at')) {
-            const mAlt = cl.match(/at\s+(\d{2,3}(?:\.\d+)?)\s*m/);
-            if (mAlt) rawSearchAlt = parseFloat(mAlt[1]);
-            const mOv = cl.match(/(\d{1,2}(?:\.\d+)?)\s*%\s*overlap/);
-            if (mOv) rules.overlapPct = Math.max(0, Math.min(50, parseFloat(mOv[1])));
-          }
-          if (cl.includes('canopy')) {
-            const mCan = cl.match(/(\d{1,2}(?:\.\d+)?)\s*m\s*(?:boreal\s+)?(?:tree\s+)?canopy|canopy\s+(?:is\s+)?(\d{1,2}(?:\.\d+)?)\s*m/);
-            if (mCan) rules.canopyFloorM = Math.max(15, Math.min(35, parseFloat(mCan[1] || mCan[2])));
-          }
-          if (cl.includes('ceiling')) {
-            const mCeil = cl.match(/(?:below|<|<=|under|max)\s*(\d{2,3}(?:\.\d+)?)\s*m\s*(?:agl\s*)?ceiling|ceiling\s*(?:of\s*|is\s*)?(\d{2,3}(?:\.\d+)?)\s*m/);
-            if (mCeil) rules.ceilingM = Math.max(20, Math.min(150, parseFloat(mCeil[1] || mCeil[2])));
-          }
-          if (cl.includes('vehicle policy')) {
-            if (hasNeg) rules.preemptVehicle = false;
-          }
-          if (cl.includes('preemption') || cl.includes('prioritize') || cl.includes('track detected') || cl.includes('when a lost person') || cl.includes('lock and follow') || cl.includes('lock at')) {
-            if (cl.includes('snowmobile') || cl.includes('prioritize stranded vehicle') || cl.includes('vehicle')) {
-              rules.preemptVehicle = !hasNeg;
-              if (!hasNeg && (cl.includes('snowmobile') || cl.includes('prioritize'))) rules.preferredTarget = 'VEHICLE';
-            }
-            if (cl.includes('person') || cl.includes('hiker')) {
-              rules.preemptPerson = !hasNeg;
-            }
-            const mTAlt = cl.match(/at\s+(\d{2,3}(?:\.\d+)?)\s*m/);
-            if (mTAlt) rawTrackAlt = parseFloat(mTAlt[1]);
-          }
-          if (cl.includes('payload drop') || cl.includes('rescue cask') || cl.includes('auto-drop') || cl.includes('drop') || cl.includes('human confirm')) {
-            const reqHuman = /require\s+(explicit\s+)?human/.test(cl);
-            if (hasNeg || reqHuman) {
-              rules.autoReleaseDrop = false;
-              rules.requireHumanDropConfirm = true;
-              if (cl.includes('queue')) rules.autoQueueDrop = true;
-            } else if (cl.includes('queue') || cl.includes('release') || cl.includes('auto')) {
-              rules.autoReleaseDrop = true;
-              rules.requireHumanDropConfirm = false;
-              rules.autoQueueDrop = true;
-            }
-            const mOff = cl.match(/(\d{1,2}(?:\.\d+)?)\s*m\s*(horizontal\s+)?(offset|standoff)/);
-            if (mOff) rules.dropOffsetM = Math.max(15, parseFloat(mOff[1]));
-          }
-          if (cl.includes('safety') || cl.includes('veto') || cl.includes('battery')) {
-            const mVeto = cl.match(/veto(?:es)?\s+for\s+(\d{2,4})\s*s/);
-            if (mVeto) rules.vetoCooldownS = Math.max(30, parseInt(mVeto[1], 10));
-            const mBatt = cl.match(/battery\s+(?:drops\s+)?(?:below|<|<=)\s*(\d{2}(?:\.\d+)?)\s*%/);
-            if (mBatt) rules.rthBatteryPct = Math.max(20, parseFloat(mBatt[1]));
+    function buildStructuredPlaybookRulesJS(presetId, overrides = null) {
+      const base = Object.assign(
+        {},
+        STRUCTURED_PLAYBOOK_PRESETS_JS[presetId] || STRUCTURED_PLAYBOOK_PRESETS_JS.PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY
+      );
+      if (overrides && typeof overrides === 'object') {
+        const lowerBound = Math.max(28, (base.canopyFloorM || 18) + 10);
+        const ceilM = window.heliCeilingLocked ? 35 : (base.ceilingM || 120);
+        if (overrides.searchAltM !== undefined) {
+          base.searchAltM = Math.min(ceilM, Math.max(lowerBound, Number(overrides.searchAltM) || 55));
+        }
+        if (overrides.trackAltM !== undefined) {
+          base.trackAltM = Math.min(ceilM, Math.max(lowerBound, Number(overrides.trackAltM) || 28));
+        }
+        if (overrides.preferredTarget === 'VEHICLE' || overrides.preferredTarget === 'PERSON') {
+          base.preferredTarget = overrides.preferredTarget;
+          base.preemptVehicle = (overrides.preferredTarget === 'VEHICLE');
+          base.preemptPerson = true;
+        }
+        if (overrides.dropPolicy) {
+          if (overrides.dropPolicy === 'AUTO_RELEASE') {
+            base.autoQueueDrop = true;
+            base.autoReleaseDrop = true;
+            base.requireHumanDropConfirm = false;
+          } else if (overrides.dropPolicy === 'REQUIRE_CONFIRM') {
+            base.autoQueueDrop = true;
+            base.autoReleaseDrop = false;
+            base.requireHumanDropConfirm = true;
+          } else {
+            base.autoQueueDrop = false;
+            base.autoReleaseDrop = false;
+            base.requireHumanDropConfirm = true;
           }
         }
+        if (overrides.dropOffsetM !== undefined) {
+          base.dropOffsetM = Math.min(50, Math.max(15, Number(overrides.dropOffsetM) || 15));
+        }
+        if (overrides.rthBatteryPct !== undefined) {
+          base.rthBatteryPct = Math.min(50, Math.max(20, Number(overrides.rthBatteryPct) || 22));
+        }
+        if (overrides.vetoCooldownS !== undefined) {
+          base.vetoCooldownS = Math.min(1800, Math.max(30, Number(overrides.vetoCooldownS) || 300));
+        }
       }
-      const lowerBound = Math.max(28, rules.canopyFloorM + 10);
-      if (lowerBound > rules.ceilingM) rules.ceilingM = 120;
-      if (rawSearchAlt !== null) rules.searchAltM = Math.min(rules.ceilingM, Math.max(lowerBound, rawSearchAlt));
-      if (rawTrackAlt !== null) rules.trackAltM = Math.min(rules.ceilingM, Math.max(lowerBound, rawTrackAlt));
-      return rules;
+      return base;
+    }
+
+    function syncStructuredFormFieldsFromRules(r) {
+      if (!r) return;
+      const elS = document.getElementById('inpPbSearchAlt');
+      const elT = document.getElementById('inpPbTrackAlt');
+      const elO = document.getElementById('inpPbDropOffset');
+      const elP = document.getElementById('selPbTargetType');
+      const elD = document.getElementById('selPbDropPolicy');
+      const elB = document.getElementById('inpPbRthBatt');
+      const elV = document.getElementById('inpPbVetoSec');
+      if (elS) elS.value = r.searchAltM;
+      if (elT) elT.value = r.trackAltM;
+      if (elO) elO.value = r.dropOffsetM;
+      if (elP) elP.value = r.preferredTarget;
+      if (elD) elD.value = r.autoReleaseDrop ? 'AUTO_RELEASE' : (r.autoQueueDrop ? 'REQUIRE_CONFIRM' : 'MANUAL_ONLY');
+      if (elB) elB.value = r.rthBatteryPct;
+      if (elV) elV.value = r.vetoCooldownS;
     }
 
     function hydrateCompiledRulesFromBackend(cr) {
@@ -2326,6 +2401,7 @@
       aidState.compiled.vetoCooldownS = cr.human_cancel_veto_cooldown_s ?? aidState.compiled.vetoCooldownS;
       aidState.compiled.vetoBubbleRadiusM = cr.veto_bubble_radius_m ?? aidState.compiled.vetoBubbleRadiusM;
       aidState.compiled.rthBatteryPct = cr.rth_battery_floor_pct ?? aidState.compiled.rthBatteryPct;
+      syncStructuredFormFieldsFromRules(aidState.compiled);
     }
 
     function updateAidBannerUI(decisionText = null) {
@@ -2339,12 +2415,12 @@
 
       if (epEl) epEl.textContent = `Epoch #${aidState.epochId}`;
       if (sumEl) {
-        const dropModeStr = r.autoReleaseDrop ? `Auto @ ${r.dropOffsetM}m` : (r.autoQueueDrop ? `Queue+Confirm @ ${r.dropOffsetM}m` : `Confirm @ ${r.dropOffsetM}m`);
+        const dropModeStr = r.autoReleaseDrop ? `Auto @ ${r.dropOffsetM}m` : (r.autoQueueDrop ? `Queue+Confirm @ ${r.dropOffsetM}m` : `Manual @ ${r.dropOffsetM}m`);
         sumEl.textContent = `${r.searchAltM}m (${r.overlapPct}% ovl) • Track ${r.trackAltM}m • Drop: ${dropModeStr}`;
       }
       if (badge) {
         if (aidState.mode === 'MANUAL_HUMAN_ONLY') {
-          badge.textContent = aidState.circuitBreakerTripped ? '⚠️ Cutout -> AID OFF' : '🛑 AID OFF (Manual)';
+          badge.textContent = aidState.circuitBreakerTripped ? '⚠️ Cutout -> Manual' : '🛑 Manual Only (No LLM)';
           badge.className = 'step-badge red';
         } else if (aidState.mode === 'ADVISORY_ONLY') {
           badge.textContent = '💡 Advisory Only';
@@ -2353,10 +2429,10 @@
           badge.textContent = `☁️ LLM JEV • ${aidState.llmApiKeySavedOnDisk ? 'Disk' : 'RAM'}`;
           badge.className = 'step-badge';
         } else if (aidState.circuitBreakerTripped) {
-          badge.textContent = '⚡ Offline Fallback (<1ms)';
+          badge.textContent = '⚡ Structured Cutout (<1ms)';
           badge.className = 'step-badge amber';
         } else {
-          badge.textContent = 'Offline Compiled • <1ms';
+          badge.textContent = 'Structured • <1ms';
           badge.className = 'step-badge';
         }
       }
@@ -2407,21 +2483,18 @@
 
     function togglePlaybookEditor() {
       const wrap = document.getElementById('playbookEditorWrap');
-      const txt = document.getElementById('txtPlaybookMarkdown');
       if (!wrap) return;
       const isHidden = wrap.style.display === 'none';
       wrap.style.display = isHidden ? 'flex' : 'none';
-      if (isHidden && txt && !txt.value.trim()) {
-        txt.value = PLAYBOOK_PRESETS_JS[aidState.activePlaybookId] || PLAYBOOK_PRESETS_JS.PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY;
+      if (isHidden) {
+        syncStructuredFormFieldsFromRules(aidState.compiled);
       }
     }
 
     function selectPlaybookPreset(pbId) {
       aidState.activePlaybookId = pbId;
-      const md = PLAYBOOK_PRESETS_JS[pbId] || PLAYBOOK_PRESETS_JS.PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY;
-      const txt = document.getElementById('txtPlaybookMarkdown');
-      if (txt) txt.value = md;
-      aidState.compiled = compileNaturalLanguagePlaybookJS(md);
+      aidState.compiled = buildStructuredPlaybookRulesJS(pbId);
+      syncStructuredFormFieldsFromRules(aidState.compiled);
       applyCompiledPlaybookToControls();
       if (window.location.protocol.startsWith('http')) {
         fetch(`/api/playbook/select?id=${encodeURIComponent(pbId)}`).then(r => r.json()).then(st => {
@@ -2434,18 +2507,94 @@
     }
 
     function compileAndApplyCustomPlaybook() {
-      const txt = document.getElementById('txtPlaybookMarkdown');
-      const md = txt ? txt.value : PLAYBOOK_PRESETS_JS[aidState.activePlaybookId];
-      aidState.compiled = compileNaturalLanguagePlaybookJS(md);
+      const overrides = {
+        searchAltM: parseFloat(document.getElementById('inpPbSearchAlt')?.value || '55'),
+        trackAltM: parseFloat(document.getElementById('inpPbTrackAlt')?.value || '28'),
+        dropOffsetM: parseFloat(document.getElementById('inpPbDropOffset')?.value || '15'),
+        preferredTarget: document.getElementById('selPbTargetType')?.value || 'PERSON',
+        dropPolicy: document.getElementById('selPbDropPolicy')?.value || 'AUTO_RELEASE',
+        rthBatteryPct: parseFloat(document.getElementById('inpPbRthBatt')?.value || '22'),
+        vetoCooldownS: parseInt(document.getElementById('inpPbVetoSec')?.value || '300', 10)
+      };
+      aidState.compiled = buildStructuredPlaybookRulesJS(aidState.activePlaybookId, overrides);
+      syncStructuredFormFieldsFromRules(aidState.compiled);
       applyCompiledPlaybookToControls();
       if (window.location.protocol.startsWith('http')) {
-        fetch(`/api/playbook/select?id=CUSTOM_NL_PLAYBOOK&markdown=${encodeURIComponent(md)}`).then(r => r.json()).then(st => {
+        const r = aidState.compiled;
+        fetch('/api/playbook/structured', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            preset_id: aidState.activePlaybookId,
+            search_altitude_agl_m: r.searchAltM,
+            tracking_altitude_agl_m: r.trackAltM,
+            preferred_target_type: r.preferredTarget,
+            auto_queue_drop: r.autoQueueDrop,
+            auto_release_drop: r.autoReleaseDrop,
+            require_human_drop_confirm: r.requireHumanDropConfirm,
+            drop_offset_m: r.dropOffsetM,
+            rth_battery_floor_pct: r.rthBatteryPct,
+            human_cancel_veto_cooldown_s: r.vetoCooldownS
+          })
+        }).then(res => res.json()).then(st => {
           if (st && st.compiled_rules) {
             hydrateCompiledRulesFromBackend(st.compiled_rules);
             applyCompiledPlaybookToControls();
           }
         }).catch(() => {});
       }
+    }
+
+    window.heliCeilingLocked = false;
+    function toggleMannedHeliCeilingLock() {
+      window.heliCeilingLocked = !window.heliCeilingLocked;
+      const btn = document.getElementById('btnHeliCeilingLock');
+      if (btn) {
+        btn.textContent = window.heliCeilingLocked ? '🚁 Heli 35m: LOCKED' : '🚁 Heli 35m: OFF';
+        btn.style.color = window.heliCeilingLocked ? '#fbbf24' : '';
+        btn.style.borderColor = window.heliCeilingLocked ? '#fbbf24' : '';
+      }
+      if (window.heliCeilingLocked) {
+        aidState.compiled.searchAltM = Math.min(35, aidState.compiled.searchAltM);
+        aidState.compiled.trackAltM = Math.min(35, aidState.compiled.trackAltM);
+        syncStructuredFormFieldsFromRules(aidState.compiled);
+        applyCompiledPlaybookToControls();
+        updateAidBannerUI('🚁 FINHEMS Manned Helicopter Ceiling Lock Active: All drones clamped ≤ 35m AGL');
+      } else {
+        selectPlaybookPreset(aidState.activePlaybookId);
+      }
+      syncEcosystemLangOrHeli();
+    }
+
+    function syncEcosystemLangOrHeli() {
+      if (!window.location.protocol.startsWith('http')) return;
+      const lang = document.getElementById('selCncLanternLang')?.value || 'FI';
+      fetch('/api/responder/ack', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lantern_language: lang,
+          helicopter_deconfliction: { active: !!window.heliCeilingLocked, hard_drone_ceiling_agl_m: 35 }
+        })
+      }).catch(() => {});
+    }
+
+    // Poll shared multi-persona ecosystem state (Ground Responder 2-way ACK, Trail-Cam, Helicopter Cap)
+    if (window.location.protocol.startsWith('http')) {
+      setInterval(() => {
+        fetch('/api/ecosystem/state').then(r => r.json()).then(st => {
+          if (st && st.responder_ack) {
+            const el = document.getElementById('lblGroundResponderAck');
+            if (el) {
+              const s = st.responder_ack.status;
+              if (s === 'EN_ROUTE') el.textContent = '🟢 ACK: En Route ↗';
+              else if (s === 'AT_HUT') el.textContent = '🏕️ ACK: At Hut ↗';
+              else if (s === 'NEED_MEDEVAC') el.textContent = '🚁 MEDEVAC REQ! ↗';
+              else el.textContent = '🛷 Open Responder App ↗';
+            }
+          }
+        }).catch(() => {});
+      }, 2500);
     }
 
     function applyCompiledPlaybookToControls() {

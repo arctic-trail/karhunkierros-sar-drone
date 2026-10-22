@@ -9,6 +9,7 @@ License: MIT
 import os
 import sys
 import json
+import math
 import time
 import errno
 import socket
@@ -19,9 +20,207 @@ from urllib.parse import urlparse, unquote, unquote_plus
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UI_DIR = os.path.join(BASE_DIR, "ui")
 REPO_DIR = os.path.dirname(BASE_DIR)
+SIM_UI_DIR = os.path.join(REPO_DIR, "fast_sar_jet_finlab02", "simulator_ui")
 DEFAULT_ALERTS_DIR = os.getenv("OUT_DIR", os.path.join(REPO_DIR, "verified_alerts"))
 DOCS_IMAGES_DIR = os.path.join(REPO_DIR, "docs", "images")
 SERVER_START_TIME = time.time()
+
+
+def wgs84_to_etrs_tm35fin(lat_deg: float, lon_deg: float):
+    """JHS 197 ETRS-TM35FIN (EPSG:3067, Central Meridian 27E, k0=0.9996, E0=500000) projection."""
+    a = 6378137.0
+    f = 1.0 / 298.257222101
+    k0 = 0.9996
+    lon0 = math.radians(27.0)
+    e2 = f * (2.0 - f)
+    ep2 = e2 / (1.0 - e2)
+    phi = math.radians(lat_deg)
+    lam = math.radians(lon_deg)
+    dlon = lam - lon0
+    sin_p = math.sin(phi)
+    cos_p = math.cos(phi)
+    tan_p = math.tan(phi)
+    N = a / math.sqrt(1.0 - e2 * sin_p * sin_p)
+    T = tan_p * tan_p
+    C = ep2 * cos_p * cos_p
+    A = cos_p * dlon
+    e4 = e2 * e2
+    e6 = e4 * e2
+    M = a * (
+        (1.0 - e2 / 4.0 - 3.0 * e4 / 64.0 - 5.0 * e6 / 256.0) * phi
+        - (3.0 * e2 / 8.0 + 3.0 * e4 / 32.0 + 45.0 * e6 / 1024.0) * math.sin(2.0 * phi)
+        + (15.0 * e4 / 256.0 + 45.0 * e6 / 1024.0) * math.sin(4.0 * phi)
+        - (35.0 * e6 / 3072.0) * math.sin(6.0 * phi)
+    )
+    easting = 500000.0 + k0 * N * (
+        A
+        + (1.0 - T + C) * (A ** 3) / 6.0
+        + (5.0 - 18.0 * T + T * T + 72.0 * C - 58.0 * ep2) * (A ** 5) / 120.0
+    )
+    northing = k0 * (
+        M
+        + N * tan_p * (
+            (A ** 2) / 2.0
+            + (5.0 - T + 9.0 * C + 4.0 * C * C) * (A ** 4) / 24.0
+            + (61.0 - 58.0 * T + T * T + 600.0 * C - 330.0 * ep2) * (A ** 6) / 720.0
+        )
+    )
+    return int(round(northing)), int(round(easting))
+
+
+def etrs_tm35fin_to_wgs84(northing_m: float, easting_m: float):
+    """Inverse JHS 197 ETRS-TM35FIN (EPSG:3067) -> WGS84 (lat_deg, lon_deg)."""
+    a = 6378137.0
+    f = 1.0 / 298.257222101
+    k0 = 0.9996
+    lon0 = math.radians(27.0)
+    e2 = f * (2.0 - f)
+    ep2 = e2 / (1.0 - e2)
+    e1 = (1.0 - math.sqrt(1.0 - e2)) / (1.0 + math.sqrt(1.0 - e2))
+    x = float(easting_m) - 500000.0
+    y = float(northing_m)
+    M = y / k0
+    mu = M / (a * (1.0 - e2 / 4.0 - 3.0 * (e2 ** 2) / 64.0 - 5.0 * (e2 ** 3) / 256.0))
+    phi1 = (
+        mu
+        + (1.5 * e1 - 27.0 * (e1 ** 3) / 32.0) * math.sin(2.0 * mu)
+        + (21.0 * (e1 ** 2) / 16.0 - 55.0 * (e1 ** 4) / 32.0) * math.sin(4.0 * mu)
+        + (151.0 * (e1 ** 3) / 96.0) * math.sin(6.0 * mu)
+    )
+    sin_p1 = math.sin(phi1)
+    cos_p1 = math.cos(phi1)
+    tan_p1 = math.tan(phi1)
+    N1 = a / math.sqrt(1.0 - e2 * sin_p1 * sin_p1)
+    T1 = tan_p1 * tan_p1
+    C1 = ep2 * cos_p1 * cos_p1
+    R1 = a * (1.0 - e2) / ((1.0 - e2 * sin_p1 * sin_p1) ** 1.5)
+    D = x / (N1 * k0)
+    lat = phi1 - (N1 * tan_p1 / R1) * (
+        (D ** 2) / 2.0
+        - (5.0 + 3.0 * T1 + 10.0 * C1 - 4.0 * C1 * C1 - 9.0 * ep2) * (D ** 4) / 24.0
+        + (61.0 + 90.0 * T1 + 298.0 * C1 + 45.0 * T1 * T1 - 252.0 * ep2 - 3.0 * C1 * C1) * (D ** 6) / 720.0
+    )
+    lon = lon0 + (
+        D
+        - (1.0 + 2.0 * T1 + C1) * (D ** 3) / 6.0
+        + (5.0 - 2.0 * C1 + 28.0 * T1 - 3.0 * C1 * C1 + 8.0 * ep2 + 24.0 * T1 * T1) * (D ** 5) / 120.0
+    ) / cos_p1
+    return round(math.degrees(lat), 6), round(math.degrees(lon), 6)
+
+
+def wgs84_to_aviation_ddm(lat_deg: float, lon_deg: float) -> str:
+    """Format WGS84 decimal degrees into Aviation SAR Degrees Decimal Minutes (DDM)."""
+    ns = "N" if lat_deg >= 0 else "S"
+    ew = "E" if lon_deg >= 0 else "W"
+    alat = abs(lat_deg)
+    alon = abs(lon_deg)
+    lat_d = int(alat)
+    lat_m = (alat - lat_d) * 60.0
+    lon_d = int(alon)
+    lon_m = (alon - lon_d) * 60.0
+    return f"{lat_d:02d}° {lat_m:05.2f}' {ns}, {lon_d:03d}° {lon_m:05.2f}' {ew}"
+
+
+_INIT_N, _INIT_E = wgs84_to_etrs_tm35fin(66.3691, 29.3163)
+
+GLOBAL_ECOSYSTEM_STATE = {
+    "schema_ver": "3.0-PRODUCTION",
+    "updated_ts": time.time(),
+    "sequence_id": 1,
+    # Persona 1: Swarm C&C Console (:8788)
+    "swarm": {
+        "region_id": "OULANKA",
+        "region_name": "Oulanka Canyon / Kiutaköngäs",
+        "victim_lat": 66.369100,
+        "victim_lon": 29.316300,
+        "victim_etrs_n": _INIT_N,
+        "victim_etrs_e": _INIT_E,
+        "victim_ddm": wgs84_to_aviation_ddm(66.369100, 29.316300),
+        "victim_temp_c": 31.4,
+        "victim_confidence_pct": 94,
+        "target_lock_active": True,
+        "assigned_drone": "Drone 1 (Sierra)",
+        "scan_fresh_pct": 68,
+        "scan_decaying_pct": 14,
+        "radar_pass_label": "Pass #1 (N↕S Pincer)",
+        "payload_drop_status": "READY_ABOARD",
+        "shelter_name": "Jussinkämppä Autiotupa",
+        "shelter_dist_m": 340,
+        "shelter_bearing_deg": 38,
+    },
+    # Persona 2: Production Fast-SAR Mothership Pilot Cockpit & GCS (:8080)
+    "mothership": {
+        "cockpit_mode": "LIVE_MAVLINK_TELEMETRY",  # or "DIGITAL_TWIN_REHEARSAL"
+        "airframe_id": "VARIANT_H_EVO",
+        "mission_stage": "4_LOITER_SEARCH",
+        "alt_agl_m": 180.0,
+        "vtas_kmh": 148.0,
+        "v_stall_kmh": 98.0,
+        "v_ne_kmh": 388.0,
+        "alpha_deg": 3.2,
+        "g_load": 1.04,
+        "egt_c": 310.0,
+        "fuel_pct": 78.0,
+        "fuel_bingo_pct": 20.0,
+        "batt_soc_pct": 92.0,
+        "bus_voltage_v": 24.4,
+        "bay_temp_c": 15.0,
+        "belly_quad_state": "DEPLOYED_AIRBORNE_SWARM",
+        "relay_link_db": 55.8,
+    },
+    # Persona 3: 3-Zone Arctic Trail Cam & Sky-Diode Relay
+    "sensor_relay": {
+        "node_id": "NODE-OULANKA-TREE-01",
+        "zone1_tree_pod": "Hammond 1591BSBK @ 2m (IMX708 NoIR + Hidden HLK-LD2450 24GHz Radar + 3.69W De-Icer)",
+        "zone2_umbilical": "2m Shielded CSI-HDMI + Radar/Heater Feed",
+        "zone3_root_vault": "Buried QILIPSU IP67 Vault (12V Batt + Pico 2 0.20mW + Pi 5 + 1310nm Optical Diode)",
+        "sky_diode_link": "2.4 GHz Troposcatter (L-com HG2414P Flat-Panel + Hammond 1590Z120 Mast Box)",
+        "vk7mo_snr_db": 55.8,
+        "crypto_status": "Ed25519 + ChaCha20-Poly1305 Verified",
+        "standby_power_mw": 0.20,
+    },
+    # Persona 4: Gloved Mobile Ground SAR Responder (/mobile_responder.html)
+    "responder": {
+        "callsign": "VAPEPA-KUUSAMO-04",
+        "team_role": "Snowmobile & Foot Ground SAR Team",
+        "rescuer_lat": 66.366200,
+        "rescuer_lon": 29.311000,
+        "bearing_to_victim_deg": 34,
+        "distance_to_victim_m": 380,
+        "eta_min": 6,
+        "field_ack_state": "EN_ROUTE_TO_VICTIM",
+        "field_ack_label": "🛷 Ground Team En Route (380 m • Bearing 034° NE)",
+        "last_ack_ts": time.time(),
+        "requested_drop_at_rescuer": False,
+        "victim_contacted_safe": False,
+    },
+    # Persona 5: Distressed Hiker Opaslyhty (3-Language Audio & Visual Guidance)
+    "opaslyhty": {
+        "active_language": "FI",
+        "message_fi": "Pysy rauhallisena — pelastuspartio on 6 min päässä. Seuraa oranssia valoa Jussinkämpälle (340 m).",
+        "message_en": "Stay calm — ground rescue team is 6 min away. Follow the amber light to Jussinkämppä hut (340 m).",
+        "message_se": "Håll dig lugn — räddningspatrullen är 6 min bort. Följ det gula ljuset till Jussinkämppä (340 m).",
+        "sky_flare_lm": 1200,
+        "trail_spotlight_lm": 800,
+        "hiker_pace_mps": 1.2,
+        "hiker_ack_gesture": "WAVED_CONFIRMED_FOLLOWING",
+    },
+    # Persona 6: Manned SAR Helicopter (Rovaniemi 112 / Rajavartiolaitos) U-Space Deconfliction
+    "helo_uspace": {
+        "helo_callsign": "FINNHEMS-50 / RAJA-HELO",
+        "helo_inbound_active": False,
+        "uspace_ceiling_agl_m": 120.0,
+        "deconfliction_status": "NORMAL_120M_CEILING",
+        "corridor_note": "No manned helicopter in sector (120 m AGL ceiling nominal).",
+    },
+    "event_log": [
+        {
+            "ts": int(time.time()),
+            "source": "SYSTEM",
+            "msg": "All 6 SAR Ecosystem Personas Initialized & Synchronized.",
+        }
+    ],
+}
 
 
 def valid_port(value):
@@ -422,8 +621,24 @@ def make_command_center_handler(alerts_dir, verbose=False):
                     disp = playbook_agent_dispatcher.GLOBAL_PLAYBOOK_DISPATCHER
                     if clean_path == "/api/playbook/select":
                         pb_id = query_params.get("id", "PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY")
-                        custom_md = query_params.get("markdown", None)
-                        res = disp.set_playbook(pb_id, custom_markdown=custom_md)
+                        structured_overrides = {}
+                        if "search_alt" in query_params:
+                            structured_overrides["search_altitude_agl_m"] = float(query_params["search_alt"])
+                        if "track_alt" in query_params:
+                            structured_overrides["tracking_altitude_agl_m"] = float(query_params["track_alt"])
+                        if "overlap" in query_params:
+                            structured_overrides["sector_overlap_pct"] = float(query_params["overlap"])
+                        if "target" in query_params:
+                            structured_overrides["preferred_target_type"] = str(query_params["target"]).upper()
+                        if "drop_policy" in query_params:
+                            structured_overrides["drop_policy"] = str(query_params["drop_policy"]).upper()
+                        if "drop_offset" in query_params:
+                            structured_overrides["drop_offset_m"] = float(query_params["drop_offset"])
+                        if "rth_batt" in query_params:
+                            structured_overrides["rth_battery_floor_pct"] = float(query_params["rth_batt"])
+                        if "veto_s" in query_params:
+                            structured_overrides["human_cancel_veto_cooldown_s"] = float(query_params["veto_s"])
+                        res = disp.set_playbook(pb_id, structured_params=structured_overrides or None)
                     elif clean_path == "/api/playbook/mode":
                         mode = query_params.get("mode", "OFFLINE_DETERMINISTIC")
                         fallback = query_params.get("fallback", None)
@@ -474,6 +689,108 @@ def make_command_center_handler(alerts_dir, verbose=False):
                 self.wfile.write(json.dumps(res).encode("utf-8"))
                 return
 
+            # 2e. API: Unified 6-Persona Ecosystem State, Ground Responder ACKs & Mothership Cockpit Sync
+            if clean_path in (
+                "/api/ecosystem/state",
+                "/api/responder/state",
+                "/api/responder/ack",
+                "/api/mothership/telemetry",
+                "/api/coords/convert",
+            ):
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+
+                if clean_path == "/api/coords/convert":
+                    if "n" in query_params and "e" in query_params:
+                        lat_c, lon_c = etrs_tm35fin_to_wgs84(float(query_params["n"]), float(query_params["e"]))
+                    else:
+                        lat_c = float(query_params.get("lat", "66.3691"))
+                        lon_c = float(query_params.get("lon", "29.3163"))
+                    en_n, en_e = wgs84_to_etrs_tm35fin(lat_c, lon_c)
+                    ddm_s = wgs84_to_aviation_ddm(lat_c, lon_c)
+                    self.wfile.write(
+                        json.dumps(
+                            {
+                                "lat": lat_c,
+                                "lon": lon_c,
+                                "etrs_n": en_n,
+                                "etrs_e": en_e,
+                                "ddm": ddm_s,
+                            }
+                        ).encode("utf-8")
+                    )
+                    return
+
+                # Allow quick GET mutations for responder ACK, language, or helicopter deconfliction
+                action = query_params.get("action", "").strip().upper()
+                if action:
+                    GLOBAL_ECOSYSTEM_STATE["sequence_id"] += 1
+                    GLOBAL_ECOSYSTEM_STATE["updated_ts"] = time.time()
+                    if action == "VICTIM_SAFE":
+                        GLOBAL_ECOSYSTEM_STATE["responder"]["field_ack_state"] = "VICTIM_CONTACTED_SAFE"
+                        GLOBAL_ECOSYSTEM_STATE["responder"]["field_ack_label"] = "✅ Ground Team With Victim — Safe & Stabilized!"
+                        GLOBAL_ECOSYSTEM_STATE["responder"]["victim_contacted_safe"] = True
+                        GLOBAL_ECOSYSTEM_STATE["responder"]["distance_to_victim_m"] = 0
+                        GLOBAL_ECOSYSTEM_STATE["responder"]["eta_min"] = 0
+                        GLOBAL_ECOSYSTEM_STATE["event_log"].append(
+                            {"ts": int(time.time()), "source": "RESPONDER-04", "msg": "✅ Ground SAR Responder confirmed: Victim contacted & safe!"}
+                        )
+                    elif action == "REQUEST_CASK_DROP":
+                        GLOBAL_ECOSYSTEM_STATE["responder"]["field_ack_state"] = "REQUEST_WARM_CASK_AT_RESCUER"
+                        GLOBAL_ECOSYSTEM_STATE["responder"]["field_ack_label"] = "🪂 Ground Team Requested +42°C Cask Drop at Rescuer GPS!"
+                        GLOBAL_ECOSYSTEM_STATE["responder"]["requested_drop_at_rescuer"] = True
+                        GLOBAL_ECOSYSTEM_STATE["swarm"]["payload_drop_status"] = "EN_ROUTE_PENDING"
+                        GLOBAL_ECOSYSTEM_STATE["event_log"].append(
+                            {"ts": int(time.time()), "source": "RESPONDER-04", "msg": "🪂 Ground SAR Responder requested +42°C Survival Cask drop at field coordinates."}
+                        )
+                    elif action == "REQUEST_HELO_MEDEVAC" or action == "HELO_INBOUND_ON":
+                        GLOBAL_ECOSYSTEM_STATE["responder"]["field_ack_state"] = "REQUEST_HELO_MEDEVAC"
+                        GLOBAL_ECOSYSTEM_STATE["responder"]["field_ack_label"] = "🚑 Medevac Requested — Helicopter Inbound (35m AGL Drone Ceiling Enforced!)"
+                        GLOBAL_ECOSYSTEM_STATE["helo_uspace"]["helo_inbound_active"] = True
+                        GLOBAL_ECOSYSTEM_STATE["helo_uspace"]["uspace_ceiling_agl_m"] = 35.0
+                        GLOBAL_ECOSYSTEM_STATE["helo_uspace"]["deconfliction_status"] = "HELO_CORRIDOR_ACTIVE_35M_CAP"
+                        GLOBAL_ECOSYSTEM_STATE["helo_uspace"]["corridor_note"] = "🚁 FINNHEMS-50 / RAJA-HELO Inbound: All Quadcopters Capped <=35m AGL; Mothership Holding Outside 1.5km!"
+                        GLOBAL_ECOSYSTEM_STATE["event_log"].append(
+                            {"ts": int(time.time()), "source": "HELO-USPACE", "msg": "🚁 Manned SAR Helicopter Inbound: U-Space 35m AGL altitude ceiling enforced across fleet!"}
+                        )
+                    elif action == "HELO_INBOUND_OFF":
+                        GLOBAL_ECOSYSTEM_STATE["helo_uspace"]["helo_inbound_active"] = False
+                        GLOBAL_ECOSYSTEM_STATE["helo_uspace"]["uspace_ceiling_agl_m"] = 120.0
+                        GLOBAL_ECOSYSTEM_STATE["helo_uspace"]["deconfliction_status"] = "NORMAL_120M_CEILING"
+                        GLOBAL_ECOSYSTEM_STATE["helo_uspace"]["corridor_note"] = "No manned helicopter in sector (120 m AGL ceiling nominal)."
+                        GLOBAL_ECOSYSTEM_STATE["event_log"].append(
+                            {"ts": int(time.time()), "source": "HELO-USPACE", "msg": "✓ Manned Helicopter cleared sector: 120m AGL ceiling restored."}
+                        )
+                    elif action == "RESET_RESPONDER":
+                        GLOBAL_ECOSYSTEM_STATE["responder"]["field_ack_state"] = "EN_ROUTE_TO_VICTIM"
+                        GLOBAL_ECOSYSTEM_STATE["responder"]["field_ack_label"] = "🛷 Ground Team En Route (380 m • Bearing 034° NE)"
+                        GLOBAL_ECOSYSTEM_STATE["responder"]["victim_contacted_safe"] = False
+                        GLOBAL_ECOSYSTEM_STATE["responder"]["requested_drop_at_rescuer"] = False
+                        GLOBAL_ECOSYSTEM_STATE["responder"]["distance_to_victim_m"] = 380
+                        GLOBAL_ECOSYSTEM_STATE["responder"]["eta_min"] = 6
+                    elif action in ("SET_LANG_FI", "SET_LANG_EN", "SET_LANG_SE"):
+                        lang = action.replace("SET_LANG_", "")
+                        GLOBAL_ECOSYSTEM_STATE["opaslyhty"]["active_language"] = lang
+                        GLOBAL_ECOSYSTEM_STATE["event_log"].append(
+                            {"ts": int(time.time()), "source": "OPASLYHTY", "msg": f"🔊 Opaslyhty Hiker Guidance switched to {lang}."}
+                        )
+                    elif action == "UPDATE_COORDS":
+                        vlat = float(query_params.get("lat", GLOBAL_ECOSYSTEM_STATE["swarm"]["victim_lat"]))
+                        vlon = float(query_params.get("lon", GLOBAL_ECOSYSTEM_STATE["swarm"]["victim_lon"]))
+                        vn, ve = wgs84_to_etrs_tm35fin(vlat, vlon)
+                        GLOBAL_ECOSYSTEM_STATE["swarm"]["victim_lat"] = round(vlat, 6)
+                        GLOBAL_ECOSYSTEM_STATE["swarm"]["victim_lon"] = round(vlon, 6)
+                        GLOBAL_ECOSYSTEM_STATE["swarm"]["victim_etrs_n"] = vn
+                        GLOBAL_ECOSYSTEM_STATE["swarm"]["victim_etrs_e"] = ve
+                        GLOBAL_ECOSYSTEM_STATE["swarm"]["victim_ddm"] = wgs84_to_aviation_ddm(vlat, vlon)
+                    GLOBAL_ECOSYSTEM_STATE["event_log"] = GLOBAL_ECOSYSTEM_STATE["event_log"][-20:]
+
+                self.wfile.write(json.dumps(GLOBAL_ECOSYSTEM_STATE).encode("utf-8"))
+                return
+
             # 3. Serve verified image captures from alerts_dir (with canonical commonpath containment & image-only extension allowlist)
             if clean_path.startswith("/alerts/"):
                 rel_file = os.path.basename(clean_path[len("/alerts/"):].lstrip("/"))
@@ -513,7 +830,9 @@ def make_command_center_handler(alerts_dir, verbose=False):
                     self.send_error(404, "Documentation image not found")
                     return
 
-            # 5. Root page -> index.html, and /console or /mission -> operator_mission_console.html
+            # 5. Root page -> index.html, /console -> operator_mission_console.html,
+            #    /mobile_responder.html -> Persona 4 Gloved Ground SAR Responder App,
+            #    /mothership_cockpit.html or /flight_simulator.html -> Persona 2 Production Mothership Cockpit
             if clean_path in ("/console", "/mission", "/operator_mission_console.html", "/collector_hub/ui/operator_mission_console.html"):
                 console_path = os.path.join(UI_DIR, "operator_mission_console.html")
                 if os.path.exists(console_path):
@@ -522,6 +841,28 @@ def make_command_center_handler(alerts_dir, verbose=False):
                     self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
                     self.end_headers()
                     with open(console_path, "rb") as f:
+                        self.wfile.write(f.read())
+                    return
+
+            if clean_path in ("/responder", "/mobile_responder", "/mobile_responder.html", "/collector_hub/ui/mobile_responder.html"):
+                resp_path = os.path.join(UI_DIR, "mobile_responder.html")
+                if os.path.exists(resp_path):
+                    self.send_response(200)
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+                    self.end_headers()
+                    with open(resp_path, "rb") as f:
+                        self.wfile.write(f.read())
+                    return
+
+            if clean_path in ("/cockpit", "/mothership", "/mothership_cockpit.html", "/flight_simulator.html", "/simulator_ui/flight_simulator.html"):
+                sim_path = os.path.join(SIM_UI_DIR, "flight_simulator.html")
+                if os.path.exists(sim_path):
+                    self.send_response(200)
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+                    self.end_headers()
+                    with open(sim_path, "rb") as f:
                         self.wfile.write(f.read())
                     return
 
@@ -565,6 +906,46 @@ def make_command_center_handler(alerts_dir, verbose=False):
                 except Exception as e:
                     res = {"playbook_online": False, "error": str(e)}
                 self.wfile.write(json.dumps(res).encode("utf-8"))
+                return
+            if clean_path in ("/api/ecosystem/state", "/api/responder/ack", "/api/mothership/telemetry"):
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                try:
+                    content_len = min(32768, max(0, int(self.headers.get("Content-Length", "0"))))
+                    raw_body = self.rfile.read(content_len).decode("utf-8") if content_len > 0 else "{}"
+                    payload = json.loads(raw_body) if raw_body.strip() else {}
+                    GLOBAL_ECOSYSTEM_STATE["sequence_id"] += 1
+                    GLOBAL_ECOSYSTEM_STATE["updated_ts"] = time.time()
+                    for section in ("swarm", "mothership", "sensor_relay", "responder", "opaslyhty", "helo_uspace"):
+                        if isinstance(payload.get(section), dict):
+                            GLOBAL_ECOSYSTEM_STATE[section].update(payload[section])
+                    if "victim_lat" in GLOBAL_ECOSYSTEM_STATE["swarm"] and "victim_lon" in GLOBAL_ECOSYSTEM_STATE["swarm"]:
+                        vn, ve = wgs84_to_etrs_tm35fin(
+                            float(GLOBAL_ECOSYSTEM_STATE["swarm"]["victim_lat"]),
+                            float(GLOBAL_ECOSYSTEM_STATE["swarm"]["victim_lon"]),
+                        )
+                        GLOBAL_ECOSYSTEM_STATE["swarm"]["victim_etrs_n"] = vn
+                        GLOBAL_ECOSYSTEM_STATE["swarm"]["victim_etrs_e"] = ve
+                        GLOBAL_ECOSYSTEM_STATE["swarm"]["victim_ddm"] = wgs84_to_aviation_ddm(
+                            float(GLOBAL_ECOSYSTEM_STATE["swarm"]["victim_lat"]),
+                            float(GLOBAL_ECOSYSTEM_STATE["swarm"]["victim_lon"]),
+                        )
+                    if payload.get("event_msg"):
+                        GLOBAL_ECOSYSTEM_STATE["event_log"].append(
+                            {
+                                "ts": int(time.time()),
+                                "source": str(payload.get("source", "OPERATOR"))[:24],
+                                "msg": str(payload.get("event_msg"))[:180],
+                            }
+                        )
+                        GLOBAL_ECOSYSTEM_STATE["event_log"] = GLOBAL_ECOSYSTEM_STATE["event_log"][-20:]
+                except Exception as e:
+                    self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
+                    return
+                self.wfile.write(json.dumps(GLOBAL_ECOSYSTEM_STATE).encode("utf-8"))
                 return
             self.send_error(404, "POST endpoint not found")
 
