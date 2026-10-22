@@ -231,6 +231,68 @@ class TestArcticFastSarJetSuite(unittest.TestCase):
         self.assertGreater(surge_protected["surge_margin_pct"], 12.0)
         self.assertLess(surge_protected["dc60_distortion_index"], surge_unprotected["dc60_distortion_index"] * 0.55)
 
+        # 7. Year-Round Arctic Edge-Case Hardening (Winter -35 C Baro, 0 C Slush, Chimney <95 C, Summer Rakka & Midnight Sun)
+        yr_winter = node.evaluate_year_round_arctic_edge_cases(
+            oat_c=-35.0,
+            takeoff_surface_temp_c=-1.5,
+            indicated_baro_agl_m=85.0,
+            flight_time_s=45.0,
+            turbine_state="COOLDOWN",
+            turbine_egt_c=420.0,
+            sun_elevation_deg=4.5,
+            camera_to_sun_azimuth_diff_deg=12.0,
+            lwir_hotspot_temp_c=31.5,
+            starvis_visible_saturation_norm=0.98,
+        )
+        # #1 Cold-air baro over-reading at -35 C: 85 m indicated is 70.25 m true (+14.75 m error compensated)
+        self.assertAlmostEqual(yr_winter["baro_cold_compensation"]["true_geometric_agl_m"], 70.25, delta=0.5)
+        self.assertAlmostEqual(yr_winter["baro_cold_compensation"]["baro_cold_overread_error_m"], 14.75, delta=0.5)
+        self.assertAlmostEqual(yr_winter["baro_cold_compensation"]["commanded_baro_target_for_true_agl_m"], 102.85, delta=0.6)
+        # #2-#4 Warm fuel vent, P-static wicks, and tail-root <55 mm carbon linkage
+        self.assertTrue(yr_winter["fuel_tank_warm_boundary_layer_vent_active"])
+        self.assertTrue(yr_winter["p_static_carbon_wicks_and_1mohm_ground_bus"])
+        self.assertTrue(yr_winter["tail_root_carbon_pushrod_zero_cte_and_krytox"])
+        # #5 0 C slush takeoff ice-break micro-pulse at t=45 s
+        self.assertTrue(yr_winter["slush_ice_break_micro_pulse_triggered"])
+        # #6 Post-shutdown chimney heat-soak blower interlock keeps XPS foam < 58 C when EGT = 420 C
+        self.assertTrue(yr_winter["chimney_heat_soak_blower_interlock_active"])
+        self.assertLess(yr_winter["dorsal_xps_foam_peak_temp_c"], 58.0)
+        # #8 Midnight-sun specular bog glare rejected
+        self.assertTrue(yr_winter["midnight_sun_specular_glint_rejected"])
+        self.assertFalse(yr_winter["valid_human_casualty_lock"])
+
+        # #7 & #8 Summer +20 C Rakka insect-swarm Pitot chitin-bake prevention + true casualty lock away from sun azimuth
+        yr_summer = node.evaluate_year_round_arctic_edge_cases(
+            oat_c=20.0,
+            takeoff_surface_temp_c=20.0,
+            indicated_baro_agl_m=85.0,
+            flight_time_s=180.0,
+            turbine_state="COOLDOWN",
+            turbine_egt_c=75.0,
+            sun_elevation_deg=6.0,
+            camera_to_sun_azimuth_diff_deg=85.0,
+            lwir_hotspot_temp_c=33.0,
+            starvis_visible_saturation_norm=0.42,
+        )
+        self.assertFalse(yr_summer["deicer_heaters_enabled"])  # Off at +20 C so insects aren't baked inside Pitot
+        self.assertTrue(yr_summer["pitot_chitin_bake_prevented"])
+        self.assertTrue(yr_summer["pitot_3vote_synth_ias_armed_year_round"])
+        self.assertFalse(yr_summer["chimney_heat_soak_blower_interlock_active"])  # Cooled < 95 C
+        self.assertFalse(yr_summer["midnight_sun_specular_glint_rejected"])
+        self.assertTrue(yr_summer["valid_human_casualty_lock"])
+
+        # Verify Iteration 2 loiter transition enforces EGT < 95 C chimney blower interlock
+        loiter_hot = node.manage_hybrid_radar_loiter_transition(
+            flight=flight,
+            on_radar_station=True,
+            battery_soc_pct=80.0,
+            heated_bay_temp_c=15.0,
+            relight_qualified=True,
+            turbine_egt_c=380.0,
+        )
+        self.assertTrue(loiter_hot["chimney_cooldown_blower_active"])
+        self.assertIn("EGT_BELOW_95C", loiter_hot["vendor_ecu_command"])
+
     def test_04_northern_flank_red_gap_closure(self):
         """Verify all 5 Red/Amber gaps close within low-cost 100% Non-Chinese COTS scope."""
         # 1. Gap I: FIN-LAB-02 350-400 km/h airframe & head-on corridor rendezvous geometry
@@ -296,10 +358,39 @@ class TestArcticFastSarJetSuite(unittest.TestCase):
         self.assertGreaterEqual(sv.total_battery_endurance_years, 2.0)
         self.assertTrue(sv.svalbard_treaty_art9_compliant)
 
+        # 9. Charter 6-Gap (J, A, H, I, K, L) Hardware-Evidence & COTS Cost-Performance Evaluator
+        reval = gap_solver.recalibrate_fin_sig_lib_on_real_trial_data()
+        self.assertEqual(reval["evidence_tier"], "REAL_HARDWARE_TRIAL_REVALIDATED_4_OF_4")
+        self.assertGreaterEqual(reval["real_trial_samples_ingested"], 5)
+        self.assertGreaterEqual(reval["clutter_vs_aircraft_accuracy"], 0.95)
+
+        charter = gap_solver.evaluate_charter_cots_cost_performance_and_trial_gates()
+        self.assertTrue(charter["charter_scope_90_10_civilian_compliant"])
+        self.assertTrue(charter["sovereign_11_points_excluded"])
+        self.assertTrue(charter["all_6_charter_gaps_exit_criteria_met"])
+        self.assertEqual(charter["honest_score_today_pts"], 56)
+        self.assertEqual(charter["charter_6_gaps_points_gained"], 19)
+        self.assertEqual(charter["civilian_ceiling_pts"], 85)
+        self.assertLessEqual(
+            charter["cost_performance_summary"]["arctic_trail_cots_surrogate_validation_usd"],
+            1000.0,
+        )
+        self.assertGreaterEqual(
+            charter["cost_performance_summary"]["cost_reduction_factor_vs_charter_min"],
+            8000.0,
+        )
+        prof = autonomy.generate_arduplane_ark_fpv_param_profile()
+        self.assertTrue(prof["allied_gap_l_boards_verified"])
+        self.assertIn("Garmin LIDAR-Lite v4 LED", prof["allied_gap_l_boards"]["lidar_landing_altimeter"])
+
     def test_05_zero_chinese_components_and_opsec_linter(self):
         """Enforce zero Chinese components and zero forbidden region/PII/military strings across public files."""
         forbidden_tokens = [
             chr(110) + "ew " + chr(101) + "ngland",
+            chr(107) + "alkilpi",
+            "/" + chr(117) + "sers/",
+            chr(97) + "ntigravity",
+            "." + chr(103) + "emini",
             "speedybee",
             "esp32",
             "espressif",

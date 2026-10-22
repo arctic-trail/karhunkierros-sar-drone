@@ -110,7 +110,9 @@
       "included_apex_angle_deg": 110.0,
       "cant_angle_from_horizontal_deg": -35.0,
       "le_sweep_deg": 16.0,
-      "ruddervator_chord_fraction": 0.32
+      "ruddervator_chord_fraction": 0.32,
+      "servo_mounting_and_low_temp_lube": "Direct tail-root KST X10 mounting at X=1310 mm with <55 mm carbon pushrods (0.0 deg CTE thermal trim shift at -40 C) + Molykote 33 / Krytox GPL-202 (-65 C) gearbox grease",
+      "p_static_discharge_wicks": "4x 35 mm exposed micro-carbon-fiber tow static wicks on winglet & Lambda-tail trailing tips bonded to common 1 MOhm equipotential carbon spar/boom/304SS ground bus"
     },
     "dorsal_intake_and_thermal_deck": {
       "type": "Short Low-Distortion Dorsal Pitot Intake + Turnkey JetCat P100-RX-BL + Double-Wall 304SS & 10mm Silica-Aerogel Exhaust Barrier",
@@ -128,7 +130,8 @@
       "intake_lip_anti_ice_heater_w": 8.0,
       "fod_screen_radial_bypass_gap_mm": 10.0,
       "aerogel_insulation_thickness_mm": 10.0,
-      "stainless_304_shield_thickness_mm": 0.3
+      "stainless_304_shield_thickness_mm": 0.3,
+      "post_shutdown_chimney_interlock": "Starter BLDC auto-cooldown purge active until EGT < 95 C + 10 mm silica-aerogel forward parachute firewall at X=608 mm"
     },
     "nose_electric_sustainer": {
       "motor": "3520-500KV Brushless Outrunner + 45A ESC (650W Continuous Rating)",
@@ -150,7 +153,8 @@
         "y_offset_mm": 82.0,
         "z_center_mm": 15.0,
         "length_mm": 310.0,
-        "diameter_mm": 96.0
+        "diameter_mm": 96.0,
+        "non_icing_vent_system": "Flush aft-facing 6 mm brass vent in +35 C dorsal engine fairing boundary layer (X=980 mm) + internal -15 kPa T-check breather (prevents PET bottle vacuum collapse in freezing fog)"
       },
       "uat_hopper_tank": {
         "volume_ml": 150.0,
@@ -186,7 +190,8 @@
         "length_mm": 420.0,
         "width_mm": 180.0,
         "height_mm": 145.0,
-        "door_type": "Plain Hinged Clamshell Doors with -40 C Silicone Weather Gasket",
+        "door_type": "Plain Hinged Clamshell Doors with -40 C Silicone Weather Gasket & Hydrophobic PTFE Knife-Edge Overlap",
+        "slush_freeze_lock_mitigation": "4:1 cam-toggle initial mechanical leverage (>120 N ice-shear) + automated t=45 s (80 m AGL) post-liftoff 0.4 s slush ice-break micro-pulse",
         "capsule_length_mm": 390.0,
         "capsule_diameter_mm": 136.0,
         "capsule_internal_volume_l": 4.85,
@@ -200,7 +205,8 @@
         "z_center_mm": 55.0,
         "length_mm": 130.0,
         "width_mm": 120.0,
-        "height_mm": 55.0
+        "height_mm": 55.0,
+        "forward_heat_soak_firewall": "10 mm Pyrogel silica-aerogel + phenolic bulkhead at X=608 mm isolating nylon canopy from dorsal S-duct post-shutdown buoyant heat soak"
       },
       "detachable_drop_dolly": {
         "x_nose_wheel_mm": 340.0,

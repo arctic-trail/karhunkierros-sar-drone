@@ -11,7 +11,8 @@ import struct
 import hashlib
 import secrets
 import threading
-from nacl.signing import SigningKey, VerifyKey
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../collector_hub")))
+from receiver_hub import SigningKey, VerifyKey
 
 # Configure test environment
 TEST_PORT = 15514

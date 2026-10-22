@@ -12,11 +12,10 @@ import shutil
 import tempfile
 import hashlib
 import secrets
-from nacl.signing import SigningKey
-
 # Import receiver components directly
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../collector_hub")))
 import receiver_hub
+from receiver_hub import SigningKey
 
 def run_resilience_test_suite():
     print("=" * 65)
