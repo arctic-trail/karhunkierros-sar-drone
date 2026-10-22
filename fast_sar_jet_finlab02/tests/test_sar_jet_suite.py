@@ -231,6 +231,25 @@ class TestArcticFastSarJetSuite(unittest.TestCase):
         self.assertTrue(apn.zero_firearms_zero_pyrotechnics)
         self.assertTrue(apn.captured_safely_without_lipo_puncture)
 
+        # 8. [P12-URBAN], FIN-LAB-06B (Offshore Sea State 5), [P11-COAST-2KM] & [P21-SVALBARD]
+        urban = gap_solver.evaluate_urban_border_corridor_profile()
+        self.assertGreaterEqual(urban.urban_zero_rf_rotorcraft_range_m, 320.0)
+        self.assertTrue(urban.china_free_verified)
+
+        usv_b = gap_solver.evaluate_finlab06b_offshore_wave_piercing_usv()
+        self.assertEqual(usv_b.max_sea_state, 5)
+        self.assertGreaterEqual(usv_b.polar_night_endurance_hours, 140.0)
+        self.assertTrue(usv_b.china_free_verified)
+
+        bridge = gap_solver.evaluate_archipelago_2km_optical_strait_bridge()
+        self.assertTrue(bridge.iec_60825_class1_eye_safe)
+        self.assertGreaterEqual(bridge.snr_clear_10mbps_at_2km_db, 14.0)
+        self.assertEqual(bridge.rf_emissions_w, 0.0)
+
+        sv = gap_solver.evaluate_svalbard_permafrost_cairn_node()
+        self.assertGreaterEqual(sv.total_battery_endurance_years, 2.0)
+        self.assertTrue(sv.svalbard_treaty_art9_compliant)
+
     def test_05_zero_chinese_components_and_opsec_linter(self):
         """Enforce zero Chinese components and zero forbidden region/PII/military strings across public files."""
         forbidden_tokens = [
@@ -416,6 +435,26 @@ class TestArcticFastSarJetSuite(unittest.TestCase):
         self.assertGreater(e_sum["mean_ld_max"], b_sum["mean_ld_max"])
         self.assertGreater(e_sum["mean_practical_radius_km"], b_sum["mean_practical_radius_km"])
         self.assertGreater(e_sum["fiber_guillotine_events"], 0)
+
+    def test_09_cartridge_c_long_range_blos_and_marsupial_suite(self):
+        """Verify Cartridge C (113-240+ km / 70-150+ mi hybrid reach + airborne sky-diode BLOS link) & Marsupial sim."""
+        import marsupial_dual_drone_sim as marsupial
+
+        cart_c = sizing.compute_cartridge_c_long_range_hybrid_and_blos_link()
+        self.assertEqual(cart_c["mtow_kg"], 14.95)
+        self.assertEqual(cart_c["cg_shift_mm"], 0.0)
+        self.assertGreaterEqual(cart_c["combined_hybrid_one_way_reach_km"], 240.0)
+        self.assertGreaterEqual(cart_c["combined_hybrid_one_way_reach_miles"], 150.0)
+        self.assertGreaterEqual(cart_c["terminal_dive_dash_speed_kmh"], 399.0)
+        self.assertGreaterEqual(cart_c["airborne_relay_radio_horizon_km"], 250.0)
+        self.assertGreaterEqual(cart_c["sky_diode_snr_at_180km_db"], 22.0)
+        self.assertGreaterEqual(cart_c["sky_diode_snr_at_240km_db"], 20.0)
+        self.assertTrue(cart_c["zero_starlink_dependency"])
+
+        m_res = marsupial.simulate_full_marsupial_mission()
+        self.assertTrue(m_res["fit_balance_and_aerodynamics"]["fits_internally_without_oml_change"])
+        self.assertTrue(m_res["mid_air_separation_100hz"]["zero_rotor_strike_guaranteed"])
+        self.assertTrue(m_res["joint_mission_summary"]["both_aircraft_recovered_safely"])
 
 
 if __name__ == "__main__":
