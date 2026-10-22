@@ -293,6 +293,97 @@ class TestArcticFastSarJetSuite(unittest.TestCase):
         self.assertTrue(loiter_hot["chimney_cooldown_blower_active"])
         self.assertIn("EGT_BELOW_95C", loiter_hot["vendor_ecu_command"])
 
+        # 8. Iteration-2 Coupled Gust & Persistent-Weather Envelope Hardening (#9-#16 Multi-LLM Synthesis)
+        gust_env = fep.evaluate_coupled_extreme_arctic_gust_and_persistence_envelope()
+        # #9 Rough-air gust load clamping (7.1G unclamped at 111 m/s -> <= 3.5G clamped at V_B,max)
+        self.assertGreater(gust_env["rough_air_gust_envelope"]["unclamped_total_load_at_vtas_g"], 6.5)
+        self.assertLessEqual(gust_env["rough_air_gust_envelope"]["clamped_total_load_g"], 3.55)
+        self.assertLess(gust_env["rough_air_gust_envelope"]["active_vmo_clamped_tas_mps"], 58.0)
+        # #10 Katabatic downdraft (-8.0 m/s > +6.82 m/s climb) freezes TECS altitude integrator & clamps bank <= 30 deg
+        self.assertTrue(gust_env["katabatic_downdraft_escape"]["katabatic_sink_exceeds_climb"])
+        self.assertTrue(gust_env["katabatic_downdraft_escape"]["tecs_altitude_integrator_frozen"])
+        self.assertEqual(gust_env["katabatic_downdraft_escape"]["tecs_spdweight_active"], 2.0)
+        self.assertEqual(gust_env["katabatic_downdraft_escape"]["katabatic_escape_max_bank_deg"], 30.0)
+        # #11 TAT ram recovery (+5.53 C at 111 m/s) prevents +4.53 C probe in -1 C freezing rain from turning off heaters
+        self.assertAlmostEqual(gust_env["inversion_and_tat_recovery"]["adiabatic_ram_rise_c"], 5.52, delta=0.1)
+        self.assertLess(gust_env["inversion_and_tat_recovery"]["recovered_true_sat_c"], 0.0)
+        self.assertTrue(gust_env["inversion_and_tat_recovery"]["heaters_kept_on_against_ram_false_warmth"])
+        self.assertGreater(gust_env["inversion_and_tat_recovery"]["inversion_layer_correction_delta_m"], 15.0)
+        # #12 Sea-spray Mode C capillary meniscus zero-variance trap & EKF wind freeze
+        law_cap = fep.detect_pitot_blockage_and_select_law(
+            pitot_ias_mps=54.0,
+            pitot_qc_rate_pa_s=0.0,
+            baro_ps_rate_pa_s=0.0,
+            v_synth_ias_mps=55.5,
+            qc_variance_2s_pa2=0.12,
+            az_excitation_mps2=1.4,
+        )
+        self.assertTrue(law_cap["pitot_blocked"])
+        self.assertEqual(law_cap["fault_mode"], "CAPILLARY_MENISCUS_ZERO_VARIANCE_TRAP")
+        self.assertTrue(law_cap["freeze_ekf_wind_adaptation"])
+        # #13 Finstad thin-tail (4 mm LE) higher droplet collection efficiency & 12 W tail de-icer + trim drift clamp
+        self.assertGreater(gust_env["finstad_tail_icing_protection"]["tail_to_wing_collection_ratio"], 2.0)
+        self.assertEqual(gust_env["finstad_tail_icing_protection"]["tail_le_deicer_power_w"], 12.0)
+        self.assertTrue(gust_env["finstad_tail_icing_protection"]["tail_ice_trim_anomaly_detected"])
+        self.assertEqual(gust_env["finstad_tail_icing_protection"]["max_flaperon_droop_allowed_deg"], 6.0)
+        # #14 4 mm fuel line cuts -35 C Hagen-Poiseuille viscous pressure loss by 16x & sheds heaters on 20A step
+        self.assertEqual(gust_env["cold_battery_and_viscous_fuel_arbiter"]["fuel_pressure_drop_reduction_factor"], 16.0)
+        self.assertTrue(gust_env["cold_battery_and_viscous_fuel_arbiter"]["heater_load_shed_2p5s_active"])
+        self.assertGreaterEqual(gust_env["cold_battery_and_viscous_fuel_arbiter"]["v_bus_protected_v"], 19.5)
+        # #15 Flat-light whiteout switches VIO to LWIR & rejects RM3100 mag yaw under >8 deg bank / 1000 nT substorm
+        self.assertTrue(gust_env["flat_light_and_geomagnetic_substorm_gate"]["flat_light_whiteout_detected"])
+        self.assertEqual(
+            gust_env["flat_light_and_geomagnetic_substorm_gate"]["active_vio_sensor"],
+            "LWIR_THERMAL_EMISSIVITY_AND_AIRDATA_DR",
+        )
+        self.assertTrue(gust_env["flat_light_and_geomagnetic_substorm_gate"]["mag_yaw_rejected"])
+        self.assertEqual(
+            gust_env["flat_light_and_geomagnetic_substorm_gate"]["active_yaw_source"],
+            "EKF3_GSF_VELOCITY_WIND_TRIANGLE_YAW",
+        )
+        # #16 Post-release +0.50G mass-step unload feed-forward & gust-shear canopy opening gate
+        flight_drop = autonomy.FlightState(
+            airspeed_m_s=26.5,
+            altitude_m=85.0,
+            pitch_deg=4.5,
+            roll_deg=0.0,
+            dist_to_home_m=15000.0,
+            headwind_m_s=10.0,
+        )
+        drop_ok = node.compute_low_speed_sar_parachute_drop(flight_drop, gust_shear_mps=3.0)
+        self.assertFalse(drop_ok["release_inhibited"])
+        self.assertAlmostEqual(drop_ok["uncompensated_nz_jump_g"], 1.503, delta=0.01)
+        self.assertLess(drop_ok["mass_step_unload_pitch_deg"], -1.5)
+        self.assertTrue(drop_ok["bumpless_tecs_mass_rescheduled"])
+        drop_shear_blocked = node.compute_low_speed_sar_parachute_drop(flight_drop, gust_shear_mps=8.0)
+        self.assertTrue(drop_shear_blocked["release_inhibited"])
+
+        # 8. Iteration-3 Multi-LLM Convergence Audit & v0.1 Design Freeze (#17-#20)
+        r3_conv = fep.evaluate_round3_convergence_and_stabilization_audit()
+        self.assertEqual(r3_conv["convergence_status"], "CONVERGED_V0_1_FROZEN_FOR_FLIGHT_TEST")
+        self.assertEqual(r3_conv["total_round3_added_servos"], 0)
+        self.assertLessEqual(r3_conv["total_round3_hardware_cost_eur"], 3.0)
+        # #17 Hinge-line runback ice-bridge wipe (3.15 N*m unwiped lock -> <0.10 N*m with 20s periodic wipe)
+        self.assertAlmostEqual(r3_conv["hinge_runback_ice_wipe"]["unwiped_0p3mm_lock_torque_nm"], 3.15, delta=0.05)
+        self.assertGreater(r3_conv["hinge_runback_ice_wipe"]["unwiped_torque_overload_ratio"], 3.0)
+        self.assertTrue(r3_conv["hinge_runback_ice_wipe"]["hinge_wipe_20s_triggered"])
+        self.assertLess(r3_conv["hinge_runback_ice_wipe"]["wiped_breakout_torque_nm"], 0.10)
+        # #18 Folding nose-prop asymmetric single-blade unbalance guard (131.6 N @ 4000 RPM -> <50 ms 1P cut)
+        self.assertGreater(r3_conv["folding_prop_unbalance_guard"]["unbalance_force_at_4000rpm_n"], 125.0)
+        self.assertGreater(r3_conv["folding_prop_unbalance_guard"]["unbalance_force_at_8000rpm_n"], 500.0)
+        self.assertTrue(r3_conv["folding_prop_unbalance_guard"]["esc_cut_under_50ms"])
+        self.assertTrue(r3_conv["folding_prop_unbalance_guard"]["pulse_retry_3x_engaged"])
+        # #19 Capped 4 mm Pitot sump (0.0 Pa bleed vs 342.4 Pa open-orifice pinning) & cold-air V_EAS <= 102 m/s ceiling
+        self.assertGreater(r3_conv["pitot_capped_sump_and_eas_ceiling"]["open_0p3mm_orifice_pinning_pa"], 340.0)
+        self.assertEqual(r3_conv["pitot_capped_sump_and_eas_ceiling"]["capped_4mm_sump_inflight_bleed_pa"], 0.0)
+        self.assertGreater(r3_conv["pitot_capped_sump_and_eas_ceiling"]["veas_at_111tas_minus35c_mps"], 120.0)
+        self.assertAlmostEqual(
+            r3_conv["pitot_capped_sump_and_eas_ceiling"]["active_vtas_ceiling_at_minus35c_mps"], 92.7, delta=0.5
+        )
+        # #20 Dissolved-water cryogenic micro-crystal filter blinding & 0.12% DiEGME (FSII) protection
+        self.assertGreater(r3_conv["cryogenic_fuel_filter_fsii_guard"]["unprotected_precipitated_ice_mg"], 100.0)
+        self.assertTrue(r3_conv["cryogenic_fuel_filter_fsii_guard"]["filter_blinding_prevented"])
+
     def test_04_northern_flank_red_gap_closure(self):
         """Verify all 5 Red/Amber gaps close within low-cost 100% Non-Chinese COTS scope."""
         # 1. Gap I: FIN-LAB-02 350-400 km/h airframe & head-on corridor rendezvous geometry

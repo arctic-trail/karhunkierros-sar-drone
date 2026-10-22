@@ -112,7 +112,10 @@
       "le_sweep_deg": 16.0,
       "ruddervator_chord_fraction": 0.32,
       "servo_mounting_and_low_temp_lube": "Direct tail-root KST X10 mounting at X=1310 mm with <55 mm carbon pushrods (0.0 deg CTE thermal trim shift at -40 C) + Molykote 33 / Krytox GPL-202 (-65 C) gearbox grease",
-      "p_static_discharge_wicks": "4x 35 mm exposed micro-carbon-fiber tow static wicks on winglet & Lambda-tail trailing tips bonded to common 1 MOhm equipotential carbon spar/boom/304SS ground bus"
+      "hinge_ice_wipe_and_ptfe_seal": "Flexible hydrophobic PTFE upper hinge-gap seal tape + automated 0.5 s +/-4 deg flaperon / +/-3 deg ruddervator periodic ice-wipe every 20 s in [-12, +2] C icing (prevents 3.15 N*m runback ice-bridge servo lock; +2 EUR)",
+      "p_static_discharge_wicks": "4x 35 mm exposed micro-carbon-fiber tow static wicks on winglet & Lambda-tail trailing tips bonded to common 1 MOhm equipotential carbon spar/boom/304SS ground bus",
+      "finstad_tail_le_deicer_allocation_w": 12.0,
+      "finstad_tail_deicer_note": "12 W of existing E1 35 W carbon-veil de-icer bus routed directly to 4 mm Lambda-tail leading edges (15 W wing crank + 12 W Lambda-tail + 8 W dorsal lip = 35 W) to counter 9x higher Finstad Stokes small-droplet collection efficiency"
     },
     "dorsal_intake_and_thermal_deck": {
       "type": "Short Low-Distortion Dorsal Pitot Intake + Turnkey JetCat P100-RX-BL + Double-Wall 304SS & 10mm Silica-Aerogel Exhaust Barrier",
@@ -142,19 +145,23 @@
       "electrical_input_power_clean_mtow_w": 377.0,
       "electrical_input_power_midmission_w": 335.0,
       "electrical_input_power_high_drag_w": 553.0,
-      "loiter_speed_m_s": 25.5
+      "loiter_speed_m_s": 25.5,
+      "asymmetric_ice_release_unbalance_guard": "Krytox GPL-202 yoke pivots + 10x10 mm PTFE blade-rest pads + <=1000 RPM/s soft spin-up ramp + <50 ms ICM-42688-P 1P (>2.5 G / 25 N) vibration trip & 3x pulse-retry (prevents 132-526 N single-blade unbalance)"
     },
     "internal_subsystems": {
       "pet_fuel_tanks": {
         "count": 2,
         "volume_l_each": 2.0,
-        "fuel_specification": "Compliant ASTM D1655 / DEF STAN 91-091 Jet A-1 (-47 C Freezing Point) + 3% Synthetic Turbine Oil",
+        "fuel_specification": "Compliant ASTM D1655 / DEF STAN 91-091 Jet A-1 (-47 C Freezing Point) + 3% Synthetic Turbine Oil + 0.12% v/v DiEGME (FSII / MIL-DTL-85470)",
         "x_center_mm": 595.0,
         "y_offset_mm": 82.0,
         "z_center_mm": 15.0,
         "length_mm": 310.0,
         "diameter_mm": 96.0,
-        "non_icing_vent_system": "Flush aft-facing 6 mm brass vent in +35 C dorsal engine fairing boundary layer (X=980 mm) + internal -15 kPa T-check breather (prevents PET bottle vacuum collapse in freezing fog)"
+        "non_icing_vent_system": "Flush aft-facing 6 mm brass vent in +35 C dorsal engine fairing boundary layer (X=980 mm) + internal -15 kPa T-check breather (prevents PET bottle vacuum collapse in freezing fog)",
+        "cold_viscous_suction_line_id_mm": 4.0,
+        "cold_viscous_suction_note": "4 mm ID FEP/Viton tank-to-UAT-to-Bartels-pump suction line cuts -35 C Hagen-Poiseuille viscous pressure drop by 16x (102 kPa -> 6.4 kPa vs 2 mm line; +4 EUR, +8 g)",
+        "fsii_diegme_cryogenic_filter_protection": "0.12% v/v DiEGME (FSII) + 5 um coalescing-funnel fueling + inline filter mounted in +25 C warm avionics bay (X=430 mm) prevents BA038-style 60 ppm -> 10 ppm dissolved-water micro-crystal filter blinding below -15 C"
       },
       "uat_hopper_tank": {
         "volume_ml": 150.0,
@@ -181,7 +188,9 @@
         "z_center_mm": 28.0,
         "length_mm": 120.0,
         "width_mm": 90.0,
-        "height_mm": 40.0
+        "height_mm": 40.0,
+        "pitot_capillary_water_trap_plumbing": "4 mm ID superhydrophobic PTFE Pitot line routed continuously downhill (>8 deg slope, 0 U-bends) from elevated MS4525DO into a positively capped 4 mm ID (1.5 mL) coaxial low-point water-trap sump with ground drain plug (0.0 Pa in-flight bleed error, avoids 342 Pa open-orifice capillary pinning, cuts meniscus deadband from 102 Pa to 5.8 Pa; +3 EUR, +6 g)",
+        "twisted_pair_magnetic_hygiene": ">40 twists/m (<1 cm2 loop area, <22 nT = 0.1 deg interference at 30 A) on all battery, heater, pump, and ESC leads + 20 Hz anti-alias filter on wingtip PNI RM3100"
       },
       "cg_payload_bay": {
         "x_start_mm": 445.0,

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""
+r"""
 3D OpenCASCADE STL + Parametric CAD Multi-Angle Rasterizer
 for `arctic-fast-sar-jet` (`FIN-LAB-02` / `Variant H-Evo`, 14.95 kg Airborne MTOW).
 
