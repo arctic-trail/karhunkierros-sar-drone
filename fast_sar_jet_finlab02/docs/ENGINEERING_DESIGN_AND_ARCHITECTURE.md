@@ -57,7 +57,7 @@ Implemented in [`sar_autonomy/pi_turbine_autonomy.py`](../sar_autonomy/pi_turbin
 
 Every mechanical, propulsion, compute, sensor, and RF link component is sourced from audited European, UK, Swiss, Taiwanese/EU, and US Allied suppliers:
 
-![100% Non-Chinese Allied COTS Supply-Chain Map](images/sar_design_06_allied_cots_supply_chain_v1.jpg)
+![100% Non-Chinese Allied COTS Supply-Chain Map](images/sar_design_06_allied_cots_supply_chain_v4.jpg)
 
 ---
 
@@ -310,7 +310,43 @@ In addition to **Cartridge A (`5.00 kg` Reefed-Parachute Survival Capsule)**, th
   - **Mothership (`arctic-fast-sar-jet`):** Relights its turbine in `2.60 s` at `-30 °C`, climbs to **`320 m` AGL**, and switches to its **quiet `285 W` folding nose electric propeller (`0.0 g/s` fuel burn)** for a `10-minute` airborne `868 MHz` LoRa / `940 nm` optical communications relay orbit over the canyon before dashing `35 km` back to Base at **`295.2 km/h` groundspeed** (landing at `t = 29.5 min` with **`18.2%` fuel reserve**).
   - **Parasite Quad (`karhunkierros-sar-drone`):** Descends to **`20–28 m` AGL** above the spruce canopy using `TF02-Pro` LiDAR + `MTF-02P` optical flow, conducts live two-way voice triage via the orbiting mothership relay, drops the **`+42 °C` warm care cask (`0.42 m` hover CEP)**, guides the hiker **`1.85 km` at walking pace (`3.8 km/h`, `29.5 min`)** with its **`1,500 lm` *Opaslyhty* aerial lantern** to the nearest heated *Autiotupa* wilderness cabin, and docks on the cabin's **`+10 °C` `AUTOMATED_ROOFED_NEST`** at `t = 44.5 min` with **`21.7%` battery reserve**.
 
+![Marsupial Dual-Drone Cutaway & 4-Stage Mid-Air Deployment (Cartridge B)](images/sar_marsupial_cutaway_and_4stage_drop_v3.jpg)
+
+![End-to-End 6-Stage Marsupial Dual-Drone Wilderness Rescue Storyboard](images/sar_marsupial_6stage_whole_mission_en_v2.jpg)
+
 ![Marsupial Dual-Drone SAR Architecture: Internal Bay Fit, 100 Hz 4-Stage Separation & Simultaneous 35 km Mission Telemetry](images/sar_design_26_marsupial_quad_drop_and_joint_mission_v2.jpg)
+
+### 11.10 Multi-Screen Command Wall, Tactical Operator Controller UI & Exact 8-Stage Mission Control Workflow (`Plates 27 & 28`)
+
+Field experience from modern contested-airspace multi-screen command walls (`2×2` quad-monitor operator stations running enterprise tactical camera OSDs under heavy GNSS jamming) demonstrates six high-priority operator UI patterns that are directly integrated into our dual-drone (`arctic-fast-sar-jet` + `karhunkierros-sar-drone`) Ground Control Station (`GCS`) and interactive HTML5 Flight Simulator (`simulator_ui/flight_simulator.html`, redesigned around **Apple iOS Dark Mode Human Interface Guidelines**):
+
+1. **Field-Proven `2×2` Command-Point Screen Anatomy (`Plate 27`, Column 1):**
+   - **`[A]` Top High-Contrast Flight-Law Banner (`ATTI MODE` / `MODE N` VIO):** When GNSS satellites drop to `0` under `-42 to -48 dBm` jamming, the top-left mode banner immediately highlights the active fallback control law (`MODE N · EKF3 VIO + DEM CONTOUR` or `ATTI MODE · RAW SERVOS`) so the operator never confuses satellite position hold with drift-prone attitude hold.
+   - **`[B]` `GNSS = 0 SV` & Live Loaded Cell-Voltage Sag Cluster (`85% / 15.6V`):** Displays real-time loaded pack voltage alongside state-of-charge (`%`) to catch `-30 °C` internal-resistance ($I \cdot R$) lithium voltage sag before brownout.
+   - **`[C]` Optical & Thermal Sensor Strip (`ZOOM 1.0X / 3.0X`, `ISO 150`, `1/1600`, `AE Lock`, `AFC`, `FFC Inhibit`):** Displays optical/thermal zoom state and locks the `FLIR Lepton / Lynred` thermal flat-field calibration (`FFC`) shutter open during the final `6.0 s` before capsule/quad release.
+   - **`[D]` Left-Edge Vertical Tactical Tool Dock (`RNG / AI / THERM / CRUISE`):** One-thumb vertical buttons along the left bezel for Laser/DEM Slant-Range (`RNG`), `Hailo-8L 26 TOPS` Neural Survivor Detection (`AI`), `LWIR` Thermal Fusion (`THERM`), and `ATTI/VIO` Cruise Speed/Heading Lock (`CRUISE`) that relieves thumb fatigue during `11–35 min` GNSS-denied transits.
+   - **`[E]` Center Gyro-Stabilized Gimbal Boresight Crosshair (`+`) & `+31 °C` Survivor Lock Box:** Decouples airframe roll/pitch (`±35°`) from the operator's visual search frame and renders green corner brackets around detected human thermal signatures.
+   - **`[F]` Bottom-Center Attitude/Compass Radar Puck & `Look Down (-90° Nadir)` Toggle:** Combines a `360°` rotating heading rose, home-bearing diamond, and artificial-horizon tilt ball into a single peripheral-vision puck at the bottom center of the screen, flanked by a one-click `-90°` Nadir gimbal snap button.
+
+2. **Our Dual-Drone Controller UI: Tier-3 Fast-SAR Jet vs. Tier-2 Marsupial Quad (`Plate 27`, Column 2 & Column 3):**
+   - **Screen 1 (`Tier-3 Fast-SAR Jet` — Split Glass Cockpit PFD/HSI + EO/LWIR Tactical OSD):** Pairs a Garmin/Airbus-style Primary Flight Display (`PFD` with Blue/Brown Artificial Horizon, `IAS` + `SYNTH_IAS` airspeed tape, `AGL/MSL` altimeter tape, `AoA Alpha-Floor` bar, `360°` `HSI` compass rose, and `Turbine EIS` `98k RPM / 645 °C EGT / 2.65 kg Fuel / UAT 100%`) with the stabilized EO/LWIR tactical camera OSD.
+   - **Screen 2 (`Tier-2 Karhunkierros Quad` — VIO Hover, Winch & *Opaslyhty* Lantern OSD):** Displays `MODE: VIO_HOLD + APRILTAG LOCK`, `4S2P 88% 15.8V +15 °C Core`, and left-dock controls for `WINCH DROP` (`+42 °C` medical cask) and `LANTERN 1500 lm` (`3.8 km/h` autonomous hiker escort to the nearest heated *Autiotupa* wilderness cabin).
+   - **Physical Dual-Stick / MacBook Hardware Trackpad Control Mapping & 3 Flight Laws (`[Key 3]` `AI-Assisted RC Normal Law`, `[Key 2]` `SAS Gyro / Synth-IAS Alternate Law`, `[Key 1]` `Raw Unaided Servos Direct Law`):** Maps the physical trackpad or right gimbal stick to bank/pitch command (`Center (0,0)` or `Finger Off` = auto-level wings & hold pitch/position in `Normal Law`), with guarded 2-vote switches for `Capsule/Quad Release [Space]`, `Crow Airbrake [B]`, and `Dorsal Chute + <50ms Fuel Cutoff [P]`.
+
+3. **Exact 8-Stage End-to-End Mission Control Workflow (`Plate 28`):**
+   - **Stage 1 (`0–15 s` — Pre-Flight BIT & Drop-Dolly Launch):** Operator verifies green `BIT PASS` across `Bus A/B/C` and clicks `1-Click Auto Launch`; `STM32H7` spools the turbine to `100% N1` (`132 N`), holds runway centerline via wheel/ruddervator gain scheduling, releases the 3-wheel tundra dolly, and rotates at `30 m/s`.
+   - **Stage 2 (`15–65 s` — Heated De-Ice Climb & Corridor Entry):** `100%` hands-off `TECS` climb at `+6.5°` pitch with `70 W` pitot + wing leading-edge de-icing active and continuous `IAS` vs. `SYNTH_IAS` innovation monitoring (`< 2 m/s`).
+   - **Stage 3 (`1–11 min` — `260–380 km/h` Dash & `GNSS=0` EW Transition):** When `-48 dBm` GNSS jamming hits, `EKF3` rejects spoofed satellites in `200 ms`, switches the top banner to `MODE N · EKF3 VIO + DEM CONTOUR`, and holds course (`18.4 m` CEP) with `CRUISE HOLD` engaged (`0` stick workload).
+   - **Stage 4 (`11.0 min` — Transition to Silent Electric Loiter):** Dorsal turbojet shuts down and the `355 mm` nose folding electric prop unfolds for a quiet `92 km/h` (`25.5 m/s`, `350 W`) canyon sweep; operator clicks `Look Down (-90°)` + `AI Lock` on the survivor's `+31 °C` thermal signature.
+   - **Stage 5 (`11.5 min` — Mid-Air Quad / Capsule Release at `85 m AGL`):** With `FFC Inhibit` active and both `STM32H7` geofence + `Pi 5` visual lock green (`2-Vote Release Pass`), the ventral CG bay (`X_CG = 595 mm`, `0.0 mm` trim shift) ejects the `2.65 kg` H-folding `Karhunkierros` quadcopter, which snaps its 4 arms open under a `60 cm` drogue and captures hover at `69.2 m AGL` in `2.76 s`.
+   - **Stage 6 (`12–28 min` — Dual-Screen Cooperative Hover Care):** Screen 2 controls the Quad in `VIO_HOLD` (`< 0.15 m` drift at `15 m AGL` below spruce trees) to winch down the `+42 °C` medical cask and two-way radio while Screen 1 monitors the Jet orbiting quietly at `320 m AGL` as an airborne `868 MHz / 940 nm` communications relay.
+   - **Stage 7 (`15–35 min` — *Opaslyhty* Lantern Escort & Jet `-30 °C` Relight):** Quad engages `CRUISE 3.8 km/h` + `1,500 lm` spotlight cone `15 m` ahead of the walking survivor along the trail toward the *Autiotupa* log cabin; above, the Jet executes a `2.60 s` `-30 °C` kerostart relight for a `295 km/h` RTB dash.
+   - **Stage 8 (`30–40 min` — Dual Terminal Recovery):** Jet deploys its `2.8 m²` dorsal parachute (`< 50 ms` `Bürkert 6011` fuel cutoff, `3.8 m/s` sink onto ventral airbag) while the Quad lands via `AprilTag 36h11` (`0.12 m` CEP) inside the `+10 °C` motorized clamshell trail nest box for autonomous contact-pad recharging (`34%` $\to$ `100%` SOC).
+
+![Multi-Screen Command Wall & Tactical Controller UI for Fast-SAR Jet & Karhunkierros Quad (Plate 27)](images/sar_design_27_operator_controller_ui_and_quad_screen_command_v2.jpg)
+
+![Exact 8-Stage Mission Control Workflow: How Jet & Quad Are Controlled Step-by-Step (Plate 28)](images/sar_design_28_end_to_end_8_stage_mission_control_workflow_v2.jpg)
+
 
 
 

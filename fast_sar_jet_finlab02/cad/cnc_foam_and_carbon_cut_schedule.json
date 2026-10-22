@@ -1,0 +1,225 @@
+{
+  "design_id": "arctic_fast_sar_jet_v0_1_concept",
+  "version": "0.1.0-SAR-CONCEPT-RFC",
+  "scale": "1:1_MILLIMETERS",
+  "overall_wingspan_mm": 2200.0,
+  "overall_fuselage_length_mm": 1420.0,
+  "airborne_mtow_kg": 14.95,
+  "cg_x_mm": 595.0,
+  "total_mouldless_airframe_material_cost_usd": 178.5,
+  "carbon_tube_cut_schedule": [
+    {
+      "cut_id": "CF-01",
+      "part_name": "Center-Body Main Wing Spar Carry-Through Tube (25% MAC, X=545 mm)",
+      "material": "Roll-Wrapped 3K Carbon Tube (20.0 mm OD x 18.0 mm ID, 1.0 mm wall)",
+      "od_mm": 20.0,
+      "id_mm": 18.0,
+      "cut_length_mm": 520.0,
+      "quantity": 1,
+      "unit_cost_usd": 18.5,
+      "notes": "Bonds through Bulkheads F2/F3 and twin boom saddles at Y = +/-230 mm"
+    },
+    {
+      "cut_id": "CF-02",
+      "part_name": "Outboard Cranked-Wing Main Spar Tubes (L & R Panels, Y=230..1100 mm)",
+      "material": "Roll-Wrapped 3K Carbon Tube (20.0 mm OD x 18.0 mm ID, 1.0 mm wall)",
+      "od_mm": 20.0,
+      "id_mm": 18.0,
+      "cut_length_mm": 885.0,
+      "quantity": 2,
+      "unit_cost_usd": 24.0,
+      "notes": "885.0 mm each; mates with CF-01 via 18.0 mm solid carbon/7075-T6 joiner rod + 72-deg fold pin"
+    },
+    {
+      "cut_id": "CF-03",
+      "part_name": "Outboard Wing Aft Anti-Rotation / Flaperon Sub-Spar Tubes (68% Chord)",
+      "material": "Pultruded/Roll-Wrapped Carbon Tube (12.0 mm OD x 10.0 mm ID)",
+      "od_mm": 12.0,
+      "id_mm": 10.0,
+      "cut_length_mm": 820.0,
+      "quantity": 2,
+      "unit_cost_usd": 14.0,
+      "notes": "Locks wing incidence and carries KST X10 Mini flaperon hinge loads"
+    },
+    {
+      "cut_id": "CF-04",
+      "part_name": "Twin Tail Booms (Y = +/-230 mm Outside Central Jet Exhaust Plume)",
+      "material": "Roll-Wrapped 3K Carbon Tube (16.0 mm OD x 14.0 mm ID, 1.0 mm wall)",
+      "od_mm": 16.0,
+      "id_mm": 14.0,
+      "cut_length_mm": 1085.0,
+      "quantity": 2,
+      "unit_cost_usd": 29.0,
+      "notes": "Spans X=455.0 mm to X=1540.0 mm; routes ruddervator servo leads & 12km fiber option"
+    },
+    {
+      "cut_id": "CF-05",
+      "part_name": "110-deg Inverted Lambda-Tail Spar Tubes (35-deg Cant From Horizontal)",
+      "material": "Roll-Wrapped Carbon Tube (10.0 mm OD x 8.0 mm ID)",
+      "od_mm": 10.0,
+      "id_mm": 8.0,
+      "cut_length_mm": 295.0,
+      "quantity": 2,
+      "unit_cost_usd": 11.0,
+      "notes": "Bridges Y=+/-230 mm (Z=+12 mm) to central apex Y=0 mm (Z=+173.0 mm)"
+    },
+    {
+      "cut_id": "CF-06",
+      "part_name": "Main Wing Spar Joiner Rod & Ground-Fold Rig Pins (7075-T6 / Solid Carbon)",
+      "material": "18.0 mm OD Solid Carbon Joiner + 2x M6 Quick-Release Ball-Lock Rig Pins",
+      "od_mm": 18.0,
+      "id_mm": 0.0,
+      "cut_length_mm": 320.0,
+      "quantity": 2,
+      "unit_cost_usd": 16.0,
+      "notes": "Pulling aft rig pins allows 72-deg ground transport fold to 680 mm width"
+    }
+  ],
+  "wing_and_tail_hotwire_ribs": [
+    {
+      "rib_id": "W1_STRAKE_ROOT",
+      "name": "Center-Body Strake Root Template (Y = 130 mm)",
+      "span_station_y_mm": 130.0,
+      "chord_mm": 420.0,
+      "naca_code": "2412",
+      "main_spar_x_mm": 105.0,
+      "main_spar_od_mm": 20.0,
+      "aft_spar_x_mm": 285.6,
+      "aft_spar_od_mm": 12.0
+    },
+    {
+      "rib_id": "W2_BOOM_PIVOT",
+      "name": "Boom-Junction & Fold-Pivot Root Rib (Y = 230 mm)",
+      "span_station_y_mm": 230.0,
+      "chord_mm": 300.0,
+      "naca_code": "2412",
+      "main_spar_x_mm": 75.0,
+      "main_spar_od_mm": 20.0,
+      "aft_spar_x_mm": 204.0,
+      "aft_spar_od_mm": 12.0
+    },
+    {
+      "rib_id": "W3_MID_INBOARD",
+      "name": "Outboard Panel Mid-Inboard Rib (Y = 520 mm)",
+      "span_station_y_mm": 520.0,
+      "chord_mm": 268.0,
+      "naca_code": "2411",
+      "main_spar_x_mm": 67.0,
+      "main_spar_od_mm": 20.0,
+      "aft_spar_x_mm": 182.2,
+      "aft_spar_od_mm": 12.0
+    },
+    {
+      "rib_id": "W4_MID_OUTBOARD",
+      "name": "Outboard Panel Mid-Outboard Rib (Y = 810 mm)",
+      "span_station_y_mm": 810.0,
+      "chord_mm": 236.0,
+      "naca_code": "2411",
+      "main_spar_x_mm": 59.0,
+      "main_spar_od_mm": 20.0,
+      "aft_spar_x_mm": 160.5,
+      "aft_spar_od_mm": 12.0
+    },
+    {
+      "rib_id": "W5_WINGTIP",
+      "name": "Outboard Panel Wingtip Template (Y = 1100 mm)",
+      "span_station_y_mm": 1100.0,
+      "chord_mm": 205.0,
+      "naca_code": "2410",
+      "main_spar_x_mm": 51.2,
+      "main_spar_od_mm": 20.0,
+      "aft_spar_x_mm": 139.4,
+      "aft_spar_od_mm": 12.0
+    },
+    {
+      "rib_id": "T1_LAMBDA_TAIL_ROOT",
+      "name": "110-deg Inverted Lambda-Tail Boom-Root Rib (Y = 230 mm)",
+      "span_station_y_mm": 230.0,
+      "chord_mm": 215.0,
+      "naca_code": "0009",
+      "main_spar_x_mm": 64.5,
+      "main_spar_od_mm": 16.0,
+      "aft_spar_x_mm": 146.2,
+      "aft_spar_od_mm": 10.0
+    },
+    {
+      "rib_id": "T2_LAMBDA_TAIL_APEX",
+      "name": "110-deg Inverted Lambda-Tail Centerline Apex Rib (Y = 0 mm, Z = +173 mm)",
+      "span_station_y_mm": 0.0,
+      "chord_mm": 175.0,
+      "naca_code": "0009",
+      "main_spar_x_mm": 52.5,
+      "main_spar_od_mm": 10.0,
+      "aft_spar_x_mm": 119.0,
+      "aft_spar_od_mm": 6.0
+    }
+  ],
+  "laser_cut_fuselage_bulkheads": [
+    {
+      "bulkhead_id": "F1_NOSE_FIREWALL",
+      "station_x_mm": 120.0,
+      "width_mm": 120.0,
+      "height_mm": 105.0,
+      "material": "3.0 mm Aircraft Birch Plywood / 1.5 mm Carbon-Epoxy Laminate",
+      "cutouts": "\u00d838.0 mm 3520-500KV Electric Sustainer Motor Mount + 4x Cooling Slots"
+    },
+    {
+      "bulkhead_id": "F2_AVIONICS_AND_BATTERY",
+      "station_x_mm": 435.0,
+      "width_mm": 250.0,
+      "height_mm": 170.0,
+      "material": "3.0 mm Aircraft Birch Plywood",
+      "cutouts": "120x40 mm Avionics Bay + 86x44 mm Heated 6S2P Battery Slot + Twin \u00d816.0 mm Boom Sockets"
+    },
+    {
+      "bulkhead_id": "F3_CG_BAY_FWD_AND_MAIN_SPAR",
+      "station_x_mm": 545.0,
+      "width_mm": 260.0,
+      "height_mm": 185.0,
+      "material": "2x 3.0 mm Doubled Birch Plywood + Carbon Cap Strip",
+      "cutouts": "180x145 mm Ventral CG Bay Arch + \u00d820.0 mm Main Spar Socket + Twin \u00d896 mm Fuel Tank Cradles"
+    },
+    {
+      "bulkhead_id": "F4_CG_BAY_AFT_AND_ENGINE_SLED",
+      "station_x_mm": 865.0,
+      "width_mm": 260.0,
+      "height_mm": 180.0,
+      "material": "3.0 mm Aircraft Birch Plywood",
+      "cutouts": "180x145 mm Aft Ventral Bay Arch + 150 mm Universal Dorsal Engine Sled Rails"
+    },
+    {
+      "bulkhead_id": "F5_THERMAL_DECK_AFT_BRIDGE",
+      "station_x_mm": 1220.0,
+      "width_mm": 220.0,
+      "height_mm": 125.0,
+      "material": "3.0 mm Birch Plywood + 0.3 mm 304SS / 10 mm Silica-Aerogel Saddle",
+      "cutouts": "\u00d8115 mm Double-Wall Exhaust Trough + Twin \u00d816.0 mm Tail-Boom Clamp Bosses"
+    }
+  ],
+  "xps_foam_billet_schedule": [
+    {
+      "block_id": "XPS-01",
+      "name": "Left & Right Outboard Wing Cores (Y=230..1100 mm, 16-deg Sweep)",
+      "raw_block_mm": "900 x 320 x 50 mm (2x)",
+      "material": "XPS 35 kg/m3 Closed-Cell Foam"
+    },
+    {
+      "block_id": "XPS-02",
+      "name": "Inboard 48-deg Leading-Edge Strake Cores (Y=130..230 mm)",
+      "raw_block_mm": "450 x 140 x 60 mm (2x)",
+      "material": "XPS 35 kg/m3 Closed-Cell Foam"
+    },
+    {
+      "block_id": "XPS-03",
+      "name": "Chined Blended Center-Body Shell & Nose Cone (X=0..1420 mm)",
+      "raw_block_mm": "720 x 280 x 200 mm (2x)",
+      "material": "XPS 35 kg/m3 Closed-Cell Foam"
+    },
+    {
+      "block_id": "XPS-04",
+      "name": "110-deg Inverted Lambda-Tail Panels (L & R)",
+      "raw_block_mm": "310 x 230 x 35 mm (2x)",
+      "material": "XPS 35 kg/m3 Closed-Cell Foam"
+    }
+  ]
+}

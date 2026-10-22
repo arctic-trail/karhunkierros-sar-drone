@@ -6,21 +6,21 @@
 <title>Fast-SAR Jet Simulator UI — Clickable Isometric 8-Stage Mission & Branching Paths</title>
 <style>
   :root {
-    --bg-dark: #060d1a;
-    --bg-panel: #0b1629;
-    --bg-card: #11223d;
-    --bg-card-hover: #172e52;
-    --border: #213c66;
-    --border-bright: #3461a1;
-    --text-main: #eef5ff;
-    --text-muted: #8aa6cc;
-    --accent-cyan: #00d8ff;
-    --accent-blue: #2b8aff;
-    --accent-orange: #ff7b29;
-    --accent-amber: #ffbe2e;
-    --accent-red: #ff4757;
-    --accent-green: #18e07f;
-    --accent-purple: #a55eea;
+    --bg-dark: #000000;
+    --bg-panel: #121214;
+    --bg-card: #1c1c1e;
+    --bg-card-hover: #2c2c2e;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-bright: rgba(255, 255, 255, 0.16);
+    --text-main: #f5f5f7;
+    --text-muted: #8e8e93;
+    --accent-cyan: #0a84ff;
+    --accent-blue: #0a84ff;
+    --accent-orange: #ff9f0a;
+    --accent-amber: #ffd60a;
+    --accent-red: #ff453a;
+    --accent-green: #30d158;
+    --accent-purple: #bf5af2;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
@@ -29,27 +29,31 @@
     overflow: hidden;
     background: var(--bg-dark);
     color: var(--text-main);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", sans-serif;
     font-size: 12.5px;
     line-height: 1.35;
+    -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums;
     user-select: none;
   }
 
-  /* Overall 100vh App Shell */
+  /* Overall 100vh App Shell — Clean iOS Dark Mode Spacing */
   .app-shell {
     display: grid;
-    grid-template-rows: 42px 176px 1fr;
+    grid-template-rows: 46px 156px 1fr;
     height: 100vh;
     width: 100vw;
-    gap: 6px;
-    padding: 6px 8px;
+    gap: 8px;
+    padding: 8px 10px;
   }
 
-  /* 1. Top Header Bar */
+  /* 1. Top Header Bar (iOS Navigation Bar & Segmented Mode Control) */
   header {
-    background: linear-gradient(90deg, #081529 0%, #122a4e 50%, #081529 100%);
+    background: rgba(22, 22, 24, 0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 12px;
     padding: 0 14px;
     display: flex;
     justify-content: space-between;
@@ -57,55 +61,84 @@
   }
   .title-row {
     display: flex;
-    align-items: baseline;
-    gap: 12px;
+    align-items: center;
+    gap: 10px;
   }
   .title-row h1 {
-    font-size: 15px;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    color: #fff;
+    font-size: 14.5px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    color: var(--text-main);
   }
   .title-row h1 span.accent {
-    color: var(--accent-cyan);
+    color: var(--text-main);
+    font-weight: 700;
   }
   .title-row .subtitle {
-    font-size: 11px;
+    font-size: 11.5px;
     color: var(--text-muted);
+    font-weight: 400;
   }
   .header-badges {
     display: flex;
     gap: 6px;
     align-items: center;
   }
+  .ios-segmented {
+    display: inline-flex;
+    background: #1c1c1e;
+    padding: 2px;
+    border-radius: 9px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    gap: 2px;
+  }
   .badge {
-    padding: 3px 9px;
-    border-radius: 4px;
-    font-size: 10.5px;
-    font-weight: 700;
-    border: 1px solid var(--border);
-    background: var(--bg-card);
+    padding: 4px 10px;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 500;
+    border: 1px solid transparent;
+    background: #1c1c1e;
+    color: var(--text-muted);
     white-space: nowrap;
   }
-  .badge.cyan { border-color: var(--accent-cyan); color: var(--accent-cyan); }
-  .badge.green { border-color: var(--accent-green); color: var(--accent-green); }
-  .badge.orange { border-color: var(--accent-orange); color: var(--accent-orange); }
+  .badge.cyan { color: var(--text-main); background: #242426; }
+  .badge.green { color: var(--accent-green); background: rgba(48, 209, 88, 0.12); }
+  .badge.orange { color: var(--accent-orange); background: rgba(255, 159, 10, 0.12); }
   .badge.btn-badge {
     cursor: pointer;
-    background: #163056;
-    color: #fff;
-    transition: all 0.15s;
+    background: #2c2c2e;
+    color: var(--text-main);
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: background 0.15s ease, transform 0.1s ease;
   }
   .badge.btn-badge:hover {
-    background: #214980;
-    border-color: var(--accent-cyan);
+    background: #3a3a3c;
+  }
+  .badge.btn-badge.seg-active-blue {
+    background: var(--accent-blue);
+    color: #ffffff;
+    border-color: transparent;
+  }
+  .badge.btn-badge.seg-active-green {
+    background: var(--accent-green);
+    color: #000000;
+    font-weight: 700;
+    border-color: transparent;
+  }
+  .badge.btn-badge.seg-active-red {
+    background: var(--accent-red);
+    color: #ffffff;
+    font-weight: 700;
+    border-color: transparent;
   }
 
-  /* 2. Interactive Isometric 8-Stage & Branching Mission Flow Strip */
+  /* 2. Interactive 8-Stage Mission Timeline Strip */
   .mission-flow-panel {
     background: var(--bg-panel);
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -115,17 +148,16 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 4px 12px;
-    border-bottom: 1px solid #182e50;
-    background: rgba(8, 20, 38, 0.75);
+    padding: 5px 14px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(28, 28, 30, 0.55);
     font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    color: var(--accent-cyan);
+    font-weight: 600;
+    color: var(--text-muted);
   }
   .flow-header .hint {
-    color: var(--accent-amber);
-    font-weight: 600;
+    color: var(--text-main);
+    font-weight: 500;
     font-size: 11px;
   }
   .flow-canvas-wrap {
@@ -144,11 +176,11 @@
     height: 100%;
   }
 
-  /* 3. Lower Workspace Grid: Left Scenarios | Center Split 3D + Bottom Strip Charts | Right Narrator & Gauges */
+  /* 3. Lower Workspace Grid */
   .workspace-grid {
     display: grid;
-    grid-template-columns: 245px 1fr 275px;
-    gap: 6px;
+    grid-template-columns: 242px 1fr 276px;
+    gap: 8px;
     min-height: 0;
     height: 100%;
   }
@@ -156,29 +188,27 @@
   .panel {
     background: var(--bg-panel);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px;
+    border-radius: 12px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 7px;
     min-height: 0;
     overflow: hidden;
   }
   .panel-title {
-    font-size: 11px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--accent-cyan);
-    border-bottom: 1px solid #1a3154;
-    padding-bottom: 4px;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: -0.1px;
+    color: var(--text-muted);
+    padding-bottom: 2px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-shrink: 0;
   }
 
-  /* Left Sidebar: 1-Click Scenario Cards + 1-Click Weather & Interference Decks */
+  /* Left Sidebar: Calm iOS Grouped List Rows (Zero Rainbow Borders) */
   .scenario-list {
     display: flex;
     flex-direction: column;
@@ -188,30 +218,30 @@
   .scenario-btn {
     display: flex;
     align-items: center;
-    gap: 7px;
-    padding: 3.5px 7px;
-    border-radius: 5px;
-    background: #0e1e38;
-    border: 1.5px solid #234370;
+    gap: 8px;
+    padding: 5px 8px;
+    border-radius: 8px;
+    background: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.04);
     color: var(--text-main);
     text-align: left;
     cursor: pointer;
-    transition: all 0.14s ease;
+    transition: background 0.14s ease;
   }
   .scenario-btn:hover {
-    transform: translateX(2px);
-    background: #152b4f;
+    background: var(--bg-card-hover);
   }
   .scenario-btn .sc-icon {
     width: 22px;
     height: 22px;
-    border-radius: 4px;
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 11.5px;
     flex-shrink: 0;
-    font-weight: 800;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-main);
   }
   .scenario-btn .sc-text {
     display: flex;
@@ -220,67 +250,61 @@
     min-width: 0;
   }
   .scenario-btn .sc-title {
-    font-size: 10.5px;
-    font-weight: 800;
-    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-main);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .scenario-btn .sc-desc {
-    font-size: 9px;
+    font-size: 9.5px;
     color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .scenario-btn.theme-cyan { border-color: #1c6ca8; }
-  .scenario-btn.theme-cyan .sc-icon { background: rgba(0, 216, 255, 0.16); color: var(--accent-cyan); }
-  .scenario-btn.theme-red { border-color: #872638; }
-  .scenario-btn.theme-red .sc-icon { background: rgba(255, 71, 87, 0.18); color: var(--accent-red); }
-  .scenario-btn.theme-amber { border-color: #8f6518; }
-  .scenario-btn.theme-amber .sc-icon { background: rgba(255, 190, 46, 0.18); color: var(--accent-amber); }
-  .scenario-btn.theme-green { border-color: #19784e; }
-  .scenario-btn.theme-green .sc-icon { background: rgba(24, 224, 127, 0.16); color: var(--accent-green); }
+  .scenario-btn.active {
+    background: rgba(10, 132, 255, 0.18);
+    border-color: var(--accent-blue);
+  }
+  .scenario-btn.active .sc-icon {
+    background: var(--accent-blue);
+    color: #ffffff;
+  }
 
-  .scenario-btn.active.theme-cyan { background: rgba(0, 180, 255, 0.22); border-color: var(--accent-cyan); box-shadow: 0 0 10px rgba(0, 216, 255, 0.3); }
-  .scenario-btn.active.theme-red { background: rgba(255, 71, 87, 0.24); border-color: var(--accent-red); box-shadow: 0 0 10px rgba(255, 71, 87, 0.35); }
-  .scenario-btn.active.theme-amber { background: rgba(255, 190, 46, 0.22); border-color: var(--accent-amber); box-shadow: 0 0 10px rgba(255, 190, 46, 0.3); }
-  .scenario-btn.active.theme-green { background: rgba(24, 224, 127, 0.22); border-color: var(--accent-green); box-shadow: 0 0 10px rgba(24, 224, 127, 0.3); }
-
-  /* 1-Click Weather & Interference Grids */
+  /* Weather & Interference iOS Toggles */
   .weather-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 3.5px;
+    gap: 4px;
     flex-shrink: 0;
   }
   .weather-btn, .ew-btn {
     display: flex;
     flex-direction: column;
     gap: 1px;
-    padding: 3.5px 5px;
-    border-radius: 5px;
-    background: #0d1c33;
-    border: 1.5px solid #213e69;
+    padding: 4.5px 7px;
+    border-radius: 8px;
+    background: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.04);
     color: var(--text-main);
     text-align: left;
     cursor: pointer;
-    transition: all 0.14s ease;
+    transition: background 0.14s ease;
     min-width: 0;
     overflow: hidden;
   }
   .weather-btn:hover, .ew-btn:hover {
-    background: #162e52;
-    border-color: var(--accent-cyan);
+    background: var(--bg-card-hover);
   }
   .weather-btn .w-top, .ew-btn .w-top {
     display: flex;
     align-items: center;
-    gap: 3px;
-    font-size: 9.5px;
-    font-weight: 800;
-    color: #fff;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-main);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -293,45 +317,39 @@
     text-overflow: ellipsis;
   }
   .weather-btn.active, .ew-btn.active {
-    background: rgba(0, 216, 255, 0.20);
-    border-color: var(--accent-cyan);
-    box-shadow: 0 0 8px rgba(0, 216, 255, 0.28);
+    background: rgba(10, 132, 255, 0.18);
+    border-color: var(--accent-blue);
   }
   .weather-btn.active.w-danger, .ew-btn.active.w-danger {
-    background: rgba(255, 71, 87, 0.24);
+    background: rgba(255, 69, 58, 0.18);
     border-color: var(--accent-red);
-    box-shadow: 0 0 9px rgba(255, 71, 87, 0.35);
   }
-  .weather-btn.active.w-warn, .ew-btn.active.w-warn {
-    background: rgba(255, 190, 46, 0.22);
-    border-color: var(--accent-amber);
-    box-shadow: 0 0 9px rgba(255, 190, 46, 0.32);
-  }
+  .weather-btn.active.w-warn, .ew-btn.active.w-warn,
   .weather-btn.active.w-storm, .ew-btn.active.w-storm {
-    background: rgba(165, 94, 234, 0.25);
-    border-color: var(--accent-purple);
-    box-shadow: 0 0 9px rgba(165, 94, 234, 0.38);
+    background: rgba(255, 159, 10, 0.18);
+    border-color: var(--accent-orange);
   }
 
   .compact-box {
     background: var(--bg-card);
-    border: 1px solid #1d375c;
-    border-radius: 5px;
-    padding: 5px 7px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 7px 8px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 5px;
     flex-shrink: 0;
   }
   select {
     width: 100%;
-    background: #071224;
+    background: #2c2c2e;
     color: var(--text-main);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 4px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 7px;
+    padding: 5px 8px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 500;
+    outline: none;
   }
   .playback-row {
     display: grid;
@@ -339,52 +357,53 @@
     gap: 4px;
   }
   button.ctrl-btn {
-    background: #173257;
+    background: #2c2c2e;
     color: var(--text-main);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 5px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 7px;
+    padding: 5px 7px;
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: background 0.15s;
   }
-  button.ctrl-btn:hover { background: #214575; border-color: var(--accent-cyan); }
-  button.ctrl-btn.primary { background: #0077b6; border-color: var(--accent-cyan); color: #fff; }
+  button.ctrl-btn:hover { background: #3a3a3c; }
+  button.ctrl-btn.primary { background: var(--accent-blue); border-color: transparent; color: #fff; }
   button.ctrl-btn.drawer-trigger {
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 9px;
-    background: #102340;
+    padding: 6px 10px;
+    background: var(--bg-card);
+    border-radius: 8px;
   }
   input[type="range"] {
     width: 100%;
-    accent-color: var(--accent-cyan);
-    height: 5px;
+    accent-color: var(--accent-blue);
+    height: 4px;
     cursor: pointer;
   }
 
   /* Center Column: Top Dual 3D Viewports + Bottom 3 Side-by-Side Strip Charts */
   .center-col {
     display: grid;
-    grid-template-rows: 1fr 148px;
-    gap: 6px;
+    grid-template-rows: 1fr 142px;
+    gap: 8px;
     min-height: 0;
     height: 100%;
   }
   .dual-viewports {
     display: grid;
-    grid-template-columns: 1fr 1.12fr;
-    gap: 6px;
+    grid-template-columns: 0.88fr 1.24fr;
+    gap: 8px;
     min-height: 0;
     height: 100%;
   }
   .viewport-card {
-    background: #050c18;
+    background: #090a0d;
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -395,37 +414,48 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 5px 10px;
-    background: rgba(11, 24, 45, 0.9);
-    border-bottom: 1px solid #1a3154;
-    font-size: 11px;
-    font-weight: 700;
-    color: #fff;
+    padding: 6px 10px;
+    background: rgba(24, 24, 27, 0.92);
+    border-bottom: 1px solid var(--border);
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-main);
     flex-shrink: 0;
+    gap: 8px;
   }
   .vp-header .vp-sub {
-    font-size: 10px;
-    color: var(--accent-cyan);
-    font-weight: 600;
+    font-size: 10.5px;
+    color: var(--text-muted);
+    font-weight: 500;
   }
+  /* iOS UISegmentedControl style for Camera & Display Mode Pills */
   .cam-pills {
-    display: flex;
-    gap: 3px;
+    display: inline-flex;
+    background: #1c1c1e;
+    padding: 2px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    gap: 1px;
+    flex-wrap: wrap;
   }
   .cam-pills button {
-    background: #102442;
-    color: var(--text-muted);
-    border: 1px solid #213e69;
-    border-radius: 3px;
-    padding: 2px 6px;
-    font-size: 10px;
-    font-weight: 700;
+    background: transparent;
+    color: #98989d;
+    border: none;
+    border-radius: 6px;
+    padding: 3px 7px;
+    font-size: 10.5px;
+    font-weight: 600;
     cursor: pointer;
+    transition: all 0.12s ease;
   }
-  .cam-pills button.active, .cam-pills button:hover {
-    background: #0077b6;
-    color: #fff;
-    border-color: var(--accent-cyan);
+  .cam-pills button:hover {
+    color: var(--text-main);
+  }
+  .cam-pills button.active {
+    background: #3a3a3c;
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
   }
   .vp-canvas-box {
     flex: 1;
@@ -445,11 +475,11 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 4px;
-    padding: 3.5px 6px;
-    background: rgba(8, 18, 35, 0.96);
-    border-top: 1px solid #1a3154;
-    font-size: 9px;
+    gap: 6px;
+    padding: 4px 8px;
+    background: #141416;
+    border-top: 1px solid var(--border);
+    font-size: 9.5px;
     flex-shrink: 0;
     flex-wrap: nowrap;
     overflow: hidden;
@@ -457,64 +487,63 @@
   .cfd-ctrl-bar .cfd-slider-group {
     display: flex;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
     min-width: 122px;
     flex-shrink: 0;
   }
   .cfd-ctrl-bar .cfd-slider-group input[type="range"] {
-    width: 54px;
+    width: 56px;
     height: 4px;
   }
   .cfd-pills {
     display: flex;
-    gap: 2.5px;
+    gap: 3px;
     flex-wrap: nowrap;
     overflow: hidden;
   }
   .cfd-pill {
-    background: #0e203b;
-    color: #b8d0ee;
-    border: 1px solid #22426e;
-    border-radius: 3px;
-    padding: 2px 4.5px;
-    font-size: 8.5px;
-    font-weight: 700;
+    background: #242426;
+    color: var(--text-muted);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    padding: 2.5px 6px;
+    font-size: 9px;
+    font-weight: 600;
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.12s;
   }
   .cfd-pill:hover {
-    border-color: var(--accent-cyan);
-    color: #fff;
+    color: var(--text-main);
+    background: #2c2c2e;
   }
   .cfd-pill.active {
-    background: rgba(0, 216, 255, 0.22);
-    border-color: var(--accent-cyan);
+    background: var(--accent-blue);
+    border-color: transparent;
     color: #fff;
-    box-shadow: 0 0 6px rgba(0, 216, 255, 0.3);
   }
   .cfd-pill.active.warn {
-    background: rgba(255, 190, 46, 0.24);
-    border-color: var(--accent-amber);
+    background: var(--accent-orange);
+    color: #000;
   }
   .cfd-pill.active.danger {
-    background: rgba(255, 71, 87, 0.28);
-    border-color: var(--accent-red);
+    background: var(--accent-red);
+    color: #fff;
   }
 
   /* Bottom 3 Side-by-Side Telemetry Strip Charts */
   .charts-row {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
+    gap: 8px;
     min-height: 0;
     height: 100%;
   }
   .chart-card {
     background: var(--bg-panel);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 5px 7px;
+    border-radius: 12px;
+    padding: 6px 9px;
     display: flex;
     flex-direction: column;
     min-height: 0;
@@ -524,14 +553,15 @@
     justify-content: space-between;
     align-items: center;
     font-size: 10.5px;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--text-muted);
     margin-bottom: 3px;
     flex-shrink: 0;
   }
   .chart-header span.live-v {
-    font-family: "SFMono-Regular", Consolas, monospace;
-    color: var(--accent-cyan);
+    font-family: "SF Mono", "SFMono-Regular", Consolas, monospace;
+    color: var(--text-main);
+    font-weight: 600;
     font-size: 10.5px;
   }
   .chart-canvas-box {
@@ -550,11 +580,11 @@
     height: 100%;
   }
 
-  /* Right Sidebar: Plain-English Narrator + 6 Circular Arc Gauges + FDIR Summary */
+  /* Right Sidebar: Clean iOS Summary Card + Glass PFD + Compact Gauges */
   .narrator-card {
-    background: linear-gradient(145deg, #102544 0%, #0b1930 100%);
-    border: 1.5px solid var(--accent-cyan);
-    border-radius: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
     padding: 8px 10px;
     display: flex;
     flex-direction: column;
@@ -563,22 +593,22 @@
   }
   .narrator-stage {
     font-size: 12px;
-    font-weight: 800;
-    color: #fff;
+    font-weight: 600;
+    color: var(--text-main);
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
   .narrator-body {
-    font-size: 11.5px;
-    color: #d6e6fb;
+    font-size: 11px;
+    color: #aeaeb2;
     line-height: 1.38;
   }
   .narrator-tip {
     font-size: 10px;
-    color: var(--accent-amber);
-    font-weight: 600;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+    font-weight: 500;
+    border-top: 1px solid var(--border);
     padding-top: 4px;
     margin-top: 2px;
   }
@@ -586,14 +616,14 @@
   .gauges-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 4px;
+    gap: 5px;
     flex-shrink: 0;
   }
   .gauge-card {
     background: var(--bg-card);
-    border: 1px solid #1d375c;
-    border-radius: 6px;
-    padding: 3px 5px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px 6px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -607,26 +637,24 @@
   }
   .gauge-label {
     font-size: 10px;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
     margin-top: 1px;
   }
   .gauge-sub {
     font-size: 9.5px;
-    color: var(--accent-cyan);
-    font-family: "SFMono-Regular", Consolas, monospace;
+    color: var(--text-main);
+    font-family: "SF Mono", "SFMono-Regular", Consolas, monospace;
     white-space: nowrap;
   }
 
   .fdir-mini-box {
-    background: #091526;
-    border: 1px solid #1d375c;
-    border-radius: 5px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 9px;
     padding: 6px 8px;
-    font-size: 10.5px;
-    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 10px;
+    font-family: "SF Mono", "SFMono-Regular", Consolas, monospace;
     max-height: 78px;
     overflow-y: auto;
     flex-shrink: 0;
@@ -636,8 +664,9 @@
   .modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(3, 8, 16, 0.78);
-    backdrop-filter: blur(3px);
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     display: none;
     align-items: center;
     justify-content: center;
@@ -648,38 +677,38 @@
     display: flex;
   }
   .modal-card {
-    background: var(--bg-panel);
-    border: 1.5px solid var(--accent-cyan);
-    border-radius: 8px;
+    background: #1c1c1e;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 14px;
     width: min(1080px, 95vw);
     max-height: 88vh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.75);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.85);
   }
   .modal-header {
-    padding: 10px 16px;
-    background: #102442;
-    border-bottom: 1px solid var(--border);
+    padding: 12px 18px;
+    background: #242426;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 13px;
-    font-weight: 800;
-    color: #fff;
+    font-weight: 600;
+    color: #f5f5f7;
   }
   .modal-body {
-    padding: 14px 16px;
+    padding: 16px 18px;
     overflow-y: auto;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 14px;
+    gap: 16px;
   }
   .control-row {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
     margin-bottom: 6px;
   }
   .control-label {
@@ -689,51 +718,53 @@
     color: var(--text-muted);
   }
   .control-label span.val {
-    color: #fff;
-    font-weight: 700;
-    font-family: "SFMono-Regular", Consolas, monospace;
+    color: #f5f5f7;
+    font-weight: 600;
+    font-family: "SF Mono", "SFMono-Regular", ui-monospace, Menlo, monospace;
   }
   table.comp-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 11px;
-    font-family: "SFMono-Regular", Consolas, monospace;
+    font-family: "SF Mono", "SFMono-Regular", ui-monospace, Menlo, monospace;
   }
   table.comp-table th, table.comp-table td {
-    border: 1px solid #1e385d;
-    padding: 5px 7px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 6px 8px;
     text-align: right;
   }
   table.comp-table th:first-child, table.comp-table td:first-child { text-align: left; }
-  table.comp-table th { background: #0a182c; color: var(--accent-cyan); }
-  table.comp-table tr.selected-row { background: rgba(0, 216, 255, 0.16); }
+  table.comp-table th { background: #2c2c2e; color: #f5f5f7; font-weight: 600; }
+  table.comp-table tr.selected-row { background: rgba(10, 132, 255, 0.18); }
 </style>
 </head>
 <body>
 
 <div class="app-shell">
-  <!-- 1. HEADER BAR -->
+  <!-- 1. HEADER BAR (Apple iOS Dark Mode Toolbar + Segmented Mode Control) -->
   <header>
     <div class="title-row">
-      <h1><span class="accent">FAST-SAR JET SIMULATOR UI</span> — CLICKABLE ISOMETRIC 8-STAGE MISSION & BRANCHING PATHS</h1>
-      <span class="subtitle">Coupled 6-DOF RK4 Solver · Click Any Stage or Branch Node Below to Simulate From That Point Forward</span>
+      <h1><span class="accent">Fast-SAR Jet</span> Flight &amp; Mission Simulator</h1>
+      <span class="subtitle">6-DoF Newton-Euler Solver · Select a Mission Stage or Manual Flight Law</span>
     </div>
     <div class="header-badges">
-      <button class="badge btn-badge" id="btnRunAutoMission" style="background:linear-gradient(90deg,#005a8d,#0096d6);border-color:#00d8ff;color:#fff;font-size:11px;padding:3px 10px;box-shadow:0 0 10px rgba(0,216,255,0.38);" title="Run or Restart the Full 8-Stage Autonomous SAR Mission Simulation">▶ RUN 8-STAGE MISSION</button>
-      <button class="badge btn-badge" id="btnFlyFpvAiRc" style="background:linear-gradient(90deg,#0d5c3a,#18a866);border-color:#18e07f;color:#fff;font-size:11px;padding:3px 10px;box-shadow:0 0 10px rgba(24,224,127,0.38);" title="Fly FPV with Real AI/Flight-Controller Assistance (Auto-Trim, Attitude Hold at Stick Center, ±60° Bank & AoA/G Envelope Protection)">🤖🕹️ FLY FPV: AI-ASSISTED RC [Key 3]</button>
-      <button class="badge btn-badge" id="btnToggleLiveFpv" style="background:linear-gradient(90deg,#7a1c28,#c92a3e);border-color:#ff4757;color:#fff;font-size:11px;padding:3px 10px;box-shadow:0 0 10px rgba(255,71,87,0.38);" title="Fly FPV with 100% Raw Unaided Servos (Zero Stabilization, Zero Auto-Trim, Zero Envelope Protection — Test Raw Airframe Stability!)">⚠️🕹️ FLY FPV: RAW UNAIDED [Key 1]</button>
-      <span class="badge cyan" id="hdrConfigBadge">VARIANT_H_EVO (14.95 kg)</span>
-      <span class="badge orange" id="hdrPhaseBadge">STAGE 1: LAUNCH</span>
-      <span class="badge green" id="hdrQualBadge">MIL-STD-1797 LEVEL 1</span>
-      <span class="badge btn-badge" id="btnOpenBenchModal">📊 Compare All 6 Airframes & Sliders</span>
+      <div class="ios-segmented" role="group" aria-label="Simulation Mode">
+        <button class="seg-btn seg-active-blue" id="btnRunAutoMission" title="Run Autonomous 8-Stage SAR Mission">Auto Mission</button>
+        <button class="seg-btn" id="btnFlyFpvAiRc" title="Fly FPV with AI Flight-Controller Assistance (Normal Law [Key 3])">AI-Assisted RC [3]</button>
+        <button class="seg-btn" id="btnToggleLiveFpv" title="Fly FPV with Raw Unaided Servos (Direct Law [Key 1])">Raw Servos [1]</button>
+      </div>
+      <span class="badge cyan" id="hdrConfigBadge">Variant H-Evo (14.95 kg)</span>
+      <span class="badge orange" id="hdrPhaseBadge">Stage 1: Launch</span>
+      <span class="badge green" id="hdrQualBadge">Level 1 FBW</span>
+      <button class="badge btn-badge" id="btnOpenBenchModal">Airframes &amp; Sliders</button>
     </div>
   </header>
 
   <!-- 2. INTERACTIVE ISOMETRIC 8-STAGE MISSION FLOW & DIVERGING BRANCHES -->
   <div class="mission-flow-panel">
     <div class="flow-header">
-      <span>INTERACTIVE ISOMETRIC MISSION FLOW — CLICK ANY STAGE (1–8) OR DIVERGING BRANCH (1A/1B, 3A/3B, 4A/4B, 5A/5B, 8A/8B) TO SIMULATE FORWARD</span>
-      <span class="hint" id="flowActiveBranchLabel">Active Path: 1A Drop-Trolley → 3A Nominal GPS → 4A Silent E-Prop → 5A 5kg Capsule → 8A Parachute Recovery</span>
+      <span>8-Stage Mission Timeline — Click any stage (1–8) or branch node (1A/B, 3A/B, 4A/B, 5A/B, 8A/B) to jump</span>
+      <span class="hint" id="flowActiveBranchLabel">Active Path: 1A Drop-Trolley → 3A Nominal GPS → 4A Silent E-Prop → 5A 5kg Capsule → 8A Parachute</span>
     </div>
     <div class="flow-canvas-wrap" id="flowWrap">
       <canvas id="canvasMissionFlow"></canvas>
@@ -742,75 +773,75 @@
 
   <!-- 3. MAIN LOWER WORKSPACE -->
   <div class="workspace-grid">
-    <!-- LEFT SIDEBAR: PUSH TO TEST 1-CLICK SCENARIOS -->
+    <!-- LEFT SIDEBAR: SCENARIOS & ENVIRONMENT -->
     <div class="panel">
       <div class="panel-title">
-        <span>Push to Test: 1-Click Scenarios</span>
-        <button id="btnQuickFdirToggle" class="badge green" style="cursor:pointer;padding:1px 6px;font-size:9.5px;" title="Click to toggle FDIR Envelope Protection ON vs OFF">🛡️ FDIR: ON</button>
+        <span>Flight Modes &amp; Scenarios</span>
+        <button id="btnQuickFdirToggle" class="badge green" style="cursor:pointer;padding:2px 7px;font-size:10px;" title="Toggle FDIR Envelope Protection">FDIR: On</button>
       </div>
       <div class="scenario-list" id="scenarioList">
-        <button class="scenario-btn theme-green" id="sideBtnFpvAiRc" style="border-color:#18e07f;background:rgba(24,224,127,0.12);">
-          <div class="sc-icon">🤖</div>
+        <button class="scenario-btn theme-green" id="sideBtnFpvAiRc">
+          <div class="sc-icon">🕹️</div>
           <div class="sc-text">
-            <span class="sc-title" style="color:#18e07f;">🕹️ Fly FPV: AI-Assisted RC Mode</span>
-            <span class="sc-desc">Real FC Stabilized · Auto-Level & Envelope Protected</span>
+            <span class="sc-title">Fly FPV: AI-Assisted RC</span>
+            <span class="sc-desc">Normal Law · Auto-Level &amp; Envelope Protected</span>
           </div>
         </button>
-        <button class="scenario-btn theme-red" id="sideBtnFpvRaw" style="border-color:#ff4757;background:rgba(255,71,87,0.12);">
-          <div class="sc-icon">⚠️</div>
+        <button class="scenario-btn theme-red" id="sideBtnFpvRaw">
+          <div class="sc-icon">⚙️</div>
           <div class="sc-text">
-            <span class="sc-title" style="color:#ff6b81;">🕹️ Fly FPV: Raw Unaided Servos</span>
-            <span class="sc-desc">Zero Stabilization · Test Raw Stability & Stall/Spin</span>
+            <span class="sc-title">Fly FPV: Raw Unaided Servos</span>
+            <span class="sc-desc">Direct Law · Test Raw Airframe Stability</span>
           </div>
         </button>
         <button class="scenario-btn theme-cyan active" data-sc="SC_NOMINAL">
           <div class="sc-icon">✈️</div>
           <div class="sc-text">
             <span class="sc-title">1. Nominal Arctic SAR</span>
-            <span class="sc-desc">-30°C · GPS Clean · 5kg Capsule Drop</span>
+            <span class="sc-desc">-30°C · Clean GNSS · Capsule Drop</span>
           </div>
         </button>
         <button class="scenario-btn theme-red" data-sc="SC_GNSS_JAM">
           <div class="sc-icon">📡</div>
           <div class="sc-text">
-            <span class="sc-title">2. GNSS Jam & Spoof Attack</span>
-            <span class="sc-desc">-48dBm Jam + 380m Spoof → VIO + 940nm</span>
+            <span class="sc-title">2. GNSS Jam &amp; Spoof</span>
+            <span class="sc-desc">-48 dBm Jam → EKF3 VIO + DEM Contour</span>
           </div>
         </button>
         <button class="scenario-btn theme-amber" data-sc="SC_ICING_PITOT">
           <div class="sc-icon">❄️</div>
           <div class="sc-text">
-            <span class="sc-title">3. Severe Icing & Edge Buffet</span>
-            <span class="sc-desc">Pitot Iced + Rime Ice → High-α Struggle</span>
+            <span class="sc-title">3. Icing &amp; Pitot Blockage</span>
+            <span class="sc-desc">Pitot Iced → Synthetic Airspeed Backup</span>
           </div>
         </button>
         <button class="scenario-btn theme-red" data-sc="SC_FLAMEOUT">
           <div class="sc-icon">🔥</div>
           <div class="sc-text">
-            <span class="sc-title">4. Mid-Air Flameout & Dive</span>
-            <span class="sc-desc">Flameout t=48s → Sink & E-Prop Catch</span>
+            <span class="sc-title">4. Turbine Flameout</span>
+            <span class="sc-desc">Flameout t=48s → Folding E-Prop Catch</span>
           </div>
         </button>
         <button class="scenario-btn theme-amber" data-sc="SC_SERVO_EGT">
           <div class="sc-icon">⚠️</div>
           <div class="sc-text">
-            <span class="sc-title">5. Tail Servo Jam & 92% Sat</span>
-            <span class="sc-desc">Left Λ-Tail Jam + EGT >720°C Clamp</span>
+            <span class="sc-title">5. Tail Servo Jam &amp; EGT Clamp</span>
+            <span class="sc-desc">Left Ruddervator Jam + 720°C FADEC Limit</span>
           </div>
         </button>
-        <button class="scenario-btn theme-red" data-sc="SC_OVER_EDGE_CRASH" style="border-color:#ff4757;background:rgba(255,71,87,0.16);">
-          <div class="sc-icon" style="background:rgba(255,71,87,0.32);color:#fff;">💥</div>
+        <button class="scenario-btn theme-red" data-sc="SC_OVER_EDGE_CRASH">
+          <div class="sc-icon">💥</div>
           <div class="sc-text">
-            <span class="sc-title" style="color:#ff8a93;">6. Push Over Edge: Stall & Crash!</span>
-            <span class="sc-desc">Unheated Ice + Cat-5 Shear → Spin & CFIT</span>
+            <span class="sc-title">6. Stall &amp; Spin Departure</span>
+            <span class="sc-desc">Unheated Ice + Severe Shear → Departure</span>
           </div>
         </button>
       </div>
 
-      <!-- 1-Click Weather & Storm Systems Deck -->
-      <div class="panel-title" style="margin-top:1px;">
-        <span>🌦️ 1-Click Weather & Storms</span>
-        <span style="font-size:9px;color:var(--accent-amber)">STACKABLE</span>
+      <!-- Weather Presets -->
+      <div class="panel-title" style="margin-top:2px;">
+        <span>Weather Conditions</span>
+        <span style="font-size:10px;color:var(--text-muted);font-weight:500;">Stackable</span>
       </div>
       <div class="weather-grid" id="weatherGrid">
         <button class="weather-btn active" id="weaClear" data-wea="CLEAR">
@@ -818,62 +849,62 @@
           <div class="w-sub">-15°C · 3.5 m/s Calm</div>
         </button>
         <button class="weather-btn w-warn" id="weaGale" data-wea="GALE_GUSTS">
-          <div class="w-top"><span>💨</span><span>Gale & Gusts</span></div>
+          <div class="w-top"><span>💨</span><span>Gale &amp; Gusts</span></div>
           <div class="w-sub">18 m/s Cross + 12 m/s Gust</div>
         </button>
         <button class="weather-btn w-danger" id="weaMicroburst" data-wea="MICROBURST">
           <div class="w-top"><span>⬇️</span><span>Microburst</span></div>
-          <div class="w-sub">-14.5 m/s Vortex Core</div>
+          <div class="w-sub">-14.5 m/s Downdraft</div>
         </button>
         <button class="weather-btn w-warn" id="weaClouds" data-wea="CLOUDS_ICING">
-          <div class="w-top"><span>☁️</span><span>Clouds & Icing</span></div>
+          <div class="w-top"><span>☁️</span><span>Rime Icing</span></div>
           <div class="w-sub">0.65 g/m³ Supercooled</div>
         </button>
         <button class="weather-btn w-storm" id="weaThunder" data-wea="THUNDERSTORM">
-          <div class="w-top"><span>⛈️</span><span>Thunderstorm</span></div>
-          <div class="w-sub">Cb Anvil + Severe Shear</div>
+          <div class="w-top"><span>⛈️</span><span>Storm Shear</span></div>
+          <div class="w-sub">Severe Turbulence</div>
         </button>
         <button class="weather-btn w-danger" id="weaLightning" data-wea="LIGHTNING">
-          <div class="w-top"><span>⚡</span><span>Lightning Strike</span></div>
-          <div class="w-sub">30 kA Bolt → TVS Clamp</div>
+          <div class="w-top"><span>⚡</span><span>Lightning</span></div>
+          <div class="w-sub">30 kA TVS Clamp</div>
         </button>
       </div>
 
-      <!-- 1-Click Interference, RF Blackout & Airspace Conflict Deconfliction Deck -->
-      <div class="panel-title" style="margin-top:1px;">
-        <span>📡 Interference & Traffic DAA</span>
-        <button id="ewClean" data-ew="CLEAN" class="ew-btn active" style="padding:1px 5px;font-size:8.5px;border-radius:3px;flex-direction:row;align-items:center;gap:3px;" title="Reset all Interference & Airspace Conflict hazards"><span>🟢</span><span>Clean</span></button>
+      <!-- EW & Interference Deck -->
+      <div class="panel-title" style="margin-top:2px;">
+        <span>EW &amp; Sensor Faults</span>
+        <button id="ewClean" data-ew="CLEAN" class="ew-btn active" style="padding:1px 6px;font-size:9.5px;border-radius:4px;flex-direction:row;align-items:center;gap:3px;" title="Reset EW & Sensor Faults"><span>Reset</span></button>
       </div>
       <div class="weather-grid" id="ewGrid">
         <button class="ew-btn w-danger" id="ewGnssJam" data-ew="GNSS_JAM">
-          <div class="w-top"><span>📡</span><span>GNSS RF Blackout</span></div>
-          <div class="w-sub">-42dBm L1/L2/L5 → VIO</div>
+          <div class="w-top"><span>📡</span><span>GNSS Jammed</span></div>
+          <div class="w-sub">0 SV → VIO + DEM</div>
         </button>
         <button class="ew-btn w-danger" id="ewGnssSpoof" data-ew="GNSS_SPOOF">
-          <div class="w-top"><span>👻</span><span>GNSS Spoof Fault</span></div>
-          <div class="w-sub">+380m Meaconing Pull-Off</div>
+          <div class="w-top"><span>👻</span><span>GNSS Spoof</span></div>
+          <div class="w-sub">+380m Meaconing</div>
         </button>
         <button class="ew-btn w-storm" id="ewRfJam" data-ew="RF_JAM">
-          <div class="w-top"><span>🔇</span><span>868MHz RF Blackout</span></div>
-          <div class="w-sub">0W Quiet → 940nm Diode</div>
+          <div class="w-top"><span>🔇</span><span>RF Blackout</span></div>
+          <div class="w-sub">940nm Optical Link</div>
         </button>
         <button class="ew-btn w-warn" id="ewMagEmi" data-ew="MAG_EMI">
-          <div class="w-top"><span>🧲</span><span>120µT Mag + EMI</span></div>
-          <div class="w-sub">Aurora + 38A Bus Compass</div>
+          <div class="w-top"><span>🧲</span><span>Mag Anomaly</span></div>
+          <div class="w-sub">120 µT Compass Shift</div>
         </button>
         <button class="ew-btn w-warn" id="ewVibWhiteout" data-ew="VIB_WHITEOUT">
-          <div class="w-top"><span>〰️</span><span>2.5kHz Vib + Snow</span></div>
-          <div class="w-sub">154k RPM Alias + EO Blind</div>
+          <div class="w-top"><span>〰️</span><span>Snow Whiteout</span></div>
+          <div class="w-sub">EO Blind → LWIR</div>
         </button>
         <button class="ew-btn w-danger" id="ewIntercept" data-ew="ILLEGAL_INTERCEPT">
-          <div class="w-top"><span>🛸</span><span>Traffic Conflict (DAA)</span></div>
-          <div class="w-sub">Wayward Drone + C2 Lock</div>
+          <div class="w-top"><span>🛸</span><span>Traffic DAA</span></div>
+          <div class="w-sub">Airspace Avoidance</div>
         </button>
       </div>
 
       <!-- Airframe & Playback Controls -->
       <div class="compact-box" style="margin-top:auto;">
-        <div class="control-label"><span>Airframe Selector</span></div>
+        <div class="control-label"><span>Airframe</span></div>
         <select id="cfgSelect">
           <option value="VARIANT_H_EVO">1. Variant H-Evo (2.2m Baseline, 100N + E-Prop)</option>
           <option value="FIN_LAB_02_FAST">2. FIN-LAB-02 Fast Responder (1.28m 60° Swept)</option>
@@ -884,14 +915,14 @@
         </select>
 
         <div class="playback-row">
-          <button class="ctrl-btn primary" id="btnPlayPause">⏸ PAUSE</button>
-          <button class="ctrl-btn" id="btnRestart">↺ RESTART</button>
-          <button class="ctrl-btn" id="btnSpeed">⚡ 2x</button>
+          <button class="ctrl-btn primary" id="btnPlayPause">⏸ Pause</button>
+          <button class="ctrl-btn" id="btnRestart">↺ Restart</button>
+          <button class="ctrl-btn" id="btnSpeed">2x</button>
         </div>
 
         <div class="control-row" style="margin-bottom:0;">
           <div class="control-label">
-            <span>Timeline Scrubber</span>
+            <span>Timeline</span>
             <span class="val" id="valTime">0.0 s / 182.0 s</span>
           </div>
           <input type="range" id="rngScrub" min="0" max="100" step="1" value="0" />
@@ -899,8 +930,8 @@
       </div>
 
       <button class="ctrl-btn drawer-trigger" id="btnOpenSliders">
-        <span>⚙️ Advanced Weather & Fault Sliders</span>
-        <span>▸</span>
+        <span>Advanced Sliders &amp; Faults</span>
+        <span>›</span>
       </button>
     </div>
 
@@ -910,13 +941,13 @@
         <!-- Left 3D Viewport: Interactive 3D Isometric Terrain & Diverging Trajectory Map -->
         <div class="viewport-card">
           <div class="vp-header">
-            <span>3D Terrain, Weather & Trajectory Map</span>
+            <span>3D Terrain &amp; Mission Path</span>
             <div class="cam-pills">
-              <button id="tCamOrbit" class="active" title="Left-drag to 3D Rotate">🔄 3D Rotate</button>
-              <button id="tCamPan" title="Drag to Pan">✋ Pan</button>
+              <button id="tCamOrbit" class="active" title="Left-drag to Rotate">Orbit</button>
+              <button id="tCamPan" title="Drag to Pan">Pan</button>
               <button id="tCamZoomIn" title="Zoom In">＋</button>
               <button id="tCamZoomOut" title="Zoom Out">－</button>
-              <button id="tCamReset" title="Reset 3D Camera">↺ Reset</button>
+              <button id="tCamReset" title="Reset Camera">Reset</button>
             </div>
           </div>
           <div class="vp-canvas-box" id="terrainWrap" style="cursor:grab;">
@@ -924,41 +955,42 @@
           </div>
         </div>
 
-        <!-- Right 3D & 2D CFD Viewport: Volumetric Variant H UAV + Particle Wind-Tunnel + Airfoil Section -->
+        <!-- Right Primary Flight / Cockpit / Operator OSD / CFD Viewport -->
         <div class="viewport-card">
           <div class="vp-header">
-            <span id="vpAircraftTitle">Variant H UAV — 3D & 2D CFD Airflow</span>
+            <span id="vpAircraftTitle">Primary Flight &amp; Aerodynamics Display</span>
             <div class="cam-pills">
-              <button id="camFpvCockpit" style="border-color:#18e07f;color:#18e07f;font-weight:800;" title="100% Realistic First-Person Cockpit HUD & Live 6-DoF Manual Flight">🕹️ FPV HUD</button>
-              <button id="camGlassPfd" style="border-color:#ffbe2e;color:#ffbe2e;font-weight:800;" title="Full Glass Cockpit Primary Flight Display (PFD: Blue/Brown ADI Horizon, IAS/Alt/VSI Tapes, Rotating HSI Compass & EIS)">🛩️ GLASS PFD</button>
-              <button id="camFpvSplit" style="border-color:#00d8ff;color:#00d8ff;" title="Split View: Live 3D FPV Cockpit HUD (Left) + Live 3D/2D Wing CFD Airflow (Right)">FPV+CFD</button>
-              <button id="camIso" class="active" title="3D Volumetric Aircraft + CFD Particle Streamlines">3D CFD</button>
-              <button id="camAirfoil2D" title="High-Resolution 2D Wing + Λ-Tail Airfoil Cross-Section Wind Tunnel">🔬 2D Airfoil</button>
-              <button id="camSplitCFD" title="Split View: 3D Volumetric CFD (Left) + 2D Airfoil Cross-Section (Right)">Split 3D+2D</button>
-              <button id="camSide" title="Side Profile Airflow & Pitch Attitude">Side</button>
-              <button id="camTop" title="Top Planform Spanwise Outflow & Tip Vortices">Top Span</button>
-              <button id="camFront" title="Front Λ-Tail & Wingtip Vortex Cores">Front Λ</button>
-              <button id="camPan" title="Drag to Pan">✋ Pan</button>
-              <button id="camReset" title="Reset Camera">↺</button>
+              <button id="camFpvCockpit" title="First-Person Cockpit HUD &amp; Manual Flight">FPV HUD</button>
+              <button id="camGlassPfd" title="Garmin/Airbus Glass Cockpit Primary Flight Display (PFD + HSI + EIS)">Glass PFD</button>
+              <button id="camOperatorOsd" title="Field-Proven Tactical Operator Camera OSD (ATTI/VIO Mode, GNSS=0, Left RNG/AI Dock &amp; Radar Puck)">Op-Cam OSD</button>
+              <button id="camFpvSplit" title="Split View: FPV HUD (Left) + 3D CFD (Right)">Split FPV</button>
+              <button id="camIso" class="active" title="3D Aircraft + CFD Streamlines">3D CFD</button>
+              <button id="camAirfoil2D" title="2D Wing + Tail Airfoil Wind Tunnel">2D Airfoil</button>
+              <button id="camSplitCFD" title="Split 3D + 2D CFD">3D+2D</button>
+              <button id="camSide" title="Side Profile">Side</button>
+              <button id="camTop" title="Top Planform">Top</button>
+              <button id="camFront" title="Front View">Front</button>
+              <button id="camPan" title="Drag to Pan">Pan</button>
+              <button id="camReset" title="Reset View">↺</button>
             </div>
           </div>
           <div class="vp-canvas-box" id="aircraftWrap" style="cursor:grab;">
             <canvas id="canvasAircraft3D"></canvas>
           </div>
-          <div class="cfd-ctrl-bar">
+          <div class="cfd-ctrl-bar" id="cfdCtrlBar">
             <div class="cfd-slider-group">
-              <button id="cfdSyncBtn" class="cfd-pill active" title="Couple CFD to Live 6-DOF Mission Attitude & Weather">🔗 Live</button>
-              <span style="color:#8aa6cc;font-weight:700;">AoA α:</span>
-              <input type="range" id="cfdAoaSlider" min="-6" max="24" step="0.5" value="3.0" title="Interactive Wind-Tunnel Angle of Attack (deg)">
-              <span id="cfdAoaVal" style="color:var(--accent-cyan);font-family:monospace;font-weight:800;min-width:34px;">+3.0°</span>
+              <button id="cfdSyncBtn" class="cfd-pill active" title="Couple CFD to Live 6-DoF Attitude">Live 6-DoF</button>
+              <span style="color:var(--text-muted);font-weight:500;">AoA α</span>
+              <input type="range" id="cfdAoaSlider" min="-6" max="24" step="0.5" value="3.0" title="Wind-Tunnel Angle of Attack (deg)">
+              <span id="cfdAoaVal" style="color:var(--text-main);font-family:monospace;font-weight:600;min-width:34px;">+3.0°</span>
             </div>
             <div class="cfd-pills">
-              <button class="cfd-pill" id="cfdBtnAttached" title="Clean Attached Laminar/Turbulent Boundary Layer (α = +3.0°)">🟢 +3° Attached</button>
-              <button class="cfd-pill" id="cfdBtnBuffet" title="High-AoA Suction Peak & Trailing-Edge Buffet Onset (α = +12.5°)">⚠️ +12.5° Buffet</button>
-              <button class="cfd-pill" id="cfdBtnStall" title="Full Aerodynamic Stall & Leading-Edge Flow Detachment (α = +18.5°)">🚨 +18.5° Stall</button>
-              <button class="cfd-pill" id="cfdBtnPullup" title="Sudden +3.5g Pitch Pull-Up Maneuver (Dynamic Stall Hysteresis)">⚡ +3.5g Pull</button>
-              <button class="cfd-pill" id="cfdBtnSideslip" title="Rapid 14° Yaw Sideslip & Asymmetric Roll Crossflow">🔄 14° Slip</button>
-              <button class="cfd-pill" id="cfdBtnSnowIce" title="Heavy Blowing Snow + 3.5mm Leading-Edge Glaze Ice Horn">❄️ Snow+Ice</button>
+              <button class="cfd-pill" id="cfdBtnAttached" title="Attached Flow (α = +3.0°)">+3° Clean</button>
+              <button class="cfd-pill" id="cfdBtnBuffet" title="Buffet Onset (α = +12.5°)">+12.5° Buffet</button>
+              <button class="cfd-pill" id="cfdBtnStall" title="Full Stall (α = +18.5°)">+18.5° Stall</button>
+              <button class="cfd-pill" id="cfdBtnPullup" title="+3.5g Pull-Up">+3.5g Pull</button>
+              <button class="cfd-pill" id="cfdBtnSideslip" title="14° Sideslip">14° Slip</button>
+              <button class="cfd-pill" id="cfdBtnSnowIce" title="Leading-Edge Glaze Ice">Ice Horn</button>
             </div>
           </div>
         </div>
@@ -968,21 +1000,21 @@
       <div class="charts-row">
         <div class="chart-card">
           <div class="chart-header">
-            <span>ALTITUDE AGL & CAPSULE DROP (m)</span>
+            <span>Altitude AGL &amp; Drop (m)</span>
             <span class="live-v" id="lblChartAlt">0 m</span>
           </div>
           <div class="chart-canvas-box"><canvas id="chartAlt"></canvas></div>
         </div>
         <div class="chart-card">
           <div class="chart-header">
-            <span>AIRSPEED vs. STALL SPEED (km/h)</span>
+            <span>Airspeed vs. Stall (km/h)</span>
             <span class="live-v" id="lblChartSpeed">0 km/h</span>
           </div>
           <div class="chart-canvas-box"><canvas id="chartSpeed"></canvas></div>
         </div>
         <div class="chart-card">
           <div class="chart-header">
-            <span>ENGINE THRUST vs. DRAG (N)</span>
+            <span>Thrust vs. Drag (N)</span>
             <span class="live-v" id="lblChartThrust">0 N</span>
           </div>
           <div class="chart-canvas-box"><canvas id="chartThrust"></canvas></div>
@@ -990,11 +1022,11 @@
       </div>
     </div>
 
-    <!-- RIGHT SIDEBAR: PLAIN-ENGLISH NARRATOR + GLASS COCKPIT PFD/HSI + 6 CIRCULAR GAUGES + FDIR STATUS -->
+    <!-- RIGHT SIDEBAR: TELEMETRY SUMMARY + MINI PFD/HSI + 6 GAUGES -->
     <div class="panel" style="overflow-y:auto;">
       <div class="panel-title">
-        <span>What Is Happening Now</span>
-        <span id="badgeStageTime" style="font-size:10px;color:var(--accent-amber)">t = 0.0 s</span>
+        <span>Flight Status</span>
+        <span id="badgeStageTime" style="font-size:10.5px;color:var(--text-muted);font-family:monospace;">t = 0.0 s</span>
       </div>
       <div class="narrator-card">
         <div class="narrator-stage">
@@ -1002,18 +1034,18 @@
           <span class="badge cyan" id="narModeBadge" style="padding:1px 6px;font-size:9.5px;">DROP_TROLLEY</span>
         </div>
         <div class="narrator-body" id="narBodyText">
-          Accelerating on 3-wheel tundra drop-trolley with 100 N dorsal turbojet at full thrust. Trolley releases automatically at liftoff.
+          Accelerating on 3-wheel tundra drop-trolley with dorsal turbojet at full thrust. Trolley releases automatically at liftoff.
         </div>
         <div class="narrator-tip" id="narTipText">
-          💡 Click any Stage (1–8) or Branch in the top diagram to jump & simulate forward.
+          Click any Stage (1–8) above or select a view tab (FPV HUD, Glass PFD, Op-Cam OSD).
         </div>
       </div>
 
       <div class="panel-title" style="margin-top:2px;">
-        <span>Glass Cockpit PFD, HSI & Flight Instruments</span>
-        <span id="lblNavStatus" style="font-size:9.5px;color:var(--accent-green)">GPS NOMINAL</span>
+        <span>Primary Flight Instruments</span>
+        <span id="lblNavStatus" style="font-size:10px;color:var(--accent-green)">GNSS Nominal</span>
       </div>
-      <div style="width:100%;height:156px;flex-shrink:0;border:1px solid #1e3d6b;border-radius:6px;background:#040c18;overflow:hidden;margin-bottom:4px;position:relative;">
+      <div style="width:100%;height:156px;flex-shrink:0;border:1px solid rgba(255,255,255,0.08);border-radius:8px;background:#0a0a0c;overflow:hidden;margin-bottom:4px;position:relative;">
         <canvas id="canvasGlassPFD" style="width:100%;height:100%;display:block;"></canvas>
       </div>
       <div class="gauges-grid">
@@ -3969,6 +4001,10 @@ function draw3DAircraftViewport(sample) {
     drawGlassCockpitInstrumentDisplay(ctx, 0, 0, W, H, sample, flow, cfg, env, fltAc, true);
     return;
   }
+  if (camMode === "OPERATOR_OSD") {
+    drawTacticalOperatorCameraOSD(ctx, 0, 0, W, H, sample, flow, cfg, env, fltAc);
+    return;
+  }
   if (camMode === "FPV_SPLIT") {
     const wFpv = Math.floor(W * 0.55);
     drawFpvCockpitHUD(ctx, 0, 0, wFpv, H, sample, flow, cfg, env, fltAc);
@@ -5482,10 +5518,17 @@ document.getElementById("rngScrub").oninput = e => {
   updateUIForSample(playIdx);
 };
 
-const CAM_BTN_IDS = ["camFpvCockpit", "camGlassPfd", "camFpvSplit", "camIso", "camAirfoil2D", "camSplitCFD", "camSide", "camTop", "camFront"];
+const CAM_BTN_IDS = ["camFpvCockpit", "camGlassPfd", "camOperatorOsd", "camFpvSplit", "camIso", "camAirfoil2D", "camSplitCFD", "camSide", "camTop", "camFront"];
+function syncCfdControlBarVisibility() {
+  const bar = document.getElementById("cfdCtrlBar");
+  if (!bar) return;
+  const hideBar = (camMode === "FPV_COCKPIT" || camMode === "GLASS_PFD" || camMode === "OPERATOR_OSD");
+  bar.style.display = hideBar ? "none" : "flex";
+}
 [
   ["camFpvCockpit", "FPV_COCKPIT"],
   ["camGlassPfd", "GLASS_PFD"],
+  ["camOperatorOsd", "OPERATOR_OSD"],
   ["camFpvSplit", "FPV_SPLIT"],
   ["camIso", "ISO"],
   ["camAirfoil2D", "AIRFOIL_2D"],
@@ -5505,7 +5548,8 @@ const CAM_BTN_IDS = ["camFpvCockpit", "camGlassPfd", "camFpvSplit", "camIso", "c
       if (b) b.classList.remove("active");
     });
     el.classList.add("active");
-    if ((mode === "FPV_COCKPIT" || mode === "GLASS_PFD" || mode === "FPV_SPLIT") && !fpvSim.active) {
+    syncCfdControlBarVisibility();
+    if ((mode === "FPV_COCKPIT" || mode === "GLASS_PFD" || mode === "OPERATOR_OSD" || mode === "FPV_SPLIT") && !fpvSim.active) {
       initLiveFpvFlight("CANYON_DIRECT", "NORMAL_LAW");
     }
     updateUIForSample(playIdx);
@@ -5519,6 +5563,7 @@ document.getElementById("camReset").onclick = () => {
   fpvSim.active = false;
   syncLiveFpvHeaderButton();
   camMode = "ISO";
+  syncCfdControlBarVisibility();
   aircraftCam.yaw = -0.62; aircraftCam.pitch = 0.36; aircraftCam.zoom = 1.0; aircraftCam.panX = 0; aircraftCam.panY = 0;
   aircraftCam.dragMode = "ORBIT";
   document.getElementById("camPan").classList.remove("active");
@@ -5659,29 +5704,27 @@ function getArcticCanyonTerrainMSL(x_n, y_e) {
 }
 
 function syncLiveFpvHeaderButton() {
-  const btnRaw = document.getElementById("btnToggleLiveFpv");
-  const btnAi  = document.getElementById("btnFlyFpvAiRc");
-  if (btnRaw) {
-    if (fpvSim.active && fpvSim.controlLaw === "DIRECT_LAW") {
-      btnRaw.classList.add("active");
-      btnRaw.textContent = fpvSim.crashed
-        ? "💥 RAW CRASHED — CLICK OR [R] TO RESPAWN"
-        : "⚠️🕹️ RAW UNAIDED ACTIVE [Key 1] · CLICK TO EXIT";
-    } else {
-      btnRaw.classList.remove("active");
-      btnRaw.textContent = "⚠️🕹️ FLY FPV: RAW UNAIDED [Key 1]";
-    }
+  const btnAuto = document.getElementById("btnRunAutoMission");
+  const btnAi   = document.getElementById("btnFlyFpvAiRc");
+  const btnRaw  = document.getElementById("btnToggleLiveFpv");
+  if (btnAuto) {
+    btnAuto.classList.toggle("seg-active-blue", !fpvSim.active);
   }
   if (btnAi) {
-    if (fpvSim.active && fpvSim.controlLaw !== "DIRECT_LAW") {
-      btnAi.classList.add("active");
-      btnAi.textContent = fpvSim.crashed
-        ? "💥 FPV CRASHED — CLICK OR [R] TO RESPAWN"
-        : `🤖🕹️ AI-ASSISTED RC ACTIVE [${fpvSim.controlLaw === "NORMAL_LAW" ? "Key 3" : "Key 2"}] · CLICK TO EXIT`;
-    } else {
-      btnAi.classList.remove("active");
-      btnAi.textContent = "🤖🕹️ FLY FPV: AI-ASSISTED RC [Key 3]";
-    }
+    const aiActive = fpvSim.active && fpvSim.controlLaw !== "DIRECT_LAW";
+    btnAi.classList.toggle("seg-active-green", aiActive);
+    btnAi.classList.toggle("active", aiActive);
+    btnAi.textContent = aiActive
+      ? (fpvSim.crashed ? "Crashed · Click or [R]" : `AI-Assisted RC [${fpvSim.controlLaw === "NORMAL_LAW" ? "3" : "2"}]`)
+      : "AI-Assisted RC [3]";
+  }
+  if (btnRaw) {
+    const rawActive = fpvSim.active && fpvSim.controlLaw === "DIRECT_LAW";
+    btnRaw.classList.toggle("seg-active-red", rawActive);
+    btnRaw.classList.toggle("active", rawActive);
+    btnRaw.textContent = rawActive
+      ? (fpvSim.crashed ? "Crashed · Click or [R]" : "Raw Servos Active [1]")
+      : "Raw Servos [1]";
   }
 }
 
@@ -5833,9 +5876,9 @@ function initLiveFpvFlight(presetName, optionalControlLaw) {
   fpvSim.de_deg = 0.0;
   fpvSim.dr_deg = 0.0;
   isPlaying = false;
-  document.getElementById("btnPlayPause").textContent = "▶ PLAY";
+  document.getElementById("btnPlayPause").textContent = "▶ Play";
 
-  if (camMode !== "FPV_COCKPIT" && camMode !== "GLASS_PFD" && camMode !== "FPV_SPLIT") {
+  if (camMode !== "FPV_COCKPIT" && camMode !== "GLASS_PFD" && camMode !== "OPERATOR_OSD" && camMode !== "FPV_SPLIT") {
     camMode = "FPV_COCKPIT";
     CAM_BTN_IDS.forEach(id => {
       const b = document.getElementById(id);
@@ -5844,6 +5887,7 @@ function initLiveFpvFlight(presetName, optionalControlLaw) {
     const fpvBtn = document.getElementById("camFpvCockpit");
     if (fpvBtn) fpvBtn.classList.add("active");
   }
+  syncCfdControlBarVisibility();
   syncLiveFpvHeaderButton();
   // Seed initial telemetry sample and update UI
   stepLiveFpvPhysics(1.0 / 60.0);
@@ -6927,22 +6971,26 @@ function drawFpvCockpitHUD(ctx, x0, y0, w, h, sample, flow, cfg, env, flt) {
   ctx.font = "8.5px monospace";
   ctx.fillText(`TRIM P:${(fpvSim.trimPitch * 100).toFixed(0)}% Fuel:${fpvSim.fuel_kg.toFixed(1)}k`, altX - 17, tapeTop + tapeH + 46);
 
-  // 9. Top Interactive Scenario & Flight Control Law Selector Strip (Clickable right on the Canvas!)
+  // 9. Top Interactive Scenario & Flight Control Law Selector Strip (Apple iOS Dark Glass Pill Bar)
   const topBarY = y0 + 6;
-  ctx.fillStyle = "rgba(5, 13, 25, 0.88)";
-  ctx.strokeStyle = "rgba(0, 216, 255, 0.42)";
+  ctx.fillStyle = "rgba(28, 28, 30, 0.86)";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
   ctx.lineWidth = 1.0;
-  ctx.fillRect(x0 + 8, topBarY, w - 16, 44);
-  ctx.strokeRect(x0 + 8, topBarY, w - 16, 44);
+  ctx.beginPath();
+  ctx.roundRect(x0 + 8, topBarY, w - 16, 44, 8);
+  ctx.fill();
+  ctx.stroke();
 
   function addHudPill(px, py, pw, ph, label, isActive, activeColor, onClickFn) {
-    ctx.fillStyle = isActive ? activeColor : "rgba(15, 32, 58, 0.85)";
-    ctx.strokeStyle = isActive ? "#ffffff" : "rgba(0, 216, 255, 0.38)";
-    ctx.lineWidth = isActive ? 1.5 : 1.0;
-    ctx.fillRect(px, py, pw, ph);
-    ctx.strokeRect(px, py, pw, ph);
-    ctx.fillStyle = isActive ? "#04101e" : "#d0e6ff";
-    ctx.font = isActive ? "bold 8.8px sans-serif" : "8.5px sans-serif";
+    ctx.fillStyle = isActive ? activeColor : "rgba(44, 44, 46, 0.85)";
+    ctx.strokeStyle = isActive ? "rgba(255, 255, 255, 0.25)" : "rgba(255, 255, 255, 0.08)";
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.roundRect(px, py, pw, ph, 5);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = isActive ? "#ffffff" : "#ebebf5";
+    ctx.font = isActive ? "600 8.8px -apple-system, sans-serif" : "500 8.5px -apple-system, sans-serif";
     ctx.textAlign = "center";
     ctx.fillText(label, px + pw * 0.5, py + ph * 0.68);
     fpvSim.hudHitBoxes.push({ x: px, y: py, w: pw, h: ph, action: onClickFn });
@@ -6951,26 +6999,26 @@ function drawFpvCockpitHUD(ctx, x0, y0, w, h, sample, flow, cfg, env, flt) {
   // Row 1: 3 Flight Control Laws + Trackpad Bounds Toggle + Invert Y Toggle
   const row1Y = topBarY + 3;
   const lawW = Math.min(126, (w - 224) / 3);
-  addHudPill(x0 + 12, row1Y, lawW, 17, "[1] ⚠️ RAW UNAIDED (SERVOS)", fpvSim.controlLaw === "DIRECT_LAW", "#ff4757", () => {
+  addHudPill(x0 + 12, row1Y, lawW, 17, "[1] Raw Servos (Direct)", fpvSim.controlLaw === "DIRECT_LAW", "#ff453a", () => {
     fpvSim.controlLaw = "DIRECT_LAW";
     syncLiveFpvHeaderButton();
   });
-  addHudPill(x0 + 16 + lawW, row1Y, lawW, 17, "[2] 🔧 SAS GYRO DAMPER", fpvSim.controlLaw === "ALTERNATE_LAW", "#ffbe2e", () => {
+  addHudPill(x0 + 16 + lawW, row1Y, lawW, 17, "[2] SAS Gyro Damper", fpvSim.controlLaw === "ALTERNATE_LAW", "#ff9f0a", () => {
     fpvSim.controlLaw = "ALTERNATE_LAW";
     syncLiveFpvHeaderButton();
   });
-  addHudPill(x0 + 20 + lawW * 2, row1Y, lawW, 17, "[3] 🤖 AI-ASSISTED RC (FC)", fpvSim.controlLaw === "NORMAL_LAW", "#18e07f", () => {
+  addHudPill(x0 + 20 + lawW * 2, row1Y, lawW, 17, "[3] AI-Assisted RC (FBW)", fpvSim.controlLaw === "NORMAL_LAW", "#30d158", () => {
     fpvSim.controlLaw = "NORMAL_LAW";
     syncLiveFpvHeaderButton();
   });
   const tpLabel = !fpvSim.mouseYokeEnabled
-    ? "🍏 TRACKPAD: OFF [M]"
-    : (fpvSim.hwTrackpadConnected ? "🍏 HW TRACKPAD: LIVE" : "🍏 TRACKPAD: ON [M]");
-  addHudPill(x0 + w - 196, row1Y, 114, 17, tpLabel, fpvSim.mouseYokeEnabled, fpvSim.hwTrackpadConnected ? "#18e07f" : "#00d8ff", () => {
+    ? "Trackpad: Off [M]"
+    : (fpvSim.hwTrackpadConnected ? "HW Trackpad: Live" : "Trackpad: On [M]");
+  addHudPill(x0 + w - 196, row1Y, 114, 17, tpLabel, fpvSim.mouseYokeEnabled, fpvSim.hwTrackpadConnected ? "#30d158" : "#0a84ff", () => {
     fpvSim.mouseYokeEnabled = !fpvSim.mouseYokeEnabled;
     if (!fpvSim.mouseYokeEnabled) { fpvSim.mouseYokeX = 0; fpvSim.mouseYokeY = 0; }
   });
-  addHudPill(x0 + w - 78, row1Y, 66, 17, fpvSim.invertTrackpadY ? "[I] Y:POINT" : "[I] Y:PULL", fpvSim.invertTrackpadY, "#ffbe2e", () => {
+  addHudPill(x0 + w - 78, row1Y, 66, 17, fpvSim.invertTrackpadY ? "[I] Y:Point" : "[I] Y:Pull", fpvSim.invertTrackpadY, "#0a84ff", () => {
     fpvSim.invertTrackpadY = !fpvSim.invertTrackpadY;
   });
 
@@ -6978,25 +7026,25 @@ function drawFpvCockpitHUD(ctx, x0, y0, w, h, sample, flow, cfg, env, flt) {
   const row2Y = topBarY + 23;
   const scenW = (w - 36) / 5;
   const scenarios = [
-    ["CANYON_DIRECT",    "🔥 Canyon Hands-On"],
-    ["TAKEOFF_ROLL",     "🛫 Runway T/O (0 km/h)"],
-    ["CANYON_SPRINT",    "🏔️ Low Canyon Sprint"],
-    ["FINAL_APPROACH",   "🎯 Approach & Land"],
-    ["UPSET_STALL_SPIN", "⚠️ Stall/Spin Recovery"]
+    ["CANYON_DIRECT",    "Canyon Entry"],
+    ["TAKEOFF_ROLL",     "Runway Takeoff"],
+    ["CANYON_SPRINT",    "Low Canyon Sprint"],
+    ["FINAL_APPROACH",   "Final Approach"],
+    ["UPSET_STALL_SPIN", "Stall Recovery"]
   ];
   scenarios.forEach(([key, lbl], idx) => {
-    addHudPill(x0 + 14 + idx * (scenW + 2), row2Y, scenW - 2, 17, lbl, fpvSim.preset === key, "#00d8ff", () => {
+    addHudPill(x0 + 14 + idx * (scenW + 2), row2Y, scenW - 2, 17, lbl, fpvSim.preset === key, "#0a84ff", () => {
       initLiveFpvFlight(key);
     });
   });
 
   // Active Flight Law & Envelope Banner just under Top Bar
-  ctx.fillStyle = fpvSim.controlLaw === "DIRECT_LAW"
-    ? "rgba(255, 71, 87, 0.22)"
-    : (fpvSim.controlLaw === "ALTERNATE_LAW" ? "rgba(255, 190, 46, 0.20)" : "rgba(24, 224, 127, 0.20)");
-  ctx.fillRect(x0 + 82, topBarY + 46, w - 164, 16);
-  ctx.fillStyle = fpvSim.controlLaw === "DIRECT_LAW" ? "#ff8a95" : (fpvSim.controlLaw === "ALTERNATE_LAW" ? "#ffbe2e" : "#18e07f");
-  ctx.font = "bold 8.5px sans-serif";
+  ctx.fillStyle = "rgba(28, 28, 30, 0.82)";
+  ctx.beginPath();
+  ctx.roundRect(x0 + 82, topBarY + 46, w - 164, 16, 4);
+  ctx.fill();
+  ctx.fillStyle = fpvSim.controlLaw === "DIRECT_LAW" ? "#ff453a" : (fpvSim.controlLaw === "ALTERNATE_LAW" ? "#ff9f0a" : "#30d158");
+  ctx.font = "600 8.5px -apple-system, sans-serif";
   ctx.textAlign = "center";
   ctx.fillText(fpvSim.protBanner, cx, topBarY + 57);
 
@@ -8063,6 +8111,424 @@ function drawGlassCockpitInstrumentDisplay(ctx, x0, y0, w, h, sample, flow, cfg,
   ctx.restore();
 }
 
+// ============================================================================
+// FIELD-PROVEN TACTICAL OPERATOR CAMERA OSD (GNSS-DENIED ATTI/VIO, LEFT RNG/AI DOCK,
+// CENTER GIMBAL THERMAL LOCK & BOTTOM RADAR/ATTITUDE PUCK FOR JET & QUAD)
+// ============================================================================
+const opCamState = {
+  droneView: "JET",     // "JET" (Tier-3 Mothership EO/LWIR) | "QUAD" (Tier-2 Karhunkierros Quad Hover/Winch/Lantern)
+  zoomLevel: 1.0,       // 1.0x | 3.0x
+  thermalMode: true,    // EO + LWIR Thermal Fusion Overlay
+  rngActive: true,      // Laser/DEM Slant-Range Finder
+  aiLockActive: true,   // Hailo-8L / Pi 5 Survivor Lock
+  cruiseActive: false,  // ATTI / VIO Speed & Heading Hold
+  lookDownNadir: false, // -90 deg Nadir Gimbal Look-Down
+  lanternOn: true       // 1500 lm Opaslyhty Survivor Escort Spotlight (Quad)
+};
+
+function drawTacticalOperatorCameraOSD(ctx, x0, y0, w, h, sample, flow, cfg, env, flt) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x0, y0, w, h);
+  ctx.clip();
+
+  fpvSim.hudHitBoxes = [];
+  const cx = x0 + w * 0.5;
+  const cy = y0 + h * 0.5;
+
+  // Live Flight States
+  const roll_rad  = fpvSim.active ? fpvSim.phi : ((sample.roll_deg || 0) * Math.PI / 180.0);
+  const pitch_deg = fpvSim.active ? (fpvSim.theta * 180.0 / Math.PI) : (sample.pitch_deg || 2.5);
+  const hdg_deg   = fpvSim.active ? fpvSim.fpvHeading_deg : ((sample.heading_deg !== undefined ? sample.heading_deg : 42.0) % 360 + 360) % 360;
+  const agl_m     = fpvSim.active ? fpvSim.alt_agl : Math.max(0.0, sample.alt_agl_m || 120.0);
+  const spd_kmh   = fpvSim.active ? (fpvSim.ias_mps * 3.6) : (sample.speed_kmh || 245.0);
+  const vsi_mps   = fpvSim.active ? fpvSim.climbRate_mps : (sample.climb_rate_mps || 0.0);
+  const gnssJammed = Boolean(env && (env.ew_gnss_jam || env.ew_gnss_spoof || flt.gnss_degraded));
+
+  // 1. Stabilized Camera Feed Background (3D Arctic Canyon + Thermal Contrast Overlay)
+  const gimPitch = opCamState.lookDownNadir ? -38.0 : pitch_deg * 0.35;
+  const gimRoll  = roll_rad * 0.15; // 3-axis gyro-stabilized gimbal damps 85% of airframe bank
+  const skyGrad = ctx.createLinearGradient(x0, y0, x0, y0 + h);
+  if (opCamState.thermalMode) {
+    skyGrad.addColorStop(0.0, "#090d14");
+    skyGrad.addColorStop(0.42, "#141d29");
+    skyGrad.addColorStop(0.45, "#1b2634");
+    skyGrad.addColorStop(1.0, "#0b1118");
+  } else {
+    skyGrad.addColorStop(0.0, "#102038");
+    skyGrad.addColorStop(0.45, "#243b58");
+    skyGrad.addColorStop(0.46, "#1a2838");
+    skyGrad.addColorStop(1.0, "#0d1622");
+  }
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(x0, y0, w, h);
+
+  // Subtle Terrain Contours & Snowy Valley Floor in Camera View
+  ctx.save();
+  ctx.translate(cx, cy + gimPitch * 3.2);
+  ctx.rotate(-gimRoll);
+  ctx.strokeStyle = opCamState.thermalMode ? "rgba(90, 200, 250, 0.14)" : "rgba(255, 255, 255, 0.12)";
+  ctx.lineWidth = 1.0;
+  for (let row = 1; row <= 8; row++) {
+    const ry = row * 28 * opCamState.zoomLevel;
+    ctx.beginPath();
+    ctx.moveTo(-w * 0.65, ry);
+    ctx.lineTo(w * 0.65, ry);
+    ctx.stroke();
+  }
+  for (let col = -5; col <= 5; col++) {
+    ctx.beginPath();
+    ctx.moveTo(col * 34, 18);
+    ctx.lineTo(col * 145 * opCamState.zoomLevel, h * 0.65);
+    ctx.stroke();
+  }
+
+  // Simulated Survivor Thermal Signature & Rescue Drop Zone in Canyon Floor
+  const survX = Math.sin(cfdClock * 0.35) * 18.0;
+  const survY = 54.0;
+  if (opCamState.droneView === "QUAD" && opCamState.lanternOn) {
+    // 1,500 lm Opaslyhty Spotlight Cone illuminating trail ahead of survivor
+    const spotGrad = ctx.createRadialGradient(survX, survY - 12, 4, survX, survY - 12, 85);
+    spotGrad.addColorStop(0.0, "rgba(255, 248, 210, 0.32)");
+    spotGrad.addColorStop(0.6, "rgba(100, 210, 255, 0.10)");
+    spotGrad.addColorStop(1.0, "rgba(0, 0, 0, 0.0)");
+    ctx.fillStyle = spotGrad;
+    ctx.beginPath();
+    ctx.arc(survX, survY - 12, 85, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Thermal hotspot glow (+31°C survivor against -30°C snow)
+  const hotGrad = ctx.createRadialGradient(survX, survY, 2, survX, survY, 22 * opCamState.zoomLevel);
+  hotGrad.addColorStop(0.0, "#ffffff");
+  hotGrad.addColorStop(0.35, "#ff9f0a");
+  hotGrad.addColorStop(0.7, "rgba(255, 69, 58, 0.45)");
+  hotGrad.addColorStop(1.0, "rgba(255, 69, 58, 0.0)");
+  ctx.fillStyle = hotGrad;
+  ctx.beginPath();
+  ctx.arc(survX, survY, 22 * opCamState.zoomLevel, 0, Math.PI * 2);
+  ctx.fill();
+
+  // AI Target Lock Bounding Box around Survivor
+  if (opCamState.aiLockActive) {
+    const bx = survX - 24 * opCamState.zoomLevel;
+    const by = survY - 24 * opCamState.zoomLevel;
+    const bw = 48 * opCamState.zoomLevel;
+    const bh = 48 * opCamState.zoomLevel;
+    ctx.strokeStyle = "#30d158";
+    ctx.lineWidth = 1.6;
+    const cLen = 9;
+    // Corner brackets
+    ctx.beginPath();
+    ctx.moveTo(bx, by + cLen); ctx.lineTo(bx, by); ctx.lineTo(bx + cLen, by);
+    ctx.moveTo(bx + bw - cLen, by); ctx.lineTo(bx + bw, by); ctx.lineTo(bx + bw, by + cLen);
+    ctx.moveTo(bx, by + bh - cLen); ctx.lineTo(bx, by + bh); ctx.lineTo(bx + cLen, by + bh);
+    ctx.moveTo(bx + bw - cLen, by + bh); ctx.lineTo(bx + bw, by + bh); ctx.lineTo(bx + bw, by + bh - cLen);
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(18, 18, 20, 0.82)";
+    ctx.fillRect(bx, by - 16, 134, 14);
+    ctx.fillStyle = "#30d158";
+    ctx.font = "600 9px 'SF Mono', monospace";
+    ctx.textAlign = "left";
+    ctx.fillText(
+      opCamState.droneView === "JET" ? "AI LOCK: SURVIVOR +31°C (0.96)" : "APRILTAG + HIKER LOCK (0.12m)",
+      bx + 4, by - 6
+    );
+  }
+  ctx.restore();
+
+  // 2. Center Stabilized Gimbal Boresight Crosshair (+) & Pitch Scale Bars
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.80)";
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(cx - 18, cy); ctx.lineTo(cx - 5, cy);
+  ctx.moveTo(cx + 5, cy);  ctx.lineTo(cx + 18, cy);
+  ctx.moveTo(cx, cy - 18); ctx.lineTo(cx, cy - 5);
+  ctx.moveTo(cx, cy + 5);  ctx.lineTo(cx, cy + 18);
+  ctx.stroke();
+
+  // Right-edge Gimbal Pitch Elevation Scale (-90° Nadir to +20°)
+  const gScaleX = x0 + w - 22;
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.28)";
+  ctx.lineWidth = 1.0;
+  ctx.beginPath();
+  ctx.moveTo(gScaleX, cy - 75);
+  ctx.lineTo(gScaleX, cy + 75);
+  ctx.stroke();
+  [-90, -60, -30, 0, 15].forEach(deg => {
+    const py = cy - (deg + 30) * 1.1;
+    ctx.beginPath();
+    ctx.moveTo(gScaleX - 5, py);
+    ctx.lineTo(gScaleX, py);
+    ctx.stroke();
+  });
+  const curGimDeg = opCamState.lookDownNadir ? -90 : Math.round(-12 + pitch_deg);
+  const ptrY = Math.max(cy - 72, Math.min(cy + 72, cy - (curGimDeg + 30) * 1.1));
+  ctx.fillStyle = "#0a84ff";
+  ctx.fillRect(gScaleX - 38, ptrY - 7, 32, 14);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "600 8.5px 'SF Mono', monospace";
+  ctx.textAlign = "center";
+  ctx.fillText(`${curGimDeg}°`, gScaleX - 22, ptrY + 3);
+
+  // 3. TOP TELEMETRY & MODE BANNER (Matches Field-Proven Tactical Controller UI)
+  const topH = 32;
+  ctx.fillStyle = "rgba(18, 18, 20, 0.88)";
+  ctx.fillRect(x0, y0, w, topH);
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+  ctx.beginPath();
+  ctx.moveTo(x0, y0 + topH);
+  ctx.lineTo(x0 + w, y0 + topH);
+  ctx.stroke();
+
+  // [A] Top-Left Flight Mode Pill (Orange ATTI / VIO Mode when GNSS=0, or Green Normal Law / VIO Hold)
+  const modePillColor = (fpvSim.controlLaw === "DIRECT_LAW" || gnssJammed) ? "#ff9f0a" : "#30d158";
+  ctx.fillStyle = modePillColor;
+  ctx.beginPath();
+  ctx.roundRect(x0 + 8, y0 + 5, 168, 22, 5);
+  ctx.fill();
+  ctx.fillStyle = "#000000";
+  ctx.font = "700 9.5px -apple-system, sans-serif";
+  ctx.textAlign = "left";
+  const modeText = opCamState.droneView === "JET"
+    ? (fpvSim.controlLaw === "DIRECT_LAW" ? "ATTI MODE · RAW SERVOS" : (gnssJammed ? "MODE N · EKF3 VIO + DEM" : "MODE N · AI-ASSISTED FBW"))
+    : "MODE N · VIO HOVER LOCK";
+  ctx.fillText(modeText, x0 + 14, y0 + 19);
+  fpvSim.hudHitBoxes.push({
+    x: x0 + 8, y: y0 + 5, w: 168, h: 22,
+    action: () => {
+      fpvSim.controlLaw = (fpvSim.controlLaw === "NORMAL_LAW") ? "DIRECT_LAW" : "NORMAL_LAW";
+      syncLiveFpvHeaderButton();
+    }
+  });
+
+  // Drone Switcher Segmented Pill (Tier-3 Jet vs Tier-2 Quad)
+  const swX = x0 + 184;
+  ctx.fillStyle = "rgba(44, 44, 46, 0.92)";
+  ctx.beginPath();
+  ctx.roundRect(swX, y0 + 5, 152, 22, 6);
+  ctx.fill();
+  [["JET", "Jet Mothership", 0], ["QUAD", "Quad Rescue", 76]].forEach(([key, lbl, offX]) => {
+    const act = opCamState.droneView === key;
+    if (act) {
+      ctx.fillStyle = "#0a84ff";
+      ctx.beginPath();
+      ctx.roundRect(swX + offX + 2, y0 + 7, 72, 18, 4);
+      ctx.fill();
+    }
+    ctx.fillStyle = act ? "#ffffff" : "#98989d";
+    ctx.font = act ? "600 8.8px -apple-system, sans-serif" : "500 8.5px -apple-system, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(lbl, swX + offX + 38, y0 + 19);
+    fpvSim.hudHitBoxes.push({
+      x: swX + offX, y: y0 + 5, w: 76, h: 22,
+      action: () => { opCamState.droneView = key; }
+    });
+  });
+
+  // [C] Optical / Thermal Camera Strip (ZOOM 1.0X / 3.0X, AE, FFC)
+  const zmX = x0 + 344;
+  ctx.fillStyle = "rgba(10, 132, 255, 0.22)";
+  ctx.strokeStyle = "#0a84ff";
+  ctx.beginPath();
+  ctx.roundRect(zmX, y0 + 5, 68, 22, 5);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = "#5ac8fa";
+  ctx.font = "600 9px 'SF Mono', monospace";
+  ctx.textAlign = "center";
+  ctx.fillText(`ZOOM ${opCamState.zoomLevel.toFixed(1)}X`, zmX + 34, y0 + 19);
+  fpvSim.hudHitBoxes.push({
+    x: zmX, y: y0 + 5, w: 68, h: 22,
+    action: () => { opCamState.zoomLevel = opCamState.zoomLevel === 1.0 ? 3.0 : 1.0; }
+  });
+
+  // [B] Top-Right GNSS=0 & Smart Battery Cell Voltage Sag Cluster
+  const rightClusterX = x0 + w - 210;
+  ctx.textAlign = "left";
+  ctx.font = "600 9.5px 'SF Mono', monospace";
+  ctx.fillStyle = gnssJammed ? "#ff453a" : "#30d158";
+  ctx.fillText(gnssJammed ? "🛰️ 0 SV (VIO)" : "🛰️ 18 SV", rightClusterX, y0 + 19);
+
+  const battPct = Math.max(12, Math.round((fpvSim.fuel_kg / 3.5) * 88));
+  const battV = opCamState.droneView === "JET" ? (14.2 + 0.6 * (battPct / 100)).toFixed(1) : (15.1 + 0.7 * (battPct / 100)).toFixed(1);
+  ctx.fillStyle = "#30d158";
+  ctx.fillText(`🔋 ${battPct}% ${battV}V`, rightClusterX + 86, y0 + 19);
+
+  // Sub-banner camera exposure & FFC status strip
+  ctx.fillStyle = "rgba(18, 18, 20, 0.72)";
+  ctx.fillRect(x0 + w - 255, y0 + topH + 4, 247, 18);
+  ctx.fillStyle = "#98989d";
+  ctx.font = "500 8.5px 'SF Mono', monospace";
+  ctx.textAlign = "right";
+  ctx.fillText("ISO 150 · 1/1600 · AE LOCK · FFC INHIBIT", x0 + w - 12, y0 + topH + 16);
+
+  // 4. [D] LEFT-EDGE VERTICAL TACTICAL TOOL DOCK (RNG, AI, LOCK, CRUISE)
+  const dockX = x0 + 10;
+  const dockY = y0 + 52;
+  const dockItems = [
+    ["RNG",    opCamState.rngActive,      `${(agl_m * 1.42).toFixed(0)}m`, () => { opCamState.rngActive = !opCamState.rngActive; }],
+    ["AI",     opCamState.aiLockActive,   "26 TOPS",                       () => { opCamState.aiLockActive = !opCamState.aiLockActive; }],
+    ["THERM",  opCamState.thermalMode,    "LWIR",                          () => { opCamState.thermalMode = !opCamState.thermalMode; }],
+    ["CRUISE", opCamState.cruiseActive,   `${spd_kmh.toFixed(0)}km/h`,     () => { opCamState.cruiseActive = !opCamState.cruiseActive; }]
+  ];
+  dockItems.forEach(([lbl, isAct, sub, fn], idx) => {
+    const by = dockY + idx * 46;
+    ctx.fillStyle = isAct ? "rgba(10, 132, 255, 0.88)" : "rgba(28, 28, 30, 0.85)";
+    ctx.strokeStyle = isAct ? "rgba(255, 255, 255, 0.35)" : "rgba(255, 255, 255, 0.10)";
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.roundRect(dockX, by, 48, 38, 8);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "700 9.5px -apple-system, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(lbl, dockX + 24, by + 16);
+    ctx.fillStyle = isAct ? "#e5f1ff" : "#98989d";
+    ctx.font = "500 8px 'SF Mono', monospace";
+    ctx.fillText(sub, dockX + 24, by + 29);
+    fpvSim.hudHitBoxes.push({ x: dockX, y: by, w: 48, h: 38, action: fn });
+  });
+
+  // 5. [F] BOTTOM-CENTER ATTITUDE / HEADING RADAR PUCK + LOOK DOWN (-90° NADIR) + TRACKPAD STICK
+  const puckR = Math.min(44, h * 0.13);
+  const puckY = y0 + h - puckR - 12;
+
+  // Left of Puck: Look Down (-90° Nadir) & Payload / Lantern Action Pill
+  const actBtnX = cx - puckR - 118;
+  ctx.fillStyle = opCamState.lookDownNadir ? "#0a84ff" : "rgba(28, 28, 30, 0.88)";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.14)";
+  ctx.beginPath();
+  ctx.roundRect(actBtnX, puckY - 22, 104, 20, 6);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "600 8.5px -apple-system, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(opCamState.lookDownNadir ? "Gimbal: -90° Nadir" : "Look Down (-90°)", actBtnX + 52, puckY - 9);
+  fpvSim.hudHitBoxes.push({
+    x: actBtnX, y: puckY - 22, w: 104, h: 20,
+    action: () => { opCamState.lookDownNadir = !opCamState.lookDownNadir; }
+  });
+
+  // Second action button (Drop Capsule / Toggle Lantern)
+  ctx.fillStyle = (opCamState.droneView === "JET" ? fpvSim.capsuleDropped : opCamState.lanternOn) ? "#30d158" : "rgba(28, 28, 30, 0.88)";
+  ctx.beginPath();
+  ctx.roundRect(actBtnX, puckY + 4, 104, 20, 6);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(
+    opCamState.droneView === "JET"
+      ? (fpvSim.capsuleDropped ? "Quad/Pod Released" : "2-Vote Drop [Space]")
+      : (opCamState.lanternOn ? "Lantern: 1500 lm ON" : "Lantern: OFF"),
+    actBtnX + 52, puckY + 17
+  );
+  fpvSim.hudHitBoxes.push({
+    x: actBtnX, y: puckY + 4, w: 104, h: 20,
+    action: () => {
+      if (opCamState.droneView === "JET") fpvSim.capsuleDropped = !fpvSim.capsuleDropped;
+      else opCamState.lanternOn = !opCamState.lanternOn;
+    }
+  });
+
+  // Bottom-Left Speed & Distance Readout Box
+  ctx.fillStyle = "rgba(18, 18, 20, 0.86)";
+  ctx.beginPath();
+  ctx.roundRect(x0 + 10, puckY - 24, 128, 52, 8);
+  ctx.fill();
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#f5f5f7";
+  ctx.font = "600 10px 'SF Mono', monospace";
+  const dispSpd = opCamState.droneView === "JET" ? `${spd_kmh.toFixed(0)} km/h` : (opCamState.cruiseActive ? "3.8 km/h ESCORT" : "0.2 m/s HOVER");
+  ctx.fillText(`SPD  ${dispSpd}`, x0 + 18, puckY - 8);
+  ctx.fillText(`ALT  ${agl_m.toFixed(1)} m AGL`, x0 + 18, puckY + 7);
+  ctx.fillStyle = "#98989d";
+  ctx.font = "500 9px 'SF Mono', monospace";
+  ctx.fillText(`VSI  ${vsi_mps >= 0 ? "+" : ""}${vsi_mps.toFixed(1)} m/s`, x0 + 18, puckY + 21);
+
+  // Circular Attitude & Compass Radar Puck
+  ctx.fillStyle = "rgba(18, 18, 20, 0.92)";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.arc(cx, puckY, puckR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Artificial Horizon Tilt Line inside Radar Puck
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, puckY, puckR - 2, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.translate(cx, puckY);
+  ctx.rotate(-roll_rad);
+  const pShift = Math.max(-puckR * 0.6, Math.min(puckR * 0.6, pitch_deg * 1.2));
+  ctx.fillStyle = "rgba(10, 132, 255, 0.25)";
+  ctx.fillRect(-puckR, -puckR, puckR * 2, puckR + pShift);
+  ctx.fillStyle = "rgba(48, 209, 88, 0.18)";
+  ctx.fillRect(-puckR, pShift, puckR * 2, puckR - pShift);
+  ctx.strokeStyle = "#5ac8fa";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(-puckR, pShift);
+  ctx.lineTo(puckR, pShift);
+  ctx.stroke();
+  ctx.restore();
+
+  // Heading Readout & Home Diamond on Radar Puck
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "700 9.5px 'SF Mono', monospace";
+  ctx.textAlign = "center";
+  ctx.fillText(`${Math.round(hdg_deg).toString().padStart(3, "0")}°`, cx, puckY - puckR + 12);
+  // Center red/orange aircraft triangle
+  ctx.fillStyle = "#ff9f0a";
+  ctx.beginPath();
+  ctx.moveTo(cx, puckY - 7);
+  ctx.lineTo(cx - 6, puckY + 6);
+  ctx.lineTo(cx, puckY + 3);
+  ctx.lineTo(cx + 6, puckY + 6);
+  ctx.closePath();
+  ctx.fill();
+
+  // Interactive Trackpad / Stick Widget on Bottom-Right
+  const padHw = 40;
+  const padHh = 26;
+  const padCx = x0 + w - padHw - 14;
+  const padCy = puckY;
+  ctx.fillStyle = "rgba(18, 18, 20, 0.88)";
+  ctx.strokeStyle = fpvSim.hwTrackpadTouching ? "#30d158" : "rgba(255, 255, 255, 0.18)";
+  ctx.beginPath();
+  ctx.roundRect(padCx - padHw, padCy - padHh, padHw * 2, padHh * 2, 6);
+  ctx.fill();
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+  ctx.beginPath();
+  ctx.moveTo(padCx - padHw + 4, padCy); ctx.lineTo(padCx + padHw - 4, padCy);
+  ctx.moveTo(padCx, padCy - padHh + 4); ctx.lineTo(padCx, padCy + padHh - 4);
+  ctx.stroke();
+  const sRoll  = fpvSim.active ? fpvSim.stickRoll : (sample.da_deg || 0) / 22.0;
+  const sPitch = fpvSim.active ? fpvSim.stickPitch : (sample.de_deg || 0) / 20.0;
+  const dotX = padCx + Math.max(-1, Math.min(1, sRoll)) * (padHw - 5);
+  const dotY = padCy + Math.max(-1, Math.min(1, sPitch)) * (padHh - 5);
+  ctx.fillStyle = "#30d158";
+  ctx.beginPath();
+  ctx.arc(dotX, dotY, 4.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#98989d";
+  ctx.font = "600 8px -apple-system, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("Trackpad Stick", padCx, padCy - padHh - 4);
+  fpvSim.hudHitBoxes.push({
+    x: padCx - padHw, y: padCy - padHh, w: padHw * 2, h: padHh * 2,
+    stickTag: "RIGHT", gx: padCx, gy: padCy, gr: padHw, padHalfW: padHw, padHalfH: padHh
+  });
+
+  ctx.restore();
+}
+
 // Header & Sidebar Button Handlers for Both FPV Manual Flight Modes:
 // 1. AI-Assisted RC Mode (NORMAL_LAW: FBW Pitch/Bank Command + Alpha/G/Speed Envelope Protections)
 // 2. Raw Unaided Servo Mode (DIRECT_LAW: 100% Unassisted Servos to test raw airframe stability)
@@ -8168,10 +8634,10 @@ function mapRectBoundsToStick(dx, dy, halfW, halfH) {
   return [sx, sy];
 }
 
-// Mouse / Trackpad Interaction on canvasAircraft3D for FPV HUD Buttons, Dual Gimbals, Glass Cockpit & Viewport Bounds
+// Mouse / Trackpad Interaction on canvasAircraft3D for FPV HUD Buttons, Dual Gimbals, Glass Cockpit, Operator OSD & Viewport Bounds
 const fpvCanvas = document.getElementById("canvasAircraft3D");
 fpvCanvas.addEventListener("mousedown", e => {
-  if (camMode !== "FPV_COCKPIT" && camMode !== "FPV_SPLIT" && camMode !== "GLASS_PFD") return;
+  if (camMode !== "FPV_COCKPIT" && camMode !== "FPV_SPLIT" && camMode !== "GLASS_PFD" && camMode !== "OPERATOR_OSD") return;
   const rect = fpvCanvas.getBoundingClientRect();
   const mx = e.clientX - rect.left;
   const my = e.clientY - rect.top;
@@ -8219,7 +8685,7 @@ fpvCanvas.addEventListener("mousedown", e => {
 });
 
 window.addEventListener("mousemove", e => {
-  if (camMode !== "FPV_COCKPIT" && camMode !== "FPV_SPLIT" && camMode !== "GLASS_PFD") return;
+  if (camMode !== "FPV_COCKPIT" && camMode !== "FPV_SPLIT" && camMode !== "GLASS_PFD" && camMode !== "OPERATOR_OSD") return;
   const rect = fpvCanvas.getBoundingClientRect();
   const mx = e.clientX - rect.left;
   const my = e.clientY - rect.top;
@@ -8304,14 +8770,14 @@ window.addEventListener("keydown", e => {
     else { fpvSim.controlLaw = "NORMAL_LAW"; syncLiveFpvHeaderButton(); }
     return;
   }
-  if (e.code === "Tab" && (fpvSim.active || camMode === "FPV_COCKPIT" || camMode === "FPV_SPLIT" || camMode === "GLASS_PFD")) {
+  if (e.code === "Tab" && (fpvSim.active || camMode === "FPV_COCKPIT" || camMode === "FPV_SPLIT" || camMode === "GLASS_PFD" || camMode === "OPERATOR_OSD")) {
     e.preventDefault();
     fpvSim.controlLaw = (fpvSim.controlLaw === "NORMAL_LAW") ? "DIRECT_LAW" : "NORMAL_LAW";
     syncLiveFpvHeaderButton();
     return;
   }
 
-  if (!fpvSim.active && camMode !== "FPV_COCKPIT" && camMode !== "FPV_SPLIT" && camMode !== "GLASS_PFD") return;
+  if (!fpvSim.active && camMode !== "FPV_COCKPIT" && camMode !== "FPV_SPLIT" && camMode !== "GLASS_PFD" && camMode !== "OPERATOR_OSD") return;
 
   if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) {
     e.preventDefault();

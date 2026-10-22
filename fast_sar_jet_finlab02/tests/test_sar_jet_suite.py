@@ -463,6 +463,36 @@ class TestArcticFastSarJetSuite(unittest.TestCase):
         self.assertTrue(m_res["mid_air_separation_100hz"]["zero_rotor_strike_guaranteed"])
         self.assertTrue(m_res["joint_mission_summary"]["both_aircraft_recovered_safely"])
 
+    def test_10_cnc_cut_sheets_and_arduplane_param_export(self):
+        """Verify 1:1 mm CNC/Hot-Wire SVG/DXF cut-sheets and ArduPlane 4.5+ .param export."""
+        import json
+
+        cad_dir = os.path.join(REPO_ROOT, "cad")
+        svg_path = os.path.join(cad_dir, "finlab02_foam_ribs_and_bulkheads_1to1.svg")
+        dxf_path = os.path.join(cad_dir, "finlab02_foam_ribs_and_bulkheads_1to1.dxf")
+        json_path = os.path.join(cad_dir, "cnc_foam_and_carbon_cut_schedule.json")
+        param_path = os.path.join(cad_dir, "ark_fpv_arduplane_45_sar_jet.param")
+
+        for p in (svg_path, dxf_path, json_path, param_path):
+            self.assertTrue(os.path.exists(p), f"Missing CAD/param artifact: {p}")
+            self.assertGreater(os.path.getsize(p), 1000, f"Artifact {p} too small")
+
+        with open(json_path, "r", encoding="utf-8") as f:
+            cut_meta = json.load(f)
+        self.assertEqual(cut_meta["scale"], "1:1_MILLIMETERS")
+        self.assertEqual(cut_meta["overall_wingspan_mm"], 2200.0)
+        self.assertEqual(cut_meta["cg_x_mm"], 595.0)
+        self.assertGreaterEqual(len(cut_meta["wing_and_tail_hotwire_ribs"]), 5)
+        self.assertGreaterEqual(len(cut_meta["laser_cut_fuselage_bulkheads"]), 4)
+
+        with open(param_path, "r", encoding="utf-8") as f:
+            param_txt = f.read()
+        self.assertIn("VTAIL_OUTPUT,3", param_txt)
+        self.assertIn("PTCH_LIM_MAX_DEG,25", param_txt)
+        self.assertIn("ROLL_LIMIT_DEG,55", param_txt)
+        self.assertIn("EK3_SRC1_POSXY,3", param_txt)
+        self.assertIn("CHUTE_ENABLED,1", param_txt)
+
 
 if __name__ == "__main__":
     unittest.main()

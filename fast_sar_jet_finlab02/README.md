@@ -62,6 +62,10 @@ Every visual and aerodynamic calculation in this repository derives from a singl
 
 ![5.00 kg Survival Capsule, CAD Station A-A Cross-Section & Interchangeable Radar Pods](docs/images/sar_design_07_payload_bay_and_capsule_v1.jpg)
 
+![Marsupial Dual-Drone Cutaway & 4-Stage Mid-Air Deployment (Cartridge B)](docs/images/sar_marsupial_cutaway_and_4stage_drop_v3.jpg)
+
+![End-to-End 6-Stage Marsupial Dual-Drone Wilderness Rescue Storyboard](docs/images/sar_marsupial_6stage_whole_mission_en_v2.jpg)
+
 ![2D Orthographic CAD Blueprint](docs/images/sar_cad_blueprint_2d_orthographic_v2.jpg)
 
 ![3D Isometric & Simulation Verification Sheet](docs/images/sar_cad_blueprint_3d_simulations_v3.jpg)
@@ -100,7 +104,7 @@ Zero Chinese components (`0.0%` of BOM) are permitted across airframe, propulsio
 
 ![Three-Domain 100% Non-Chinese Fast-SAR Control Architecture](docs/images/sar_design_05_autonomy_control_architecture_v1.jpg)
 
-![100% Non-Chinese Allied COTS Supply-Chain Map](docs/images/sar_design_06_allied_cots_supply_chain_v1.jpg)
+![100% Non-Chinese Allied COTS Supply-Chain Map](docs/images/sar_design_06_allied_cots_supply_chain_v4.jpg)
 
 ---
 
@@ -115,6 +119,7 @@ Zero Chinese components (`0.0%` of BOM) are permitted across airframe, propulsio
 | **Spool-Lag Lead Filter, `EGT < 280 °C` Flameout Cutoff, Blocked-Pitot Backup (`SYNTH_IAS` + $\theta/N_1\%$ Table), `Normal Law` $\alpha/\beta/n_z/\phi/V_{\text{MO}}$ Envelope Protections & Affine-Breguet RTH** | Yes ([`Section 11.7` SSOT](docs/ENGINEERING_DESIGN_AND_ARCHITECTURE.md#117-blocked-pitot-backup-laws-synth_ias--direct-pitch-power-table--normal-law-flight-envelope-protections-plate-24)) | Yes ([`pi_turbine_autonomy.py`](sar_autonomy/pi_turbine_autonomy.py), `FlightEnvelopeProtectionController`) | Software-in-the-loop (`SITL`) | No (static turbine stand open) | No |
 | **Actuarial Failure Schedule per `100,000` Flights (`55,000` FH) & EASA SORA SAIL III Fault-Tree (`362.8` Faults $\to$ `1.51` Residual `LOC-I` Crashes = `2.75 × 10⁻⁵ /FH`, `-99.37%` Crash Reduction)** | Yes ([`Section 11.8` SSOT](docs/ENGINEERING_DESIGN_AND_ARCHITECTURE.md#118-actuarial-failure-rates-per-100000-flights-55000-flight-hours--easa-sora-sail-iii-fault-tree-matrix-plate-25)) | Yes ([`pi_turbine_autonomy.py`](sar_autonomy/pi_turbine_autonomy.py), `compute_expected_failures_per_100k_flights()`) | Analytical / Fault-Tree Model | No (fleet TBO tracking open) | No (`EASA SORA SAIL III` target `< 10⁻⁴ /FH`) |
 | **Marsupial Dual-Drone Cartridge B (`2.65 kg` H-Folding `Karhunkierros` Quadcopter Inside `420×180×145 mm` Ventral CG Bay, `2.76 s` Drogue-to-Hover & `35 km` Joint Mission)** | Yes ([`Section 11.9` SSOT](docs/ENGINEERING_DESIGN_AND_ARCHITECTURE.md#119-marsupial-dual-drone-architecture-cartridge-b-h-folding-karhunkierros-quadcopter--4-stage-mid-air-deployment-plate-26)) | Yes ([`marsupial_dual_drone_sim.py`](marsupial_dual_drone_sim.py), `9/9` Suites) | Software-in-the-loop (`SITL`) | No (`Gate 2` sub-scale drop open) | No (`Traficom SORA` required) |
+| **Apple iOS Dark Mode HIG Simulator UI, Glass Cockpit `PFD/HSI`, Field-Proven Tactical `Op-Cam OSD` (`ATTI/VIO`, `GNSS=0`, Left `RNG/AI` Dock, Radar Puck) & 8-Stage Dual-Drone Workflow (`Plates 27 & 28`)** | Yes ([`Section 11.10` SSOT](docs/ENGINEERING_DESIGN_AND_ARCHITECTURE.md#1110-multi-screen-command-wall-tactical-operator-controller-ui--exact-8-stage-mission-control-workflow-plates-27--28)) | Yes ([`flight_simulator.html`](simulator_ui/flight_simulator.html) + [`mac_trackpad_bridge.py`](simulator_ui/mac_trackpad_bridge.py)) | Live `60 Hz` MacBook Hardware Trackpad + Browser UI | N/A (GCS / Simulator UI) | N/A |
 | **Long-Range Hybrid Cartridge C (`294.7 km` / `183.1 mi` Reach + Airborne `Build D` BLOS Link) & Sled C (`35–40 cc` 4-Stroke Pusher, `1,124–2,757 km` Ferry)** | Yes ([`sar_sizing_calculator.py`](sar_sizing_calculator.py)) | Yes (`test_09` in `test_sar_jet_suite.py`) | Analytical / Link-Budget Model | No (`Gate 3/4` propulsion trials open) | No (`Traficom SORA` required) |
 | **Slowed `25–28 m/s` Parachute Survival-Capsule Release (`X_CG = 595 mm`)** | Yes | Yes (hard-inhibited `> 30 m/s`) | Not yet drop-tested | No | No (`Poliisi` / `RVL` / `Pelastuslaitos` MoU) |
 | **`FIN-LAB-02` `350–400 km/h` High-Speed Envelope & `[P12]` Enablers** | Yes | Yes (`northern_flank_red_gap_solver.py`) | Analytical / CAD model | No (winter range validation open) | No |
@@ -160,11 +165,17 @@ Because this is an independent, private, **pro-bono open-source engineering proj
 ## 7. Quick Start & Verification Suite
 
 ```bash
+# 0. Run the One-Command External Evaluator & Verification Readiness Certificate (<15 seconds)
+python3 -B run_full_verification_and_readiness_audit.py
+
 # 1. Run the Affine-Breguet & Brayton-Cycle SAR Sizing Calculator
 python3 sar_sizing_calculator.py
 
-# 2. Run the Pi 5 / STM32H7 Spool-Lag Lead Filter & Affine-Breguet RTH Autonomy Node
-python3 sar_autonomy/pi_turbine_autonomy.py
+# 2. Run the Pi 5 / STM32H7 Spool-Lag Lead Filter, Bench Check & Export 45-Param ArduPlane 4.5+ .param File
+python3 sar_autonomy/pi_turbine_autonomy.py --bench-check --export-arduplane-params cad/ark_fpv_arduplane_45_sar_jet.param
+
+# 2b. Generate 1:1 Millimeter CNC / Laser / Hot-Wire Foam-Core Cut Sheets (.svg + .dxf + JSON schedule)
+python3 cad/generate_cnc_cut_sheets.py
 
 # 3. Run the 6-DOF End-to-End Flight Dynamics Simulator (All 6 Configurations & Stress Presets)
 python3 flight_simulator_6dof.py --compare-all --temp-c -30 --wind-ms 12
