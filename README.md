@@ -6,7 +6,7 @@
 > * **Visual Architecture & System Presentation (30-Slide PDF Deck):** [`KARHUNKIERROS_SAR_PRESENTATION.pdf`](KARHUNKIERROS_SAR_PRESENTATION.pdf)
 > * **Executive Concept Brief (English PDF Booklet):** [`docs/ARCTIC_SAR_DRONE_EXECUTIVE_BRIEF_EN.pdf`](docs/ARCTIC_SAR_DRONE_EXECUTIVE_BRIEF_EN.pdf) | **Suomeksi (FI PDF):** [`docs/KARHUNKIERROS_PRO_BONO_SAR_BRIEF_FI.pdf`](docs/KARHUNKIERROS_PRO_BONO_SAR_BRIEF_FI.pdf)
 > * **Sister Project (RF-Silent Arctic Trail & Cabin Camera with 1-Way Optical Diode):** [`arctic-trail/arctic-trail-cam`](https://github.com/arctic-trail/arctic-trail-cam)
-> * **Tier-3 Fast-SAR Jet-Hybrid & `[P12]` Gap-Closure Module (`FIN-LAB-02` `350–400 km/h` Open 3D `STEP AP214` CAD + `12-Cell +15 °C` Rapid-Launch Box + `285 km/h` Cold-Rated COTS Fast-Climber):** [`fast_sar_jet_finlab02/README.md`](fast_sar_jet_finlab02/README.md) | **23-Plate Engineering Design & Subsystem Gallery:** [`fast_sar_jet_finlab02/docs/ENGINEERING_DESIGN_AND_ARCHITECTURE.md`](fast_sar_jet_finlab02/docs/ENGINEERING_DESIGN_AND_ARCHITECTURE.md)
+> * **Tier-3 Fast-SAR Jet-Hybrid & `[P12]` Gap-Closure Module (`FIN-LAB-02` `350–400 km/h` Open 3D `STEP AP214` CAD + `12-Cell +15 °C` Rapid-Launch Box + `285 km/h` Cold-Rated COTS Fast-Climber):** [`fast_sar_jet_finlab02/README.md`](fast_sar_jet_finlab02/README.md) | **25-Plate Engineering Design, Envelope Protection & 100k-Flight Actuarial FMEA Gallery:** [`fast_sar_jet_finlab02/docs/ENGINEERING_DESIGN_AND_ARCHITECTURE.md`](fast_sar_jet_finlab02/docs/ENGINEERING_DESIGN_AND_ARCHITECTURE.md)
 > * **License:** [`MIT License`](LICENSE)
 
 > **🛠️ PLEASE FORK, BUILD, BREAK & IMPROVE THIS (NO PERMISSION NEEDED)**
