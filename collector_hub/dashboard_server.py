@@ -862,31 +862,53 @@ def make_command_center_handler(alerts_dir, verbose=False):
                     elif clean_path == "/api/playbook/veto":
                         action = query_params.get("action", "cancel_target")
                         t_type = query_params.get("type", "PERSON")
+                        vx = float(query_params["x_m"]) if "x_m" in query_params else None
+                        vy = float(query_params["y_m"]) if "y_m" in query_params else None
+                        cooldown_s = float(query_params.get("cooldown_s", disp.compiled_rules.human_cancel_veto_cooldown_s))
                         if action == "cancel_target":
-                            res = disp.veto_registry.record_human_target_cancel(t_type)
+                            res = disp.veto_registry.record_human_target_cancel(t_type, cooldown_s=cooldown_s, x_m=vx, y_m=vy)
                         elif action == "clear_target":
                             disp.veto_registry.clear_human_target_veto(t_type)
-                            res = {"cleared": t_type}
+                            res = {"cleared": t_type, "epoch_id": disp.veto_registry.current_epoch}
                         elif action == "cancel_drop":
                             res = disp.veto_registry.record_human_drop_cancel(t_type)
                         elif action == "clear_drop":
                             disp.veto_registry.clear_human_drop_veto(t_type)
-                            res = {"cleared_drop": t_type}
+                            res = {"cleared_drop": t_type, "epoch_id": disp.veto_registry.current_epoch}
                         else:
                             disp.veto_registry.reset_all()
-                            res = {"reset": True}
+                            res = {"reset": True, "epoch_id": disp.veto_registry.current_epoch}
                     elif clean_path == "/api/playbook/step":
+                        load_ecosystem_state_disk(alerts_dir)
+                        helo_active = bool(GLOBAL_ECOSYSTEM_STATE.get("helo_uspace", {}).get("helo_inbound_active", False))
+                        resp_ack = str(GLOBAL_ECOSYSTEM_STATE.get("responder", {}).get("field_ack_state", "NONE"))
                         telem = {
                             "target_lock_active": query_params.get("lock", "1") in ("1", "true"),
                             "guided_target_type": query_params.get("type", "PERSON"),
                             "drone1_dist_to_target_m": float(query_params.get("dist", "18.0")),
                             "drop_status": query_params.get("drop", "READY"),
                             "battery_pct": float(query_params.get("batt", "84.0")),
+                            "person_confidence": float(query_params.get("person_conf", "0.94")),
+                            "vehicle_confidence": float(query_params.get("veh_conf", "0.0")),
+                            "person_x_m": float(query_params.get("person_x_m", query_params.get("target_x_m", "40.0"))),
+                            "person_y_m": float(query_params.get("person_y_m", query_params.get("target_y_m", "-45.0"))),
+                            "vehicle_x_m": float(query_params.get("vehicle_x_m", "-165.0")),
+                            "vehicle_y_m": float(query_params.get("vehicle_y_m", "-92.0")),
+                            "wind_speed_ms": float(query_params.get("wind_ms", "4.0")),
+                            "temp_c": float(query_params.get("temp_c", "-12.0")),
+                            "dist_home_m": float(query_params.get("dist_home_m", "450.0")),
                             "person_at_shelter": query_params.get("person_safe", "0") in ("1", "true"),
                             "vehicle_at_road": query_params.get("veh_safe", "0") in ("1", "true"),
+                            "helo_inbound_active": (
+                                query_params.get("helo_inbound") in ("1", "true")
+                                if "helo_inbound" in query_params
+                                else helo_active
+                            ),
+                            "responder_ack": query_params.get("responder_ack", resp_ack),
                             "simulate_llm_offline": query_params.get("llm_offline", "0") in ("1", "true"),
-                            "invoke_live_llm": query_params.get("live_llm", "0") in ("1", "true"),
                         }
+                        if "live_llm" in query_params:
+                            telem["invoke_live_llm"] = query_params.get("live_llm", "0") in ("1", "true")
                         res = disp.evaluate_jev_step(telem)
                     else:
                         res = disp.get_status()
@@ -1118,6 +1140,66 @@ def make_command_center_handler(alerts_dir, verbose=False):
                     disp = playbook_agent_dispatcher.GLOBAL_PLAYBOOK_DISPATCHER
                     pb_id = str(payload.get("preset_id") or payload.get("id") or disp.active_playbook_id)
                     res = disp.set_playbook(pb_id, structured_params=payload)
+                except Exception as e:
+                    res = {"playbook_online": False, "error": str(e)}
+                self.wfile.write(json.dumps(res).encode("utf-8"))
+                return
+            if clean_path == "/api/playbook/step":
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                try:
+                    load_ecosystem_state_disk(alerts_dir)
+                    content_len = min(32768, max(0, int(self.headers.get("Content-Length", "0"))))
+                    raw_body = self.rfile.read(content_len).decode("utf-8") if content_len > 0 else "{}"
+                    telem = json.loads(raw_body) if raw_body.strip() else {}
+                    import playbook_agent_dispatcher
+                    disp = playbook_agent_dispatcher.GLOBAL_PLAYBOOK_DISPATCHER
+                    if "helo_inbound_active" not in telem:
+                        telem["helo_inbound_active"] = bool(
+                            GLOBAL_ECOSYSTEM_STATE.get("helo_uspace", {}).get("helo_inbound_active", False)
+                        )
+                    if "responder_ack" not in telem:
+                        telem["responder_ack"] = str(
+                            GLOBAL_ECOSYSTEM_STATE.get("responder", {}).get("field_ack_state", "NONE")
+                        )
+                    res = disp.evaluate_jev_step(telem)
+                except Exception as e:
+                    res = {"playbook_online": False, "error": str(e)}
+                self.wfile.write(json.dumps(res).encode("utf-8"))
+                return
+            if clean_path == "/api/playbook/veto":
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                try:
+                    content_len = min(16384, max(0, int(self.headers.get("Content-Length", "0"))))
+                    raw_body = self.rfile.read(content_len).decode("utf-8") if content_len > 0 else "{}"
+                    payload = json.loads(raw_body) if raw_body.strip() else {}
+                    import playbook_agent_dispatcher
+                    disp = playbook_agent_dispatcher.GLOBAL_PLAYBOOK_DISPATCHER
+                    action = str(payload.get("action", "cancel_target"))
+                    t_type = str(payload.get("type", "PERSON")).upper()
+                    vx = float(payload["x_m"]) if payload.get("x_m") is not None else None
+                    vy = float(payload["y_m"]) if payload.get("y_m") is not None else None
+                    cooldown_s = float(payload.get("cooldown_s", disp.compiled_rules.human_cancel_veto_cooldown_s))
+                    if action == "cancel_target":
+                        res = disp.veto_registry.record_human_target_cancel(t_type, cooldown_s=cooldown_s, x_m=vx, y_m=vy)
+                    elif action == "clear_target":
+                        disp.veto_registry.clear_human_target_veto(t_type)
+                        res = {"cleared": t_type, "epoch_id": disp.veto_registry.current_epoch}
+                    elif action == "cancel_drop":
+                        res = disp.veto_registry.record_human_drop_cancel(t_type)
+                    elif action == "clear_drop":
+                        disp.veto_registry.clear_human_drop_veto(t_type)
+                        res = {"cleared_drop": t_type, "epoch_id": disp.veto_registry.current_epoch}
+                    else:
+                        disp.veto_registry.reset_all()
+                        res = {"reset": True, "epoch_id": disp.veto_registry.current_epoch}
                 except Exception as e:
                     res = {"playbook_online": False, "error": str(e)}
                 self.wfile.write(json.dumps(res).encode("utf-8"))
