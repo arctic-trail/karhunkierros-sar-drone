@@ -464,6 +464,7 @@ def make_command_center_handler(alerts_dir, verbose=False):
                             "person_at_shelter": query_params.get("person_safe", "0") in ("1", "true"),
                             "vehicle_at_road": query_params.get("veh_safe", "0") in ("1", "true"),
                             "simulate_llm_offline": query_params.get("llm_offline", "0") in ("1", "true"),
+                            "invoke_live_llm": query_params.get("live_llm", "0") in ("1", "true"),
                         }
                         res = disp.evaluate_jev_step(telem)
                     else:
@@ -512,7 +513,18 @@ def make_command_center_handler(alerts_dir, verbose=False):
                     self.send_error(404, "Documentation image not found")
                     return
 
-            # 5. Root page -> index.html
+            # 5. Root page -> index.html, and /console or /mission -> operator_mission_console.html
+            if clean_path in ("/console", "/mission", "/operator_mission_console.html", "/collector_hub/ui/operator_mission_console.html"):
+                console_path = os.path.join(UI_DIR, "operator_mission_console.html")
+                if os.path.exists(console_path):
+                    self.send_response(200)
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+                    self.end_headers()
+                    with open(console_path, "rb") as f:
+                        self.wfile.write(f.read())
+                    return
+
             if clean_path in ("", "/", "/index.html"):
                 index_path = os.path.join(UI_DIR, "index.html")
                 if os.path.exists(index_path):

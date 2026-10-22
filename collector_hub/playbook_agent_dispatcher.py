@@ -28,6 +28,8 @@ import math
 import os
 import re
 import time
+import urllib.error
+import urllib.request
 from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -968,6 +970,104 @@ class PlaybookAgentDispatcher:
 
         return self.get_status()
 
+    def _query_external_llm_api(
+        self,
+        telemetry: Dict[str, Any],
+        timeout_s: float = 1.15,
+    ) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+        """
+        Perform a bounded-latency (`<= 1.15 s`) HTTPS call to OpenAI or Anthropic using
+        the configured API key to evaluate the active Natural-Language Playbook over
+        current telemetry. Returns `(parsed_json_proposal, error_reason)`.
+        """
+        api_key = self._get_effective_api_key()
+        if not api_key:
+            return None, "No External LLM API Key configured"
+
+        allowed_actions = [
+            "CONTINUE_COOPERATIVE_SCAN",
+            "LOCK_TARGET",
+            "QUEUE_DROP",
+            "EXECUTE_DROP",
+            "RELEASE_SAFE_TARGET_RETURN_TO_SCAN",
+            "RTB_LOW_BATTERY",
+        ]
+        sys_prompt = (
+            "You are a deterministic SAR Drone JEV (Judge-Evaluate-Verify) Dispatcher. "
+            "Follow the active Natural-Language Operations Playbook strictly. "
+            "Respond ONLY with a single JSON object containing keys: "
+            f'"action" (one of {allowed_actions}), "params" (object with optional target_type, '
+            'altitude_agl_m, offset_m), "judge_assessment" (short string), and "evaluate_clause" (short string).'
+        )
+        user_prompt = json.dumps(
+            {
+                "playbook_markdown": self.active_markdown,
+                "telemetry": telemetry,
+            }
+        )
+
+        try:
+            if self.llm_provider == "anthropic":
+                url = "https://api.anthropic.com/v1/messages"
+                body = json.dumps(
+                    {
+                        "model": self.llm_model or "claude-sonnet-4-6",
+                        "max_tokens": 180,
+                        "temperature": 0.0,
+                        "system": sys_prompt,
+                        "messages": [{"role": "user", "content": user_prompt}],
+                    }
+                ).encode("utf-8")
+                req = urllib.request.Request(
+                    url,
+                    data=body,
+                    headers={
+                        "Content-Type": "application/json",
+                        "x-api-key": api_key,
+                        "anthropic-version": "2023-06-01",
+                    },
+                    method="POST",
+                )
+                with urllib.request.urlopen(req, timeout=timeout_s) as resp:
+                    raw = json.loads(resp.read().decode("utf-8"))
+                blocks = raw.get("content", [])
+                txt = blocks[0].get("text", "{}") if blocks else "{}"
+            else:
+                url = "https://api.openai.com/v1/chat/completions"
+                body = json.dumps(
+                    {
+                        "model": self.llm_model or "gpt-5.4-mini",
+                        "temperature": 0.0,
+                        "max_tokens": 180,
+                        "response_format": {"type": "json_object"},
+                        "messages": [
+                            {"role": "system", "content": sys_prompt},
+                            {"role": "user", "content": user_prompt},
+                        ],
+                    }
+                ).encode("utf-8")
+                req = urllib.request.Request(
+                    url,
+                    data=body,
+                    headers={
+                        "Content-Type": "application/json",
+                        "Authorization": f"Bearer {api_key}",
+                    },
+                    method="POST",
+                )
+                with urllib.request.urlopen(req, timeout=timeout_s) as resp:
+                    raw = json.loads(resp.read().decode("utf-8"))
+                choices = raw.get("choices", [])
+                txt = choices[0].get("message", {}).get("content", "{}") if choices else "{}"
+
+            parsed = json.loads(txt.strip())
+            act = str(parsed.get("action", "")).upper().strip()
+            if act not in allowed_actions:
+                return None, f"LLM returned unsupported action '{act}'"
+            return parsed, None
+        except Exception as exc:
+            return None, f"{type(exc).__name__}: {str(exc)[:120]}"
+
     def _record_and_check_thrashing(self, proposed_action: str, now_ts: float) -> Tuple[bool, int]:
         """
         [RT1-03 Fix] Count PROPOSED semantic state flips in the last 15.0 seconds BEFORE
@@ -1007,6 +1107,14 @@ class PlaybookAgentDispatcher:
         # Check simulated or real LLM link health if in CLOUD_LLM_JEV mode
         sim_llm_offline = bool(telemetry.get("simulate_llm_offline", False))
         sim_llm_latency_ms = float(telemetry.get("simulate_llm_latency_ms", 0.0))
+        invoke_live_llm = bool(telemetry.get("invoke_live_llm", False))
+        live_llm_proposal: Optional[Dict[str, Any]] = None
+        live_llm_err: Optional[str] = None
+        if self.aid_mode == "CLOUD_LLM_JEV" and invoke_live_llm and not sim_llm_offline and sim_llm_latency_ms <= 1200.0:
+            live_llm_proposal, live_llm_err = self._query_external_llm_api(telemetry, timeout_s=1.15)
+            if live_llm_err is not None:
+                sim_llm_offline = True
+
         if self.aid_mode == "CLOUD_LLM_JEV" and (sim_llm_offline or sim_llm_latency_ms > 1200.0):
             self.circuit_breaker_tripped = True
             prev_mode = self.aid_mode
@@ -1014,9 +1122,9 @@ class PlaybookAgentDispatcher:
             self.veto_registry.bump_epoch(reason="AID Latency/Offline Circuit-Breaker")
             if "request_epoch" not in telemetry:
                 req_epoch = self.veto_registry.current_epoch
+            err_detail = f" ({live_llm_err})" if live_llm_err else f" (offline or latency {sim_llm_latency_ms:.0f}ms > 1200ms)"
             self.circuit_breaker_reason = (
-                f"AID Circuit-Breaker Tripped (LLM offline or latency {sim_llm_latency_ms:.0f}ms > 1200ms) -> "
-                f"Downgraded from {prev_mode} to {self.aid_mode}"
+                f"AID Circuit-Breaker Tripped{err_detail} -> Downgraded from {prev_mode} to {self.aid_mode}"
             )
             if self.aid_mode == "MANUAL_HUMAN_ONLY":
                 return {
@@ -1136,6 +1244,16 @@ class PlaybookAgentDispatcher:
                 }
                 judge_text = f"Pending drop stabilized at {rules.drop_offset_m:.0f}m offset from {current_target_type}."
                 clause_text = "Payload Drop Clause: Auto-release rescue cask (Ch9 = 1900 µs)."
+
+        # If live External LLM proposal succeeded within <=1.15s, apply its candidate proposal
+        # (still strictly gated by Stage 3 Verify below!)
+        if live_llm_proposal is not None:
+            candidate_action = str(live_llm_proposal.get("action", candidate_action)).upper().strip()
+            llm_params = live_llm_proposal.get("params")
+            if isinstance(llm_params, dict):
+                candidate_params.update(llm_params)
+            judge_text = str(live_llm_proposal.get("judge_assessment", judge_text))[:180]
+            clause_text = str(live_llm_proposal.get("evaluate_clause", clause_text))[:180]
 
         # [RT1-03 Fix] Check Pre-Filter Proposed State-Flip Thrashing (`N_15(t) >= 3`)
         proposed_override = telemetry.get("forced_llm_proposed_action")
