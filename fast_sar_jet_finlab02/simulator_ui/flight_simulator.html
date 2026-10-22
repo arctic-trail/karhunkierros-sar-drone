@@ -586,25 +586,23 @@
   .gauges-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 5px;
-    flex: 1;
-    min-height: 0;
+    gap: 4px;
+    flex-shrink: 0;
   }
   .gauge-card {
     background: var(--bg-card);
     border: 1px solid #1d375c;
     border-radius: 6px;
-    padding: 4px 6px;
+    padding: 3px 5px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     position: relative;
-    min-height: 0;
   }
   .gauge-card canvas {
-    width: 96px;
-    height: 64px;
+    width: 86px;
+    height: 50px;
     display: block;
   }
   .gauge-label {
@@ -721,6 +719,7 @@
       <span class="subtitle">Coupled 6-DOF RK4 Solver · Click Any Stage or Branch Node Below to Simulate From That Point Forward</span>
     </div>
     <div class="header-badges">
+      <button class="badge btn-badge" id="btnRunAutoMission" style="background:linear-gradient(90deg,#005a8d,#0096d6);border-color:#00d8ff;color:#fff;font-size:11px;padding:3px 10px;box-shadow:0 0 10px rgba(0,216,255,0.38);" title="Run or Restart the Full 8-Stage Autonomous SAR Mission Simulation">▶ RUN 8-STAGE MISSION</button>
       <button class="badge btn-badge" id="btnFlyFpvAiRc" style="background:linear-gradient(90deg,#0d5c3a,#18a866);border-color:#18e07f;color:#fff;font-size:11px;padding:3px 10px;box-shadow:0 0 10px rgba(24,224,127,0.38);" title="Fly FPV with Real AI/Flight-Controller Assistance (Auto-Trim, Attitude Hold at Stick Center, ±60° Bank & AoA/G Envelope Protection)">🤖🕹️ FLY FPV: AI-ASSISTED RC [Key 3]</button>
       <button class="badge btn-badge" id="btnToggleLiveFpv" style="background:linear-gradient(90deg,#7a1c28,#c92a3e);border-color:#ff4757;color:#fff;font-size:11px;padding:3px 10px;box-shadow:0 0 10px rgba(255,71,87,0.38);" title="Fly FPV with 100% Raw Unaided Servos (Zero Stabilization, Zero Auto-Trim, Zero Envelope Protection — Test Raw Airframe Stability!)">⚠️🕹️ FLY FPV: RAW UNAIDED [Key 1]</button>
       <span class="badge cyan" id="hdrConfigBadge">VARIANT_H_EVO (14.95 kg)</span>
@@ -991,8 +990,8 @@
       </div>
     </div>
 
-    <!-- RIGHT SIDEBAR: PLAIN-ENGLISH NARRATOR + 6 CIRCULAR ARC GAUGES + FDIR STATUS -->
-    <div class="panel">
+    <!-- RIGHT SIDEBAR: PLAIN-ENGLISH NARRATOR + GLASS COCKPIT PFD/HSI + 6 CIRCULAR GAUGES + FDIR STATUS -->
+    <div class="panel" style="overflow-y:auto;">
       <div class="panel-title">
         <span>What Is Happening Now</span>
         <span id="badgeStageTime" style="font-size:10px;color:var(--accent-amber)">t = 0.0 s</span>
@@ -1014,7 +1013,7 @@
         <span>Glass Cockpit PFD, HSI & Flight Instruments</span>
         <span id="lblNavStatus" style="font-size:9.5px;color:var(--accent-green)">GPS NOMINAL</span>
       </div>
-      <div style="width:100%;height:192px;border:1px solid #1e3d6b;border-radius:6px;background:#040c18;overflow:hidden;margin-bottom:4px;position:relative;">
+      <div style="width:100%;height:156px;flex-shrink:0;border:1px solid #1e3d6b;border-radius:6px;background:#040c18;overflow:hidden;margin-bottom:4px;position:relative;">
         <canvas id="canvasGlassPFD" style="width:100%;height:100%;display:block;"></canvas>
       </div>
       <div class="gauges-grid">
@@ -4793,9 +4792,10 @@ function updateUIForSample(idx) {
 
   const [narTitle, narBody] = buildPlainEnglishNarrative(s);
   document.getElementById("narStageTitle").textContent = narTitle;
-  document.getElementById("narModeBadge").textContent = s.nav_mode.includes("VIO") ? "VIO + 940nm" : "GPS + LORA";
+  document.getElementById("narModeBadge").textContent = String(s.nav_mode || "").includes("VIO") ? "VIO + 940nm" : "GPS + LORA";
   document.getElementById("narBodyText").textContent = narBody;
-  const fdirFlagsArr = s.active_fdir_flags === "NOMINAL" ? [] : s.active_fdir_flags.split(",").map(x => x.trim());
+  const rawFlags = Array.isArray(s.active_fdir_flags) ? s.active_fdir_flags.join(", ") : String(s.active_fdir_flags || "NOMINAL");
+  const fdirFlagsArr = (rawFlags === "NOMINAL" || !rawFlags) ? [] : rawFlags.split(",").map(x => x.trim()).filter(Boolean);
   document.getElementById("lblNavStatus").textContent = fdirFlagsArr.length === 0 ? "ALL SYSTEMS NOMINAL" : `FDIR ACTIVE (${fdirFlagsArr.length})`;
   document.getElementById("lblNavStatus").style.color = fdirFlagsArr.length === 0 ? "var(--accent-green)" : "var(--accent-amber)";
 
@@ -4839,7 +4839,7 @@ function updateUIForSample(idx) {
   drawIsometricTerrainMap(s, i);
   draw3DAircraftViewport(s);
   if (typeof drawSidebarGlassPFD === "function") {
-    drawSidebarGlassPFD(s);
+    try { drawSidebarGlassPFD(s); } catch (e) { console.error("GlassPFD err:", e); }
   }
 
   const maxAlt = Math.max(220, ...data.map(d => d.alt_agl * 1.15));
@@ -4972,6 +4972,22 @@ function getEnvFromUI() {
 
 function jumpToStageAndPlay(phaseCode) {
   if (!currentSim || !currentSim.telemetry.length) return;
+  // Exiting manual FPV mode when jumping to an autonomous mission stage or scenario
+  if (fpvSim && fpvSim.active) {
+    fpvSim.active = false;
+    if (camMode === "FPV_COCKPIT" || camMode === "FPV_SPLIT") {
+      camMode = "ISO";
+      if (typeof CAM_BTN_IDS !== "undefined") {
+        CAM_BTN_IDS.forEach(id => {
+          const b = document.getElementById(id);
+          if (b) b.classList.remove("active");
+        });
+      }
+      const isoBtn = document.getElementById("camIso");
+      if (isoBtn) isoBtn.classList.add("active");
+    }
+    if (typeof syncLiveFpvHeaderButton === "function") syncLiveFpvHeaderButton();
+  }
   let idx = currentSim.telemetry.findIndex(s => s.phase === phaseCode);
   if (phaseCode === "8_LANDING") {
     const chuteIdx = currentSim.telemetry.findIndex(s => s.phase === "8_LANDING" && s.chute_inflation >= 0.85);
@@ -5431,10 +5447,31 @@ document.getElementById("faultPresetSelect").onchange = e => { applyFaultPresetT
 });
 
 document.getElementById("btnPlayPause").onclick = () => {
-  isPlaying = !isPlaying;
+  if (fpvSim.active) {
+    fpvSim.active = false;
+    syncLiveFpvHeaderButton();
+    runSimulationFromUI("1_LAUNCH");
+    return;
+  }
+  if (currentSim && playIdx >= currentSim.telemetry.length - 1) {
+    playIdx = 0;
+    isPlaying = true;
+  } else {
+    isPlaying = !isPlaying;
+  }
   document.getElementById("btnPlayPause").textContent = isPlaying ? "⏸ PAUSE" : "▶ PLAY";
 };
-document.getElementById("btnRestart").onclick = () => { playIdx = 0; isPlaying = true; document.getElementById("btnPlayPause").textContent = "⏸ PAUSE"; };
+document.getElementById("btnRestart").onclick = () => {
+  if (fpvSim.active) {
+    fpvSim.active = false;
+    syncLiveFpvHeaderButton();
+    runSimulationFromUI("1_LAUNCH");
+    return;
+  }
+  playIdx = 0;
+  isPlaying = true;
+  document.getElementById("btnPlayPause").textContent = "⏸ PAUSE";
+};
 document.getElementById("btnSpeed").onclick = () => {
   const speeds = [1, 2, 4, 8];
   playSpeed = speeds[(speeds.indexOf(playSpeed) + 1) % speeds.length];
@@ -5469,7 +5506,7 @@ const CAM_BTN_IDS = ["camFpvCockpit", "camGlassPfd", "camFpvSplit", "camIso", "c
     });
     el.classList.add("active");
     if ((mode === "FPV_COCKPIT" || mode === "GLASS_PFD" || mode === "FPV_SPLIT") && !fpvSim.active) {
-      initLiveFpvFlight("CANYON_DIRECT");
+      initLiveFpvFlight("CANYON_DIRECT", "NORMAL_LAW");
     }
     updateUIForSample(playIdx);
   };
@@ -5673,6 +5710,9 @@ function initLiveFpvFlight(presetName, optionalControlLaw) {
   fpvSim.stickYaw = 0.0;
   fpvSim.mouseYokeX = 0.0;
   fpvSim.mouseYokeY = 0.0;
+  fpvSim.browserPointerActive = false;
+  fpvSim.browserPointerDown = false;
+  fpvSim.uiClickGraceUntilMs = ((typeof performance !== "undefined" && performance.now) ? performance.now() : Date.now()) + 750.0;
   fpvSim.maxG = 1.0;
   fpvSim.minG = 1.0;
 
@@ -5886,15 +5926,16 @@ function stepLiveFpvPhysics(dtFrame) {
 
   // Combine with Hardware MacBook Trackpad (MultitouchSupport 0..1 bounds) or Browser Viewport Trackpad Bounds
   const nowMs = (typeof performance !== "undefined" && performance.now) ? performance.now() : Date.now();
+  const inUiClickGrace = fpvSim.uiClickGraceUntilMs && (nowMs < fpvSim.uiClickGraceUntilMs);
   let directTrackpadActive = false;
 
   if (fpvSim.draggingStick === "RIGHT") {
     cmdRoll  = fpvSim.mouseYokeX;
     cmdPitch = fpvSim.mouseYokeY;
     directTrackpadActive = true;
-  } else if (fpvSim.mouseYokeEnabled) {
+  } else if (fpvSim.mouseYokeEnabled && !inUiClickGrace && fpvSim.cursorInsideFlightViewport) {
     if (fpvSim.hwTrackpadConnected) {
-      // Physical MacBook Trackpad via MultitouchSupport.framework:
+      // Physical MacBook Trackpad via MultitouchSupport.framework (active when cursor is inside Flight Viewport):
       // - Finger OFF trackpad or in MIDDLE of trackpad -> stick in middle (0, 0)
       // - Finger ANYWHERE on trackpad -> stick points to that direction with physical trackpad sides as bounds!
       if (fpvSim.hwTrackpadTouching) {
@@ -6488,8 +6529,8 @@ function stepLiveFpvPhysics(dtFrame) {
       nav_mode: lawLabel,
       fdir_mode: fpvSim.crashed ? `💥 CRASHED: ${fpvSim.crashTitle}` : lawLabel,
       active_fdir_flags: fpvSim.crashed
-        ? [`💥 ${fpvSim.crashTitle}`, fpvSim.crashReason]
-        : [fpvSim.protBanner],
+        ? `CRASHED: ${fpvSim.crashTitle}`
+        : (fpvSim.controlLaw === "NORMAL_LAW" ? "NOMINAL" : fpvSim.controlLaw),
       active_fault_banners: fpvSim.crashed
         ? [`💥 ${fpvSim.crashTitle}`, fpvSim.crashReason]
         : [fpvSim.protBanner]
@@ -7142,7 +7183,8 @@ function drawSidebarGlassPFD(sample) {
   const w = c.clientWidth;
   const h = c.clientHeight;
   if (w < 20 || h < 20) return;
-  const cfg = AIRCRAFT_CATALOG[document.getElementById("aircraftSelect").value];
+  const cfgEl = document.getElementById("cfgSelect");
+  const cfg = AIRCRAFT_CATALOG[cfgEl ? cfgEl.value : "VARIANT_H_EVO"] || Object.values(AIRCRAFT_CATALOG)[0];
   const env = getEnvFromUI();
   const flt = getFaultsFromUI();
   const flow = computeAeroFlowState(sample, cfg, env, flt);
@@ -8024,6 +8066,14 @@ function drawGlassCockpitInstrumentDisplay(ctx, x0, y0, w, h, sample, flow, cfg,
 // Header & Sidebar Button Handlers for Both FPV Manual Flight Modes:
 // 1. AI-Assisted RC Mode (NORMAL_LAW: FBW Pitch/Bank Command + Alpha/G/Speed Envelope Protections)
 // 2. Raw Unaided Servo Mode (DIRECT_LAW: 100% Unassisted Servos to test raw airframe stability)
+const btnRunAutoMission = document.getElementById("btnRunAutoMission");
+if (btnRunAutoMission) {
+  btnRunAutoMission.onclick = () => {
+    fpvSim.active = false;
+    syncLiveFpvHeaderButton();
+    runSimulationFromUI("1_LAUNCH");
+  };
+}
 const btnFlyFpvAiRc = document.getElementById("btnFlyFpvAiRc");
 if (btnFlyFpvAiRc) {
   btnFlyFpvAiRc.onclick = () => {
@@ -8144,6 +8194,11 @@ fpvCanvas.addEventListener("mousedown", e => {
           fpvSim.throttleCmd = Math.max(0, Math.min(1, 0.5 * (1.0 - ny)));
         }
       } else if (b.action) {
+        fpvSim.uiClickGraceUntilMs = performance.now() + 750.0;
+        fpvSim.mouseYokeX = 0.0;
+        fpvSim.mouseYokeY = 0.0;
+        fpvSim.stickPitch = 0.0;
+        fpvSim.stickRoll = 0.0;
         b.action();
         if (currentSim) updateUIForSample(playIdx);
       }
@@ -8151,14 +8206,16 @@ fpvCanvas.addEventListener("mousedown", e => {
     }
   }
 
-  // Clicking/pressing anywhere else in the FPV viewport engages immediate Trackpad Bounds deflection
-  fpvSim.browserPointerDown = true;
-  fpvSim.browserPointerActive = true;
-  fpvSim.browserLastMoveMs = performance.now();
-  const subW = camMode === "FPV_SPLIT" ? rect.width * 0.55 : rect.width;
-  const [sx, sy] = mapRectBoundsToStick(mx - subW * 0.5, my - rect.height * 0.5, subW * 0.44, rect.height * 0.42);
-  fpvSim.mouseYokeX = sx;
-  fpvSim.mouseYokeY = sy;
+  // Only engage Trackpad Bounds deflection on mousedown if inside the middle flight area (not top/bottom button strips)
+  if (my >= 72 && my <= rect.height - 86) {
+    fpvSim.browserPointerDown = true;
+    fpvSim.browserPointerActive = true;
+    fpvSim.browserLastMoveMs = performance.now();
+    const subW = camMode === "FPV_SPLIT" ? rect.width * 0.55 : rect.width;
+    const [sx, sy] = mapRectBoundsToStick(mx - subW * 0.5, my - rect.height * 0.5, subW * 0.44, (rect.height - 158) * 0.45);
+    fpvSim.mouseYokeX = sx;
+    fpvSim.mouseYokeY = sy;
+  }
 });
 
 window.addEventListener("mousemove", e => {
@@ -8186,20 +8243,29 @@ window.addEventListener("mousemove", e => {
         break;
       }
     }
-  } else if (fpvSim.mouseYokeEnabled && mx >= 0 && mx <= rect.width && my >= 0 && my <= rect.height) {
+  } else if (fpvSim.mouseYokeEnabled && mx >= 0 && mx <= rect.width && my >= 72 && my <= rect.height - 86) {
+    // Only map trackpad/cursor to stick inside the middle flight area (not when hovering top/bottom HUD button bars or sidebars!)
+    fpvSim.cursorInsideFlightViewport = true;
     const subW = camMode === "FPV_SPLIT" ? rect.width * 0.55 : rect.width;
     if (mx <= subW) {
       fpvSim.browserPointerActive = true;
       fpvSim.browserLastMoveMs = performance.now();
-      const [sx, sy] = mapRectBoundsToStick(mx - subW * 0.5, my - rect.height * 0.5, subW * 0.44, rect.height * 0.42);
+      const [sx, sy] = mapRectBoundsToStick(mx - subW * 0.5, my - rect.height * 0.5, subW * 0.44, (rect.height - 158) * 0.45);
       fpvSim.mouseYokeX = sx;
       fpvSim.mouseYokeY = sy;
     }
+  } else if (!fpvSim.draggingStick) {
+    // Hovering over top/bottom HUD button strips or outside flight viewport -> center stick so clicking UI buttons never dives the aircraft
+    fpvSim.cursorInsideFlightViewport = false;
+    fpvSim.browserPointerActive = false;
+    fpvSim.mouseYokeX = 0.0;
+    fpvSim.mouseYokeY = 0.0;
   }
 });
 
 fpvCanvas.addEventListener("mouseleave", () => {
-  // Finger/cursor left the trackpad viewport -> center stick immediately to (0, 0)
+  // Finger/cursor left the flight viewport -> center stick immediately to (0, 0)
+  fpvSim.cursorInsideFlightViewport = false;
   fpvSim.browserPointerActive = false;
   fpvSim.browserPointerDown = false;
   if (!fpvSim.draggingStick) {
@@ -8360,33 +8426,40 @@ document.getElementById("cfdBtnSnowIce").onclick = () => {
 window.addEventListener("resize", () => { if (currentSim) updateUIForSample(playIdx); });
 
 function animateLoop() {
-  cfdClock += 0.018;
-  if (lightningFlashFrames > 0) lightningFlashFrames--;
-  if (fpvSim.active) {
-    stepLiveFpvPhysics(1.0 / 60.0);
-    if (currentSim) updateUIForSample(playIdx);
-    requestAnimationFrame(animateLoop);
-    return;
-  }
-  if (currentSim && currentSim.telemetry.length > 0) {
-    if (isPlaying) {
-      playIdx += 0.22 * playSpeed;
-      if (playIdx >= currentSim.telemetry.length - 1) {
-        playIdx = currentSim.telemetry.length - 1;
-        isPlaying = false;
-        document.getElementById("btnPlayPause").textContent = "▶ PLAY";
-      }
-      updateUIForSample(playIdx);
-    } else {
-      // Continuously advect 3D & 2D CFD wind particles even when mission timeline is paused
-      const curSample = currentSim.telemetry[Math.max(0, Math.min(currentSim.telemetry.length - 1, Math.floor(playIdx)))];
-      draw3DAircraftViewport(curSample);
-    }
-  }
   requestAnimationFrame(animateLoop);
+  try {
+    cfdClock += 0.018;
+    if (lightningFlashFrames > 0) lightningFlashFrames--;
+    if (fpvSim.active) {
+      stepLiveFpvPhysics(1.0 / 60.0);
+      if (currentSim) updateUIForSample(playIdx);
+      return;
+    }
+    if (currentSim && currentSim.telemetry.length > 0) {
+      if (isPlaying) {
+        playIdx += 0.22 * playSpeed;
+        if (playIdx >= currentSim.telemetry.length - 1) {
+          playIdx = currentSim.telemetry.length - 1;
+          isPlaying = false;
+          document.getElementById("btnPlayPause").textContent = "▶ PLAY";
+        }
+        updateUIForSample(playIdx);
+      } else {
+        // Continuously advect 3D & 2D CFD wind particles even when mission timeline is paused
+        const curSample = currentSim.telemetry[Math.max(0, Math.min(currentSim.telemetry.length - 1, Math.floor(playIdx)))];
+        draw3DAircraftViewport(curSample);
+      }
+    }
+  } catch (err) {
+    console.error("Simulator frame error:", err);
+  }
 }
 
-runSimulationFromUI("1_LAUNCH");
+try {
+  runSimulationFromUI("1_LAUNCH");
+} catch (err) {
+  console.error("Initial simulation error:", err);
+}
 requestAnimationFrame(animateLoop);
 </script>
 </body>
