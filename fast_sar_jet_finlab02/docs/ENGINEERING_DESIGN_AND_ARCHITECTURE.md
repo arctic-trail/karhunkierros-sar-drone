@@ -221,7 +221,7 @@ To determine how far the operational envelope of `FIN-LAB-02` can be pushed prac
 
 ---
 
-## 11. System-of-Systems Integration, Internal Sensor Physics, Pin-to-Pin Harness, Center-of-Gravity ($X_{\text{CG}}$) Envelope & FMEA Redundancy Plates (`Plates 18–22`)
+## 11. System-of-Systems Integration, Internal Sensor Physics, Pin-to-Pin Harness, Center-of-Gravity ($X_{\text{CG}}$) Envelope, FMEA Redundancy & Wing/Control Trade Study (`Plates 18–23`)
 
 ### 11.1 End-to-End 3-Tier Arctic Civilian System-of-Systems Architecture (`Plate 18`)
 Links Tier-1 `[P11-AIR/RF]` acoustic + passive-RF nodes and `[P12-BELT]` non-RF rotorcraft corridor & substation belt (`Vesper VM3011` `9 µW` piezo wakeup $\rightarrow$ `Acconeer XM125` `60 GHz` pulsed coherent radar + `Lepton 3.5` LWIR) into the `FIN-LAB-01 v1.0` Open U-Space Fusion Engine (`2,500` intersections fused in `4.4 ms`, `14.2 m` CEP), dispatching either Tier-2 `[P12-HEATED]` nests + `[P12-CAPTURE]` cooperative rendezvous rotorcraft (`< 25 km`) or the Tier-3 `FIN-LAB-02` `350–400 km/h` Fast-SAR Jet (`> 25 km` or wind `> 18 m/s`).
@@ -247,4 +247,10 @@ Co-locating both the twin `2.0 L` baffled saddle fuel tanks (`2.65 kg` `Jet A-1`
 Eliminates single-point failures via a **4-servo split `110°` $\Lambda$-tail** (`4x KST X10` independent upper/lower ruddervators + `2x` outboard elevons retaining `68%` pitch and `62%` yaw authority if one servo jams at `15°`), `< 50 ms` fire-safe `Bürkert` fuel shutoff + dorsal recovery chute (or Option B `2.2 kW` fold-out electric pusher RTB), `SYNTH_IAS` analytical airspeed backup, series-parallel dual-pin + `25 N` electro-permanent magnetic breakaway pod latch, dual `ICM-42688-P` IMUs, and GNSS-denied thermal terrain-contour navigation (`18.4 m` CEP).
 
 ![Visual Failure Modes, Performance Degradation & Redundancy Architecture (FMEA)](images/sar_design_22_fmea_failure_modes_and_redundancies_v1.jpg)
+
+### 11.6 Wing Aerodynamics, Control Surfaces (Flaperons / Spoilers / Trim) & Variable-Geometry Trade Study (`Plate 23`)
+Compares the **`NACA 2412` root $\to$ `NACA 2410` tip cranked wing (`-2.0°` washout + `48°` inboard LERX strake + `80 mm` bolt-on Küchenmann winglets + `35 W` carbon-veil leading-edge de-icer)** across all 4 flight regimes (`200–350 km/h` cruise at $L/D = 13.9$, `25.5 m/s` slowed parachute drop pass with `+12°` flaperon droop boosting $C_{L,\max}$ from `1.28` to `1.52`, `3.5 G` turn with LERX vortex lift, and `-30 °C` glaze icing) against laminar (`E374`) and reflex (`MH 45`) airfoils. Documents why **4 `KST X10` HV servos total (`€180`)** driving **outboard flaperons (`0.74c–1.00c`)** + **twin-boom `110°` $\Lambda$-tail ruddervators** + **"Crow / Butterfly" digital airbraking (`+18°` flaperons + outward ruddervator splay = `+185%` drag at `€0 / 0 g`)** + **zero-CG-shift payload/fuel bay (`X_CG = 595.0 mm`)** outperform dedicated flaps, mechanical spoilers, and mechanical trim tabs, and why the **Fixed `16°` Cranked Wing with `72°` Ground-Only Transport Fold Rig Pins (`Config 1/2`: `98.4/100`, `680 mm` folded sled width in `60 s`)** beats an **In-Flight `16°–60°` Variable-Sweep Swing-Wing (`Config 5`: `86.5/100`, `+650 g` pivot penalty, `+14.5 mm` aft CG shift)**.
+
+![Wing Aerodynamics, Control Surfaces (Flaperons / Spoilers / Trim) & Variable-Geometry Trade Study](images/sar_design_23_wing_aerodynamics_control_surfaces_and_vg_trade_v4.jpg)
+
 
