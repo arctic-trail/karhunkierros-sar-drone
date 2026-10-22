@@ -735,8 +735,18 @@
         </div>
 
         <button class="btn warning" onclick="toggleProdReadinessModal(true)" title="View 6-Persona Production Readiness vs. Missing Physical Bench, Flight &amp; Regulatory Gates" style="border-color:rgba(245,158,11,0.55);color:#fbbf24;">🛡️ SW: 100% Prod • Missing Gates ▾</button>
+        <button class="btn primary" id="btnStartManualPractice" onclick="startManualPracticeMission()" title="Launch a 1x Real-Time Manual Practice Mission: Switches to Manual Control (No AI Override), sets 1x Normal Speed (12.5 m/s), and lets you guide Drone 1 with WASD, Trackpad Stick, or Click-to-Fly!" style="border-color:rgba(56,189,248,0.65);background:rgba(10,132,255,0.24);color:#64d2ff;">🕹️ Manual Practice (1x)</button>
         <button class="btn success active" id="btnSimPlayPause" onclick="toggleSimPlayPause()">⏸ Sim Running</button>
-        <button class="btn" id="btnSimSpeed" onclick="cycleSimSpeed()">1x Speed</button>
+        <select id="selSimSpeed" class="select-input" onchange="setSimSpeed(this.value)" title="Select Simulation Time Scale: 1x Normal Real-Time (12.5 m/s = 45 km/h) up to 100x Hyper-Scan" style="padding:4px 7px;font-size:11.5px;border-color:rgba(56,189,248,0.5);color:#64d2ff;font-weight:600;">
+          <option value="0.5">🐢 0.5x Slow-Mo (6 m/s)</option>
+          <option value="1" selected>🕹️ 1x Normal (12.5 m/s)</option>
+          <option value="2">⚡ 2x Fast (25 m/s)</option>
+          <option value="5">⚡ 5x Scale (62 m/s)</option>
+          <option value="10">🚀 10x Scale (125 m/s)</option>
+          <option value="25">🚀 25x Scale (312 m/s)</option>
+          <option value="100">🔥 100x Scale (1.25 km/s)</option>
+        </select>
+        <button class="btn" id="btnSimSpeed" onclick="cycleSimSpeed()" title="Click to cycle simulation speed scale (0.5x -> 1x -> 2x -> 5x -> 10x -> 25x -> 100x)">1x Speed</button>
       </div>
     </header>
 
@@ -1069,21 +1079,36 @@
             </div>
           </div>
 
-          <!-- CARD 0B: 1:1 TRACKPAD / STICK STEERING WITH X & Y AXIS VS BOUNDS -->
-          <div class="step-card" style="border-color:rgba(56,189,248,0.55);background:linear-gradient(180deg,rgba(56,189,248,0.08),rgba(20,22,30,0.96));padding:9px 11px;">
+          <!-- CARD 0B: 1:1 TRACKPAD / STICK STEERING & MANUAL PRACTICE MISSION -->
+          <div class="step-card" style="border-color:rgba(56,189,248,0.55);background:linear-gradient(180deg,rgba(56,189,248,0.10),rgba(20,22,30,0.96));padding:9px 11px;">
             <div class="step-header">
-              <span class="step-title">🕹️ Trackpad &amp; Stick Steering (X/Y Bounds)</span>
-              <span class="step-badge" id="badgeStickState" style="background:rgba(56,189,248,0.16);color:#38bdf8;">1:1 Finger Follow</span>
+              <span class="step-title">🕹️ Manual Practice &amp; Stick Steering</span>
+              <span class="step-badge" id="badgeStickState" style="background:rgba(56,189,248,0.16);color:#38bdf8;">1x Real-Time (12.5 m/s)</span>
+            </div>
+            <div style="display:flex;gap:5px;align-items:center;">
+              <button class="btn primary" onclick="startManualPracticeMission()" style="flex:1.25;padding:4px 7px;font-size:11px;" title="Start a Manual Practice Mission at 1x Normal Real-Time speed (12.5 m/s) with AI auto-override turned OFF">🕹️ Start Practice Mission (1x)</button>
+              <select id="selCardSimSpeed" class="select-input" onchange="setSimSpeed(this.value)" style="flex:0.95;padding:3px 5px;font-size:10.5px;" title="Simulation Speed Scale (1x Normal Real-Time vs. 2x..100x Accelerated)">
+                <option value="0.5">0.5x Slow (6 m/s)</option>
+                <option value="1" selected>1x Normal (12.5 m/s)</option>
+                <option value="2">2x Fast (25 m/s)</option>
+                <option value="5">5x Scale (62 m/s)</option>
+                <option value="10">10x Scale (125 m/s)</option>
+                <option value="25">25x Scale (312 m/s)</option>
+                <option value="100">100x Scale (1.25 km/s)</option>
+              </select>
+            </div>
+            <div id="lblManualPilotTelemetry" style="font-family:var(--font-mono);font-size:10px;color:#4ade80;background:rgba(0,0,0,0.34);padding:4px 6px;border-radius:5px;border:1px solid rgba(56,189,248,0.25);line-height:1.3;">
+              🚁 Drone 1: 12.5 m/s (45 km/h) &bull; 🎯 Hiker: 18m SE (125°)
             </div>
             <div style="font-size:10.5px;color:var(--text-secondary);line-height:1.3;">
-              Move finger inside the <strong>2D Bounds Box</strong> (or use <strong>WASD</strong>). <strong>To stop without pulling to the side:</strong> <strong>Click once</strong> (or press <strong>Space / Esc</strong>) to lock at <strong>(0%, 0%)</strong> while moving cursor out!
+              Steer with <strong>WASD / Arrows</strong>, <strong>2D Box below</strong>, or <strong>📍 Send Drone to Point</strong>. <strong>Click box / Space</strong> to hold position at <strong>(0%, 0%)</strong>!
             </div>
-            <canvas id="trackpadSteerCanvas" width="280" height="156" style="width:100%;height:142px;background:#090b10;border:1px solid rgba(56,189,248,0.45);border-radius:7px;cursor:crosshair;display:block;touch-action:none;" title="Move inside box to steer 1:1. Click once (or press Space/Esc) to immediately center (0%, 0%) and pause follow so you can move cursor out without deflecting to one side!"></canvas>
+            <canvas id="trackpadSteerCanvas" width="280" height="156" style="width:100%;height:136px;background:#090b10;border:1px solid rgba(56,189,248,0.45);border-radius:7px;cursor:crosshair;display:block;touch-action:none;" title="Move inside box to steer 1:1. Click once (or press Space/Esc) to immediately center (0%, 0%) and hold position!"></canvas>
             <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;font-family:var(--font-mono);font-size:10px;">
               <span id="lblStickAxisReadout" style="color:#64d2ff;">X: +0% [-100..+100] &bull; Y: +0% [-100..+100]</span>
               <div style="display:flex;gap:4px;">
-                <button class="win-btn" id="btnToggleStickArm" onclick="toggleStickArmPause()" style="font-size:9.5px;padding:2px 5px;" title="Pause/Resume trackpad cursor follow without deflecting to the side">⏸ Pause/Center [Click/Space]</button>
-                <button class="win-btn" onclick="resumeSelectedDroneAutoScan()" style="font-size:9.5px;padding:2px 5px;color:#4ade80;">↺ Auto Scan</button>
+                <button class="win-btn" id="btnToggleStickArm" onclick="toggleStickArmPause()" style="font-size:9.5px;padding:2px 5px;" title="Pause/Resume trackpad cursor follow and hold position">⏸ Hold Pos [Click/Space]</button>
+                <button class="win-btn" onclick="resumeSelectedDroneAutoScan()" style="font-size:9.5px;padding:2px 5px;color:#4ade80;" title="Return selected drone from Manual Pilot to automatic sector scanning">↺ Auto Scan</button>
               </div>
             </div>
           </div>
@@ -2087,8 +2112,18 @@
 
       const mapperIndices = [];
       drones.forEach((d, idx) => {
+        if (repositionDrones) {
+          d.customGoal = null;
+          d.manualHold = false;
+        }
         if (idx === 0 && targetLockActive) {
           d.role = 'PRIORITY_FOLLOW';
+          d.customGoal = null;
+          d.manualHold = false;
+        } else if (!repositionDrones && d.role === 'CUSTOM_GOTO' && d.customGoal) {
+          // Preserve manual waypoint / custom target lock when stretching box or updating UI
+        } else if (!repositionDrones && d.role === 'MANUAL_HOLD') {
+          // Preserve manual stick pilot hold until operator clicks "Auto Scan" or "Restart Scan"
         } else {
           d.role = 'SHROUD_MAPPER';
           mapperIndices.push(idx);
@@ -2749,11 +2784,12 @@
             if (decEl) {
               decEl.textContent = `JEV [${jev.action}]: ${jev.evaluate_clause || ''}`;
             }
-            if (jev.executed && aidState.mode !== 'ADVISORY_ONLY') {
-              if (jev.action === 'LOCK_TARGET' && !targetLockActive) {
+            if (jev.executed && aidState.mode !== 'ADVISORY_ONLY' && aidState.mode !== 'MANUAL_HUMAN_ONLY') {
+              const d0Manual = (d0.role === 'MANUAL_HOLD' || d0.role === 'CUSTOM_GOTO');
+              if (jev.action === 'LOCK_TARGET' && !targetLockActive && !d0Manual) {
                 const tType = (jev.params && jev.params.target_type) || guidedTargetType;
                 reassignTargetLock(tType, false);
-              } else if (jev.action === 'QUEUE_DROP' && payloadState.status === 'READY_ABOARD') {
+              } else if (jev.action === 'QUEUE_DROP' && payloadState.status === 'READY_ABOARD' && !d0Manual) {
                 queueDropNearActiveTarget(false);
               } else if (jev.action === 'EXECUTE_DROP' && payloadState.status === 'EN_ROUTE_PENDING') {
                 executeImmediateDrop(false);
@@ -3343,6 +3379,8 @@
     function sendDroneToWorldPoint(droneIdx, wx, wy, sourceDesc = 'Operator Waypoint') {
       const d = drones[droneIdx] || drones[0];
       selectCameraSource(`DRONE_${droneIdx}`);
+      d.role = 'CUSTOM_GOTO';
+      d.manualHold = false;
       d.customGoal = { x: wx, y: wy, label: sourceDesc };
       d.sectorDone = false;
       d.sectorName = `📍 Fly -> (${Math.round(wx)}m, ${Math.round(wy)}m)`;
@@ -3354,7 +3392,7 @@
       updateTargetAndDropUI();
       updateCameraSwitcherLabels();
       const [lat, lon] = worldToLatLon(wx, wy);
-      updateAidBannerUI(`📍 ${d.shortName} Commanded to (${Math.round(wx)}m, ${Math.round(wy)}m / ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E) — Flying From Previous Position!`);
+      updateAidBannerUI(`📍 ${d.shortName} Commanded to (${Math.round(wx)}m, ${Math.round(wy)}m / ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E) — Flying at ${(12.5 * simSpeed).toFixed(1)} m/s (${simSpeed}x)!`);
       logAndDispatchMavlinkV2(`SET_POSITION_TARGET_GLOBAL_INT (#86) • ${d.shortName} GoTo (${lat.toFixed(4)}N, ${lon.toFixed(4)}E)`, 86, 'FD 35 00 00 0B FF BE 56 00 00', `/api/field/target?active=1&type=GOTO`);
     }
 
@@ -3381,6 +3419,7 @@
       const hit = findSubjectNearWorldPoint(wx, wy, 42);
       if (hit && (hit.key === 'PERSON' || hit.key === 'VEHICLE')) {
         drones[0].customGoal = null;
+        drones[0].manualHold = false;
         reassignTargetLock(hit.key, true);
         selectCameraSource('DRONE_0');
         updateAidBannerUI(`🎯 Locked onto ${hit.subj.label} (${hit.subj.tempC}) • Drone 1 Flying to Track & Escort`);
@@ -3392,6 +3431,8 @@
       customTrackedObject.y = wy;
       customTrackedObject.arrived = false;
       const d = drones[droneIdx] || drones[0];
+      d.role = 'CUSTOM_GOTO';
+      d.manualHold = false;
       d.customGoal = { x: wx - 12, y: wy - 5, label: '🎯 Tracking Marked Object', isTrackingCustom: true };
       d.sectorDone = false;
       d.sectorName = '🎯 Tracking Marked Object';
@@ -3404,10 +3445,16 @@
 
     function resumeSelectedDroneAutoScan() {
       const idx = getActiveSelectedDroneIndex();
-      drones.forEach(d => { d.customGoal = null; });
+      drones.forEach(d => {
+        d.customGoal = null;
+        d.manualHold = false;
+        if (d.role === 'MANUAL_HOLD' || d.role === 'CUSTOM_GOTO') {
+          d.role = 'SHROUD_MAPPER';
+        }
+      });
       centerManualStick(false);
       recomputeAutoMission(false, false);
-      updateAidBannerUI(`↺ ${drones[idx].shortName} Resumed Cooperative Sector Scan from Current Position`);
+      updateAidBannerUI(`↺ ${drones[idx].shortName} Resumed Cooperative Sector Scan from Current Position (${(12.5 * simSpeed).toFixed(1)} m/s @ ${simSpeed}x)`);
     }
 
     function toggleVideoTrackpadSteerMode() {
@@ -3431,7 +3478,7 @@
         stickState.y = 0.0;
         stickState.fingerInsidePad = false;
         updateStickReadoutUI();
-        updateAidBannerUI(`⏸ Trackpad Stick Centered (0%, 0%) & Paused — Move cursor away freely without side pull! (Click pad to resume)`);
+        updateAidBannerUI(`⏸ Trackpad Stick Centered (0%, 0%) & Holding Position — Move cursor away freely! (Click pad to resume)`);
       } else {
         stickState.padArmed = !stickState.padArmed;
         stickState.x = 0.0;
@@ -3439,12 +3486,12 @@
         if (!stickState.padArmed) stickState.fingerInsidePad = false;
         updateStickReadoutUI();
         updateAidBannerUI(stickState.padArmed
-          ? `🕹️ Trackpad Stick Armed — Move finger inside 2D box to steer 1:1 (Click or Space to pause & center)`
-          : `⏸ Trackpad Stick Centered (0%, 0%) & Paused — Move cursor away freely without side pull!`);
+          ? `🕹️ Trackpad Stick Armed (${simSpeed}x = ${(14.0 * simSpeed).toFixed(1)} m/s max) — Move finger inside 2D box or use WASD (Click/Space to Hold Position)`
+          : `⏸ Trackpad Stick Centered (0%, 0%) & Holding Position — Move cursor away freely!`);
       }
       const btnArm = document.getElementById('btnToggleStickArm');
       if (btnArm) {
-        btnArm.textContent = stickState.padArmed ? '⏸ Pause/Center [Click/Space]' : '▶ Resume Follow [Click]';
+        btnArm.textContent = stickState.padArmed ? '⏸ Hold Pos [Click/Space]' : '▶ Resume Stick [Click]';
       }
     }
 
@@ -3455,11 +3502,12 @@
       stickState.padArmed = false; // Disarm on explicit center/Esc/Space so moving cursor away never pulls to the side!
       const btnArm = document.getElementById('btnToggleStickArm');
       if (btnArm) {
-        btnArm.textContent = '▶ Resume Follow [Click]';
+        btnArm.textContent = '▶ Resume Stick [Click]';
       }
       updateStickReadoutUI();
       if (updateBanner) {
-        updateAidBannerUI(`🛑 Manual Stick Centered (X: 0%, Y: 0%) & Paused • Move cursor out freely without side deflection!`);
+        const d = drones[getActiveSelectedDroneIndex()] || drones[0];
+        updateAidBannerUI(`🛑 ${d.shortName} Holding Position at (${Math.round(d.x)}m, ${Math.round(d.y)}m) • Stick Centered (0%, 0%)`);
       }
     }
 
@@ -3473,7 +3521,7 @@
       const active = Math.abs(stickState.x) > 0.02 || Math.abs(stickState.y) > 0.02;
       const d = drones[getActiveSelectedDroneIndex()] || drones[0];
       if (badge) {
-        badge.textContent = active ? `Steering ${d.shortName} (${xSign}, ${ySign})` : 'Centered (0%, 0%)';
+        badge.textContent = active ? `Steering ${d.shortName} (${xSign}, ${ySign})` : `${simSpeed}x Scale (${(12.5 * simSpeed).toFixed(1)} m/s)`;
         badge.style.background = active ? 'rgba(48, 209, 88, 0.22)' : 'rgba(56, 189, 248, 0.16)';
         badge.style.color = active ? '#4ade80' : '#38bdf8';
       }
@@ -3514,10 +3562,10 @@
     function recomputeKeyboardStickAxes() {
       if (stickState.fingerInsidePad) return;
       let kx = 0.0, ky = 0.0;
-      if (stickState.keysDown['a'] || stickState.keysDown['arrowleft']) kx -= 0.75;
-      if (stickState.keysDown['d'] || stickState.keysDown['arrowright']) kx += 0.75;
-      if (stickState.keysDown['w'] || stickState.keysDown['arrowup']) ky += 0.75;
-      if (stickState.keysDown['s'] || stickState.keysDown['arrowdown']) ky -= 0.75;
+      if (stickState.keysDown['a'] || stickState.keysDown['arrowleft']) kx -= 0.85;
+      if (stickState.keysDown['d'] || stickState.keysDown['arrowright']) kx += 0.85;
+      if (stickState.keysDown['w'] || stickState.keysDown['arrowup']) ky += 0.85;
+      if (stickState.keysDown['s'] || stickState.keysDown['arrowdown']) ky -= 0.85;
       stickState.x = Math.max(-1.0, Math.min(1.0, kx));
       stickState.y = Math.max(-1.0, Math.min(1.0, ky));
       updateStickReadoutUI();
@@ -3547,11 +3595,68 @@
       }
     }
 
-    function cycleSimSpeed() {
-      const speeds = [1.0, 2.0, 4.0];
-      simSpeed = speeds[(speeds.indexOf(simSpeed) + 1) % speeds.length];
+    function setSimSpeed(val) {
+      const parsed = parseFloat(val);
+      if (!Number.isFinite(parsed) || parsed <= 0) return;
+      simSpeed = parsed;
       const btn = document.getElementById('btnSimSpeed');
       if (btn) btn.textContent = `${simSpeed}x Speed`;
+      const selTop = document.getElementById('selSimSpeed');
+      if (selTop && String(selTop.value) !== String(simSpeed)) selTop.value = String(simSpeed);
+      const selCard = document.getElementById('selCardSimSpeed');
+      if (selCard && String(selCard.value) !== String(simSpeed)) selCard.value = String(simSpeed);
+      updateStickReadoutUI();
+      updateTargetAndDropUI();
+      const cruiseMps = (12.5 * simSpeed).toFixed(1);
+      const cruiseKmh = Math.round(12.5 * simSpeed * 3.6);
+      updateAidBannerUI(`⏱️ Simulation Time Scale Set to ${simSpeed}x (${cruiseMps} m/s = ${cruiseKmh} km/h Drone Cruise • ${(1.45 * simSpeed).toFixed(1)} m/s Hiker Walk)`);
+    }
+
+    function cycleSimSpeed() {
+      const speeds = [0.5, 1.0, 2.0, 5.0, 10.0, 25.0, 100.0];
+      const curIdx = speeds.findIndex(s => Math.abs(s - simSpeed) < 0.01);
+      const next = speeds[(curIdx + 1) % speeds.length];
+      setSimSpeed(next);
+    }
+
+    function startManualPracticeMission() {
+      // 1. Set true 1x Normal Real-Time speed (12.5 m/s cruise, 14.0 m/s manual stick max) and ensure sim is running
+      setSimSpeed(1.0);
+      if (!simRunning) toggleSimPlayPause();
+
+      // 2. Switch Control Mode to MANUAL_HUMAN_ONLY so AI Dispatcher does not override the human pilot
+      updateAidMode('MANUAL_HUMAN_ONLY');
+      const selMode = document.getElementById('selAidMode');
+      if (selMode) selMode.value = 'MANUAL_HUMAN_ONLY';
+
+      // 3. Release automatic target lock and reload rescue barrel aboard Drone 1
+      targetLockActive = false;
+      const chk = document.getElementById('chkPreemptMapping');
+      if (chk) chk.checked = false;
+      payloadState.status = 'READY_ABOARD';
+      aidState.dropVetoLatched = false;
+
+      // 4. Reset canyon search shroud & place Lost Hiker + Snowmobile in canyon, then put Drone 1 in MANUAL_HOLD at launch point!
+      restartCooperativeSearch();
+      const d0 = drones[0];
+      d0.x = searchBox.xMin + 85;
+      d0.y = searchBox.yMin + 65;
+      d0.role = 'MANUAL_HOLD';
+      d0.manualHold = true;
+      d0.customGoal = null;
+      d0.sectorName = '🕹️ Manual Pilot (1x)';
+      d0.trail = [{ x: d0.x, y: d0.y }];
+      markCircleExplored(d0.x, d0.y, d0.radius);
+
+      selectCameraSource('DRONE_0');
+      stickState.padArmed = true;
+      stickState.x = 0.0;
+      stickState.y = 0.0;
+      updateTargetAndDropUI();
+      updateCameraSwitcherLabels();
+      updateStickReadoutUI();
+      const distHiker = Math.round(Math.hypot(lostPerson.x - d0.x, lostPerson.y - d0.y));
+      updateAidBannerUI(`🕹️ MANUAL PRACTICE MISSION (1x Real-Time = 12.5 m/s): Use WASD / Arrows, 2D Stick Box, or "📍 Send Drone to Point" to find the Lost Hiker (${distHiker}m SE), drop the +42°C Cask, and guide them to Oulanka Hut!`);
     }
 
     function exportQgcWaypoints() {
@@ -4241,48 +4346,89 @@
     }
 
     restartCooperativeSearch();
+    if (window.location.search.includes('practice=1')) {
+      setTimeout(() => startManualPracticeMission(), 60);
+    }
 
     // =========================================================================
-    // 7. MAIN 60 FPS SIMULATION & RENDER LOOP
+    // 7. MAIN 60 FPS SIMULATION & RENDER LOOP (TRUE WALL-CLOCK PHYSICAL m/s!)
     // =========================================================================
+    let lastFramePerfMs = performance.now();
+    const DRONE_CRUISE_MPS = 12.5; // 12.5 m/s = 45.0 km/h quadcopter patrol/goto speed at 1x Real-Time
+    const MANUAL_MAX_MPS   = 14.0; // 14.0 m/s = 50.4 km/h max manual stick speed at 1x Real-Time
+    const HIKER_WALK_MPS   = 1.45; // 1.45 m/s = 5.2 km/h walking hiker escort speed at 1x Real-Time
+    const VEHICLE_MOVE_MPS = 5.50; // 5.50 m/s = 19.8 km/h snowmobile trail speed at 1x Real-Time
+
     function renderLoop() {
       requestAnimationFrame(renderLoop);
       resizeCanvases();
+      const nowPerfMs = performance.now();
+      const dtRealSec = Math.min(0.1, Math.max(0.004, (nowPerfMs - lastFramePerfMs) / 1000.0));
+      lastFramePerfMs = nowPerfMs;
+
       const dtScale = simRunning ? simSpeed : 0.0;
-      if (dtScale > 0) {
-        simClockSec += 0.068 * dtScale;
+      const simDtSec = dtRealSec * dtScale;
+      if (simDtSec > 0) {
+        simClockSec += simDtSec;
       }
       const gCur = getMapGeometry();
-      const viewAdaptiveStepM = Math.max(0.75, 1.45 / Math.max(0.002, gCur.scale)) * dtScale;
+      const viewAdaptiveStepM = DRONE_CRUISE_MPS * simDtSec;
 
       // Keyboard WASD / Arrow Keys update stickState if finger is not currently inside the pad
       const k = stickState.keysDown;
-      const keyX = ((k.ArrowRight || k.KeyD) ? 1 : 0) - ((k.ArrowLeft || k.KeyA) ? 1 : 0);
-      const keyY = ((k.ArrowUp || k.KeyW) ? 1 : 0) - ((k.ArrowDown || k.KeyS) ? 1 : 0);
+      const keyX = ((k.arrowright || k.d || k.ArrowRight || k.KeyD) ? 1 : 0) - ((k.arrowleft || k.a || k.ArrowLeft || k.KeyA) ? 1 : 0);
+      const keyY = ((k.arrowup || k.w || k.ArrowUp || k.KeyW) ? 1 : 0) - ((k.arrowdown || k.s || k.ArrowDown || k.KeyS) ? 1 : 0);
       if (keyX !== 0 || keyY !== 0) {
-        stickState.x = keyX;
-        stickState.y = keyY;
+        const kNorm = (keyX !== 0 && keyY !== 0) ? 0.7071 : 1.0;
+        stickState.x = keyX * kNorm;
+        stickState.y = keyY * kNorm;
       } else if (!stickState.fingerInsidePad && !stickState.holdLatched) {
         stickState.x = 0.0;
         stickState.y = 0.0;
       }
       renderTrackpadSteerBoundsCanvas();
 
-      // Apply 1:1 Direct Trackpad Stick Steering to the currently selected drone!
+      // Apply 1:1 Direct Trackpad / Keyboard Stick Steering to the currently selected drone!
       const steeredDroneIdx = selectedCameraSource === 'QUAD_4UP' ? 0 : (parseInt(selectedCameraSource.replace('DRONE_', ''), 10) || 0);
-      if (Math.hypot(stickState.x, stickState.y) > 0.03) {
+      const stickMag = Math.min(1.0, Math.hypot(stickState.x, stickState.y));
+      if (stickMag > 0.03) {
         const sd = drones[steeredDroneIdx] || drones[0];
-        const manualStep = Math.max(1.1, 2.2 / Math.max(0.002, gCur.scale)) * Math.max(0.5, dtScale || 1.0);
-        sd.x += stickState.x * manualStep;
-        sd.y -= stickState.y * manualStep; // +Y stick is North (Up = -Y in world)
+        // Smooth precision curve: fine 1-3 m/s hover control near center, full 14 m/s * simSpeed at 100% deflection
+        const curvedMag = Math.pow(stickMag, 1.3);
+        const effSpeedScale = simRunning ? simSpeed : 1.0;
+        const cmdSpeedMps = MANUAL_MAX_MPS * curvedMag * effSpeedScale;
+        const manualStep = cmdSpeedMps * dtRealSec;
+        const ux = stickState.x / stickMag;
+        const uy = stickState.y / stickMag;
+        sd.x += ux * manualStep;
+        sd.y -= uy * manualStep; // +Y stick is North (Up = -Y in world)
+        sd.lastSpeedMps = cmdSpeedMps;
+        sd.lastHeadingDeg = ((Math.atan2(ux, uy) * 180 / Math.PI) + 360) % 360;
+        // Put drone in MANUAL_HOLD so when pilot centers stick (0%, 0%), it holds position instead of snapping back!
+        sd.role = 'MANUAL_HOLD';
+        sd.manualHold = true;
         sd.customGoal = null;
-        if (Math.hypot(sd.x - (sd.trail[sd.trail.length - 1]?.x || sd.x), sd.y - (sd.trail[sd.trail.length - 1]?.y || sd.y)) > 8.0) {
+        sd.sectorName = `🕹️ Manual (${cmdSpeedMps.toFixed(1)} m/s)`;
+        if (steeredDroneIdx === 0 && targetLockActive) {
+          targetLockActive = false;
+          const chk = document.getElementById('chkPreemptMapping');
+          if (chk) chk.checked = false;
+          updateTargetAndDropUI();
+        }
+        updateCameraSwitcherLabels();
+        if (Math.hypot(sd.x - (sd.trail[sd.trail.length - 1]?.x || sd.x), sd.y - (sd.trail[sd.trail.length - 1]?.y || sd.y)) > 6.0) {
           sd.trail.push({ x: sd.x, y: sd.y });
           if (sd.trail.length > 50) sd.trail.shift();
         }
+      } else {
+        const sd = drones[steeredDroneIdx] || drones[0];
+        if (sd && sd.role === 'MANUAL_HOLD') {
+          sd.lastSpeedMps = 0.0;
+          sd.sectorName = '🕹️ Manual Hold (Loiter)';
+        }
       }
 
-      if (targetLockActive && dtScale > 0) {
+      if (targetLockActive && simDtSec > 0) {
         const subj = guidedTargetType === 'CUSTOM_OBJECT' && customTrackedObject
           ? customTrackedObject
           : (guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson);
@@ -4291,9 +4437,10 @@
         const dy = dest.y - subj.y;
         const dist = Math.hypot(dx, dy);
         if (dist > 10.0 && guidedTargetType !== 'CUSTOM_OBJECT') {
-          const spd = guidedTargetType === 'VEHICLE' ? 0.16 : 0.08;
-          subj.x += (dx / dist) * spd * dtScale;
-          subj.y += (dy / dist) * spd * dtScale;
+          const spdMps = guidedTargetType === 'VEHICLE' ? VEHICLE_MOVE_MPS : HIKER_WALK_MPS;
+          const stepSubj = Math.min(dist, spdMps * simDtSec);
+          subj.x += (dx / dist) * stepSubj;
+          subj.y += (dy / dist) * stepSubj;
         } else if (dist <= 10.0 && guidedTargetType !== 'CUSTOM_OBJECT') {
           subj.arrived = true;
           // Playbook Rule: When escorted subject reaches shelter/roadhead, release target lock and return to 4-sector scan!
@@ -4309,13 +4456,13 @@
         : (guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson);
       const activeDest = guidedTargetType === 'VEHICLE' ? PLOWED_ROADHEAD : AUTIOTUPA_HUT;
 
-      // Un-escorted secondary moving object slowly patrols/moves across sector boundaries (simulating an object moving from unscanned into scanned areas!)
-      if (dtScale > 0) {
+      // Un-escorted secondary moving object slowly patrols/moves across sector boundaries at realistic 0.85 m/s
+      if (simDtSec > 0) {
         const unescorted = guidedTargetType === 'VEHICLE' ? lostPerson : lostVehicle;
         if (!unescorted.arrived) {
           const driftAng = simClockSec * 0.045;
-          unescorted.x += Math.cos(driftAng) * 0.055 * dtScale;
-          unescorted.y += Math.sin(driftAng * 0.7) * 0.045 * dtScale;
+          unescorted.x += Math.cos(driftAng) * 0.85 * simDtSec;
+          unescorted.y += Math.sin(driftAng * 0.7) * 0.70 * simDtSec;
           unescorted.x = Math.max(searchBox.xMin + 24, Math.min(searchBox.xMax - 24, unescorted.x));
           unescorted.y = Math.max(searchBox.yMin + 24, Math.min(searchBox.yMax - 24, unescorted.y));
         }
@@ -4324,29 +4471,41 @@
       let maxPassCount = 1;
       let activeModeSummary = 'N↕S Pincer';
       drones.forEach((d, idx) => {
-        const isBeingManuallySteered = (idx === steeredDroneIdx && Math.hypot(stickState.x, stickState.y) > 0.03);
-        if (dtScale > 0 && !isBeingManuallySteered) {
-          if (d.role === 'CUSTOM_GOTO' && d.customGoal) {
+        const isBeingManuallySteered = (idx === steeredDroneIdx && stickMag > 0.03);
+        if (simDtSec > 0 && !isBeingManuallySteered) {
+          if (d.role === 'MANUAL_HOLD') {
+            // Hold position where human pilot left it!
+            d.lastSpeedMps = 0.0;
+          } else if (d.role === 'CUSTOM_GOTO' && d.customGoal) {
             const dx = d.customGoal.x - d.x;
             const dy = d.customGoal.y - d.y;
             const dist = Math.hypot(dx, dy);
-            if (dist > 3.0) {
-              const step = Math.min(dist, viewAdaptiveStepM * 1.25);
+            if (dist > 1.5) {
+              const step = Math.min(dist, viewAdaptiveStepM * 1.10);
               d.x += (dx / dist) * step;
               d.y += (dy / dist) * step;
+              d.lastSpeedMps = DRONE_CRUISE_MPS * 1.10 * simSpeed;
+              d.lastHeadingDeg = ((Math.atan2(dx, -dy) * 180 / Math.PI) + 360) % 360;
+              if (Math.hypot(d.x - (d.trail[d.trail.length - 1]?.x || d.x), d.y - (d.trail[d.trail.length - 1]?.y || d.y)) > 8.0) {
+                d.trail.push({ x: d.x, y: d.y });
+                if (d.trail.length > 50) d.trail.shift();
+              }
             } else {
               d.x = d.customGoal.x;
               d.y = d.customGoal.y;
-              d.sectorName = 'Holding at Pin';
+              d.lastSpeedMps = 0.0;
+              d.sectorName = '📍 Holding at Pin';
             }
           } else if (idx === 0 && payloadState.status === 'EN_ROUTE_PENDING') {
             const dx = payloadState.targetX - d.x;
             const dy = payloadState.targetY - d.y;
             const dist = Math.hypot(dx, dy);
-            if (dist > 5.0) {
-              const step = Math.min(dist, viewAdaptiveStepM * 1.15);
+            if (dist > 2.5) {
+              const step = Math.min(dist, viewAdaptiveStepM * 1.05);
               d.x += (dx / dist) * step;
               d.y += (dy / dist) * step;
+              d.lastSpeedMps = DRONE_CRUISE_MPS * 1.05 * simSpeed;
+              d.lastHeadingDeg = ((Math.atan2(dx, -dy) * 180 / Math.PI) + 360) % 360;
             } else if ((aidState.mode === 'OFFLINE_DETERMINISTIC' || aidState.mode === 'CLOUD_LLM_JEV') && aidState.compiled.autoReleaseDrop && !aidState.compiled.requireHumanDropConfirm && !aidState.dropVetoLatched) {
               executeImmediateDrop(false);
             }
@@ -4357,11 +4516,15 @@
             const dx = gx - d.x;
             const dy = gy - d.y;
             const dist = Math.hypot(dx, dy);
-            if (dist > 1.5) {
+            if (dist > 0.8) {
               // Fly at realistic bounded speed from previous position (NEVER teleport/snap!)
-              const step = Math.min(dist, viewAdaptiveStepM * 1.15);
+              const step = Math.min(dist, viewAdaptiveStepM * 1.05);
               d.x += (dx / dist) * step;
               d.y += (dy / dist) * step;
+              d.lastSpeedMps = (step / Math.max(0.001, dtRealSec));
+              d.lastHeadingDeg = ((Math.atan2(dx, -dy) * 180 / Math.PI) + 360) % 360;
+            } else {
+              d.lastSpeedMps = HIKER_WALK_MPS * simSpeed;
             }
           } else if (d.role === 'SHROUD_MAPPER' && d.waypoints && d.waypoints.length > 0) {
             d.sectorDone = false; // Continuous radar patrol NEVER parks at Done!
@@ -4369,7 +4532,7 @@
             const dx = wp.x - d.x;
             const dy = wp.y - d.y;
             const dist = Math.hypot(dx, dy);
-            const arriveTol = Math.max(3.5, viewAdaptiveStepM * 1.15);
+            const arriveTol = Math.max(1.5, viewAdaptiveStepM * 1.15);
             if (dist <= arriveTol) {
               d.x = wp.x;
               d.y = wp.y;
@@ -4400,6 +4563,8 @@
               const step = Math.min(dist, viewAdaptiveStepM);
               d.x += (dx / dist) * step;
               d.y += (dy / dist) * step;
+              d.lastSpeedMps = DRONE_CRUISE_MPS * simSpeed;
+              d.lastHeadingDeg = ((Math.atan2(dx, -dy) * 180 / Math.PI) + 360) % 360;
             }
             if ((d.scanPassCount || 1) >= maxPassCount) {
               maxPassCount = d.scanPassCount || 1;
@@ -4414,6 +4579,22 @@
           markCircleExplored(d.x, d.y, d.radius);
         }
       });
+
+      // Update Live Manual Pilot Telemetry HUD in Card 0B
+      const teleEl = document.getElementById('lblManualPilotTelemetry');
+      if (teleEl) {
+        const pd = drones[steeredDroneIdx] || drones[0];
+        const spdMps = pd.lastSpeedMps ?? (simRunning ? DRONE_CRUISE_MPS * simSpeed : 0.0);
+        const spdKmh = Math.round(spdMps * 3.6);
+        const hdg = String(Math.round(pd.lastHeadingDeg ?? 45)).padStart(3, '0');
+        const dxH = lostPerson.x - pd.x;
+        const dyH = lostPerson.y - pd.y;
+        const distH = Math.round(Math.hypot(dxH, dyH));
+        const brgH = ((Math.atan2(dxH, -dyH) * 180 / Math.PI) + 360) % 360;
+        const cards = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+        const cardH = cards[Math.round(brgH / 45) % 8];
+        teleEl.innerHTML = `🚁 <strong>${pd.shortName}</strong> (${simSpeed}x): <strong>${spdMps.toFixed(1)} m/s</strong> (${spdKmh} km/h) • HDG ${hdg}° &bull; 🎯 Hiker: <strong>${distH}m ${cardH}</strong> (${Math.round(brgH)}°)`;
+      }
 
       const covStats = updateBoxFreshnessAndMovingTargetLeakGrid();
       const badgeScan = document.getElementById('badgeScanStatus');

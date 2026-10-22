@@ -930,7 +930,16 @@
         <div class="playback-row">
           <button class="ctrl-btn primary" id="btnPlayPause">⏸ Pause</button>
           <button class="ctrl-btn" id="btnRestart">↺ Restart</button>
-          <button class="ctrl-btn" id="btnSpeed">2x</button>
+          <select id="selJetSimSpeed" style="flex:1.1;padding:4px 5px;font-size:10.5px;" title="Select Simulation Time Scale (0.5x Slow-Mo, 1x Real-Time Normal, up to 100x Scale)">
+            <option value="0.5">0.5x Slow</option>
+            <option value="1" selected>1x Normal</option>
+            <option value="2">2x Fast</option>
+            <option value="5">5x Scale</option>
+            <option value="10">10x Scale</option>
+            <option value="25">25x Scale</option>
+            <option value="100">100x Scale</option>
+          </select>
+          <button class="ctrl-btn" id="btnSpeed" title="Cycle Simulation Speed Scale">1x</button>
         </div>
 
         <div class="control-row" style="margin-bottom:0;">
@@ -2425,7 +2434,7 @@ function prepCanvas(canvasId) {
 let currentSim = null;
 let playIdx = 0.0;
 let isPlaying = true;
-let playSpeed = 2;
+let playSpeed = 1.0;
 let camMode = "ISO";
 let payloadMode = "CAPSULE_5KG"; // or "SOFT_NET_CAPTURE"
 let flowHitBoxes = [];
@@ -6043,11 +6052,24 @@ document.getElementById("btnRestart").onclick = () => {
   isPlaying = true;
   document.getElementById("btnPlayPause").textContent = "⏸ PAUSE";
 };
+function setJetPlaySpeed(val) {
+  const parsed = parseFloat(val);
+  if (!Number.isFinite(parsed) || parsed <= 0) return;
+  playSpeed = parsed;
+  const btn = document.getElementById("btnSpeed");
+  if (btn) btn.textContent = `⚡ ${playSpeed}x`;
+  const sel = document.getElementById("selJetSimSpeed");
+  if (sel && String(sel.value) !== String(playSpeed)) sel.value = String(playSpeed);
+}
 document.getElementById("btnSpeed").onclick = () => {
-  const speeds = [1, 2, 4, 8];
-  playSpeed = speeds[(speeds.indexOf(playSpeed) + 1) % speeds.length];
-  document.getElementById("btnSpeed").textContent = `⚡ ${playSpeed}x`;
+  const speeds = [0.5, 1, 2, 5, 10, 25, 100];
+  const curIdx = speeds.findIndex(s => Math.abs(s - playSpeed) < 0.01);
+  setJetPlaySpeed(speeds[(curIdx + 1) % speeds.length]);
 };
+const selJetSpdEl = document.getElementById("selJetSimSpeed");
+if (selJetSpdEl) {
+  selJetSpdEl.onchange = e => setJetPlaySpeed(e.target.value);
+}
 document.getElementById("rngScrub").oninput = e => {
   playIdx = parseFloat(e.target.value);
   updateUIForSample(playIdx);
@@ -9543,13 +9565,14 @@ function animateLoop(nowTs) {
     cfdClock += 0.018;
     if (lightningFlashFrames > 0) lightningFlashFrames--;
     if (fpvSim.active) {
-      stepLiveFpvPhysics(dtSec);
+      stepLiveFpvPhysics(dtSec * Math.min(playSpeed, 5.0));
       if (currentSim) updateUIForSample(playIdx);
       return;
     }
     if (currentSim && currentSim.telemetry.length > 0) {
       if (isPlaying) {
-        playIdx += (dtSec * 6.5) * playSpeed;
+        // Each telemetry sample is 0.02s * 15 = 0.30s of simulated flight time (3.3333 samples/sec at true 1x Real-Time)
+        playIdx += (dtSec / 0.30) * playSpeed;
         if (playIdx >= currentSim.telemetry.length - 1) {
           const endSample = currentSim.telemetry[currentSim.telemetry.length - 1];
           if (endSample && endSample.crashed) {
