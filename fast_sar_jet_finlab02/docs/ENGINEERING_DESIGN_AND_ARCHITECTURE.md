@@ -250,12 +250,12 @@ Co-locating both the twin `2.0 L` baffled saddle fuel tanks (`2.65 kg` `Jet A-1`
 ### 11.5 Visual Failure Modes, Performance Degradation & Redundancy Architecture (`Plate 22`)
 Eliminates single-point failures via a **4-servo split `110°` Inverted $\Lambda$-Tail Arch** (`4x KST X10` independent upper/lower ruddervators bridging the twin carbon booms at `Y = ±230 mm` + `2x` outboard flaperons retaining `68%` pitch and `62%` yaw authority if one servo jams at `15°`), `< 50 ms` fire-safe `Bürkert` fuel shutoff + dorsal recovery chute (or `355 mm` nose folding electric sustainer propeller RTB), `SYNTH_IAS` analytical airspeed backup, series-parallel dual-pin + `25 N` electro-permanent magnetic breakaway pod latch, dual `ICM-42688-P` IMUs, and GNSS-denied thermal terrain-contour navigation (`18.4 m` CEP).
 
-![Visual Failure Modes, Performance Degradation & Redundancy Architecture (FMEA)](images/sar_design_22_fmea_failure_modes_and_redundancies_v3.jpg)
+![Visual Failure Modes, Performance Degradation & Redundancy Architecture (FMEA)](images/sar_design_22_fmea_failure_modes_and_redundancies_v12.jpg)
 
 ### 11.6 Wing Aerodynamics, Control Surfaces (Flaperons / Spoilers / Trim) & Variable-Geometry Trade Study (`Plate 23`)
 Compares the **`NACA 2412` root $\to$ `NACA 2410` tip cranked wing (`-2.0°` washout + `48°` inboard LERX strake + `80 mm` bolt-on Küchenmann winglets + `35 W` carbon-veil leading-edge de-icer)** across all 4 flight regimes (`200–350 km/h` cruise at $L/D = 13.9$, `25.5 m/s` slowed parachute drop pass with `+12°` flaperon droop boosting $C_{L,\max}$ from `1.28` to `1.52`, `3.5 G` turn with LERX vortex lift, and `-30 °C` glaze icing) against laminar (`E374`) and reflex (`MH 45`) airfoils. Documents why **4 `KST X10` HV servos total (`€180`)** driving **outboard flaperons (`0.74c–1.00c`)** + **twin-boom `110°` Inverted $\Lambda$-tail ruddervators** + **"Crow / Butterfly" digital airbraking (`+18°` flaperons + outward ruddervator splay = `+185%` drag at `€0 / 0 g`)** + **zero-CG-shift payload/fuel bay (`X_CG = 595.0 mm`)** outperform dedicated flaps, mechanical spoilers, and mechanical trim tabs, and why the **Fixed `16°` Cranked Wing with `72°` Ground-Only Transport Fold Rig Pins (`Config 1/2`: `98.4/100`, `680 mm` folded sled width in `60 s`)** beats an **In-Flight `16°–60°` Variable-Sweep Swing-Wing (`Config 5`: `86.5/100`, `+650 g` pivot penalty, `+14.5 mm` aft CG shift)**.
 
-![Wing Aerodynamics, Control Surfaces (Flaperons / Spoilers / Trim) & Variable-Geometry Trade Study](images/sar_design_23_wing_aerodynamics_control_surfaces_and_vg_trade_v6.jpg)
+![Wing Aerodynamics, Control Surfaces (Flaperons / Spoilers / Trim) & Variable-Geometry Trade Study](images/sar_design_23_wing_aerodynamics_control_surfaces_and_vg_trade_v10.jpg)
 
 ### 11.7 Blocked-Pitot Backup Laws (`SYNTH_IAS` & Direct Pitch-Power Table) & `Normal Law` Flight Envelope Protections (`Plate 24`)
 Implements an Airbus-style **3-Law Flight Control & Envelope Protection Architecture (`FlightEnvelopeProtectionController` in [`sar_autonomy/pi_turbine_autonomy.py`](../sar_autonomy/pi_turbine_autonomy.py))** running at `400 Hz`:
@@ -349,12 +349,12 @@ Field experience from modern contested-airspace multi-screen command walls (`2×
 
 ![Multi-Screen Command Wall & Tactical Controller UI for Fast-SAR Jet & Karhunkierros Quad (Plate 27)](images/sar_design_27_operator_controller_ui_and_quad_screen_command_v2.jpg)
 
-![Exact 8-Stage Mission Control Workflow: How Jet & Quad Are Controlled Step-by-Step (Plate 28)](images/sar_design_28_end_to_end_8_stage_mission_control_workflow_v4.jpg)
+![Exact 8-Stage Mission Control Workflow: How Jet & Quad Are Controlled Step-by-Step (Plate 28)](images/sar_design_28_end_to_end_8_stage_mission_control_workflow_v10.jpg)
 
 ### 11.11 Canonical 4-Angle OpenCASCADE 3D STL Reference Raster (`cad/rasterize_cad_reference_views.py`)
 To enforce 100% geometric consistency across every technical illustration, [`cad/rasterize_cad_reference_views.py`](../cad/rasterize_cad_reference_views.py) directly projects the canonical OpenCASCADE 3D STL mesh ([`cad/arctic_fast_sar_jet_iter1_fixed16deg.stl`](../cad/arctic_fast_sar_jet_iter1_fixed16deg.stl)) and [`cad/design_params_sar.json`](../cad/design_params_sar.json) into four reference views (`Front-Left Isometric`, `Aft-Right Isometric`, `Top-Down Orthographic Planform`, and `Left-Side Orthographic Cutaway Profile` with `X_CG = 595.0 mm` and `X_NP = 636.0 mm`).
 
-![Canonical 4-Angle 3D OpenCASCADE STL Reference Raster](images/cad_ssot_4angle_reference_raster_v2.jpg)
+![Canonical 4-Angle 3D OpenCASCADE STL Reference Raster](images/cad_ssot_4angle_reference_raster_v3.jpg)
 
 
 
