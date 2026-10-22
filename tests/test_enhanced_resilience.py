@@ -308,6 +308,74 @@ class TestSharedResilienceSuite(unittest.TestCase):
     def test_resilience_and_security_suite(self):
         run_resilience_test_suite()
 
+    def test_production_readiness_and_mavlink_rx_parser(self):
+        import struct
+        import tempfile
+        import mavlink_field_bridge
+        import dashboard_server
+
+        bridge = mavlink_field_bridge.MAVLinkV2FieldBridge()
+        # Before receiving any autopilot heartbeat, hardware_link_mode must honestly report HIL standby
+        st0 = bridge.get_bridge_status()
+        self.assertEqual(st0["hardware_link_mode"], "HIL_STANDBY_NO_PHYSICAL_FC_DETECTED")
+        self.assertFalse(st0["autopilot_heartbeat_alive"])
+
+        # Upload a cooperative mission so waypoints are staged
+        bridge.upload_cooperative_sector_mission()
+
+        # Simulate a real inbound HEARTBEAT (#0) from physical autopilot sys_id=1
+        hb_payload = struct.pack("<IBBBBB", 4, 2, 3, 128, 4, 3)
+        hb_frame = mavlink_field_bridge.pack_mavlink_v2_frame(
+            mavlink_field_bridge.MSG_ID_HEARTBEAT,
+            hb_payload,
+            mavlink_field_bridge.CRC_EXTRA_HEARTBEAT,
+            seq=9,
+            sys_id=1,
+            comp_id=1,
+        )
+        rx_hb = bridge.ingest_rx_frame(hb_frame)
+        self.assertTrue(rx_hb["valid"])
+        self.assertTrue(rx_hb["crc_verified"])
+        st1 = bridge.get_bridge_status()
+        self.assertEqual(st1["hardware_link_mode"], "LIVE_AUTOPILOT_CONNECTED")
+        self.assertTrue(st1["autopilot_heartbeat_alive"])
+
+        # Simulate MISSION_REQUEST_INT (#51, seq=0) from sys_id=1 -> must auto-reply with MISSION_ITEM_INT (#73)
+        req_payload = struct.pack("<HBBB", 0, 255, 190, 0)
+        req_frame = mavlink_field_bridge.pack_mavlink_v2_frame(
+            mavlink_field_bridge.MSG_ID_MISSION_REQUEST_INT,
+            req_payload,
+            mavlink_field_bridge.CRC_EXTRA_MISSION_REQUEST_INT,
+            seq=10,
+            sys_id=1,
+            comp_id=1,
+        )
+        rx_req = bridge.ingest_rx_frame(req_frame)
+        self.assertTrue(rx_req["valid"])
+        self.assertIsNotNone(rx_req["auto_response_tx"])
+        self.assertEqual(rx_req["auto_response_tx"]["msg_id"], mavlink_field_bridge.MSG_ID_MISSION_ITEM_INT)
+
+        # Verify 6-Persona Production Readiness Audit & Atomic Disk Persistence
+        with tempfile.TemporaryDirectory() as tmpd:
+            audit = dashboard_server.build_production_readiness_audit(tmpd)
+            self.assertEqual(audit["counts"]["total_personas"], 6)
+            self.assertEqual(audit["counts"]["software_and_design_100pct_prod"], 6)
+            self.assertEqual(audit["counts"]["missing_design_or_dummy_code"], 0)
+            for p in audit["personas"]:
+                self.assertIn("100% PROD", p["software_and_design_status"])
+                self.assertTrue(p["missing_bench_testing"])
+                self.assertTrue(p["missing_field_testing"])
+
+            # Verify Haversine geodesy & atomic disk round-trip
+            dist_m, brg_deg, card = dashboard_server.compute_haversine_bearing_and_distance_m(
+                66.3662, 29.3110, 66.3691, 29.3163
+            )
+            self.assertTrue(350 <= dist_m <= 420)
+            self.assertEqual(card, "NE")
+            dashboard_server.save_ecosystem_state_disk(tmpd, dashboard_server.GLOBAL_ECOSYSTEM_STATE)
+            loaded = dashboard_server.load_ecosystem_state_disk(tmpd)
+            self.assertIn("readiness_audit", loaded)
+
 
 if __name__ == "__main__":
     run_resilience_test_suite()
