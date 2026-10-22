@@ -5725,7 +5725,7 @@ function initLiveFpvFlight(presetName) {
     fpvSim.r = 0.018;
     fpvSim.throttleCmd = 0.62;
     fpvSim.spoolFrac = 0.60;
-    fpvSim.trimPitch = 0.0; // Untrimmed! Pilot must trim [T]/[G] or hold back-pressure against dorsal jet pitch-down
+    fpvSim.trimPitch = 0.0245; // Slightly out of trim! If pilot leaves hands off, dorsal jet pitch-down + spiral bank crashes in ~14s!
     fpvSim.trimRoll = 0.0;
     fpvSim.flapsDeployed = false;
     fpvSim.crowBrakeDeployed = false;
@@ -5836,8 +5836,8 @@ function stepLiveFpvPhysics(dtFrame) {
     cmdYaw = Math.max(-1.0, Math.min(1.0, cmdYaw + fpvSim.stickYaw));
   }
 
-  // Smooth pilot stick position (unless dragging gimbal directly)
-  const stickRate = 11.0 * dtFrame;
+  // Smooth pilot stick position (realistic human stick rate ~0.25s full throw, unless dragging gimbal directly)
+  const stickRate = 4.5 * dtFrame;
   if (fpvSim.draggingStick !== "RIGHT") {
     fpvSim.stickPitch += (cmdPitch - fpvSim.stickPitch) * Math.min(1.0, stickRate);
     fpvSim.stickRoll  += (cmdRoll  - fpvSim.stickRoll)  * Math.min(1.0, stickRate);
@@ -5980,20 +5980,24 @@ function stepLiveFpvPhysics(dtFrame) {
       }
       target_da_deg = bankRollCmd_deg;
 
-      // Pitch & AoA / G-Load Envelope Protection
-      let pitchCmd_deg = rawPitchStick * 18.0 - 0.24 * q_deg_s + 1.8; // auto-trim compensation for dorsal jet
+      // Pitch & AoA / G-Load Envelope Protection (Flight-Path / Attitude Hold when stick neutral)
+      const theta_deg = (fpvSim.theta * 180.0) / Math.PI;
+      const targetPitch_deg = Math.abs(rawPitchStick) > 0.05
+        ? rawPitchStick * 20.0
+        : Math.max(-6.0, Math.min(8.0, 2.2 - 0.14 * fpvSim.climbRate_mps));
+      let pitchCmd_deg = 0.65 * (targetPitch_deg - theta_deg) - 0.28 * q_deg_s + 1.6;
       if (alpha_deg > alpha_prot_deg) {
         const excessAoa = alpha_deg - alpha_prot_deg;
-        pitchCmd_deg = Math.min(pitchCmd_deg, 4.0 - 2.4 * excessAoa - 0.30 * q_deg_s);
+        pitchCmd_deg = Math.min(pitchCmd_deg, 2.0 - 2.8 * excessAoa - 0.32 * q_deg_s);
         if (alpha_deg >= alpha_max_deg - 0.5 && fpvSim.engineLit) {
           togaOverride = true;
           fpvSim.throttleCmd = 1.0;
         }
       }
-      if (fpvSim.nz_g > 3.65 && pitchCmd_deg > 0) {
-        pitchCmd_deg -= 6.5 * (fpvSim.nz_g - 3.65);
-      } else if (fpvSim.nz_g < -1.35 && pitchCmd_deg < 0) {
-        pitchCmd_deg -= 6.5 * (fpvSim.nz_g + 1.35);
+      if (fpvSim.nz_g > 3.45 && pitchCmd_deg > -4.0) {
+        pitchCmd_deg -= 8.5 * (fpvSim.nz_g - 3.45);
+      } else if (fpvSim.nz_g < -1.25 && pitchCmd_deg < 4.0) {
+        pitchCmd_deg -= 8.5 * (fpvSim.nz_g + 1.25);
       }
       // High-Speed V_NE protection (110 m/s = 396 km/h)
       if (V_eas > 108.0) {
@@ -6035,25 +6039,25 @@ function stepLiveFpvPhysics(dtFrame) {
     // 5. Full Nonlinear Aerodynamic Forces & Moments (with Post-Stall Lift Collapse & Spin Autorotation)
     const flap_deg = fpvSim.flapsDeployed ? 18.0 : 0.0;
     const crow_deg = fpvSim.crowBrakeDeployed ? 28.0 : 0.0;
-    const CL0 = 0.24 + 0.016 * flap_deg - 0.005 * crow_deg;
-    const CLa = 5.05; // per rad (AR=6.42 tapered SD7037/RG-15 wing)
+    const CL0 = 0.055 + 0.012 * flap_deg - 0.004 * crow_deg;
+    const CLa = 3.85; // per rad (3D finite-wing lift slope for washed-out fast jet wing)
     const alpha_stall_rad = (alpha_stall_deg * Math.PI) / 180.0;
 
     let CL = 0.0;
     let stallSeverity = 0.0;
     if (alpha_deg <= alpha_stall_deg && alpha_deg >= -11.5) {
-      CL = CL0 + CLa * alpha_rad + 0.011 * fpvSim.de_deg;
+      CL = CL0 + CLa * alpha_rad + 0.0065 * fpvSim.de_deg;
     } else if (alpha_deg > alpha_stall_deg) {
       // Nonlinear post-stall lift drop-off + deep-stall flat-plate regime
       const over_deg = alpha_deg - alpha_stall_deg;
-      stallSeverity = Math.min(1.0, over_deg / 8.0);
+      stallSeverity = Math.min(1.0, over_deg / 6.5);
       const CL_peak = CL0 + CLa * alpha_stall_rad;
-      CL = CL_peak * Math.exp(-0.14 * over_deg) + 1.05 * Math.sin(alpha_rad) * Math.cos(alpha_rad) * stallSeverity;
+      CL = CL_peak * Math.exp(-0.16 * over_deg) + 0.85 * Math.sin(alpha_rad) * Math.cos(alpha_rad) * stallSeverity;
     } else {
       // Negative stall (inverted excessive pushover)
       const under_deg = -11.5 - alpha_deg;
-      stallSeverity = Math.min(1.0, under_deg / 7.0);
-      CL = (CL0 - CLa * (11.5 * Math.PI / 180.0)) * Math.exp(-0.15 * under_deg);
+      stallSeverity = Math.min(1.0, under_deg / 6.5);
+      CL = (CL0 - CLa * (11.5 * Math.PI / 180.0)) * Math.exp(-0.16 * under_deg);
     }
     if (env.icing_lwc_g_m3 > 0.1 && env.deice_mode === "OFF") {
       CL *= 0.84;
@@ -6086,12 +6090,12 @@ function stepLiveFpvPhysics(dtFrame) {
     // Roll Moment L:
     // In normal flight, Cl_p = -0.46 (damps roll).
     // In a stall (alpha > alpha_stall), Cl_p FLIPS POSITIVE (+0.28 -> autorotation!) and aileron effectiveness reverses at the stalled wingtip!
-    const Cl_beta = -0.075; // dihedral effect
-    const Cl_p    = stallSeverity > 0.05 ? (-0.46 * (1.0 - 1.65 * stallSeverity)) : -0.46;
-    const Cl_r    = 0.14 + 0.18 * Math.max(0.0, CL); // spiral mode coupling (positive Cl_r drives spiral bank divergence!)
-    const aileronEff = stallSeverity > 0.25 ? (1.0 - 1.45 * stallSeverity) : 1.0; // adverse aileron stall in spin!
+    const Cl_beta = -0.055; // modest dihedral -> allows spiral mode divergence when hands-off in Direct Law
+    const Cl_p    = stallSeverity > 0.05 ? (-0.46 * (1.0 - 1.75 * stallSeverity)) : -0.46;
+    const Cl_r    = 0.18 + 0.22 * Math.max(0.0, CL); // spiral mode coupling (positive Cl_r drives spiral bank divergence!)
+    const aileronEff = stallSeverity > 0.25 ? (1.0 - 1.55 * stallSeverity) : 1.0; // adverse aileron stall in spin!
     const stallWingDropAsym = stallSeverity > 0.05
-      ? stallSeverity * (0.045 * Math.sign(beta_deg + 0.15) + 0.032 * Math.sin(fpvSim.t_s * 7.5))
+      ? stallSeverity * (0.055 * Math.sign(beta_deg + 0.15) + 0.035 * Math.sin(fpvSim.t_s * 7.5))
       : 0.0;
     const Cl_total = Cl_beta * beta_rad + Cl_p * p_hat + Cl_r * r_hat
                    + (0.0072 * aileronEff) * fpvSim.da_deg
@@ -6102,11 +6106,11 @@ function stepLiveFpvPhysics(dtFrame) {
     // Includes static margin Cm_alpha, pitch damping Cm_q, elevator Cm_de, CG shift from fuel burn,
     // AND dorsal turbojet thrust pitch-down moment (z_jet = -0.085m above CG -> nose-down moment when power increased!)
     const cgShift_m = (3.5 - fpvSim.fuel_kg) * 0.006 - (fpvSim.capsuleDropped ? 0.008 : 0.0);
-    const Cm0 = 0.018 - 0.0035 * flap_deg;
-    const Cm_alpha = -0.68 + (cgShift_m / c_bar) * CLa;
-    const Cm_q = -11.5;
-    const Cm_de = 0.024; // positive de_deg = nose up
-    const deepStallNoseDown = stallSeverity > 0.0 ? -0.16 * stallSeverity : 0.0;
+    const Cm0 = -0.0055 - 0.0035 * flap_deg;
+    const Cm_alpha = -0.62 + (cgShift_m / c_bar) * CLa;
+    const Cm_q = -12.5;
+    const Cm_de = 0.022; // positive de_deg = nose up
+    const deepStallNoseDown = stallSeverity > 0.0 ? -0.04 * stallSeverity : 0.0;
     const Cm_total = Cm0 + Cm_alpha * alpha_rad + Cm_q * q_hat + Cm_de * fpvSim.de_deg + deepStallNoseDown;
     const M_jet_Nm = -thrust_N * 0.085; // Dorsal turbine 85mm above CG pitches nose down!
 
@@ -6252,7 +6256,7 @@ function stepLiveFpvPhysics(dtFrame) {
       const pitch_deg = (fpvSim.theta * 180.0) / Math.PI;
 
       // Mode 1: Stall / Spin Impact into Terrain
-      if (stallSeverity > 0.15 || fpvSim.spinTurns >= 0.25) {
+      if (stallSeverity > 0.02 || fpvSim.stallTimer_s > 0.25 || fpvSim.spinTurns >= 0.12) {
         fpvSim.h_msl = newTerrain;
         fpvSim.alt_agl = 0.0;
         triggerFpvCrash(
