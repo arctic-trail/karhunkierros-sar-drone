@@ -110,6 +110,71 @@ class TestArcticFastSarJetSuite(unittest.TestCase):
             rth["remaining_fuel_g"] - rth["fuel_needed_for_rth_g"], 500.0
         )
 
+        # Verify 3-Law Flight Envelope Protections & Blocked-Pitot Pitch/Power + SYNTH_IAS Backup
+        fep = autonomy.FlightEnvelopeProtectionController()
+        synth = fep.estimate_synthetic_airspeed_and_angles(
+            mass_kg=14.95,
+            rho_kg_m3=1.42,
+            pitch_deg=2.2,
+            roll_deg=0.0,
+            climb_rate_mps=0.0,
+            nz_g=1.0,
+            ay_mps2=0.0,
+            ax_body_mps2=0.0,
+            n1_pct=74.0,
+        )
+        self.assertGreater(synth["v_synth_tas_mps"], 48.0)
+        self.assertLess(synth["v_synth_tas_mps"], 75.0)
+
+        # Mode A: Ram port iced open static (pitot drops to 18 m/s while V_SYNTH is ~62 m/s)
+        law_a = fep.detect_pitot_blockage_and_select_law(
+            pitot_ias_mps=18.0,
+            pitot_qc_rate_pa_s=0.0,
+            baro_ps_rate_pa_s=0.0,
+            v_synth_ias_mps=synth["v_synth_ias_mps"],
+            v_gnss_air_ias_mps=61.5,
+            synth_healthy=True,
+        )
+        self.assertTrue(law_a["pitot_blocked"])
+        self.assertEqual(law_a["active_control_law"], "ALTERNATE_LAW_SYNTH_IAS")
+        self.assertEqual(law_a["fault_mode"], "RAM_PORT_ICED_LOW_IAS")
+
+        # Mode B: Sealed ram+drain pressure trap during climb (d(qc)/dt mirrors -d(Ps)/dt) -> Direct Pitch-Power Law
+        law_b = fep.detect_pitot_blockage_and_select_law(
+            pitot_ias_mps=78.0,
+            pitot_qc_rate_pa_s=85.0,
+            baro_ps_rate_pa_s=-88.0,
+            v_synth_ias_mps=54.0,
+            synth_healthy=False,
+            flight_phase="CLIMB",
+            payload_attached=True,
+        )
+        self.assertTrue(law_b["pitot_blocked"])
+        self.assertEqual(law_b["active_control_law"], "DIRECT_PITCH_POWER_LAW")
+        self.assertEqual(law_b["fault_mode"], "SEALED_RAM_PRESSURE_TRAP_HIGH_IAS")
+        self.assertEqual(law_b["pitch_power_reference"]["commanded_pitch_deg"], 6.5)
+        self.assertEqual(law_b["pitch_power_reference"]["commanded_n1_pct"], 92.0)
+
+        # Normal Law alpha_floor TOGA auto-thrust, G-limit, and bank-angle protection
+        prot = fep.apply_normal_law_envelope_protections(
+            cmd_pitch_deg=16.0,
+            cmd_roll_deg=70.0,
+            cmd_throttle_norm=0.45,
+            alpha_hat_deg=13.2,
+            beta_hat_deg=9.5,
+            nz_g=3.9,
+            vtas_mps=42.0,
+            ice_detected=False,
+        )
+        self.assertIn("ALPHA_PROT_ACTIVE", prot["protections_triggered"])
+        self.assertIn("ALPHA_FLOOR_TOGA_THRUST", prot["protections_triggered"])
+        self.assertIn("LOAD_FACTOR_G_LIMIT_MAX", prot["protections_triggered"])
+        self.assertIn("BANK_ANGLE_LIMIT", prot["protections_triggered"])
+        self.assertIn("SIDESLIP_BETA_LIMIT", prot["protections_triggered"])
+        self.assertEqual(prot["protected_throttle_norm"], 1.0)
+        self.assertLessEqual(prot["protected_roll_deg"], 25.0)
+        self.assertLess(prot["protected_pitch_deg"], 16.0)
+
     def test_04_northern_flank_red_gap_closure(self):
         """Verify all 5 Red/Amber gaps close within low-cost 100% Non-Chinese COTS scope."""
         # 1. Gap I: FIN-LAB-02 350-400 km/h airframe & head-on corridor rendezvous geometry
