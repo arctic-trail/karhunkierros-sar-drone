@@ -1060,6 +1060,9 @@ def run_end_to_end_6dof_mission(
     max_egt_c = fadec_egt_c
     min_bus_voltage_v = 24.8
     max_imu_vib_g = 0.05
+    min_surge_margin_pct = 28.0
+    max_dc60_distortion = 0.045
+    blow_in_louvers_opened = False
 
     def log_fdir_event(code: str, domain: str, severity: str, action: str) -> None:
         if code not in recorded_fdir_codes:
@@ -1476,14 +1479,35 @@ def run_end_to_end_6dof_mission(
                 active_flags.append("FADEC_AUTO_RELIGHT_COMPLETE")
 
         # ----------------------------------------------------------------------
-        # PROPULSION DYNAMICS (SPOOL LAG, COLD AIR DENSITY BOOST & RAM DRAG)
+        # PROPULSION DYNAMICS (SPOOL LAG, DORSAL S-DUCT DC60 SURGE MARGIN & RAM DRAG)
         # ----------------------------------------------------------------------
+        alpha_deg_now = math.degrees(alpha_rad)
+        beta_deg_now = math.degrees(beta_rad)
+        low_spd_factor = max(0.0, (42.0 - veas_true) / 22.0) * max(0.0, jet_throttle - 0.45)
+        duct_dp_pa = -1150.0 * low_spd_factor
+        # Passive spring-loaded 45x30 mm dorsal cheek louvers open when dP < -350 Pa (+0 EUR, 0 servos)
+        louvers_open_now = (duct_dp_pa < -350.0)
+        if louvers_open_now and cfg.max_jet_thrust_sl_n > 0.0:
+            blow_in_louvers_opened = True
+        dc60_now = (
+            0.045
+            + 0.0042 * (max(0.0, alpha_deg_now - 8.5) ** 2)
+            + 0.0048 * (max(0.0, abs(beta_deg_now) - 2.0) ** 1.5)
+            + (0.032 if louvers_open_now else 0.148) * low_spd_factor
+            + (0.015 if env.deicer_enabled else 0.240) * max(0.0, env.icing_lwc_g_m3)
+        )
+        max_dc60_distortion = max(max_dc60_distortion, dc60_now)
+        s_duct_dist_loss_frac = 0.12 * max(0.0, dc60_now - 0.045)
+        sm_now_pct = max(4.0, 28.0 - 65.0 * dc60_now - 4.5 * max(0.0, jet_throttle - (f_jet_actual / max(1.0, cfg.max_jet_thrust_sl_n))))
+        if cfg.max_jet_thrust_sl_n > 0.0 and jet_throttle > 0.05:
+            min_surge_margin_pct = min(min_surge_margin_pct, sm_now_pct)
+
         if cfg.max_jet_thrust_sl_n > 0.0 and fuel_kg > 0.0 and fadec_state != "FLAMEOUT_LOSS_OF_THRUST":
             density_ratio = min(1.16, (rho / 1.225) ** 0.65)
             ram_loss_n = 0.065 * vtas * jet_throttle
             f_jet_target = (
                 cfg.idle_jet_thrust_n
-                + jet_throttle * (cfg.max_jet_thrust_sl_n * density_ratio - cfg.idle_jet_thrust_n)
+                + jet_throttle * (cfg.max_jet_thrust_sl_n * density_ratio * (1.0 - s_duct_dist_loss_frac) - cfg.idle_jet_thrust_n)
                 - ram_loss_n
             )
             if jet_throttle <= 0.01:
@@ -2061,6 +2085,9 @@ def run_end_to_end_6dof_mission(
         "fdir_event_count": len(fdir_events),
         "fdir_codes_triggered": sorted(list(recorded_fdir_codes)),
         "max_fadec_egt_c": round(max_egt_c, 1),
+        "min_surge_margin_pct": round(min_surge_margin_pct, 2),
+        "max_dc60_distortion": round(max_dc60_distortion, 4),
+        "blow_in_louvers_opened": blow_in_louvers_opened,
         "min_bus_voltage_v": round(min_bus_voltage_v, 2),
         "min_avionics_bay_temp_c": round(avionics_bay_temp_c, 1),
         "max_imu_vib_rms_g": round(max_imu_vib_g, 3),

@@ -1,0 +1,2818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Karhunkierros SAR — Google Earth Cooperative Mission &amp; Guidance Console</title>
+  <style>
+    :root {
+      --bg-app: #09090b;
+      --bg-panel: #121216;
+      --bg-header: #18181e;
+      --bg-card: #1c1c22;
+      --bg-control: #272730;
+      --bg-control-hover: #32323e;
+      --border-subtle: rgba(255, 255, 255, 0.09);
+      --border-strong: rgba(255, 255, 255, 0.18);
+      --text-primary: #f5f5f7;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --accent-blue: #0a84ff;
+      --accent-cyan: #38bdf8;
+      --accent-purple: #a855f7;
+      --accent-green: #30d158;
+      --accent-amber: #ff9f0a;
+      --accent-red: #ff453a;
+      --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg-app);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.45;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Top Global Bar */
+    header {
+      height: 50px;
+      flex-shrink: 0;
+      background: rgba(20, 20, 25, 0.96);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      z-index: 40;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      white-space: nowrap;
+    }
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 8px rgba(48, 209, 88, 0.6);
+    }
+    .brand-title {
+      font-size: 14.5px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+      color: var(--text-primary);
+    }
+    .brand-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+      padding-left: 8px;
+      border-left: 1px solid var(--border-subtle);
+    }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: nowrap;
+    }
+
+    /* Resizable Multi-Pane Workspace */
+    .workspace-row {
+      flex: 1;
+      display: flex;
+      width: 100%;
+      height: calc(100vh - 50px);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .pane {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg-panel);
+      position: relative;
+      min-width: 240px;
+    }
+    .pane.hidden {
+      display: none !important;
+    }
+
+    .pane-header {
+      height: 36px;
+      flex-shrink: 0;
+      background: var(--bg-header);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .pane-title-group {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pane-badge {
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .pane-win-btns {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .win-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.12s ease;
+    }
+    .win-btn:hover {
+      background: rgba(255, 255, 255, 0.14);
+      color: #ffffff;
+    }
+    .win-btn.close:hover {
+      background: rgba(255, 69, 58, 0.25);
+      border-color: var(--accent-red);
+      color: #fca5a5;
+    }
+
+    /* Draggable Splitters */
+    .v-splitter {
+      width: 7px;
+      flex-shrink: 0;
+      background: #141419;
+      border-left: 1px solid var(--border-subtle);
+      border-right: 1px solid var(--border-subtle);
+      cursor: col-resize;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 25;
+      transition: background 0.15s ease;
+    }
+    .v-splitter:hover, .v-splitter.dragging {
+      background: var(--accent-blue);
+    }
+    .v-splitter::after {
+      content: "⋮";
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1;
+    }
+    .v-splitter:hover::after, .v-splitter.dragging::after {
+      color: #ffffff;
+    }
+    .v-splitter.hidden {
+      display: none !important;
+    }
+
+    .h-splitter {
+      height: 7px;
+      flex-shrink: 0;
+      background: #141419;
+      border-top: 1px solid var(--border-subtle);
+      border-bottom: 1px solid var(--border-subtle);
+      cursor: row-resize;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 25;
+      transition: background 0.15s ease;
+    }
+    .h-splitter:hover, .h-splitter.dragging {
+      background: var(--accent-blue);
+    }
+    .h-splitter::after {
+      content: "⋯";
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    /* Buttons & Controls */
+    .btn {
+      background: var(--bg-control);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 10px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.14s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+    .btn:hover {
+      background: var(--bg-control-hover);
+      border-color: var(--border-strong);
+    }
+    .btn.primary {
+      background: var(--accent-blue);
+      border-color: transparent;
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .btn.primary:hover {
+      background: #1b8fff;
+    }
+    .btn.success {
+      background: rgba(48, 209, 88, 0.16);
+      border-color: rgba(48, 209, 88, 0.4);
+      color: #4ade80;
+      font-weight: 600;
+    }
+    .btn.success:hover, .btn.success.active {
+      background: var(--accent-green);
+      color: #051b0c;
+      border-color: transparent;
+    }
+    .btn.warning {
+      background: rgba(255, 159, 10, 0.16);
+      border-color: rgba(255, 159, 10, 0.45);
+      color: #fbbf24;
+      font-weight: 600;
+    }
+    .btn.warning:hover, .btn.warning.active {
+      background: var(--accent-amber);
+      color: #1a1000;
+      border-color: transparent;
+    }
+    .btn.danger {
+      background: rgba(255, 69, 58, 0.18);
+      border-color: rgba(255, 69, 58, 0.5);
+      color: #fca5a5;
+      font-weight: 600;
+    }
+    .btn.danger:hover {
+      background: var(--accent-red);
+      color: #ffffff;
+      border-color: transparent;
+    }
+
+    .pane-toggle-group {
+      display: inline-flex;
+      background: var(--bg-card);
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      gap: 3px;
+    }
+    .pane-pill {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-family: var(--font-sans);
+      font-size: 11.5px;
+      font-weight: 500;
+      padding: 4px 9px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.14s ease;
+    }
+    .pane-pill.on {
+      background: rgba(10, 132, 255, 0.22);
+      color: #ffffff;
+      font-weight: 600;
+      border: 1px solid rgba(10, 132, 255, 0.5);
+    }
+
+    .select-input {
+      background: var(--bg-control);
+      color: var(--text-primary);
+      border: 1px solid var(--border-strong);
+      border-radius: 7px;
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 8px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    /* Left Pane: Google Earth Satellite Map */
+    .map-canvas-wrap {
+      flex: 1;
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      background: #050608;
+      cursor: crosshair;
+    }
+    #cncMapCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .map-toolbar {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      z-index: 15;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      pointer-events: none;
+    }
+    .toolbar-cluster {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 5px;
+      background: rgba(20, 20, 26, 0.92);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-strong);
+      border-radius: 9px;
+      padding: 5px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+      pointer-events: auto;
+    }
+
+    .map-action-banner {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+      pointer-events: none;
+    }
+    .floating-status-card {
+      background: rgba(20, 20, 26, 0.94);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-strong);
+      border-radius: 9px;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+      font-size: 11.5px;
+      pointer-events: auto;
+      max-width: 100%;
+    }
+
+    .map-hint-pill {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      z-index: 15;
+      background: rgba(20, 20, 26, 0.90);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      pointer-events: none;
+    }
+    .map-hint-pill strong {
+      color: #ffffff;
+    }
+
+    .map-legend {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      z-index: 15;
+      background: rgba(20, 20, 26, 0.92);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border-strong);
+      border-radius: 9px;
+      padding: 8px 11px;
+      font-size: 11px;
+      line-height: 1.42;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      pointer-events: none;
+    }
+    .leg-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-primary);
+    }
+    .swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    /* Bottom Terrain-Following Profile Strip */
+    .terrain-profile-bar {
+      height: 105px;
+      min-height: 64px;
+      max-height: 240px;
+      flex-shrink: 0;
+      background: var(--bg-panel);
+      padding: 5px 12px 7px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .terrain-profile-bar.hidden {
+      display: none !important;
+    }
+    .tp-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      color: var(--text-secondary);
+    }
+    #terrainProfileCanvas {
+      flex: 1;
+      width: 100%;
+      display: block;
+      background: #0d0d11;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+    }
+
+    /* Center Pane: Drone Camera Switcher + Live Video Feed */
+    .camera-switcher-bar {
+      background: #15151b;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 6px 8px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+    .cam-tab {
+      flex: 1;
+      min-width: 84px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 7px;
+      padding: 5px 7px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      transition: all 0.14s ease;
+      text-align: left;
+    }
+    .cam-tab:hover {
+      background: var(--bg-control-hover);
+      border-color: var(--border-strong);
+    }
+    .cam-tab.active {
+      background: rgba(10, 132, 255, 0.20);
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 1px var(--accent-blue);
+    }
+    .cam-tab-title {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .cam-tab-sub {
+      font-size: 10px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cam-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    .osd-subbar {
+      height: 36px;
+      flex-shrink: 0;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11.5px;
+      color: var(--text-secondary);
+    }
+    .osd-canvas-wrap {
+      flex: 1;
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      cursor: crosshair;
+      background: #090d0a;
+    }
+    #evolvedOsdCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Right Pane: Operator Control Dock */
+    .operator-dock {
+      flex: 1;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      overflow-y: auto;
+    }
+    .step-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 11px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .step-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .step-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .step-badge {
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(48, 209, 88, 0.15);
+      color: #4ade80;
+    }
+    .step-badge.amber {
+      background: rgba(255, 159, 10, 0.16);
+      color: #fbbf24;
+    }
+    .step-desc {
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .field-box {
+      background: rgba(0, 0, 0, 0.22);
+      border: 1px solid var(--border-subtle);
+      border-radius: 7px;
+      padding: 5px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .field-label {
+      font-size: 10px;
+      color: var(--text-secondary);
+    }
+    .field-value {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--text-primary);
+      cursor: pointer;
+      padding: 3px 0;
+    }
+    .toggle-row input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 36px;
+      height: 20px;
+      background: #3f3f46;
+      border-radius: 999px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      flex-shrink: 0;
+    }
+    .toggle-row input[type="checkbox"]::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ffffff;
+      transition: transform 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+    .toggle-row input[type="checkbox"]:checked {
+      background: var(--accent-green);
+    }
+    .toggle-row input[type="checkbox"].amber-switch:checked {
+      background: var(--accent-amber);
+    }
+    .toggle-row input[type="checkbox"]:checked::after {
+      transform: translateX(16px);
+    }
+
+    .assignment-box {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- TOP GLOBAL HEADER -->
+    <header>
+      <div class="brand">
+        <div class="status-dot"></div>
+        <span class="brand-title">Karhunkierros SAR</span>
+        <span class="brand-sub">Google Earth Cooperative Search &amp; Rescue Console</span>
+      </div>
+
+      <div class="top-controls">
+        <!-- Quick Jump to Any Region on Google Earth -->
+        <select id="selGeoRegion" class="select-input" onchange="jumpToGoogleEarthRegion(this.value)" title="Jump anywhere on Google Earth and drag a Search Area">
+          <option value="OULANKA" selected>📍 Oulanka Canyon / Kiutaköngäs (66.3695°N, 29.3155°E)</option>
+          <option value="RUKA">📍 Ruka Fell &amp; Ski Village (66.1658°N, 29.1520°E)</option>
+          <option value="JUUMA">📍 Juuma / Pieni Karhunkierros (66.2625°N, 29.3765°E)</option>
+          <option value="KUUSAMO">📍 Kuusamo Town &amp; Lakes (65.9645°N, 29.1830°E)</option>
+        </select>
+
+        <!-- Show / Hide Any View Pills -->
+        <div class="pane-toggle-group" title="Show, hide, or restore any view panel">
+          <button class="pane-pill on" id="pillShowMap" onclick="togglePane('mapPane')">🌍 1. Google Earth Map</button>
+          <button class="pane-pill on" id="pillShowVideo" onclick="togglePane('videoPane')">📷 2. Drone Video</button>
+          <button class="pane-pill on" id="pillShowProfile" onclick="togglePane('profileBar')">⛰️ Elevation</button>
+          <button class="pane-pill on" id="pillShowControls" onclick="togglePane('controlPane')">⚙️ 3. Controls</button>
+          <button class="pane-pill" onclick="resetWorkspaceLayout()" title="Restore default balanced split layout">↺ Reset Views</button>
+        </div>
+
+        <button class="btn success active" id="btnSimPlayPause" onclick="toggleSimPlayPause()">⏸ Sim Running</button>
+        <button class="btn" id="btnSimSpeed" onclick="cycleSimSpeed()">1x Speed</button>
+      </div>
+    </header>
+
+    <!-- RESIZABLE, CLOSABLE 3-PANE WORKSPACE -->
+    <div class="workspace-row" id="workspaceRow">
+
+      <!-- =================================================================== -->
+      <!-- PANE 1: GOOGLE EARTH SATELLITE MAP (LEFT)                           -->
+      <!-- =================================================================== -->
+      <div class="pane" id="mapPane" style="flex: 1.35;">
+        <div class="pane-header">
+          <div class="pane-title-group">
+            <span class="pane-badge" style="background:rgba(10,132,255,0.2);color:#60a5fa;">View 1 • Google Earth Map</span>
+            <span>Live Multi-Zoom Planetary Satellite Engine (z=4..20)</span>
+            <span id="hdrMappedBadge" style="color:#4ade80;font-weight:700;margin-left:6px;">• 58% Scanned</span>
+          </div>
+          <div class="pane-win-btns">
+            <button class="win-btn" onclick="maximizePane('mapPane')" title="Maximize Map View">⤢ Maximize</button>
+            <button class="win-btn close" onclick="togglePane('mapPane')" title="Close Map View">✕</button>
+          </div>
+        </div>
+
+        <div class="map-canvas-wrap" id="mapWrap">
+          <canvas id="cncMapCanvas" width="1280" height="800"></canvas>
+
+          <!-- Floating Map Toolbar -->
+          <div class="map-toolbar">
+            <div class="toolbar-cluster">
+              <button class="btn primary" id="toolDrawBox" onclick="setMapTool('DRAW_BOX')" title="Drag a box anywhere on Google Earth to assign a new Search Area">📐 Drag Search Area</button>
+              <button class="btn" id="toolPanMap" onclick="setMapTool('PAN_MAP')" title="Drag to pan anywhere across Google Earth">✋ Pan Earth</button>
+              <button class="btn warning" id="toolDropMode" onclick="toggleDropMarkerMode()" title="Switch ON to click anywhere on Map or Video to mark a Payload Drop">🪂 Mark Drop: OFF</button>
+              <button class="btn" onclick="restartCooperativeSearch()" title="Reset shroud and watch drones scan their sectors cleanly from 0%">↺ Restart Scan</button>
+            </div>
+
+            <div class="toolbar-cluster">
+              <select id="selEarthLayer" class="select-input" onchange="setGoogleEarthLayer(this.value)" style="padding:4px 7px;font-size:11.5px;">
+                <option value="y" selected>🌍 Google Earth Hybrid (Sat + Labels)</option>
+                <option value="s">🛰️ Google Earth Pure Satellite</option>
+                <option value="p">🏔️ Google Terrain + Contours</option>
+              </select>
+              <button class="btn" onclick="zoomMapBy(0.65)" title="Zoom Out">−</button>
+              <button class="btn" id="btnMapZoomReadout" onclick="fitMapToSearchBox()" title="Fit Current Search Area">z=16</button>
+              <button class="btn" onclick="zoomMapBy(1.5)" title="Zoom In">+</button>
+              <button class="btn" onclick="zoomOutWideRegion()" title="Zoom out wide to pick a new search area anywhere in Finland">🗺️ Zoom Out 15 km</button>
+            </div>
+
+            <!-- Floating Active Target Assignment & Pending Drop Banners (With 1-Click Cancel!) -->
+            <div class="map-action-banner">
+              <div class="floating-status-card" id="mapTargetBanner">
+                <div>
+                  <span style="color:#fbbf24;font-weight:700;">🎯 Target Assignment:</span>
+                  <span id="mapTargetBannerText"><strong>Drone 1</strong> is following <strong>Lost Hiker (+31.4°C)</strong></span>
+                </div>
+                <button class="btn danger" id="btnMapCancelTarget" onclick="cancelTargetAssignment()" style="padding:3px 9px;font-size:11.5px;">✕ Cancel Target Lock</button>
+              </div>
+
+              <div class="floating-status-card" id="mapDropBanner" style="display:none;border-color:#ff9f0a;">
+                <div>
+                  <span style="color:#fbbf24;font-weight:700;" id="mapDropBannerTitle">🪂 Drop Mode Armed:</span>
+                  <span id="mapDropBannerText">Click anywhere on Map or Video to place payload drop point.</span>
+                </div>
+                <div style="display:flex;gap:5px;">
+                  <button class="btn success" id="btnConfirmDropNow" onclick="executeImmediateDrop()" style="display:none;padding:3px 8px;font-size:11.5px;">✓ Drop Now</button>
+                  <button class="btn danger" id="btnCancelPendingDrop" onclick="cancelPendingDrop()" style="padding:3px 9px;font-size:11.5px;">✕ Cancel Drop</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom-Left Hint -->
+          <div class="map-hint-pill">
+            💡 <strong>Click any Drone</strong> on the map to watch its live Google Earth camera in <strong>View 2</strong>  •  <strong>Scroll out</strong> to pan anywhere on Earth &amp; drag a new Search Box!
+          </div>
+
+          <!-- Bottom-Right Legend -->
+          <div class="map-legend">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-secondary);margin-bottom:2px;">Google Earth C&amp;C Layers</div>
+            <div class="leg-row"><span class="swatch" style="background:transparent;border:2px solid #ffffff;"></span><span><strong>White Circle + Inner Box:</strong> Drone &amp; Frame Shown in View 2</span></div>
+            <div class="leg-row"><span class="swatch" style="background:#38bdf8;"></span><span><strong>Colored Sectors (1–3):</strong> Each Drone Scans Its Own Strip (0% Overlap)</span></div>
+            <div class="leg-row"><span class="swatch" style="background:#ff9f0a;border-radius:50%;"></span><span><strong>🪂 Drop Pin:</strong> Queued Payload Drop (Cancelable Before Release)</span></div>
+            <div id="cursorCoordReadout" style="margin-top:2px;padding-top:2px;border-top:1px solid var(--border-subtle);color:var(--text-secondary);font-size:10.5px;">
+              66.3695° N, 29.3155° E  •  DEM 248 m ASL
+            </div>
+          </div>
+        </div>
+
+        <!-- Draggable Horizontal Splitter for Terrain Profile -->
+        <div class="h-splitter" id="hSplitterProfile" title="Drag up/down to resize Terrain Profile"></div>
+
+        <!-- Collapsible Bottom Terrain-Following Profile -->
+        <div class="terrain-profile-bar" id="profileBar">
+          <div class="tp-header">
+            <span><strong>Terrain Elevation Profile (DEM + 18m Trees):</strong> Drones maintain constant clearance above ground</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span id="tpSummaryLabel" style="color:#4ade80;font-weight:600;">3 Cooperative Sectors • 0% Overlap</span>
+              <button class="win-btn close" onclick="togglePane('profileBar')" title="Hide Elevation Profile">✕ Hide</button>
+            </div>
+          </div>
+          <canvas id="terrainProfileCanvas" width="1200" height="68"></canvas>
+        </div>
+      </div>
+
+      <!-- DRAGGABLE VERTICAL SPLITTER 1 -->
+      <div class="v-splitter" id="vSplitter1" title="Drag left/right to resize Google Earth Map vs. Drone Video"></div>
+
+      <!-- =================================================================== -->
+      <!-- PANE 2: SELECTED DRONE LIVE GOOGLE EARTH CAMERA VIEW (CENTER)       -->
+      <!-- =================================================================== -->
+      <div class="pane" id="videoPane" style="flex: 1.0;">
+        <div class="pane-header">
+          <div class="pane-title-group">
+            <span class="pane-badge" id="videoPaneBadge" style="background:rgba(255,159,10,0.22);color:#fbbf24;">View 2 • Drone Video</span>
+            <span id="osdActiveCameraTitle"><strong>Drone 1 (Orange)</strong> — Matches Highlighted Box on Map</span>
+          </div>
+          <div class="pane-win-btns">
+            <button class="win-btn" onclick="maximizePane('videoPane')" title="Maximize Drone Video View">⤢ Maximize</button>
+            <button class="win-btn close" onclick="togglePane('videoPane')" title="Close Drone Video View">✕</button>
+          </div>
+        </div>
+
+        <!-- 1-Click Drone Camera Selector Tabs -->
+        <div class="camera-switcher-bar">
+          <button class="cam-tab active" id="camTab0" onclick="selectCameraSource('DRONE_0')">
+            <div class="cam-tab-title"><span>🚁 Drone 1</span><span class="cam-dot" style="background:#ff9f0a;"></span></div>
+            <div class="cam-tab-sub" id="camSub0">Following Hiker</div>
+          </button>
+          <button class="cam-tab" id="camTab1" onclick="selectCameraSource('DRONE_1')">
+            <div class="cam-tab-title"><span>🚁 Drone 2</span><span class="cam-dot" style="background:#38bdf8;"></span></div>
+            <div class="cam-tab-sub" id="camSub1">Sector 1 (West)</div>
+          </button>
+          <button class="cam-tab" id="camTab2" onclick="selectCameraSource('DRONE_2')">
+            <div class="cam-tab-title"><span>🚁 Drone 3</span><span class="cam-dot" style="background:#a855f7;"></span></div>
+            <div class="cam-tab-sub" id="camSub2">Sector 2 (Center)</div>
+          </button>
+          <button class="cam-tab" id="camTab3" onclick="selectCameraSource('DRONE_3')">
+            <div class="cam-tab-title"><span>🚁 Drone 4</span><span class="cam-dot" style="background:#30d158;"></span></div>
+            <div class="cam-tab-sub" id="camSub3">Sector 3 (East)</div>
+          </button>
+          <button class="cam-tab" id="camTabQuad" onclick="selectCameraSource('QUAD_4UP')" style="min-width:78px;flex:0.8;">
+            <div class="cam-tab-title"><span>⊞ All 4</span><span class="cam-dot" style="background:#ffffff;"></span></div>
+            <div class="cam-tab-sub">2&times;2 Grid</div>
+          </button>
+        </div>
+
+        <!-- Camera Zoom & Sensor Controls Subbar -->
+        <div class="osd-subbar">
+          <span id="videoSubbarHint">Live Google Earth z=18..19 feed under selected drone (hover to see crosshair on Map)</span>
+          <div style="display:flex;gap:4px;align-items:center;">
+            <button class="btn" onclick="adjustOsdZoom(-0.8)" style="padding:2px 7px;">−</button>
+            <button class="btn success" id="btnOsdZoomPill" onclick="adjustOsdZoom(0)" style="padding:2px 7px;">3.0x</button>
+            <button class="btn" onclick="adjustOsdZoom(0.8)" style="padding:2px 7px;">+</button>
+            <button class="btn" id="btnOsdSensorMode" onclick="cycleOsdSensorPalette()" style="padding:2px 7px;">EO + Thermal</button>
+          </div>
+        </div>
+
+        <div class="osd-canvas-wrap" id="osdWrap">
+          <canvas id="evolvedOsdCanvas" width="760" height="680"></canvas>
+        </div>
+      </div>
+
+      <!-- DRAGGABLE VERTICAL SPLITTER 2 -->
+      <div class="v-splitter" id="vSplitter2" title="Drag left/right to resize Controls Sidebar"></div>
+
+      <!-- =================================================================== -->
+      <!-- PANE 3: MISSION, TARGET & PAYLOAD DROP CONTROLS (RIGHT)             -->
+      <!-- =================================================================== -->
+      <div class="pane" id="controlPane" style="width: 375px; flex: 0 0 375px;">
+        <div class="pane-header">
+          <div class="pane-title-group">
+            <span class="pane-badge" style="background:rgba(48,209,88,0.2);color:#4ade80;">View 3 • Controls</span>
+            <span>Search Sectors, Target Lock &amp; Drop</span>
+          </div>
+          <div class="pane-win-btns">
+            <button class="win-btn close" onclick="togglePane('controlPane')" title="Close Controls Sidebar">✕</button>
+          </div>
+        </div>
+
+        <div class="operator-dock">
+          <!-- CARD 1: COOPERATIVE SECTOR SCAN -->
+          <div class="step-card">
+            <div class="step-header">
+              <span class="step-title">1. Cooperative Area Search</span>
+              <span class="step-badge" id="badgeScanStatus">Scanning • 0% Overlap</span>
+            </div>
+            <p class="step-desc">
+              Drag a Search Box anywhere on Google Earth. The box is divided into <strong>separate color-coded strips (1 strip per mapping drone)</strong>. Each drone scans its strip once and <strong>holds station when done</strong>.
+            </p>
+            <div class="form-grid">
+              <div class="field-box">
+                <span class="field-label">Search Allocation</span>
+                <select id="selMissionPattern" class="select-input" onchange="updateMissionPattern(this.value)" style="width:100%;padding:3px 5px;font-size:11.5px;">
+                  <option value="DISJOINT_SECTORS" selected>Separate Strips (1 per Drone)</option>
+                  <option value="LINE_ABREAST_RAKE">Side-by-Side Line Sweep</option>
+                </select>
+              </div>
+              <div class="field-box">
+                <span class="field-label">Flight Altitude (AGL)</span>
+                <select id="selAglClearance" class="select-input" onchange="recomputeAutoMission(false)" style="width:100%;padding:3px 5px;font-size:11.5px;">
+                  <option value="40">40 m (72 m Swath)</option>
+                  <option value="55" selected>55 m (86 m Swath)</option>
+                  <option value="85">85 m (116 m Swath)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-grid">
+              <div class="field-box">
+                <span class="field-label">Fleet Speedup</span>
+                <span class="field-value" id="valAreaSwath">3 Strips • 3.0&times; Speed</span>
+              </div>
+              <div class="field-box">
+                <span class="field-label">Pass Spacing</span>
+                <span class="field-value" id="valDemRange">86 m (0% Overlap)</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn primary" onclick="restartCooperativeSearch()" style="flex:1.2;">↺ Restart Clean Sector Scan</button>
+              <button class="btn" onclick="exportQgcWaypoints()" style="flex:0.8;">Export Plan</button>
+            </div>
+          </div>
+
+          <!-- CARD 2: TARGET ASSIGNMENT (WITH EASY 1-CLICK CANCEL!) -->
+          <div class="step-card">
+            <div class="step-header">
+              <span class="step-title">2. Target Tracking Assignment</span>
+              <span class="step-badge amber" id="badgeTargetState">Drone 1 Assigned</span>
+            </div>
+
+            <label class="toggle-row">
+              <span><strong>Auto-Assign Drone 1 to Detected Person / Vehicle</strong></span>
+              <input type="checkbox" id="chkPreemptMapping" checked onchange="toggleTargetLockSwitch(this.checked)" />
+            </label>
+
+            <div class="assignment-box" id="targetAssignmentCard">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:var(--text-secondary);">Assigned Drone:</span>
+                <strong style="color:#ff9f0a;" id="lblAssignedDrone">Drone 1 (Sierra)</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:var(--text-secondary);">Tracked Target:</span>
+                <select id="selGuidedTarget" class="select-input" onchange="switchGuidedTarget(this.value)" style="padding:3px 6px;font-size:11.5px;">
+                  <option value="PERSON" selected>Lost Hiker (+31.4°C) &rarr; Hut</option>
+                  <option value="VEHICLE">Snowmobile (+34.0°C) &rarr; Road</option>
+                </select>
+              </div>
+              <div style="display:flex;gap:6px;margin-top:3px;">
+                <button class="btn danger" id="btnSidebarCancelTarget" onclick="cancelTargetAssignment()" style="flex:1;">
+                  ✕ Cancel Target Assignment (Return to Scan)
+                </button>
+                <button class="btn success" id="btnSidebarReassignTarget" onclick="reassignTargetLock()" style="flex:1;display:none;">
+                  🎯 Assign Drone 1 to Target
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- CARD 3: CLEAR PAYLOAD DROP SWITCH & CANCELABLE DROP QUEUE -->
+          <div class="step-card">
+            <div class="step-header">
+              <span class="step-title">3. Payload Drop (+42 °C Rescue Cask)</span>
+              <span class="step-badge" id="badgeDropStatus">Ready Aboard Drone 1</span>
+            </div>
+
+            <label class="toggle-row" style="background:rgba(255,159,10,0.10);border:1px solid rgba(255,159,10,0.35);padding:7px 9px;border-radius:8px;">
+              <span><strong>🪂 Enable "Mark Payload Drop" Mode</strong><br/><small style="color:var(--text-secondary);">Turn ON, then click Map or Video to set drop point</small></span>
+              <input type="checkbox" class="amber-switch" id="chkDropMarkerMode" onchange="setDropMarkerMode(this.checked)" />
+            </label>
+
+            <div class="assignment-box" id="dropStatusCard">
+              <div id="dropStatusDescription" style="color:var(--text-secondary);line-height:1.4;">
+                <strong>No Drop Queued:</strong> Turn on the <em>Mark Payload Drop</em> switch above (or click <em>Queue Drop 15m from Hiker</em> below) to assign a drop point. You can cancel anytime before release.
+              </div>
+
+              <div style="display:flex;gap:6px;margin-top:4px;" id="dropActionButtons">
+                <button class="btn warning" id="btnQueueDropNearTarget" onclick="queueDropNearActiveTarget()" style="flex:1;">
+                  🪂 Queue Drop 15m from Target
+                </button>
+                <button class="btn danger" id="btnSidebarCancelDrop" onclick="cancelPendingDrop()" style="flex:1;display:none;">
+                  ✕ Cancel Drop Assignment
+                </button>
+              </div>
+              <div style="display:flex;gap:6px;" id="dropConfirmRow">
+                <button class="btn success" id="btnSidebarReleaseNow" onclick="executeImmediateDrop()" style="flex:1;display:none;">
+                  ✓ Release Payload Now
+                </button>
+                <button class="btn" id="btnSidebarReloadPayload" onclick="reloadPayloadSimulation()" style="flex:1;display:none;">
+                  ↺ Reload Payload for Test
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- CARD 4: FIELD-TEST HARDWARE & BINARY MAVLINK v2 TELEMETRY BRIDGE -->
+          <div class="step-card">
+            <div class="step-header">
+              <span class="step-title">4. Field Hardware &amp; MAVLink v2</span>
+              <span class="step-badge" id="badgeMavlinkLink">MAVLink v2 Ready</span>
+            </div>
+            <div class="assignment-box" style="font-size:11px;gap:4px;">
+              <div style="display:flex;justify-content:space-between;">
+                <span style="color:var(--text-secondary);">Telemetry Link:</span>
+                <strong style="color:#4ade80;" id="lblMavEndpoint">UDP :14550 (0xFD CRC-16-X25)</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;">
+                <span style="color:var(--text-secondary);">Winch Servo (Ch 9):</span>
+                <strong id="lblServoPwm" style="color:#ffffff;">1100 &micro;s (Locked 25 N)</strong>
+              </div>
+              <div id="lblLastMavTx" style="color:#60a5fa;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;word-break:break-all;margin-top:2px;">
+                TX #1: MISSION_ITEM_INT (#73) [FD 25 00 00 01 FF BE 49 00 00 ... CRC OK]
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn" id="btnConnectHwVideo" onclick="toggleHardwareUvcVideo()" style="flex:1;">
+                📹 Connect USB/VRX Camera
+              </button>
+              <button class="btn" onclick="exportQgcWaypoints()" style="flex:1;">
+                💾 QGC .waypoints
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <video id="hwVideoElement" autoplay playsinline muted style="display:none;"></video>
+
+  <script>
+    // =========================================================================
+    // 1. RESIZABLE, CLOSABLE & MAXIMIZABLE WORKSPACE PANES
+    // =========================================================================
+    const paneState = {
+      mapPane: true,
+      videoPane: true,
+      profileBar: true,
+      controlPane: true
+    };
+
+    function updateSplitterVisibility() {
+      const s1 = document.getElementById('vSplitter1');
+      const s2 = document.getElementById('vSplitter2');
+      const hs = document.getElementById('hSplitterProfile');
+      if (s1) s1.classList.toggle('hidden', !(paneState.mapPane && paneState.videoPane));
+      if (s2) s2.classList.toggle('hidden', !(paneState.controlPane && (paneState.mapPane || paneState.videoPane)));
+      if (hs) hs.style.display = paneState.profileBar ? 'flex' : 'none';
+
+      document.getElementById('pillShowMap')?.classList.toggle('on', paneState.mapPane);
+      document.getElementById('pillShowVideo')?.classList.toggle('on', paneState.videoPane);
+      document.getElementById('pillShowProfile')?.classList.toggle('on', paneState.profileBar);
+      document.getElementById('pillShowControls')?.classList.toggle('on', paneState.controlPane);
+      setTimeout(resizeCanvases, 20);
+    }
+
+    function togglePane(paneId) {
+      paneState[paneId] = !paneState[paneId];
+      if (!paneState.mapPane && !paneState.videoPane) {
+        paneState.mapPane = true;
+      }
+      document.getElementById(paneId)?.classList.toggle('hidden', !paneState[paneId]);
+      updateSplitterVisibility();
+    }
+
+    function maximizePane(paneId) {
+      if (paneId === 'mapPane') {
+        paneState.mapPane = true;
+        paneState.videoPane = false;
+      } else if (paneId === 'videoPane') {
+        paneState.mapPane = false;
+        paneState.videoPane = true;
+      }
+      document.getElementById('mapPane')?.classList.toggle('hidden', !paneState.mapPane);
+      document.getElementById('videoPane')?.classList.toggle('hidden', !paneState.videoPane);
+      updateSplitterVisibility();
+    }
+
+    function resetWorkspaceLayout() {
+      paneState.mapPane = true;
+      paneState.videoPane = true;
+      paneState.profileBar = true;
+      paneState.controlPane = true;
+      const mp = document.getElementById('mapPane');
+      const vp = document.getElementById('videoPane');
+      const cp = document.getElementById('controlPane');
+      const pb = document.getElementById('profileBar');
+      if (mp) { mp.classList.remove('hidden'); mp.style.flex = '1.35'; }
+      if (vp) { vp.classList.remove('hidden'); vp.style.flex = '1.0'; }
+      if (cp) { cp.classList.remove('hidden'); cp.style.flex = '0 0 375px'; cp.style.width = '375px'; }
+      if (pb) { pb.classList.remove('hidden'); pb.style.height = '105px'; }
+      updateSplitterVisibility();
+    }
+
+    (function initSplitters() {
+      const s1 = document.getElementById('vSplitter1');
+      const s2 = document.getElementById('vSplitter2');
+      const hs = document.getElementById('hSplitterProfile');
+      const mp = document.getElementById('mapPane');
+      const vp = document.getElementById('videoPane');
+      const cp = document.getElementById('controlPane');
+      const pb = document.getElementById('profileBar');
+
+      let dragMode = null;
+      let startX = 0, startY = 0, startW1 = 0, startW2 = 0, startH = 0;
+
+      if (s1) {
+        s1.addEventListener('mousedown', e => {
+          dragMode = 'V1';
+          startX = e.clientX;
+          startW1 = mp.getBoundingClientRect().width;
+          startW2 = vp.getBoundingClientRect().width;
+          s1.classList.add('dragging');
+          e.preventDefault();
+        });
+      }
+      if (s2) {
+        s2.addEventListener('mousedown', e => {
+          dragMode = 'V2';
+          startX = e.clientX;
+          startW2 = cp.getBoundingClientRect().width;
+          s2.classList.add('dragging');
+          e.preventDefault();
+        });
+      }
+      if (hs) {
+        hs.addEventListener('mousedown', e => {
+          dragMode = 'H1';
+          startY = e.clientY;
+          startH = pb.getBoundingClientRect().height;
+          hs.classList.add('dragging');
+          e.preventDefault();
+        });
+      }
+
+      window.addEventListener('mousemove', e => {
+        if (!dragMode) return;
+        if (dragMode === 'V1') {
+          const dx = e.clientX - startX;
+          mp.style.flex = `${Math.max(280, startW1 + dx)}`;
+          vp.style.flex = `${Math.max(280, startW2 - dx)}`;
+          resizeCanvases();
+        } else if (dragMode === 'V2') {
+          const dx = e.clientX - startX;
+          const newW = Math.max(280, Math.min(560, startW2 - dx));
+          cp.style.flex = `0 0 ${newW}px`;
+          cp.style.width = `${newW}px`;
+          resizeCanvases();
+        } else if (dragMode === 'H1') {
+          const dy = e.clientY - startY;
+          pb.style.height = `${Math.max(64, Math.min(240, startH - dy))}px`;
+          resizeCanvases();
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (dragMode) {
+          dragMode = null;
+          s1?.classList.remove('dragging');
+          s2?.classList.remove('dragging');
+          hs?.classList.remove('dragging');
+        }
+      });
+    })();
+
+    // =========================================================================
+    // 2. TRUE MULTI-RESOLUTION GOOGLE EARTH GEO ENGINE (z=4..20)
+    //    Powers BOTH View 1 (Overview Map) AND View 2 (Live Drone Video)
+    //    with hierarchical parent-tile mipmap fallback so zooming/panning
+    //    anywhere on Earth is instant and never shows repeating/blank tiles!
+    // =========================================================================
+    let ORIGIN_LAT = 66.3695;
+    let ORIGIN_LON = 29.3155;
+    const BASE_ORTHO_W_M = 600.0;
+    const BASE_ORTHO_H_M = 400.0;
+
+    // Local stitched orthophoto used only as an instant 0ms seed at Oulanka while live tiles stream
+    const satImg = new Image();
+    let satImgLoaded = false;
+    satImg.onload = () => { satImgLoaded = true; };
+    satImg.src = 'eastern_finland_satellite_ortho.jpg';
+
+    let googleEarthLayer = 'y'; // 'y' = Google Earth Hybrid (Sat+Labels), 's' = Pure Satellite, 'p' = Terrain
+    const tileCache = new Map();
+
+    function lon2tileX(lon, z) { return ((lon + 180) / 360) * Math.pow(2, z); }
+    function lat2tileY(lat, z) {
+      const clampedLat = Math.max(-85.05, Math.min(85.05, lat));
+      const rad = clampedLat * Math.PI / 180;
+      return (1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2 * Math.pow(2, z);
+    }
+    function tileX2lon(tx, z) { return (tx / Math.pow(2, z)) * 360 - 180; }
+    function tileY2lat(ty, z) {
+      const n = Math.PI - 2 * Math.PI * ty / Math.pow(2, z);
+      return (180 / Math.PI) * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
+    }
+    function worldToLatLon(wx, wy) {
+      const mLat = 111132.0;
+      const mLon = 111320.0 * Math.cos(ORIGIN_LAT * Math.PI / 180.0);
+      return [ORIGIN_LAT - wy / mLat, ORIGIN_LON + wx / mLon];
+    }
+    function latLonToWorld(lat, lon) {
+      const mLat = 111132.0;
+      const mLon = 111320.0 * Math.cos(ORIGIN_LAT * Math.PI / 180.0);
+      return [(lon - ORIGIN_LON) * mLon, (ORIGIN_LAT - lat) * mLat];
+    }
+
+    function getGoogleEarthTile(lyrs, z, tx, ty) {
+      const nTiles = Math.pow(2, z);
+      const wrappedTx = ((tx % nTiles) + nTiles) % nTiles;
+      if (ty < 0 || ty >= nTiles) return null;
+      const key = `${lyrs}/${z}/${wrappedTx}/${ty}`;
+      if (tileCache.has(key)) return tileCache.get(key);
+      const serverIdx = (wrappedTx + ty) & 3;
+      const rec = { img: new Image(), loaded: false };
+      rec.img.crossOrigin = 'anonymous';
+      rec.img.onload = () => { rec.loaded = true; };
+      rec.img.src = `https://mt${serverIdx}.google.com/vt/lyrs=${lyrs}&hl=en&x=${wrappedTx}&y=${ty}&z=${z}`;
+      tileCache.set(key, rec);
+      return rec;
+    }
+
+    // Draw a single Google Earth tile with automatic parent-tile mipmap fallback while loading
+    function drawTileWithMipmapFallback(ctx, lyrs, z, tx, ty, destX, destY, destW, destH) {
+      const rec = getGoogleEarthTile(lyrs, z, tx, ty);
+      if (rec && rec.loaded) {
+        ctx.drawImage(rec.img, destX, destY, destW + 0.6, destH + 0.6);
+        return true;
+      }
+      // Walk up parent zoom levels (z-1 .. z-5) to render lower-res parent sub-quadrant immediately
+      for (let dz = 1; dz <= 5 && (z - dz) >= 4; dz++) {
+        const pz = z - dz;
+        const scale = 1 << dz;
+        const ptx = Math.floor(tx / scale);
+        const pty = Math.floor(ty / scale);
+        const prec = getGoogleEarthTile(lyrs, pz, ptx, pty);
+        if (prec && prec.loaded) {
+          const subX = (tx - ptx * scale) / scale;
+          const subY = (ty - pty * scale) / scale;
+          const subSize = 256 / scale;
+          ctx.drawImage(prec.img, subX * 256, subY * 256, subSize, subSize, destX, destY, destW + 0.6, destH + 0.6);
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function setGoogleEarthLayer(lyrs) {
+      googleEarthLayer = lyrs;
+    }
+
+    function jumpToGoogleEarthRegion(regionKey) {
+      const regions = {
+        OULANKA: { lat: 66.3695, lon: 29.3155 },
+        RUKA:    { lat: 66.1658, lon: 29.1520 },
+        JUUMA:   { lat: 66.2625, lon: 29.3765 },
+        KUUSAMO: { lat: 65.9645, lon: 29.1830 }
+      };
+      const r = regions[regionKey] || regions.OULANKA;
+      ORIGIN_LAT = r.lat;
+      ORIGIN_LON = r.lon;
+      mapCenter = { x: 0.0, y: -10.0 };
+      mapZoom = 0.88;
+      searchBox = { xMin: -230, yMin: -155, xMax: 230, yMax: 135 };
+      restartCooperativeSearch();
+    }
+
+    const mapCanvas = document.getElementById('cncMapCanvas');
+    const mapCtx = mapCanvas.getContext('2d');
+    const tpCanvas = document.getElementById('terrainProfileCanvas');
+    const tpCtx = tpCanvas.getContext('2d');
+    const osdCanvas = document.getElementById('evolvedOsdCanvas');
+    const osdCtx = osdCanvas ? osdCanvas.getContext('2d') : null;
+
+    let mapCenter = { x: 0.0, y: -10.0 };
+    let mapZoom = 0.88;
+
+    function getMapGeometry() {
+      const W = mapCanvas.width, H = mapCanvas.height;
+      const baseScale = Math.min(W / BASE_ORTHO_W_M, H / BASE_ORTHO_H_M);
+      const scale = baseScale * mapZoom;
+      return { W, H, scale, cx: mapCenter.x, cy: mapCenter.y };
+    }
+
+    function worldToCanvas(wx, wy) {
+      const g = getMapGeometry();
+      return [
+        g.W * 0.5 + (wx - g.cx) * g.scale,
+        g.H * 0.5 + (wy - g.cy) * g.scale
+      ];
+    }
+
+    function canvasToWorld(px, py) {
+      const g = getMapGeometry();
+      return [
+        g.cx + (px - g.W * 0.5) / g.scale,
+        g.cy + (py - g.H * 0.5) / g.scale
+      ];
+    }
+
+    function updateZoomReadoutButton() {
+      const g = getMapGeometry();
+      const metersPerPx = 1.0 / g.scale;
+      let z = Math.round(Math.log2((156543.03 * Math.cos(ORIGIN_LAT * Math.PI / 180)) / metersPerPx));
+      z = Math.max(4, Math.min(20, z));
+      const btn = document.getElementById('btnMapZoomReadout');
+      if (btn) btn.textContent = `z=${z}`;
+    }
+
+    function zoomMapBy(factor, pivotPx = null, pivotPy = null) {
+      let pWx = mapCenter.x, pWy = mapCenter.y;
+      if (pivotPx !== null && pivotPy !== null) {
+        [pWx, pWy] = canvasToWorld(pivotPx, pivotPy);
+      }
+      mapZoom = Math.max(0.008, Math.min(8.0, mapZoom * factor));
+      if (pivotPx !== null && pivotPy !== null) {
+        const gAfter = getMapGeometry();
+        mapCenter.x = pWx - (pivotPx - gAfter.W * 0.5) / gAfter.scale;
+        mapCenter.y = pWy - (pivotPy - gAfter.H * 0.5) / gAfter.scale;
+      }
+      updateZoomReadoutButton();
+    }
+
+    function zoomOutWideRegion() {
+      mapZoom = 0.06; // ~15 km wide regional view across Oulanka / Ruka / Kuusamo!
+      updateZoomReadoutButton();
+    }
+
+    function fitMapToSearchBox() {
+      const bw = Math.max(120, searchBox.xMax - searchBox.xMin);
+      const bh = Math.max(100, searchBox.yMax - searchBox.yMin);
+      mapCenter.x = (searchBox.xMin + searchBox.xMax) * 0.5;
+      mapCenter.y = (searchBox.yMin + searchBox.yMax) * 0.5;
+      const baseScale = Math.min(mapCanvas.width / BASE_ORTHO_W_M, mapCanvas.height / BASE_ORTHO_H_M);
+      const targetScale = Math.min((mapCanvas.width * 0.78) / bw, (mapCanvas.height * 0.74) / bh);
+      mapZoom = Math.max(0.008, Math.min(6.0, targetScale / baseScale));
+      updateZoomReadoutButton();
+    }
+
+    // Render Unbounded Google Earth Tile Pyramid on View 1 (Overview Map)
+    function drawWorldSatelliteLayer(ctx, alpha = 1.0, lyrsOverride = null) {
+      const g = getMapGeometry();
+      const lyrs = lyrsOverride || googleEarthLayer;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+
+      // Instant local Oulanka seed underneath while initial network tiles stream in
+      if (satImgLoaded && Math.abs(ORIGIN_LAT - 66.3695) < 0.01) {
+        const [ox, oy] = worldToCanvas(-BASE_ORTHO_W_M * 0.5, -BASE_ORTHO_H_M * 0.5);
+        ctx.drawImage(satImg, ox, oy, BASE_ORTHO_W_M * g.scale, BASE_ORTHO_H_M * g.scale);
+      }
+
+      const metersPerPx = 1.0 / g.scale;
+      let z = Math.round(Math.log2((156543.03 * Math.cos(ORIGIN_LAT * Math.PI / 180)) / metersPerPx));
+      z = Math.max(5, Math.min(19, z));
+
+      const [wLeft, wTop] = canvasToWorld(0, 0);
+      const [wRight, wBot] = canvasToWorld(g.W, g.H);
+      const [latMax, lonMin] = worldToLatLon(wLeft, wTop);
+      const [latMin, lonMax] = worldToLatLon(wRight, wBot);
+
+      const txMin = Math.floor(lon2tileX(lonMin, z));
+      const txMax = Math.floor(lon2tileX(lonMax, z));
+      const tyMin = Math.floor(lat2tileY(latMax, z));
+      const tyMax = Math.floor(lat2tileY(latMin, z));
+
+      // Pre-warm parent zoom level (z-2) so wide zoom-outs are instant
+      if (z >= 7) {
+        const pz = z - 2;
+        getGoogleEarthTile(lyrs, pz, Math.floor(lon2tileX(ORIGIN_LON, pz)), Math.floor(lat2tileY(ORIGIN_LAT, pz)));
+      }
+
+      if ((txMax - txMin + 1) * (tyMax - tyMin + 1) <= 80) {
+        for (let ty = tyMin; ty <= tyMax; ty++) {
+          for (let tx = txMin; tx <= txMax; tx++) {
+            const lon0 = tileX2lon(tx, z), lon1 = tileX2lon(tx + 1, z);
+            const lat0 = tileY2lat(ty, z), lat1 = tileY2lat(ty + 1, z);
+            const [wx0, wy0] = latLonToWorld(lat0, lon0);
+            const [wx1, wy1] = latLonToWorld(lat1, lon1);
+            const [px0, py0] = worldToCanvas(wx0, wy0);
+            const [px1, py1] = worldToCanvas(wx1, wy1);
+            drawTileWithMipmapFallback(ctx, lyrs, z, tx, ty, px0, py0, px1 - px0, py1 - py0);
+          }
+        }
+      }
+
+      ctx.restore();
+    }
+
+    // Render Live High-Res Google Earth Satellite Imagery inside View 2 (Drone Video Camera) at any (wx, wy)!
+    function drawGoogleEarthRectInCamera(ctx, fp, W, H) {
+      // If inside initial Oulanka 600x400 patch, draw local ortho first as 0ms backdrop while z=18/19 tiles stream
+      if (satImgLoaded && Math.abs(ORIGIN_LAT - 66.3695) < 0.01) {
+        const ox = ((-BASE_ORTHO_W_M * 0.5 - fp.xMin) / fp.w) * W;
+        const oy = ((-BASE_ORTHO_H_M * 0.5 - fp.yMin) / fp.h) * H;
+        const ow = (BASE_ORTHO_W_M / fp.w) * W;
+        const oh = (BASE_ORTHO_H_M / fp.h) * H;
+        ctx.drawImage(satImg, ox, oy, ow, oh);
+      }
+
+      const metersPerPx = fp.w / Math.max(1, W);
+      let z = Math.round(Math.log2((156543.03 * Math.cos(ORIGIN_LAT * Math.PI / 180)) / metersPerPx));
+      z = Math.max(12, Math.min(19, z));
+
+      const [latMax, lonMin] = worldToLatLon(fp.xMin, fp.yMin);
+      const [latMin, lonMax] = worldToLatLon(fp.xMax, fp.yMax);
+
+      const txMin = Math.floor(lon2tileX(lonMin, z));
+      const txMax = Math.floor(lon2tileX(lonMax, z));
+      const tyMin = Math.floor(lat2tileY(latMax, z));
+      const tyMax = Math.floor(lat2tileY(latMin, z));
+
+      if ((txMax - txMin + 1) * (tyMax - tyMin + 1) <= 36) {
+        for (let ty = tyMin; ty <= tyMax; ty++) {
+          for (let tx = txMin; tx <= txMax; tx++) {
+            const lon0 = tileX2lon(tx, z), lon1 = tileX2lon(tx + 1, z);
+            const lat0 = tileY2lat(ty, z), lat1 = tileY2lat(ty + 1, z);
+            const [wx0, wy0] = latLonToWorld(lat0, lon0);
+            const [wx1, wy1] = latLonToWorld(lat1, lon1);
+            const px0 = ((wx0 - fp.xMin) / fp.w) * W;
+            const py0 = ((wy0 - fp.yMin) / fp.h) * H;
+            const px1 = ((wx1 - fp.xMin) / fp.w) * W;
+            const py1 = ((wy1 - fp.yMin) / fp.h) * H;
+            drawTileWithMipmapFallback(ctx, 's', z, tx, ty, px0, py0, px1 - px0, py1 - py0);
+          }
+        }
+      }
+    }
+
+    function sampleDemAsl(xm, ym) {
+      const northFell = 52.0 * Math.exp(-Math.pow((xm + 40) / 160, 2) - Math.pow((ym + 95) / 110, 2));
+      const eastForest = 38.0 * Math.exp(-Math.pow((xm - 130) / 140, 2) - Math.pow((ym + 10) / 110, 2));
+      const riverChannel = -24.0 * Math.exp(-Math.pow((ym - 95) / 55, 2));
+      const regionalWave = 28.0 * Math.sin(xm / 420.0) * Math.cos(ym / 380.0);
+      return 236.0 + northFell + eastForest + riverChannel + regionalWave;
+    }
+
+    // =========================================================================
+    // 3. COOPERATIVE SECTOR SCAN, TARGET LOCK & CANCELABLE PAYLOAD DROP STATE
+    // =========================================================================
+    const AUTIOTUPA_HUT = { x: -76, y: 26, name: 'Oulanka Wilderness Hut' };
+    const PLOWED_ROADHEAD = { x: -112, y: 86, name: 'Plowed Road Bridge' };
+
+    let exploredStampList = [];
+    const BOX_GRID_NX = 90, BOX_GRID_NY = 60;
+    const boxExploredGrid = new Uint8Array(BOX_GRID_NX * BOX_GRID_NY);
+
+    let searchBox = { xMin: -230, yMin: -155, xMax: 230, yMax: 135 };
+    let missionPattern = 'DISJOINT_SECTORS';
+    let activeMapTool = 'DRAW_BOX';
+
+    let targetLockActive = true;
+    let guidedTargetType = 'PERSON';
+
+    let dropMarkerMode = false;
+    let payloadState = {
+      status: 'READY_ABOARD',
+      targetX: 40,
+      targetY: 50,
+      assignedDroneIdx: 0
+    };
+
+    let videoHoverWorldPt = null;
+    let selectedCameraSource = 'DRONE_0';
+    let osdZoomFactor = 3.0;
+    let osdSensorMode = 'EO+LWIR';
+    let simRunning = true;
+    let simSpeed = 1.0;
+
+    const lostPerson = {
+      id: 'TGT-HIKER-01',
+      label: 'Lost Hiker',
+      x: 52,
+      y: 64,
+      tempC: '+31.4°C',
+      arrived: false
+    };
+    const lostVehicle = {
+      id: 'TGT-SNOWMOBILE-02',
+      label: 'Snowmobile',
+      x: -145,
+      y: 95,
+      tempC: '+34.0°C',
+      arrived: false
+    };
+
+    const drones = [
+      { id: 'Drone 1 (Sierra)', shortName: 'Drone 1', color: '#ff9f0a', x: 38,   y: 56,   altAgl: 28, radius: 40, role: 'PRIORITY_FOLLOW', sectorName: 'Following Hiker', waypoints: [], wpIdx: 0, sectorDone: false, trail: [], lastStampX: -9999, lastStampY: -9999 },
+      { id: 'Drone 2 (Kilo)',   shortName: 'Drone 2', color: '#38bdf8', x: -182, y: -110, altAgl: 55, radius: 43, role: 'SHROUD_MAPPER',   sectorName: 'Sector 1 (West)', waypoints: [], wpIdx: 0, sectorDone: false, trail: [], lastStampX: -9999, lastStampY: -9999 },
+      { id: 'Drone 3 (Echo)',   shortName: 'Drone 3', color: '#a855f7', x: -28,  y: -110, altAgl: 55, radius: 43, role: 'SHROUD_MAPPER',   sectorName: 'Sector 2 (Center)', waypoints: [], wpIdx: 0, sectorDone: false, trail: [], lastStampX: -9999, lastStampY: -9999 },
+      { id: 'Drone 4 (Foxtrot)',shortName: 'Drone 4', color: '#30d158', x: 125,  y: -110, altAgl: 55, radius: 43, role: 'SHROUD_MAPPER',   sectorName: 'Sector 3 (East)', waypoints: [], wpIdx: 0, sectorDone: false, trail: [], lastStampX: -9999, lastStampY: -9999 }
+    ];
+
+    let activeSectors = [];
+
+    function markCircleExplored(wx, wy, radM) {
+      exploredStampList.push({ x: wx, y: wy, r: radM });
+      if (exploredStampList.length > 5000) exploredStampList.splice(0, 500);
+
+      const bw = Math.max(10, searchBox.xMax - searchBox.xMin);
+      const bh = Math.max(10, searchBox.yMax - searchBox.yMin);
+      const u0 = (wx - searchBox.xMin) / bw;
+      const v0 = (wy - searchBox.yMin) / bh;
+      const rx = (radM / bw) * BOX_GRID_NX;
+      const ry = (radM / bh) * BOX_GRID_NY;
+      const gx0 = u0 * BOX_GRID_NX;
+      const gy0 = v0 * BOX_GRID_NY;
+      const ixMin = Math.max(0, Math.floor(gx0 - rx));
+      const ixMax = Math.min(BOX_GRID_NX - 1, Math.ceil(gx0 + rx));
+      const iyMin = Math.max(0, Math.floor(gy0 - ry));
+      const iyMax = Math.min(BOX_GRID_NY - 1, Math.ceil(gy0 + ry));
+      for (let iy = iyMin; iy <= iyMax; iy++) {
+        for (let ix = ixMin; ix <= ixMax; ix++) {
+          const dx = (ix + 0.5 - gx0) / Math.max(0.001, rx);
+          const dy = (iy + 0.5 - gy0) / Math.max(0.001, ry);
+          if (dx * dx + dy * dy <= 1.0) {
+            boxExploredGrid[iy * BOX_GRID_NX + ix] = 1;
+          }
+        }
+      }
+    }
+
+    function recomputeAutoMission(repositionDrones = false) {
+      const agl = parseFloat(document.getElementById('selAglClearance')?.value || '55');
+      const bw = Math.max(80, searchBox.xMax - searchBox.xMin);
+      const bh = Math.max(80, searchBox.yMax - searchBox.yMin);
+
+      const mapperIndices = [];
+      drones.forEach((d, idx) => {
+        if (idx === 0 && targetLockActive) {
+          d.role = 'PRIORITY_FOLLOW';
+        } else {
+          d.role = 'SHROUD_MAPPER';
+          mapperIndices.push(idx);
+        }
+      });
+
+      const M = Math.max(1, mapperIndices.length);
+      const splitHorizontal = bw >= bh;
+      const sectorSpan = (splitHorizontal ? bw : bh) / M;
+
+      // Scale cone radius proportionally if user draws a huge multi-kilometer search box on Google Earth!
+      const baseRadius = Math.max(24, Math.min(bw * 0.14, Math.max(agl * 0.78, sectorSpan * 0.24)));
+      const maxNonOverlappingRadius = sectorSpan * 0.46;
+      const coneRadius = Math.max(18, Math.min(baseRadius, maxNonOverlappingRadius));
+      const tangentSwath = coneRadius * 1.95;
+
+      drones.forEach((d, idx) => {
+        d.altAgl = (idx === 0 && targetLockActive) ? 28 : agl;
+        d.radius = (idx === 0 && targetLockActive) ? Math.min(coneRadius, Math.max(38, coneRadius * 0.8)) : coneRadius;
+      });
+
+      activeSectors = [];
+      const names3 = ['Sector 1 (West)', 'Sector 2 (Center)', 'Sector 3 (East)'];
+      const names4 = ['Sector 1 (West)', 'Sector 2 (Mid-W)', 'Sector 3 (Mid-E)', 'Sector 4 (East)'];
+
+      mapperIndices.forEach((dIdx, k) => {
+        const d = drones[dIdx];
+        const sName = (M === 3 ? names3[k] : (M === 4 ? names4[k] : `Sector ${k + 1}`));
+        d.sectorName = sName;
+        d.sectorDone = false;
+
+        let sxMin, sxMax, syMin, syMax;
+        if (splitHorizontal) {
+          sxMin = searchBox.xMin + k * sectorSpan;
+          sxMax = sxMin + sectorSpan;
+          syMin = searchBox.yMin;
+          syMax = searchBox.yMax;
+        } else {
+          sxMin = searchBox.xMin;
+          sxMax = searchBox.xMax;
+          syMin = searchBox.yMin + k * sectorSpan;
+          syMax = syMin + sectorSpan;
+        }
+
+        activeSectors.push({
+          xMin: sxMin, xMax: sxMax, yMin: syMin, yMax: syMax,
+          label: `${d.shortName} • ${sName}`, color: d.color, droneIdx: dIdx
+        });
+
+        const wSec = sxMax - sxMin;
+        const hSec = syMax - syMin;
+        const insetX = Math.min(wSec * 0.45, coneRadius * 0.92);
+        const insetY = Math.min(hSec * 0.42, coneRadius * 0.88);
+        const innerW = Math.max(4, wSec - 2 * insetX);
+        const numLanes = Math.max(1, Math.round(innerW / tangentSwath) + 1);
+
+        const wps = [];
+        for (let i = 0; i < numLanes; i++) {
+          const u = numLanes === 1 ? 0.5 : (i / (numLanes - 1));
+          const lx = sxMin + insetX + u * innerW;
+          const y0 = syMin + insetY;
+          const y1 = syMax - insetY;
+          const pair = (i % 2 === 0) ? [y0, y1] : [y1, y0];
+          pair.forEach(ly => {
+            wps.push({ seq: wps.length + 1, x: lx, y: ly, demAsl: sampleDemAsl(lx, ly), agl });
+          });
+        }
+        d.waypoints = wps;
+
+        if (repositionDrones && wps.length >= 2) {
+          d.x = wps[0].x;
+          d.y = wps[0].y + (wps[1].y - wps[0].y) * 0.28;
+          d.wpIdx = 1;
+          d.trail = [{ x: wps[0].x, y: wps[0].y }, { x: d.x, y: d.y }];
+        }
+      });
+
+      if (targetLockActive) {
+        const subj = guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson;
+        drones[0].sectorName = guidedTargetType === 'VEHICLE' ? 'Following Snowmobile' : 'Following Hiker';
+        if (repositionDrones) {
+          drones[0].x = subj.x - 14;
+          drones[0].y = subj.y - 6;
+          drones[0].trail = [{ x: drones[0].x, y: drones[0].y }];
+        }
+      }
+
+      const elArea = document.getElementById('valAreaSwath');
+      if (elArea) elArea.textContent = `${M} Strips • ${M}.0× Speed`;
+      const elLane = document.getElementById('valDemRange');
+      if (elLane) elLane.textContent = `${Math.round(tangentSwath)} m (0% Overlap)`;
+      const tpSum = document.getElementById('tpSummaryLabel');
+      if (tpSum) tpSum.textContent = `${M} Cooperative Sectors • ${Math.round(tangentSwath)}m Edge-Tangent Passes (0% Overlap)`;
+      updateTargetAndDropUI();
+      updateCameraSwitcherLabels();
+    }
+
+    function restartCooperativeSearch() {
+      exploredStampList = [];
+      boxExploredGrid.fill(0);
+      lostPerson.x = (searchBox.xMin + searchBox.xMax) * 0.5 + 52;
+      lostPerson.y = (searchBox.yMin + searchBox.yMax) * 0.5 + 64;
+      lostPerson.arrived = false;
+      lostVehicle.x = (searchBox.xMin + searchBox.xMax) * 0.5 - 145;
+      lostVehicle.y = (searchBox.yMin + searchBox.yMax) * 0.5 + 95;
+      lostVehicle.arrived = false;
+      markCircleExplored(AUTIOTUPA_HUT.x, AUTIOTUPA_HUT.y, 34);
+      markCircleExplored(PLOWED_ROADHEAD.x, PLOWED_ROADHEAD.y, 34);
+
+      recomputeAutoMission(true);
+
+      drones.forEach(d => {
+        if (d.role === 'SHROUD_MAPPER' && d.waypoints.length >= 2) {
+          const x0 = d.waypoints[0].x, y0 = d.waypoints[0].y;
+          for (let s = 0; s <= 10; s++) {
+            const u = s / 10;
+            markCircleExplored(x0 + (d.x - x0) * u, y0 + (d.y - y0) * u, d.radius);
+          }
+        } else {
+          markCircleExplored(d.x, d.y, d.radius);
+        }
+        d.lastStampX = d.x;
+        d.lastStampY = d.y;
+      });
+    }
+
+    // =========================================================================
+    // 4. TARGET ASSIGNMENT, CANCELABLE PAYLOAD DROP & MAVLINK v2 HARDWARE BRIDGE
+    // =========================================================================
+    let mavSeqCounter = 1;
+    let hwVideoActive = false;
+    const hwVideoEl = document.getElementById('hwVideoElement');
+
+    function logAndDispatchMavlinkV2(msgName, msgId, hexPreview, apiPath) {
+      mavSeqCounter++;
+      const el = document.getElementById('lblLastMavTx');
+      if (el) {
+        el.textContent = `TX #${mavSeqCounter}: ${msgName} (#${msgId}) [${hexPreview} ... CRC OK]`;
+      }
+      if (apiPath && window.location.protocol.startsWith('http')) {
+        fetch(apiPath).then(r => r.json()).then(data => {
+          if (data && data.mavlink_tx && el) {
+            el.textContent = `TX #${data.mavlink_tx.tx_packet_count}: ${data.mavlink_tx.summary} [${data.mavlink_tx.header_hex} CRC OK]`;
+          }
+        }).catch(() => {});
+      }
+    }
+
+    async function toggleHardwareUvcVideo() {
+      const btn = document.getElementById('btnConnectHwVideo');
+      if (hwVideoActive) {
+        if (hwVideoEl && hwVideoEl.srcObject) {
+          hwVideoEl.srcObject.getTracks().forEach(t => t.stop());
+          hwVideoEl.srcObject = null;
+        }
+        hwVideoActive = false;
+        if (btn) { btn.textContent = '📹 Connect USB/VRX Camera'; btn.classList.remove('success'); }
+        return;
+      }
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false });
+          if (hwVideoEl) {
+            hwVideoEl.srcObject = stream;
+            await hwVideoEl.play();
+            hwVideoActive = true;
+            if (btn) { btn.textContent = '🟢 Live USB/VRX Video Active'; btn.classList.add('success'); }
+          }
+        } catch (err) {
+          if (btn) btn.textContent = '⚠️ No USB VRX Detected (Using Google Earth)';
+        }
+      }
+    }
+
+    function toggleTargetLockSwitch(checked) {
+      if (checked) reassignTargetLock();
+      else cancelTargetAssignment();
+    }
+
+    function cancelTargetAssignment() {
+      targetLockActive = false;
+      const chk = document.getElementById('chkPreemptMapping');
+      if (chk) chk.checked = false;
+      recomputeAutoMission(true);
+      logAndDispatchMavlinkV2('COMMAND_LONG • Cancel Target Lock', 76, 'FD 21 00 00 02 FF BE 4C 00 00', '/api/field/target?active=0');
+    }
+
+    function reassignTargetLock(targetType = null) {
+      if (targetType) {
+        guidedTargetType = targetType;
+        const sel = document.getElementById('selGuidedTarget');
+        if (sel) sel.value = targetType;
+      }
+      targetLockActive = true;
+      const chk = document.getElementById('chkPreemptMapping');
+      if (chk) chk.checked = true;
+      recomputeAutoMission(false);
+      logAndDispatchMavlinkV2(`MAV_CMD_DO_MOUNT_CONTROL • Lock ${guidedTargetType}`, 76, 'FD 21 00 00 03 FF BE 4C 00 00', `/api/field/target?active=1&type=${guidedTargetType}`);
+    }
+
+    function switchGuidedTarget(val) {
+      guidedTargetType = val;
+      if (!targetLockActive) reassignTargetLock(val);
+      else updateTargetAndDropUI();
+    }
+
+    function toggleDropMarkerMode() {
+      setDropMarkerMode(!dropMarkerMode);
+    }
+
+    function setDropMarkerMode(enabled) {
+      dropMarkerMode = enabled;
+      const chk = document.getElementById('chkDropMarkerMode');
+      if (chk) chk.checked = enabled;
+      const btn = document.getElementById('toolDropMode');
+      if (btn) {
+        btn.textContent = enabled ? '🪂 Mark Drop: ON (Click Map/Video)' : '🪂 Mark Drop: OFF';
+        btn.classList.toggle('active', enabled);
+      }
+      updateTargetAndDropUI();
+    }
+
+    function assignDropTargetAtWorld(wx, wy) {
+      payloadState.status = 'EN_ROUTE_PENDING';
+      payloadState.targetX = wx;
+      payloadState.targetY = wy;
+      payloadState.assignedDroneIdx = 0;
+      setDropMarkerMode(false);
+      updateTargetAndDropUI();
+      const servoEl = document.getElementById('lblServoPwm');
+      if (servoEl) { servoEl.innerHTML = '1100 &micro;s (Locked • En Route)'; servoEl.style.color = '#fbbf24'; }
+      logAndDispatchMavlinkV2(`MISSION_ITEM_INT • Queue Drop (${Math.round(wx)}m, ${Math.round(wy)}m)`, 73, 'FD 25 00 00 04 FF BE 49 00 00', `/api/field/drop?action=queue&x=${wx.toFixed(1)}&y=${wy.toFixed(1)}`);
+    }
+
+    function queueDropNearActiveTarget() {
+      const subj = guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson;
+      assignDropTargetAtWorld(subj.x - 15, subj.y - 6);
+    }
+
+    function cancelPendingDrop() {
+      payloadState.status = 'READY_ABOARD';
+      setDropMarkerMode(false);
+      updateTargetAndDropUI();
+      const servoEl = document.getElementById('lblServoPwm');
+      if (servoEl) { servoEl.innerHTML = '1100 &micro;s (Drop Aborted • Locked)'; servoEl.style.color = '#ffffff'; }
+      logAndDispatchMavlinkV2('MAV_CMD_DO_SET_SERVO • Cancel Pending Drop (Ch9=1100us)', 76, 'FD 21 00 00 05 FF BE 4C 00 00', '/api/field/drop?action=cancel');
+    }
+
+    function executeImmediateDrop() {
+      if (payloadState.status !== 'EN_ROUTE_PENDING') {
+        const subj = guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson;
+        payloadState.targetX = subj.x - 15;
+        payloadState.targetY = subj.y - 6;
+      }
+      payloadState.status = 'DROPPED_ON_GROUND';
+      setDropMarkerMode(false);
+      updateTargetAndDropUI();
+      const servoEl = document.getElementById('lblServoPwm');
+      if (servoEl) { servoEl.innerHTML = '1900 &micro;s (RELEASED 25 N Fuse!)'; servoEl.style.color = '#4ade80'; }
+      logAndDispatchMavlinkV2('MAV_CMD_DO_SET_SERVO • Release Ch9=1900us', 76, 'FD 21 00 00 06 FF BE 4C 00 00', '/api/field/drop?action=release');
+    }
+
+    function reloadPayloadSimulation() {
+      payloadState.status = 'READY_ABOARD';
+      updateTargetAndDropUI();
+      const servoEl = document.getElementById('lblServoPwm');
+      if (servoEl) { servoEl.innerHTML = '1100 &micro;s (Locked 25 N)'; servoEl.style.color = '#ffffff'; }
+      logAndDispatchMavlinkV2('MAV_CMD_DO_SET_SERVO • Reload Ch9=1100us', 76, 'FD 21 00 00 07 FF BE 4C 00 00', '/api/field/drop?action=reload');
+    }
+
+    function updateTargetAndDropUI() {
+      const tBanner = document.getElementById('mapTargetBanner');
+      const tBannerTxt = document.getElementById('mapTargetBannerText');
+      const btnMapCancelTgt = document.getElementById('btnMapCancelTarget');
+      const badgeTgt = document.getElementById('badgeTargetState');
+      const lblDrone = document.getElementById('lblAssignedDrone');
+      const btnSideCancelTgt = document.getElementById('btnSidebarCancelTarget');
+      const btnSideReassign = document.getElementById('btnSidebarReassignTarget');
+
+      const tName = guidedTargetType === 'VEHICLE' ? 'Stranded Snowmobile (+34.0°C)' : 'Lost Hiker (+31.4°C)';
+      if (targetLockActive) {
+        if (tBanner) tBanner.style.borderColor = 'rgba(255, 159, 10, 0.5)';
+        if (tBannerTxt) tBannerTxt.innerHTML = `<strong>Drone 1</strong> is tracking &amp; guiding <strong>${tName}</strong>`;
+        if (btnMapCancelTgt) btnMapCancelTgt.style.display = 'inline-flex';
+        if (badgeTgt) { badgeTgt.textContent = 'Drone 1 Assigned'; badgeTgt.className = 'step-badge amber'; }
+        if (lblDrone) { lblDrone.textContent = 'Drone 1 (Sierra)'; lblDrone.style.color = '#ff9f0a'; }
+        if (btnSideCancelTgt) btnSideCancelTgt.style.display = 'inline-flex';
+        if (btnSideReassign) btnSideReassign.style.display = 'none';
+      } else {
+        if (tBanner) tBanner.style.borderColor = 'var(--border-subtle)';
+        if (tBannerTxt) tBannerTxt.innerHTML = `No drone assigned to target — <strong>All 4 drones scanning sectors (4.0&times; speed)</strong>`;
+        if (btnMapCancelTgt) btnMapCancelTgt.style.display = 'none';
+        if (badgeTgt) { badgeTgt.textContent = 'All 4 Scanning'; badgeTgt.className = 'step-badge'; }
+        if (lblDrone) { lblDrone.textContent = 'None (All 4 Mapping)'; lblDrone.style.color = '#4ade80'; }
+        if (btnSideCancelTgt) btnSideCancelTgt.style.display = 'none';
+        if (btnSideReassign) btnSideReassign.style.display = 'inline-flex';
+      }
+
+      const dBanner = document.getElementById('mapDropBanner');
+      const dBannerTitle = document.getElementById('mapDropBannerTitle');
+      const dBannerTxt = document.getElementById('mapDropBannerText');
+      const btnConfirmNow = document.getElementById('btnConfirmDropNow');
+      const badgeDrop = document.getElementById('badgeDropStatus');
+      const dropDesc = document.getElementById('dropStatusDescription');
+      const btnQueue = document.getElementById('btnQueueDropNearTarget');
+      const btnSideCancelDrop = document.getElementById('btnSidebarCancelDrop');
+      const btnSideRelease = document.getElementById('btnSidebarReleaseNow');
+      const btnSideReload = document.getElementById('btnSidebarReloadPayload');
+
+      if (payloadState.status === 'EN_ROUTE_PENDING') {
+        const dist = Math.round(Math.hypot(payloadState.targetX - drones[0].x, payloadState.targetY - drones[0].y));
+        if (dBanner) dBanner.style.display = 'flex';
+        if (dBannerTitle) dBannerTitle.textContent = '🪂 Pending Payload Drop:';
+        if (dBannerTxt) dBannerTxt.innerHTML = `Drone 1 flying to drop point (<strong>${dist} m remaining</strong>) — Not dropped yet`;
+        if (btnConfirmNow) btnConfirmNow.style.display = 'inline-flex';
+        if (badgeDrop) { badgeDrop.textContent = `Pending (${dist}m)`; badgeDrop.className = 'step-badge amber'; }
+        if (dropDesc) dropDesc.innerHTML = `<strong style="color:#fbbf24;">🪂 Drop Queued (${dist} m to release point):</strong> Drone 1 is flying to the marked drop pin. Click <strong>Cancel Drop Assignment</strong> below to abort before release.`;
+        if (btnQueue) btnQueue.style.display = 'none';
+        if (btnSideCancelDrop) btnSideCancelDrop.style.display = 'inline-flex';
+        if (btnSideRelease) btnSideRelease.style.display = 'inline-flex';
+        if (btnSideReload) btnSideReload.style.display = 'none';
+      } else if (payloadState.status === 'DROPPED_ON_GROUND') {
+        if (dBanner) dBanner.style.display = 'none';
+        if (badgeDrop) { badgeDrop.textContent = '✓ Dropped on Ground'; badgeDrop.className = 'step-badge'; }
+        if (dropDesc) dropDesc.innerHTML = `<strong style="color:#4ade80;">✓ +42 °C Rescue Cask Dropped:</strong> Payload is on the ground at (${Math.round(payloadState.targetX)}m, ${Math.round(payloadState.targetY)}m).`;
+        if (btnQueue) btnQueue.style.display = 'none';
+        if (btnSideCancelDrop) btnSideCancelDrop.style.display = 'none';
+        if (btnSideRelease) btnSideRelease.style.display = 'none';
+        if (btnSideReload) btnSideReload.style.display = 'inline-flex';
+      } else {
+        if (dropMarkerMode) {
+          if (dBanner) dBanner.style.display = 'flex';
+          if (dBannerTitle) dBannerTitle.textContent = '🪂 Drop Marker Mode ON:';
+          if (dBannerTxt) dBannerTxt.innerHTML = `Click anywhere on the <strong>Google Earth Map</strong> or <strong>Drone Video</strong> to place the drop pin.`;
+          if (btnConfirmNow) btnConfirmNow.style.display = 'none';
+        } else {
+          if (dBanner) dBanner.style.display = 'none';
+        }
+        if (badgeDrop) { badgeDrop.textContent = 'Ready Aboard Drone 1'; badgeDrop.className = 'step-badge'; }
+        if (dropDesc) dropDesc.innerHTML = `<strong>Payload Ready Aboard Drone 1:</strong> Turn ON the <em>Mark Payload Drop</em> switch above and click the Map/Video (or click <em>Queue Drop 15m from Target</em>).`;
+        if (btnQueue) btnQueue.style.display = 'inline-flex';
+        if (btnSideCancelDrop) btnSideCancelDrop.style.display = 'none';
+        if (btnSideRelease) btnSideRelease.style.display = 'none';
+        if (btnSideReload) btnSideReload.style.display = 'none';
+      }
+    }
+
+    // =========================================================================
+    // 5. CAMERA SELECTION & SYNCHRONIZED MAP <-> VIDEO FOOTPRINT
+    // =========================================================================
+    function selectCameraSource(src) {
+      selectedCameraSource = src;
+      ['camTab0', 'camTab1', 'camTab2', 'camTab3', 'camTabQuad'].forEach(id => {
+        document.getElementById(id)?.classList.remove('active');
+      });
+      if (src === 'DRONE_0') document.getElementById('camTab0')?.classList.add('active');
+      if (src === 'DRONE_1') document.getElementById('camTab1')?.classList.add('active');
+      if (src === 'DRONE_2') document.getElementById('camTab2')?.classList.add('active');
+      if (src === 'DRONE_3') document.getElementById('camTab3')?.classList.add('active');
+      if (src === 'QUAD_4UP') document.getElementById('camTabQuad')?.classList.add('active');
+      updateCameraSwitcherLabels();
+    }
+
+    function updateCameraSwitcherLabels() {
+      drones.forEach((d, idx) => {
+        const sub = document.getElementById(`camSub${idx}`);
+        if (sub) sub.textContent = d.sectorDone ? '✓ Sector 100% Done' : d.sectorName;
+      });
+      const titleEl = document.getElementById('osdActiveCameraTitle');
+      const badgeEl = document.getElementById('videoPaneBadge');
+      if (!titleEl) return;
+      if (selectedCameraSource === 'QUAD_4UP') {
+        titleEl.innerHTML = `<strong>All 4 Drones (2&times;2 Grid)</strong> — Click any quadrant to expand`;
+        if (badgeEl) { badgeEl.style.background = 'rgba(255,255,255,0.16)'; badgeEl.style.color = '#ffffff'; }
+      } else {
+        const idx = parseInt(selectedCameraSource.replace('DRONE_', ''), 10) || 0;
+        const d = drones[idx] || drones[0];
+        titleEl.innerHTML = `<strong style="color:${d.color};">${d.shortName} (${d.sectorName})</strong> — Matches <span style="color:${d.color};">Highlighted Box</span> on Map`;
+        if (badgeEl) { badgeEl.style.background = 'rgba(10,132,255,0.22)'; badgeEl.style.color = d.color; }
+      }
+    }
+
+    function getDroneVideoFootprintWorldRect(droneIdx, viewW, viewH) {
+      const d = drones[droneIdx] || drones[0];
+      const subj = guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson;
+      const isTracking = (droneIdx === 0 && targetLockActive);
+      const centerWx = isTracking ? (d.x * 0.35 + subj.x * 0.65) : d.x;
+      const centerWy = isTracking ? (d.y * 0.35 + subj.y * 0.65) : d.y;
+
+      const aspect = (viewW > 10 && viewH > 10) ? (viewW / viewH) : 1.15;
+      const halfW = Math.max(18, (d.radius * 2.1) / Math.sqrt(osdZoomFactor));
+      const halfH = halfW / aspect;
+      return { cx: centerWx, cy: centerWy, w: halfW * 2, h: halfH * 2, xMin: centerWx - halfW, xMax: centerWx + halfW, yMin: centerWy - halfH, yMax: centerWy + halfH };
+    }
+
+    function updateMissionPattern(pat) {
+      missionPattern = pat;
+      restartCooperativeSearch();
+    }
+
+    function setMapTool(tool) {
+      activeMapTool = tool;
+      ['toolDrawBox', 'toolPanMap'].forEach(id => {
+        document.getElementById(id)?.classList.remove('primary');
+      });
+      if (tool === 'DRAW_BOX') document.getElementById('toolDrawBox')?.classList.add('primary');
+      if (tool === 'PAN_MAP') document.getElementById('toolPanMap')?.classList.add('primary');
+      mapCanvas.style.cursor = tool === 'PAN_MAP' ? 'grab' : 'crosshair';
+    }
+
+    function adjustOsdZoom(delta) {
+      if (delta === 0) osdZoomFactor = 3.0;
+      else osdZoomFactor = Math.max(1.0, Math.min(10.0, +(osdZoomFactor + delta).toFixed(1)));
+      const pill = document.getElementById('btnOsdZoomPill');
+      if (pill) pill.textContent = `${osdZoomFactor.toFixed(1)}x`;
+    }
+
+    function cycleOsdSensorPalette() {
+      const modes = ['EO+LWIR', 'LWIR HOT', 'STARVIS NV'];
+      const labels = { 'EO+LWIR': 'EO + Thermal', 'LWIR HOT': 'Thermal White-Hot', 'STARVIS NV': 'Starvis Night' };
+      osdSensorMode = modes[(modes.indexOf(osdSensorMode) + 1) % modes.length];
+      const btn = document.getElementById('btnOsdSensorMode');
+      if (btn) btn.textContent = labels[osdSensorMode];
+    }
+
+    function toggleSimPlayPause() {
+      simRunning = !simRunning;
+      const btn = document.getElementById('btnSimPlayPause');
+      if (btn) {
+        btn.textContent = simRunning ? '⏸ Sim Running' : '▶ Sim Paused';
+        btn.classList.toggle('active', simRunning);
+      }
+    }
+
+    function cycleSimSpeed() {
+      const speeds = [1.0, 2.0, 4.0];
+      simSpeed = speeds[(speeds.indexOf(simSpeed) + 1) % speeds.length];
+      const btn = document.getElementById('btnSimSpeed');
+      if (btn) btn.textContent = `${simSpeed}x Speed`;
+    }
+
+    function exportQgcWaypoints() {
+      const lines = ['QGC WPL 110'];
+      lines.push(`0\t1\t0\t16\t0\t0\t0\t0\t${ORIGIN_LAT.toFixed(7)}\t${ORIGIN_LON.toFixed(7)}\t250.0\t1`);
+      let seq = 1;
+      drones.forEach(d => {
+        (d.waypoints || []).forEach(w => {
+          const [lat, lon] = worldToLatLon(w.x, w.y);
+          lines.push(`${seq++}\t0\t10\t16\t0.0\t5.0\t0.0\t0.0\t${lat.toFixed(7)}\t${lon.toFixed(7)}\t${(w.agl + 18).toFixed(1)}\t1`);
+        });
+      });
+      const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'karhunkierros_sar_cooperative_sectors.waypoints';
+      a.click();
+    }
+
+    function resizeCanvases() {
+      const mw = document.getElementById('mapWrap');
+      if (mw && mw.clientWidth > 20 && mw.clientHeight > 20) {
+        if (mapCanvas.width !== mw.clientWidth || mapCanvas.height !== mw.clientHeight) {
+          mapCanvas.width = mw.clientWidth;
+          mapCanvas.height = mw.clientHeight;
+        }
+      }
+      const ow = document.getElementById('osdWrap');
+      if (ow && osdCanvas && ow.clientWidth > 20 && ow.clientHeight > 20) {
+        if (osdCanvas.width !== ow.clientWidth || osdCanvas.height !== ow.clientHeight) {
+          osdCanvas.width = ow.clientWidth;
+          osdCanvas.height = ow.clientHeight;
+        }
+      }
+      const pb = document.getElementById('profileBar');
+      if (pb && tpCanvas && pb.clientWidth > 40) {
+        const targetW = pb.clientWidth - 24;
+        const targetH = Math.max(42, pb.clientHeight - 32);
+        if (tpCanvas.width !== targetW || tpCanvas.height !== targetH) {
+          tpCanvas.width = targetW;
+          tpCanvas.height = targetH;
+        }
+      }
+    }
+    window.addEventListener('resize', resizeCanvases);
+
+    // =========================================================================
+    // 6. MAP & VIDEO INTERACTIONS
+    // =========================================================================
+    function findDroneAtCanvasPoint(cx, cy) {
+      const g = getMapGeometry();
+      for (let i = 0; i < drones.length; i++) {
+        const d = drones[i];
+        const [px, py] = worldToCanvas(d.x, d.y);
+        const rPx = Math.max(22, d.radius * g.scale);
+        if (Math.abs(cx - px) <= 82 && cy >= py - rPx - 28 && cy <= py - rPx + 6) return i;
+        if (Math.hypot(cx - px, cy - py) <= Math.min(rPx, 48)) return i;
+      }
+      let bestIdx = -1, bestDist = 1e9;
+      for (let i = 0; i < drones.length; i++) {
+        const d = drones[i];
+        const [px, py] = worldToCanvas(d.x, d.y);
+        const rPx = d.radius * g.scale;
+        const dist = Math.hypot(cx - px, cy - py);
+        if (dist <= rPx && dist < bestDist) {
+          bestDist = dist;
+          bestIdx = i;
+        }
+      }
+      return bestIdx;
+    }
+
+    (function initMapAndVideoEvents() {
+      let pointerDownInfo = null;
+      let isPanning = false;
+      let isBoxDragging = false;
+      let draftBox = null;
+
+      mapCanvas.addEventListener('contextmenu', e => e.preventDefault());
+
+      mapCanvas.addEventListener('mousedown', e => {
+        const rect = mapCanvas.getBoundingClientRect();
+        const cx = (e.clientX - rect.left) * (mapCanvas.width / rect.width);
+        const cy = (e.clientY - rect.top) * (mapCanvas.height / rect.height);
+        const [wx, wy] = canvasToWorld(cx, cy);
+
+        if (dropMarkerMode && e.button === 0) {
+          assignDropTargetAtWorld(wx, wy);
+          return;
+        }
+
+        if (e.button === 2 || e.button === 1 || e.shiftKey || activeMapTool === 'PAN_MAP') {
+          isPanning = true;
+          pointerDownInfo = { cx, cy, startCx: cx, startCy: cy, mapStartX: mapCenter.x, mapStartY: mapCenter.y };
+          mapCanvas.style.cursor = 'grabbing';
+          return;
+        }
+
+        pointerDownInfo = { cx, cy, startCx: cx, startCy: cy, wx, wy };
+        isBoxDragging = false;
+      });
+
+      window.addEventListener('mousemove', e => {
+        const rect = mapCanvas.getBoundingClientRect();
+        const insideMap = (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom);
+        if (insideMap) {
+          const cx = (e.clientX - rect.left) * (mapCanvas.width / rect.width);
+          const cy = (e.clientY - rect.top) * (mapCanvas.height / rect.height);
+          const [wx, wy] = canvasToWorld(cx, cy);
+          const [lat, lon] = worldToLatLon(wx, wy);
+          const dem = Math.round(sampleDemAsl(wx, wy));
+          const cEl = document.getElementById('cursorCoordReadout');
+          if (cEl) cEl.textContent = `${lat.toFixed(4)}° N, ${lon.toFixed(4)}° E  •  DEM ${dem} m ASL`;
+
+          if (!pointerDownInfo) {
+            if (dropMarkerMode) {
+              mapCanvas.style.cursor = 'crosshair';
+            } else {
+              const hitDrone = findDroneAtCanvasPoint(cx, cy);
+              mapCanvas.style.cursor = hitDrone >= 0 ? 'pointer' : (activeMapTool === 'PAN_MAP' ? 'grab' : 'crosshair');
+            }
+          }
+        }
+
+        if (!pointerDownInfo) return;
+        const cx = (e.clientX - rect.left) * (mapCanvas.width / rect.width);
+        const cy = (e.clientY - rect.top) * (mapCanvas.height / rect.height);
+        const [wx, wy] = canvasToWorld(cx, cy);
+
+        if (isPanning) {
+          const g = getMapGeometry();
+          mapCenter.x = pointerDownInfo.mapStartX - (cx - pointerDownInfo.startCx) / g.scale;
+          mapCenter.y = pointerDownInfo.mapStartY - (cy - pointerDownInfo.startCy) / g.scale;
+          return;
+        }
+
+        const dragPx = Math.hypot(cx - pointerDownInfo.startCx, cy - pointerDownInfo.startCy);
+        if (dragPx > 9 && activeMapTool === 'DRAW_BOX') {
+          isBoxDragging = true;
+          draftBox = {
+            xMin: Math.min(pointerDownInfo.wx, wx),
+            xMax: Math.max(pointerDownInfo.wx, wx),
+            yMin: Math.min(pointerDownInfo.wy, wy),
+            yMax: Math.max(pointerDownInfo.wy, wy)
+          };
+          if (draftBox.xMax - draftBox.xMin > 60 && draftBox.yMax - draftBox.yMin > 60) {
+            searchBox = { ...draftBox };
+            recomputeAutoMission(false);
+          }
+        }
+      });
+
+      window.addEventListener('mouseup', e => {
+        if (!pointerDownInfo) return;
+        const rect = mapCanvas.getBoundingClientRect();
+        const cx = (e.clientX - rect.left) * (mapCanvas.width / rect.width);
+        const cy = (e.clientY - rect.top) * (mapCanvas.height / rect.height);
+        const dragPx = Math.hypot(cx - pointerDownInfo.startCx, cy - pointerDownInfo.startCy);
+
+        if (isPanning) {
+          isPanning = false;
+          pointerDownInfo = null;
+          mapCanvas.style.cursor = activeMapTool === 'PAN_MAP' ? 'grab' : 'crosshair';
+          return;
+        }
+
+        if (isBoxDragging && draftBox && (draftBox.xMax - draftBox.xMin > 60) && (draftBox.yMax - draftBox.yMin > 60)) {
+          searchBox = { ...draftBox };
+          restartCooperativeSearch();
+        } else if (dragPx <= 9) {
+          const hitDroneIdx = findDroneAtCanvasPoint(cx, cy);
+          if (hitDroneIdx >= 0) {
+            selectCameraSource(`DRONE_${hitDroneIdx}`);
+          }
+        }
+
+        isBoxDragging = false;
+        draftBox = null;
+        pointerDownInfo = null;
+      });
+
+      mapCanvas.addEventListener('wheel', e => {
+        e.preventDefault();
+        const rect = mapCanvas.getBoundingClientRect();
+        const cx = (e.clientX - rect.left) * (mapCanvas.width / rect.width);
+        const cy = (e.clientY - rect.top) * (mapCanvas.height / rect.height);
+        zoomMapBy(e.deltaY < 0 ? 1.18 : 0.84, cx, cy);
+      }, { passive: false });
+
+      if (osdCanvas) {
+        osdCanvas.addEventListener('mousemove', e => {
+          const rect = osdCanvas.getBoundingClientRect();
+          const ux = (e.clientX - rect.left) / rect.width;
+          const uy = (e.clientY - rect.top) / rect.height;
+          if (selectedCameraSource === 'QUAD_4UP') {
+            videoHoverWorldPt = null;
+            return;
+          }
+          const dIdx = parseInt(selectedCameraSource.replace('DRONE_', ''), 10) || 0;
+          const fp = getDroneVideoFootprintWorldRect(dIdx, osdCanvas.width, osdCanvas.height);
+          videoHoverWorldPt = {
+            x: fp.xMin + ux * fp.w,
+            y: fp.yMin + uy * fp.h,
+            droneIdx: dIdx
+          };
+        });
+
+        osdCanvas.addEventListener('mouseleave', () => {
+          videoHoverWorldPt = null;
+        });
+
+        osdCanvas.addEventListener('mousedown', e => {
+          const rect = osdCanvas.getBoundingClientRect();
+          const ux = (e.clientX - rect.left) / rect.width;
+          const uy = (e.clientY - rect.top) / rect.height;
+
+          if (selectedCameraSource === 'QUAD_4UP') {
+            const qIdx = (uy < 0.5 ? 0 : 2) + (ux < 0.5 ? 0 : 1);
+            selectCameraSource(`DRONE_${qIdx}`);
+            return;
+          }
+
+          const dIdx = parseInt(selectedCameraSource.replace('DRONE_', ''), 10) || 0;
+          const fp = getDroneVideoFootprintWorldRect(dIdx, osdCanvas.width, osdCanvas.height);
+          const clickWx = fp.xMin + ux * fp.w;
+          const clickWy = fp.yMin + uy * fp.h;
+
+          if (dropMarkerMode) {
+            assignDropTargetAtWorld(clickWx, clickWy);
+          }
+        });
+
+        osdCanvas.addEventListener('wheel', e => {
+          e.preventDefault();
+          adjustOsdZoom(e.deltaY < 0 ? 0.4 : -0.4);
+        }, { passive: false });
+      }
+    })();
+
+    restartCooperativeSearch();
+
+    // =========================================================================
+    // 7. MAIN 60 FPS SIMULATION & RENDER LOOP
+    // =========================================================================
+    function renderLoop() {
+      requestAnimationFrame(renderLoop);
+      resizeCanvases();
+      const dtScale = simRunning ? simSpeed : 0.0;
+
+      if (targetLockActive && dtScale > 0) {
+        const subj = guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson;
+        const dest = guidedTargetType === 'VEHICLE' ? PLOWED_ROADHEAD : AUTIOTUPA_HUT;
+        const dx = dest.x - subj.x;
+        const dy = dest.y - subj.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist > 10.0) {
+          const spd = guidedTargetType === 'VEHICLE' ? 0.16 : 0.08;
+          subj.x += (dx / dist) * spd * dtScale;
+          subj.y += (dy / dist) * spd * dtScale;
+        } else {
+          subj.arrived = true;
+        }
+      }
+
+      const activeSubj = guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson;
+      const activeDest = guidedTargetType === 'VEHICLE' ? PLOWED_ROADHEAD : AUTIOTUPA_HUT;
+
+      let allSectorsDone = true;
+      drones.forEach((d, idx) => {
+        if (dtScale > 0) {
+          if (idx === 0 && payloadState.status === 'EN_ROUTE_PENDING') {
+            const dx = payloadState.targetX - d.x;
+            const dy = payloadState.targetY - d.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist > 5.0) {
+              d.x += (dx / dist) * 0.75 * dtScale;
+              d.y += (dy / dist) * 0.75 * dtScale;
+            }
+            updateTargetAndDropUI();
+          } else if (d.role === 'PRIORITY_FOLLOW') {
+            const gx = activeSubj.x - 14;
+            const gy = activeSubj.y - 6;
+            d.x += (gx - d.x) * Math.min(0.25, 0.06 * dtScale);
+            d.y += (gy - d.y) * Math.min(0.25, 0.06 * dtScale);
+          } else if (d.role === 'SHROUD_MAPPER' && d.waypoints && d.waypoints.length > 0) {
+            if (!d.sectorDone) {
+              allSectorsDone = false;
+              const wp = d.waypoints[d.wpIdx];
+              const dx = wp.x - d.x;
+              const dy = wp.y - d.y;
+              const dist = Math.hypot(dx, dy);
+              if (dist < 3.5) {
+                d.trail.push({ x: wp.x, y: wp.y });
+                if (d.wpIdx + 1 < d.waypoints.length) {
+                  d.wpIdx++;
+                } else {
+                  d.sectorDone = true;
+                  updateCameraSwitcherLabels();
+                }
+              } else {
+                d.x += (dx / dist) * 0.68 * dtScale;
+                d.y += (dy / dist) * 0.68 * dtScale;
+              }
+            }
+          }
+        }
+
+        if (Math.hypot(d.x - d.lastStampX, d.y - d.lastStampY) >= 4.0) {
+          d.lastStampX = d.x;
+          d.lastStampY = d.y;
+          markCircleExplored(d.x, d.y, d.radius);
+        }
+      });
+
+      const badgeScan = document.getElementById('badgeScanStatus');
+      if (badgeScan) {
+        badgeScan.textContent = allSectorsDone ? '✓ All Sectors 100% Scanned' : 'Scanning • 0% Overlap';
+      }
+
+      // =====================================================================
+      // 8. RENDER PANE 1: GOOGLE EARTH SATELLITE MAP
+      // =====================================================================
+      if (paneState.mapPane) {
+        const g = getMapGeometry();
+        const W = g.W, H = g.H;
+
+        // 1. Base Dimmed Google Earth Satellite Context (24% brightness outside explored swaths so you can see rivers/towns when zooming out to pick a new search area!)
+        mapCtx.fillStyle = '#050608';
+        mapCtx.fillRect(0, 0, W, H);
+        drawWorldSatelliteLayer(mapCtx, 0.24);
+
+        // 2. Explored Terrain Memory (68% Brightness inside swept swaths)
+        if (exploredStampList.length > 0) {
+          mapCtx.save();
+          mapCtx.beginPath();
+          for (let i = 0; i < exploredStampList.length; i++) {
+            const st = exploredStampList[i];
+            const [px, py] = worldToCanvas(st.x, st.y);
+            const rPx = st.r * g.scale;
+            if (px + rPx >= 0 && px - rPx <= W && py + rPx >= 0 && py - rPx <= H) {
+              mapCtx.moveTo(px + rPx, py);
+              mapCtx.arc(px, py, rPx, 0, Math.PI * 2);
+            }
+          }
+          mapCtx.clip();
+          drawWorldSatelliteLayer(mapCtx, 0.72);
+          mapCtx.restore();
+        }
+
+        let expCount = 0;
+        for (let i = 0; i < boxExploredGrid.length; i++) if (boxExploredGrid[i]) expCount++;
+        const pct = Math.min(100, Math.round((expCount / boxExploredGrid.length) * 100));
+        const mb = document.getElementById('hdrMappedBadge');
+        if (mb) mb.textContent = `• ${pct}% Scanned`;
+
+        // Draw Color-Coded Cooperative Sector Strips
+        const [bx0, by0] = worldToCanvas(searchBox.xMin, searchBox.yMin);
+        const [bx1, by1] = worldToCanvas(searchBox.xMax, searchBox.yMax);
+
+        activeSectors.forEach(sec => {
+          const [sx0, sy0] = worldToCanvas(sec.xMin, sec.yMin);
+          const [sx1, sy1] = worldToCanvas(sec.xMax, sec.yMax);
+          const sw = sx1 - sx0, sh = sy1 - sy0;
+
+          mapCtx.save();
+          mapCtx.strokeStyle = sec.color;
+          mapCtx.globalAlpha = 0.65;
+          mapCtx.lineWidth = 1.6;
+          mapCtx.setLineDash([6, 5]);
+          mapCtx.strokeRect(sx0, sy0, sw, sh);
+          mapCtx.setLineDash([]);
+          mapCtx.restore();
+
+          if (sw > 70) {
+            const d = drones[sec.droneIdx];
+            const statusStr = d.sectorDone ? `${sec.label} ✓ Done` : `${sec.label}`;
+            mapCtx.save();
+            mapCtx.font = '600 11px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+            const tw = Math.min(sw - 6, Math.ceil(mapCtx.measureText(statusStr).width) + 14);
+            const tx = sx0 + (sw - tw) * 0.5;
+            const ty = sy0 + 6;
+            mapCtx.fillStyle = 'rgba(15, 16, 22, 0.88)';
+            mapCtx.beginPath();
+            mapCtx.roundRect(tx, ty, tw, 19, 5);
+            mapCtx.fill();
+            mapCtx.strokeStyle = sec.color;
+            mapCtx.lineWidth = 1.2;
+            mapCtx.stroke();
+            mapCtx.fillStyle = '#ffffff';
+            mapCtx.textAlign = 'center';
+            mapCtx.fillText(statusStr, sx0 + sw * 0.5, ty + 13.5);
+            mapCtx.restore();
+          }
+        });
+
+        mapCtx.save();
+        mapCtx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+        mapCtx.lineWidth = 2;
+        mapCtx.strokeRect(bx0, by0, bx1 - bx0, by1 - by0);
+        mapCtx.restore();
+
+        // Draw Each Mapping Drone's Completed Path (Solid) & Upcoming Path (Dashed)
+        drones.forEach(d => {
+          if (d.role === 'SHROUD_MAPPER' && d.waypoints && d.waypoints.length > 1) {
+            mapCtx.save();
+            mapCtx.strokeStyle = d.color;
+            mapCtx.globalAlpha = 0.45;
+            mapCtx.lineWidth = 1.8;
+            mapCtx.setLineDash([5, 5]);
+            mapCtx.beginPath();
+            mapCtx.moveTo(...worldToCanvas(d.x, d.y));
+            for (let i = d.wpIdx; i < d.waypoints.length; i++) {
+              mapCtx.lineTo(...worldToCanvas(d.waypoints[i].x, d.waypoints[i].y));
+            }
+            mapCtx.stroke();
+            mapCtx.setLineDash([]);
+
+            if (d.trail && d.trail.length > 0) {
+              mapCtx.globalAlpha = 0.85;
+              mapCtx.lineWidth = 2.2;
+              mapCtx.beginPath();
+              d.trail.forEach((pt, i) => {
+                const [tx, ty] = worldToCanvas(pt.x, pt.y);
+                if (i === 0) mapCtx.moveTo(tx, ty); else mapCtx.lineTo(tx, ty);
+              });
+              mapCtx.lineTo(...worldToCanvas(d.x, d.y));
+              mapCtx.stroke();
+            }
+            mapCtx.restore();
+          }
+        });
+
+        // Draw Live 100% Brightness Camera Cones + Exact Video Footprint Box for Selected Drone
+        drones.forEach((d, idx) => {
+          const isSelected = (selectedCameraSource === `DRONE_${idx}`) || (selectedCameraSource === 'QUAD_4UP');
+          const [px, py] = worldToCanvas(d.x, d.y);
+          const rPx = Math.max(14, d.radius * g.scale);
+
+          mapCtx.save();
+          mapCtx.beginPath();
+          mapCtx.arc(px, py, rPx, 0, Math.PI * 2);
+          mapCtx.clip();
+          drawWorldSatelliteLayer(mapCtx, 1.0, 's');
+          mapCtx.restore();
+
+          mapCtx.save();
+          if (isSelected) {
+            mapCtx.strokeStyle = '#ffffff';
+            mapCtx.lineWidth = 3.0;
+            mapCtx.beginPath();
+            mapCtx.arc(px, py, rPx + 2.5, 0, Math.PI * 2);
+            mapCtx.stroke();
+          }
+          mapCtx.strokeStyle = d.color;
+          mapCtx.lineWidth = 2.2;
+          mapCtx.beginPath();
+          mapCtx.arc(px, py, rPx, 0, Math.PI * 2);
+          mapCtx.stroke();
+
+          if (isSelected && osdCanvas) {
+            const fp = getDroneVideoFootprintWorldRect(idx, osdCanvas.width, osdCanvas.height);
+            const [fx0, fy0] = worldToCanvas(fp.xMin, fp.yMin);
+            const [fx1, fy1] = worldToCanvas(fp.xMax, fp.yMax);
+            mapCtx.strokeStyle = '#ffffff';
+            mapCtx.lineWidth = 1.6;
+            mapCtx.setLineDash([4, 3]);
+            mapCtx.strokeRect(fx0, fy0, fx1 - fx0, fy1 - fy0);
+            mapCtx.setLineDash([]);
+
+            mapCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            mapCtx.font = '700 9.5px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+            mapCtx.fillText('🎥 VIEW 2 FRAME', fx0 + 4, fy0 - 4);
+          }
+
+          mapCtx.fillStyle = d.color;
+          mapCtx.beginPath();
+          mapCtx.arc(px, py, 5.5, 0, Math.PI * 2);
+          mapCtx.fill();
+          mapCtx.strokeStyle = '#ffffff';
+          mapCtx.lineWidth = 1.6;
+          mapCtx.stroke();
+
+          const taskTxt = d.sectorDone ? '✓ Done (Holding)' : d.sectorName;
+          const lbl = isSelected ? `🎥 ${d.shortName} • ${taskTxt}` : `${d.shortName} • ${taskTxt}`;
+          mapCtx.font = '600 11px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+          const pillW = Math.ceil(mapCtx.measureText(lbl).width) + 16;
+          const pillH = 20;
+          const pillX = px - pillW * 0.5;
+          const pillY = py - rPx - 24;
+
+          mapCtx.fillStyle = isSelected ? '#0a84ff' : 'rgba(18, 18, 24, 0.92)';
+          mapCtx.beginPath();
+          mapCtx.roundRect(pillX, pillY, pillW, pillH, 5);
+          mapCtx.fill();
+          mapCtx.strokeStyle = isSelected ? '#ffffff' : d.color;
+          mapCtx.lineWidth = 1.3;
+          mapCtx.stroke();
+          mapCtx.fillStyle = '#ffffff';
+          mapCtx.textAlign = 'center';
+          mapCtx.fillText(lbl, px, pillY + 14);
+          mapCtx.restore();
+        });
+
+        if (videoHoverWorldPt) {
+          const [hx, hy] = worldToCanvas(videoHoverWorldPt.x, videoHoverWorldPt.y);
+          mapCtx.save();
+          mapCtx.strokeStyle = '#ffd60a';
+          mapCtx.lineWidth = 2;
+          mapCtx.beginPath();
+          mapCtx.arc(hx, hy, 9, 0, Math.PI * 2);
+          mapCtx.moveTo(hx - 14, hy); mapCtx.lineTo(hx + 14, hy);
+          mapCtx.moveTo(hx, hy - 14); mapCtx.lineTo(hx, hy + 14);
+          mapCtx.stroke();
+          mapCtx.restore();
+        }
+
+        const drawLandmark = (lm, color) => {
+          const [lx, ly] = worldToCanvas(lm.x, lm.y);
+          mapCtx.save();
+          mapCtx.font = '600 11px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+          const tw = Math.ceil(mapCtx.measureText(lm.name).width) + 14;
+          mapCtx.fillStyle = 'rgba(18, 18, 24, 0.92)';
+          mapCtx.beginPath();
+          mapCtx.roundRect(lx - tw * 0.5, ly - 25, tw, 19, 5);
+          mapCtx.fill();
+          mapCtx.strokeStyle = color;
+          mapCtx.lineWidth = 1.3;
+          mapCtx.stroke();
+          mapCtx.fillStyle = '#ffffff';
+          mapCtx.textAlign = 'center';
+          mapCtx.fillText(lm.name, lx, ly - 12);
+
+          mapCtx.fillStyle = color;
+          mapCtx.beginPath();
+          mapCtx.arc(lx, ly, 5, 0, Math.PI * 2);
+          mapCtx.fill();
+          mapCtx.restore();
+        };
+        drawLandmark(AUTIOTUPA_HUT, '#30d158');
+        drawLandmark(PLOWED_ROADHEAD, '#0a84ff');
+
+        if (targetLockActive) {
+          const [sx, sy] = worldToCanvas(activeSubj.x, activeSubj.y);
+          const [dx, dy] = worldToCanvas(activeDest.x, activeDest.y);
+          mapCtx.save();
+          mapCtx.strokeStyle = '#30d158';
+          mapCtx.lineWidth = 2.2;
+          mapCtx.setLineDash([6, 4]);
+          mapCtx.beginPath();
+          mapCtx.moveTo(sx, sy);
+          mapCtx.lineTo(dx, dy);
+          mapCtx.stroke();
+          mapCtx.setLineDash([]);
+          mapCtx.restore();
+        }
+
+        if (payloadState.status !== 'READY_ABOARD') {
+          const [px, py] = worldToCanvas(payloadState.targetX, payloadState.targetY);
+          const [d0x, d0y] = worldToCanvas(drones[0].x, drones[0].y);
+          mapCtx.save();
+          if (payloadState.status === 'EN_ROUTE_PENDING') {
+            mapCtx.strokeStyle = '#ff9f0a';
+            mapCtx.lineWidth = 2;
+            mapCtx.setLineDash([5, 4]);
+            mapCtx.beginPath();
+            mapCtx.moveTo(d0x, d0y);
+            mapCtx.lineTo(px, py);
+            mapCtx.stroke();
+            mapCtx.setLineDash([]);
+          }
+          mapCtx.fillStyle = payloadState.status === 'DROPPED_ON_GROUND' ? '#30d158' : '#ff9f0a';
+          mapCtx.beginPath();
+          mapCtx.arc(px, py, 8, 0, Math.PI * 2);
+          mapCtx.fill();
+          mapCtx.strokeStyle = '#ffffff';
+          mapCtx.lineWidth = 2;
+          mapCtx.stroke();
+
+          const pLbl = payloadState.status === 'DROPPED_ON_GROUND' ? '✓ +42°C Cask Dropped' : '🪂 Pending Drop Target';
+          mapCtx.font = '600 11px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+          const pw = Math.ceil(mapCtx.measureText(pLbl).width) + 14;
+          mapCtx.fillStyle = 'rgba(18, 18, 24, 0.94)';
+          mapCtx.beginPath();
+          mapCtx.roundRect(px - pw * 0.5, py - 28, pw, 19, 5);
+          mapCtx.fill();
+          mapCtx.strokeStyle = payloadState.status === 'DROPPED_ON_GROUND' ? '#30d158' : '#ff9f0a';
+          mapCtx.stroke();
+          mapCtx.fillStyle = '#ffffff';
+          mapCtx.textAlign = 'center';
+          mapCtx.fillText(pLbl, px, py - 15);
+          mapCtx.restore();
+        }
+
+        const drawSubject = (subj, color) => {
+          const [tx, ty] = worldToCanvas(subj.x, subj.y);
+          mapCtx.save();
+          mapCtx.strokeStyle = color;
+          mapCtx.lineWidth = 2.2;
+          mapCtx.strokeRect(tx - 11, ty - 11, 22, 22);
+          const tag = subj.arrived ? `✓ ${subj.label} (Safe at Shelter)` : `${subj.label} • ${subj.tempC}`;
+          mapCtx.font = '600 11px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+          const tw = Math.ceil(mapCtx.measureText(tag).width) + 14;
+          mapCtx.fillStyle = 'rgba(18, 18, 24, 0.92)';
+          mapCtx.beginPath();
+          mapCtx.roundRect(tx - tw * 0.5, ty + 14, tw, 19, 5);
+          mapCtx.fill();
+          mapCtx.strokeStyle = color;
+          mapCtx.stroke();
+          mapCtx.fillStyle = '#ffffff';
+          mapCtx.textAlign = 'center';
+          mapCtx.fillText(tag, tx, ty + 27);
+          mapCtx.restore();
+        };
+        drawSubject(lostPerson, '#ff453a');
+        drawSubject(lostVehicle, '#ff9f0a');
+      }
+
+      // =====================================================================
+      // 9. RENDER BOTTOM TERRAIN-FOLLOWING PROFILE
+      // =====================================================================
+      if (paneState.profileBar && tpCtx) {
+        const tw = tpCanvas.width, th = tpCanvas.height;
+        tpCtx.fillStyle = '#0d0d11';
+        tpCtx.fillRect(0, 0, tw, th);
+
+        const N = 50;
+        const aglCmd = parseFloat(document.getElementById('selAglClearance')?.value || '55');
+        tpCtx.beginPath();
+        tpCtx.moveTo(0, th);
+        for (let i = 0; i <= N; i++) {
+          const u = i / N;
+          const wx = searchBox.xMin + u * (searchBox.xMax - searchBox.xMin);
+          const dem = sampleDemAsl(wx, mapCenter.y);
+          const py = th - ((dem - 195) / 145) * (th - 14);
+          tpCtx.lineTo(u * tw, py);
+        }
+        tpCtx.lineTo(tw, th);
+        tpCtx.closePath();
+        tpCtx.fillStyle = 'rgba(10, 132, 255, 0.25)';
+        tpCtx.fill();
+
+        tpCtx.beginPath();
+        for (let i = 0; i <= N; i++) {
+          const u = i / N;
+          const wx = searchBox.xMin + u * (searchBox.xMax - searchBox.xMin);
+          const flt = sampleDemAsl(wx, mapCenter.y) + 18 + aglCmd * 0.55;
+          const py = Math.max(6, th - ((flt - 195) / 145) * (th - 14));
+          if (i === 0) tpCtx.moveTo(u * tw, py); else tpCtx.lineTo(u * tw, py);
+        }
+        tpCtx.strokeStyle = '#ff9f0a';
+        tpCtx.lineWidth = 2.0;
+        tpCtx.stroke();
+      }
+
+      // =====================================================================
+      // 10. RENDER PANE 2: SELECTED DRONE LIVE GOOGLE EARTH CAMERA VIEW
+      // =====================================================================
+      if (paneState.videoPane) {
+        renderBigCameraViewport();
+      }
+    }
+
+    function renderSingleDroneCameraFeed(ctx, x0, y0, W, H, droneIdx, isCompactQuad) {
+      const d = drones[droneIdx] || drones[0];
+      const fp = getDroneVideoFootprintWorldRect(droneIdx, W, H);
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(x0, y0, W, H);
+      ctx.clip();
+      ctx.translate(x0, y0);
+
+      ctx.fillStyle = '#0c130e';
+      ctx.fillRect(0, 0, W, H);
+
+      if (osdSensorMode === 'LWIR HOT') {
+        ctx.filter = 'contrast(145%) brightness(92%) sepia(85%) hue-rotate(235deg) saturate(240%)';
+      } else if (osdSensorMode === 'STARVIS NV') {
+        ctx.filter = 'contrast(135%) brightness(105%) sepia(100%) hue-rotate(75deg) saturate(260%)';
+      } else {
+        ctx.filter = 'contrast(106%) saturate(108%)';
+      }
+
+      // Stream live hardware UVC/VRX camera if connected, else live high-res Google Earth satellite tiles (z=14..19)!
+      if (hwVideoActive && hwVideoEl && hwVideoEl.readyState >= 2) {
+        ctx.drawImage(hwVideoEl, 0, 0, W, H);
+      } else {
+        drawGoogleEarthRectInCamera(ctx, fp, W, H);
+      }
+      ctx.filter = 'none';
+
+      const worldToVideoPx = (wx, wy) => [
+        ((wx - fp.xMin) / fp.w) * W,
+        ((wy - fp.yMin) / fp.h) * H
+      ];
+
+      [lostPerson, lostVehicle].forEach(subj => {
+        if (subj.x >= fp.xMin && subj.x <= fp.xMax && subj.y >= fp.yMin && subj.y <= fp.yMax) {
+          const [vx, vy] = worldToVideoPx(subj.x, subj.y);
+          const subjGrad = ctx.createRadialGradient(vx, vy, 2, vx, vy, 16);
+          subjGrad.addColorStop(0, '#ffffff');
+          subjGrad.addColorStop(0.45, '#ff9f0a');
+          subjGrad.addColorStop(1, 'rgba(255, 69, 58, 0.0)');
+          ctx.fillStyle = subjGrad;
+          ctx.beginPath();
+          ctx.arc(vx, vy, 16, 0, Math.PI * 2);
+          ctx.fill();
+
+          const bSize = isCompactQuad ? 44 : 62;
+          ctx.strokeStyle = '#ffd60a';
+          ctx.lineWidth = 2.2;
+          ctx.strokeRect(vx - bSize * 0.5, vy - bSize * 0.5, bSize, bSize);
+
+          if (!isCompactQuad) {
+            const lbl = `${subj.label} • ${subj.tempC}`;
+            ctx.font = '600 11.5px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+            const lw = Math.ceil(ctx.measureText(lbl).width) + 14;
+            ctx.fillStyle = 'rgba(15, 16, 22, 0.90)';
+            ctx.beginPath();
+            ctx.roundRect(vx - lw * 0.5, vy - bSize * 0.5 - 24, lw, 20, 5);
+            ctx.fill();
+            ctx.fillStyle = '#ffd60a';
+            ctx.textAlign = 'center';
+            ctx.fillText(lbl, vx, vy - bSize * 0.5 - 10);
+          }
+        }
+      });
+
+      if (payloadState.status !== 'READY_ABOARD') {
+        const [px, py] = worldToVideoPx(payloadState.targetX, payloadState.targetY);
+        if (px >= -20 && px <= W + 20 && py >= -20 && py <= H + 20) {
+          ctx.fillStyle = payloadState.status === 'DROPPED_ON_GROUND' ? '#30d158' : '#ff9f0a';
+          ctx.beginPath();
+          ctx.arc(px, py, 9, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          const dlbl = payloadState.status === 'DROPPED_ON_GROUND' ? '✓ +42°C Cask on Ground' : '🪂 Pending Drop Point';
+          ctx.font = '600 11px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+          const dw = Math.ceil(ctx.measureText(dlbl).width) + 14;
+          ctx.fillStyle = 'rgba(15, 16, 22, 0.90)';
+          ctx.beginPath();
+          ctx.roundRect(px - dw * 0.5, py + 12, dw, 19, 5);
+          ctx.fill();
+          ctx.fillStyle = '#ffffff';
+          ctx.textAlign = 'center';
+          ctx.fillText(dlbl, px, py + 25);
+        }
+      }
+
+      const cx = W * 0.5, cy = H * 0.5;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(cx - 12, cy); ctx.lineTo(cx + 12, cy);
+      ctx.moveTo(cx, cy - 12); ctx.lineTo(cx, cy + 12);
+      ctx.stroke();
+
+      const taskStr = d.sectorDone ? '✓ Sector 100% Scanned' : d.sectorName;
+      const badgeTxt = `${d.id} • ${taskStr}`;
+      ctx.font = isCompactQuad
+        ? '600 11px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif'
+        : '600 12.5px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+      const bw = Math.ceil(ctx.measureText(badgeTxt).width) + 18;
+      ctx.fillStyle = 'rgba(15, 16, 22, 0.90)';
+      ctx.beginPath();
+      ctx.roundRect(10, 10, bw, isCompactQuad ? 22 : 26, 6);
+      ctx.fill();
+      ctx.strokeStyle = d.color;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'left';
+      ctx.fillText(badgeTxt, 19, isCompactQuad ? 25 : 27.5);
+
+      const barH = isCompactQuad ? 28 : 46;
+      ctx.fillStyle = 'rgba(12, 13, 18, 0.88)';
+      ctx.fillRect(0, H - barH, W, barH);
+
+      const [lat, lon] = worldToLatLon(fp.cx, fp.cy);
+      const dem = Math.round(sampleDemAsl(fp.cx, fp.cy));
+      ctx.fillStyle = '#4ade80';
+      ctx.font = isCompactQuad
+        ? '600 10.5px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif'
+        : '600 13px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+      if (isCompactQuad) {
+        ctx.fillText(`Alt ${d.altAgl}m AGL  •  ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E  •  Click to Expand`, 10, H - 9);
+      } else {
+        ctx.fillText(`ALT ${d.altAgl} m AGL   •   GROUND ELEV ${dem} m ASL   •   FRAME WIDTH ${Math.round(fp.w)} m   •   ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E`, 12, H - 18);
+      }
+
+      ctx.restore();
+    }
+
+    function renderBigCameraViewport() {
+      if (!osdCtx || !osdCanvas) return;
+      const W = osdCanvas.width, H = osdCanvas.height;
+      if (W < 40 || H < 40) return;
+
+      if (selectedCameraSource === 'QUAD_4UP') {
+        const hw = Math.floor(W * 0.5), hh = Math.floor(H * 0.5);
+        renderSingleDroneCameraFeed(osdCtx, 0,  0,  hw, hh, 0, true);
+        renderSingleDroneCameraFeed(osdCtx, hw, 0,  W - hw, hh, 1, true);
+        renderSingleDroneCameraFeed(osdCtx, 0,  hh, hw, H - hh, 2, true);
+        renderSingleDroneCameraFeed(osdCtx, hw, hh, W - hw, H - hh, 3, true);
+
+        osdCtx.save();
+        osdCtx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        osdCtx.lineWidth = 2;
+        osdCtx.beginPath();
+        osdCtx.moveTo(hw, 0); osdCtx.lineTo(hw, H);
+        osdCtx.moveTo(0, hh); osdCtx.lineTo(W, hh);
+        osdCtx.stroke();
+        osdCtx.restore();
+      } else {
+        const idx = parseInt(selectedCameraSource.replace('DRONE_', ''), 10) || 0;
+        renderSingleDroneCameraFeed(osdCtx, 0, 0, W, H, idx, false);
+      }
+    }
+
+    renderLoop();
+  </script>
+</body>
+</html>

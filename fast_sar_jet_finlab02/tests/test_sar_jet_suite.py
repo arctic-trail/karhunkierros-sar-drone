@@ -185,6 +185,52 @@ class TestArcticFastSarJetSuite(unittest.TestCase):
         self.assertGreaterEqual(fmea_100k["crash_reduction_pct"], 99.0)
         self.assertLessEqual(fmea_100k["residual_crashes_per_flight_hour"], 3.0e-5)
 
+        # 6. Dorsal S-Duct Distortion (DC60), Passive Blow-In Louvers & Compressor Surge-Margin Verification
+        surge_cruise = node.evaluate_dorsal_inlet_distortion_and_surge_margin(
+            alpha_deg=2.2,
+            beta_deg=0.0,
+            airspeed_ias_mps=55.8,
+            throttle_cmd_norm=0.65,
+            n1_pct=74.0,
+        )
+        self.assertFalse(surge_cruise["blow_in_louvers_open"])
+        self.assertLess(surge_cruise["dc60_distortion_index"], 0.06)
+        self.assertGreater(surge_cruise["surge_margin_pct"], 22.0)
+        self.assertFalse(surge_cruise["surge_risk_detected"])
+
+        # Slowed 25.5 m/s 100% TOGA go-around in 0.40 g/m3 freezing drizzle + 11 deg AoA + 6 deg sideslip:
+        # Without passive blow-in louvers, 8W lip heater, and active surge-guard slew limiter -> surge risk
+        surge_unprotected = node.evaluate_dorsal_inlet_distortion_and_surge_margin(
+            alpha_deg=11.0,
+            beta_deg=6.0,
+            airspeed_ias_mps=25.5,
+            throttle_cmd_norm=1.0,
+            n1_pct=52.0,
+            aux_blow_in_louvers_installed=False,
+            lip_deicer_and_fod_bypass_active=False,
+            icing_lwc_g_m3=0.40,
+            surge_guard_slew_limiter_enabled=False,
+        )
+        self.assertTrue(surge_unprotected["surge_risk_detected"])
+        self.assertLess(surge_unprotected["surge_margin_pct"], 5.0)
+
+        # With +12 g passive blow-in louvers (+0 EUR), 8W E1 lip heater + 10mm FOD bypass, and surge-guard slew limiter
+        surge_protected = node.evaluate_dorsal_inlet_distortion_and_surge_margin(
+            alpha_deg=11.0,
+            beta_deg=6.0,
+            airspeed_ias_mps=25.5,
+            throttle_cmd_norm=1.0,
+            n1_pct=52.0,
+            aux_blow_in_louvers_installed=True,
+            lip_deicer_and_fod_bypass_active=True,
+            icing_lwc_g_m3=0.40,
+            surge_guard_slew_limiter_enabled=True,
+        )
+        self.assertTrue(surge_protected["blow_in_louvers_open"])
+        self.assertFalse(surge_protected["surge_risk_detected"])
+        self.assertGreater(surge_protected["surge_margin_pct"], 12.0)
+        self.assertLess(surge_protected["dc60_distortion_index"], surge_unprotected["dc60_distortion_index"] * 0.55)
+
     def test_04_northern_flank_red_gap_closure(self):
         """Verify all 5 Red/Amber gaps close within low-cost 100% Non-Chinese COTS scope."""
         # 1. Gap I: FIN-LAB-02 350-400 km/h airframe & head-on corridor rendezvous geometry

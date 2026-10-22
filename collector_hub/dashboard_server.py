@@ -293,6 +293,33 @@ def make_command_center_handler(alerts_dir, verbose=False):
                         drone_payload = drone_observer.run_complete_finlab_and_supply_chain_verification_suite()
                     except Exception as e:
                         drone_payload = {"dispatched": False, "error": str(e)}
+                elif req_action == "cnc-overwatch":
+                    try:
+                        import drone_observer
+                        preempt_str = query_params.get("preempt", "1")
+                        det_ppl_str = query_params.get("detect_people", "1")
+                        det_veh_str = query_params.get("detect_vehicles", "1")
+                        raw_msg = query_params.get("voice_msg")
+                        safe_msg = (
+                            "".join(ch for ch in str(raw_msg) if ch not in "<>" and ch.isprintable())[:220]
+                            if raw_msg is not None else None
+                        )
+                        drone_payload = drone_observer.execute_cnc_overwatch_and_guidance_action(
+                            status_path=drone_status_file,
+                            task_mode=query_params.get("task_mode", "AUTO_OBSERVE_AND_SEARCH"),
+                            preempt_mapping_on_detection=(preempt_str.lower() in ("1", "true", "yes")),
+                            detect_lost_people=(det_ppl_str.lower() in ("1", "true", "yes")),
+                            detect_lost_vehicles=(det_veh_str.lower() in ("1", "true", "yes")),
+                            fleet_split_policy=query_params.get("split_policy", "SPLIT_1_FOLLOW_REST_MAP"),
+                            subject_type=query_params.get("subject_type", "LOST_PERSON"),
+                            guidance_mode=query_params.get("guidance_mode", "AUTONOMOUS_GUIDANCE"),
+                            rc_delta_east_m=float(query_params.get("de", "0.0")),
+                            rc_delta_north_m=float(query_params.get("dn", "0.0")),
+                            rc_delta_alt_m=float(query_params.get("da", "0.0")),
+                            custom_voice_message=safe_msg,
+                        )
+                    except Exception as e:
+                        drone_payload = {"dispatched": False, "error": str(e)}
 
                 if drone_payload is None and os.path.isfile(drone_status_file):
                     try:
@@ -342,6 +369,45 @@ def make_command_center_handler(alerts_dir, verbose=False):
                         drone_payload = {"dispatched": False, "error": str(e)}
 
                 self.wfile.write(json.dumps(drone_payload).encode("utf-8"))
+                return
+
+            # 2c. API: Live Field-Test Binary MAVLink v2 Telemetry & Command Bridge
+            if clean_path.startswith("/api/field/"):
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                try:
+                    import mavlink_field_bridge
+                    bridge = mavlink_field_bridge.GLOBAL_FIELD_BRIDGE
+                    if clean_path == "/api/field/upload_mission":
+                        res = bridge.upload_cooperative_sector_mission(
+                            x_min_m=float(query_params.get("xMin", "-230")),
+                            y_min_m=float(query_params.get("yMin", "-155")),
+                            x_max_m=float(query_params.get("xMax", "230")),
+                            y_max_m=float(query_params.get("yMax", "135")),
+                            agl_m=float(query_params.get("agl", "55")),
+                            ref_lat=float(query_params.get("lat", "66.3695")),
+                            ref_lon=float(query_params.get("lon", "29.3155")),
+                        )
+                    elif clean_path == "/api/field/target":
+                        act_str = query_params.get("active", "1").lower()
+                        res = bridge.set_target_assignment(
+                            active=(act_str in ("1", "true", "yes")),
+                            target_type=query_params.get("type", "PERSON"),
+                        )
+                    elif clean_path == "/api/field/drop":
+                        res = bridge.command_payload_drop(
+                            action=query_params.get("action", "queue"),
+                            target_x_m=float(query_params.get("x", "40")),
+                            target_y_m=float(query_params.get("y", "50")),
+                        )
+                    else:
+                        res = bridge.get_bridge_status()
+                except Exception as e:
+                    res = {"bridge_online": False, "error": str(e)}
+                self.wfile.write(json.dumps(res).encode("utf-8"))
                 return
 
             # 3. Serve verified image captures from alerts_dir (with canonical commonpath containment & image-only extension allowlist)

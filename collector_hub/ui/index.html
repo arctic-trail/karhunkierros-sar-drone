@@ -434,6 +434,131 @@
       flex-direction: column;
       gap: 3px;
     }
+
+    /* Command & Conquer (C&C) Tactical Overwatch, Priority Options & Guidance Console */
+    #cnc-command-dock {
+      position: absolute;
+      top: 64px;
+      left: 324px;
+      width: 385px;
+      max-height: calc(100vh - 256px);
+      z-index: 15;
+      background: rgba(6, 13, 24, 0.95);
+      border: 1.5px solid var(--accent-green);
+      border-radius: 6px;
+      padding: 10px 12px;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 36px rgba(0, 0, 0, 0.85), 0 0 18px rgba(0, 230, 118, 0.22);
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .cnc-sec {
+      background: rgba(12, 24, 42, 0.85);
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      border-radius: 5px;
+      padding: 7px 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .cnc-sec-title {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--accent-green);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(0, 230, 118, 0.22);
+      padding-bottom: 3px;
+    }
+    .cnc-opt-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 10.5px;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+    .cnc-opt-row input[type="checkbox"] {
+      accent-color: var(--accent-green);
+      width: 13px;
+      height: 13px;
+      cursor: pointer;
+    }
+    .cnc-pill-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+    }
+    .cnc-mode-pill {
+      padding: 5px 7px;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .cnc-mode-pill.active {
+      background: rgba(0, 230, 118, 0.22);
+      border-color: var(--accent-green);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
+    }
+    .cnc-mode-pill.rc.active {
+      background: rgba(255, 179, 0, 0.24);
+      border-color: var(--accent-amber);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(255, 179, 0, 0.3);
+    }
+    #cnc-drag-rect {
+      position: fixed;
+      border: 2px solid #00e676;
+      background: rgba(0, 230, 118, 0.14);
+      box-shadow: 0 0 14px rgba(0, 230, 118, 0.5);
+      pointer-events: none;
+      z-index: 90;
+      display: none;
+    }
+    .cnc-rc-grid {
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+    #cnc-joy-pad {
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,229,255,0.16) 0%, rgba(4,10,20,0.95) 75%);
+      border: 1.5px solid var(--accent-amber);
+      position: relative;
+      cursor: pointer;
+      touch-action: none;
+    }
+    #cnc-joy-knob {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent-amber);
+      box-shadow: 0 0 8px var(--accent-amber);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -473,6 +598,8 @@
       <div class="badge amber" id="active-targets-badge">ALERTS: 0 VERIFIED</div>
     </div>
     <div class="btn-group">
+      <a class="btn-sm accent" href="operator_mission_console.html" style="text-decoration:none;" title="Open Dedicated Full-Screen Field Operator C&amp;C Mission, Terrain Auto-Mapper &amp; Guidance Console">🎯 Field Operator UX</a>
+      <button class="btn-sm accent" onclick="toggleCncOverwatchMode()" id="btn-mode-cnc" title="Command &amp; Conquer Tactical View: Unobserved areas pitch black, camera/drone footprints rendered as live camera feeds on map, Priority Person/Vehicle Preemption &amp; Autonomous/Manual RC Guidance">🕹️ C&amp;C Overwatch</button>
       <button class="btn-sm active" onclick="setWorkspaceMode('split')" id="btn-mode-split" title="Balanced 3D Map + Photo Evidence View">⚖️ Split View</button>
       <button class="btn-sm" onclick="setWorkspaceMode('photo')" id="btn-mode-photo" title="Large Photo & Telemetry Inspector">📷 Photo Focus</button>
       <button class="btn-sm" onclick="setWorkspaceMode('map')" id="btn-mode-map" title="Full-Screen 3D Property Terrain">🗺️ 3D Map</button>
@@ -481,6 +608,157 @@
       <button class="btn-sm active" onclick="toggleAudioChime()" id="btn-audio-chime" title="Play audible alert chime when a new verified detection arrives">🔔 Chime: ON</button>
       <button class="btn-sm" onclick="toggleDemoTargets()" id="btn-demo-targets" title="Toggle simulated 3D movement test targets">🎯 Sim: OFF</button>
       <button class="btn-sm" onclick="cycleLabelMode()" id="btn-label-mode" title="Toggle 3D map label density">🏷️ Labels: Full</button>
+    </div>
+  </div>
+
+  <!-- Command & Conquer Green Selection Drag Box -->
+  <div id="cnc-drag-rect"></div>
+
+  <!-- Command & Conquer (C&C) Tactical Overwatch, Priority Preemption & Guidance Console -->
+  <div id="cnc-command-dock">
+    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--accent-green);padding-bottom:5px;">
+      <div>
+        <span style="color:var(--accent-green);font-weight:800;font-size:12px;">🕹️ C&amp;C TACTICAL OVERWATCH &amp; SAR</span>
+        <div style="font-size:9.5px;color:var(--text-dim);">Black Shroud Fog-of-War • Live Camera Feeds on Map</div>
+      </div>
+      <button class="btn-sm" onclick="toggleCncOverwatchMode()" style="font-size:10px;padding:2px 6px;">✕ Hide</button>
+    </div>
+
+    <!-- 1. Observe Desired Area (C&C Fog of War + Projected Camera Feeds) -->
+    <div class="cnc-sec">
+      <div class="cnc-sec-title">
+        <span>1. Observe Desired Area (C&amp;C Map View)</span>
+        <span id="cnc-mapped-pct" style="color:var(--accent-cyan);">38.4% MAPPED</span>
+      </div>
+      <div style="font-size:10px;color:var(--text-dim);line-height:1.35;">
+        Invisible area is <b style="color:#fff;background:#000;padding:0 4px;border:1px solid #334155;">PITCH BLACK</b>. Camera &amp; drone sensor footprints render <b>live EO/LWIR camera feeds directly onto the map</b>.
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:2px;">
+        <button class="btn-sm accent" id="btn-cnc-draw-zone" onclick="toggleCncZoneDrawMode()" style="font-size:10px;padding:4px 6px;">📐 Drag Observe Area</button>
+        <button class="btn-sm active" id="btn-cnc-auto-sweep" onclick="setCncTaskMode('AUTO_OBSERVE_AND_SEARCH')" style="font-size:10px;padding:4px 6px;">🔍 Auto-Sweep Area (4x)</button>
+        <button class="btn-sm" id="btn-cnc-jet-recon" onclick="setCncTaskMode('JET_MOTHERSHIP_SWEEP')" style="font-size:10px;padding:4px 6px;">✈️ FIN-LAB-02 Jet Sweep</button>
+        <button class="btn-sm" onclick="resetCncFogOfWar()" style="font-size:10px;padding:4px 6px;">🌑 Reset Black Shroud</button>
+      </div>
+      <div id="cnc-zone-readout" style="font-size:10px;color:var(--accent-cyan);background:rgba(0,0,0,0.4);padding:3px 6px;border-radius:3px;">
+        Zone: <b>250m &times; 200m (5.00 ha)</b> | Feeds on Map: <b>3 Ground + 4 Drones</b>
+      </div>
+    </div>
+
+    <!-- 2. Detect Lost People & Vehicles (Priority Over Mapping Options) -->
+    <div class="cnc-sec">
+      <div class="cnc-sec-title">
+        <span>2. Priority Detection &amp; Preemption (OPTIONS)</span>
+        <span id="cnc-preempt-badge" style="color:var(--accent-amber);">PRIORITY ACTIVE</span>
+      </div>
+      <label class="cnc-opt-row">
+        <span><b>Follow Lost People/Vehicles Over Mapping</b> (Preempt)</span>
+        <input type="checkbox" id="chk-cnc-preempt" checked onchange="syncCncOptions()" />
+      </label>
+      <label class="cnc-opt-row">
+        <span>🧑 Detect &amp; Track Lost People (P1 Stationary / P2 Moving)</span>
+        <input type="checkbox" id="chk-cnc-people" checked onchange="syncCncOptions()" />
+      </label>
+      <label class="cnc-opt-row">
+        <span>🚗🛷 Detect &amp; Track Lost Vehicles / Snowmobiles (P3)</span>
+        <input type="checkbox" id="chk-cnc-vehicles" checked onchange="syncCncOptions()" />
+      </label>
+      <label class="cnc-opt-row">
+        <span>🦌 Ignore Wildlife &amp; Enforce &ge;100m Reindeer Floor</span>
+        <input type="checkbox" id="chk-cnc-wildlife" checked onchange="syncCncOptions()" />
+      </label>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:2px;">
+        <span style="font-size:10px;color:var(--text-dim);">Fleet Policy:</span>
+        <select id="sel-cnc-split-policy" onchange="syncCncOptions()" style="flex:1;background:#081220;color:#e2f1ff;border:1px solid var(--border-cyan);font-size:10px;padding:2px 4px;border-radius:3px;font-family:var(--font-mono);">
+          <option value="SPLIT_1_FOLLOW_REST_MAP" selected>Split: #1 Follows Target, #2–#4 Map Shroud</option>
+          <option value="ALL_CONVERGE_RESCUE">Converge: All Units Escort + 320m Relay</option>
+          <option value="PIN_BEACON_CONTINUE_SWEEP">Pin Geo-Beacon &amp; Finish Shroud Sweep</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-top:3px;">
+        <button class="btn-sim" onclick="spawnCncLostSubject('person')" style="font-size:9.5px;padding:4px 5px;text-align:center;">🧑+ Lost Hiker</button>
+        <button class="btn-sim sky" onclick="spawnCncLostSubject('snowmobile')" style="font-size:9.5px;padding:4px 5px;text-align:center;">🛷+ Snowmobile</button>
+        <button class="btn-sim" onclick="spawnCncLostSubject('vehicle')" style="font-size:9.5px;padding:4px 5px;text-align:center;">🚗+ Stuck SUV</button>
+      </div>
+      <div id="cnc-priority-banner" style="font-size:10px;color:var(--accent-amber);background:rgba(255,179,0,0.1);border-left:3px solid var(--accent-amber);padding:4px 6px;border-radius:3px;">
+        ⚡ <b>PREEMPTION READY:</b> DRONE-SIERRA-01 locks P1 Lost Hiker; DRONES 2–4 map black shroud.
+      </div>
+    </div>
+
+    <!-- 3. Guide Lost People & Vehicles (Autonomous OR Manual Remote Control) -->
+    <div class="cnc-sec">
+      <div class="cnc-sec-title">
+        <span>3. Guide Person / Vehicle (Auto or Manual RC)</span>
+        <span id="cnc-guide-safety-badge" style="color:var(--accent-green);">&ge;15m SAFE</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+        <span style="font-size:10px;color:var(--text-dim);">Locked Subject:</span>
+        <select id="sel-cnc-subject" onchange="switchCncGuidedSubject(this.value)" style="flex:1;background:#081220;color:#ffb300;font-weight:700;border:1px solid var(--accent-amber);font-size:10px;padding:2px 4px;border-radius:3px;font-family:var(--font-mono);">
+          <option value="LOST_PERSON" selected>🧑 P1: Lost Hiker (Off-Trail NW-2) &rarr; Autiotupa</option>
+          <option value="LOST_VEHICLE">🛷 P3: Stranded Snowmobile / SUV &rarr; Plowed Road</option>
+        </select>
+      </div>
+      <div class="cnc-pill-bar" style="margin-top:3px;">
+        <button class="cnc-mode-pill active" id="pill-cnc-auto" onclick="setCncGuidanceMode('AUTONOMOUS_GUIDANCE')">🤖 AUTONOMOUS GUIDE</button>
+        <button class="cnc-mode-pill rc" id="pill-cnc-rc" onclick="setCncGuidanceMode('MANUAL_REMOTE_CONTROL')">🕹️ MANUAL RC &amp; VOICE</button>
+      </div>
+
+      <!-- Autonomous Guidance Sub-Panel -->
+      <div id="cnc-subpanel-auto" style="font-size:10px;line-height:1.4;background:rgba(0,230,118,0.07);border:1px solid rgba(0,230,118,0.28);padding:6px;border-radius:4px;">
+        <div id="cnc-auto-desc">
+          <b>Opaslyhty 28m Above-Canopy Pull-Guide:</b> Drops <b>+42&deg;C Berry Cask</b> at 15m offset, projects <b>1,500 lm (10&deg;)</b> spotlight cone 15m ahead along trail to <b>Jussink&auml;mpp&auml; Autiotupa (420m NE)</b>.
+        </div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px;">
+          <button class="btn-sm accent" onclick="triggerCncAutoAction('drop_cask')" style="font-size:9.5px;padding:2px 6px;">📦 Drop +42&deg;C Cask (15m)</button>
+          <button class="btn-sm accent" onclick="triggerCncAutoAction('pull_to_shelter')" style="font-size:9.5px;padding:2px 6px;">🔦 Pull-Guide to Shelter/Road</button>
+        </div>
+      </div>
+
+      <!-- Manual Remote Control (RC) Sub-Panel -->
+      <div id="cnc-subpanel-rc" style="display:none;font-size:10px;line-height:1.35;background:rgba(255,179,0,0.08);border:1px solid rgba(255,179,0,0.35);padding:6px;border-radius:4px;">
+        <div class="cnc-rc-grid">
+          <div id="cnc-joy-pad" title="Drag Virtual Stick to Fly Drone &amp; Aim Spotlight (or use WASD / Arrow Keys)">
+            <div id="cnc-joy-knob"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="font-size:9.5px;color:var(--accent-amber);"><b>🕹️ LIVE RC STICK / WASD + CLICK MAP:</b></div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">
+              <button class="btn-sm" onclick="nudgeCncManualRc(0, -8, 0)" style="font-size:9px;padding:2px;">⬆️ N</button>
+              <button class="btn-sm" onclick="nudgeCncManualRc(0, 8, 0)" style="font-size:9px;padding:2px;">⬇️ S</button>
+              <button class="btn-sm" onclick="nudgeCncManualRc(0, 0, 5)" style="font-size:9px;padding:2px;">🔼 +5m</button>
+              <button class="btn-sm" onclick="nudgeCncManualRc(-8, 0, 0)" style="font-size:9px;padding:2px;">⬅️ W</button>
+              <button class="btn-sm" onclick="nudgeCncManualRc(8, 0, 0)" style="font-size:9px;padding:2px;">➡️ E</button>
+              <button class="btn-sm" onclick="nudgeCncManualRc(0, 0, -5)" style="font-size:9px;padding:2px;">🔽 -5m</button>
+            </div>
+            <div style="display:flex;gap:3px;">
+              <button class="btn-sm accent" id="btn-cnc-click-spot" onclick="toggleCncClickSpotlightMode()" style="font-size:9px;padding:2px 5px;flex:1;">🎯 Click Map to Aim Beam</button>
+              <button class="btn-sm" onclick="nudgeCncManualRc(0,0,0,true)" style="font-size:9px;padding:2px 5px;border-color:var(--accent-red);color:var(--accent-red);">🛑 Brake</button>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:5px;display:flex;gap:4px;">
+          <input type="text" id="inp-cnc-voice" value="SEURAA VALOKEILAA AUTIOTUVALLE 420m NE / FOLLOW LIGHT TO HUT" style="flex:1;background:#050b14;color:#fff;border:1px solid var(--border-cyan);font-family:var(--font-mono);font-size:9.5px;padding:3px 5px;border-radius:3px;" />
+          <button class="btn-sm accent" onclick="broadcastCncVoice()" style="font-size:9.5px;padding:3px 7px;">🔊 Talk</button>
+        </div>
+        <div id="cnc-rc-telemetry" style="margin-top:4px;font-size:9.5px;color:var(--accent-cyan);">
+          Alt: <b>28.0m AGL</b> | Standoff: <b>15.4m</b> (&ge;15m Bubble OK) | Beam: <b>1,500 lm Active</b>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Auto-Mission Designer & Real-Terrain Registration (MML DEM + Canopy + QGC WPL 110) -->
+    <div class="cnc-sec">
+      <div class="cnc-sec-title">
+        <span>4. Auto-Mission &amp; Real-Terrain Mapper</span>
+        <span style="color:var(--accent-cyan);font-size:9.5px;">TERRAIN_ALT (10)</span>
+      </div>
+      <div style="font-size:9.5px;color:var(--text-dim);line-height:1.35;">
+        <b>Z<sub>ASL</sub> = h<sub>DEM</sub> + 18m Canopy + h<sub>AGL</sub></b> (fuses MML 2m/10m LiDAR DEM + OSM trails + live <code>TF02-Pro</code> 40m LiDAR).
+      </div>
+      <canvas id="cnc-terrain-profile-canvas" width="350" height="62" style="width:100%;height:62px;background:#040a14;border:1px solid rgba(0,229,255,0.28);border-radius:3px;display:block;"></canvas>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;">
+        <button class="btn-sm accent" onclick="exportCncQgcWaypoints()" style="font-size:9.5px;padding:3px 6px;flex:1;">⬇ Export QGC .waypoints</button>
+        <button class="btn-sm" onclick="openGisModal()" style="font-size:9.5px;padding:3px 6px;flex:1;">🗺️ Anchor Real GPS / DEM</button>
+      </div>
     </div>
   </div>
 
@@ -945,6 +1223,9 @@
       });
       contourLineMesh = new THREE.LineSegments(contourLinesGeo, contourMat);
       scene.add(contourLineMesh);
+      if (typeof buildCncFogOverlayMesh === 'function') {
+        buildCncFogOverlayMesh();
+      }
     }
     buildTerrainMesh();
 
@@ -2332,10 +2613,30 @@
 
       // Targets
       movingTargets.forEach(t => {
+        if (!t.mesh.visible) return;
         const [tx, ty] = toMap(t.mesh.position.x, t.mesh.position.z);
         minimapCtx.fillStyle = '#ff5252';
         minimapCtx.beginPath(); minimapCtx.arc(tx, ty, 3.5, 0, Math.PI * 2); minimapCtx.fill();
       });
+
+      if (cncOverwatchActive) {
+        // Draw C&C Drones & Observation Zone on Minimap
+        const [zx0, zy0] = toMap(cncObserveZone.xMin, cncObserveZone.zMin);
+        const [zx1, zy1] = toMap(cncObserveZone.xMax, cncObserveZone.zMax);
+        minimapCtx.strokeStyle = '#00e676';
+        minimapCtx.lineWidth = 1.2;
+        minimapCtx.strokeRect(zx0, zy0, zx1 - zx0, zy1 - zy0);
+
+        cncDrones.forEach((d, idx) => {
+          const [dx, dy] = toMap(d.x, d.z);
+          minimapCtx.strokeStyle = idx === 0 ? '#ffb300' : 'rgba(0,229,255,0.6)';
+          minimapCtx.beginPath();
+          minimapCtx.arc(dx, dy, 10, 0, Math.PI * 2);
+          minimapCtx.stroke();
+          minimapCtx.fillStyle = idx === 0 ? '#ffb300' : '#00e5ff';
+          minimapCtx.fillRect(dx - 2.5, dy - 2.5, 5, 5);
+        });
+      }
     }
 
     // Waveforms
@@ -3175,6 +3476,830 @@
     pollHealth();
     setInterval(pollHealth, 4000);
 
+    // =========================================================================
+    // 10. COMMAND & CONQUER (C&C) TACTICAL OVERWATCH, BLACK FOG-OF-WAR SHROUD,
+    //     LIVE PROJECTED CAMERA FEEDS ON MAP, PRIORITY PREEMPTION & RC GUIDANCE
+    // =========================================================================
+    let cncOverwatchActive = false;
+    let cncZoneDrawMode = false;
+    let cncClickSpotlightMode = false;
+    let cncTaskMode = 'AUTO_OBSERVE_AND_SEARCH';
+    let cncGuidanceMode = 'AUTONOMOUS_GUIDANCE';
+    let cncGuidedSubject = 'LOST_PERSON'; // 'LOST_PERSON' or 'LOST_VEHICLE'
+    let cncObserveZone = { xMin: -135, zMin: -85, xMax: 115, zMax: 115 };
+    let cncManualOffset = { dx: 0, dz: 0, dAlt: 0 };
+    let cncSpotlightAim = { x: -24, z: 52 };
+
+    // 120 x 100 persistent explored memory grid (0 = Pitch Black Unobserved, 1 = Explored Memory)
+    const CNC_GRID_W = 120, CNC_GRID_H = 100;
+    const cncExploredGrid = new Uint8Array(CNC_GRID_W * CNC_GRID_H);
+
+    // 1024x1024 Dynamic CanvasTexture draped over the 3D terrain mesh
+    const cncFogCanvas = document.createElement('canvas');
+    cncFogCanvas.width = 1024;
+    cncFogCanvas.height = 1024;
+    const cncFogCtx = cncFogCanvas.getContext('2d');
+    const cncFogTexture = new THREE.CanvasTexture(cncFogCanvas);
+    cncFogTexture.minFilter = THREE.LinearFilter;
+    cncFogTexture.magFilter = THREE.LinearFilter;
+
+    let cncFogMesh = null;
+    const cncOverlayGroup = new THREE.Group();
+    cncOverlayGroup.visible = false;
+    scene.add(cncOverlayGroup);
+
+    function buildCncFogOverlayMesh() {
+      if (cncFogMesh) {
+        cncOverlayGroup.remove(cncFogMesh);
+      }
+      const fogGeo = terrainGeo.clone();
+      const posAttr = fogGeo.attributes.position;
+      for (let i = 0; i < posAttr.count; i++) {
+        posAttr.setY(i, posAttr.getY(i) + 0.32);
+      }
+      fogGeo.computeVertexNormals();
+      const fogMat = new THREE.MeshBasicMaterial({
+        map: cncFogTexture,
+        transparent: true,
+        depthWrite: false,
+        side: THREE.DoubleSide
+      });
+      cncFogMesh = new THREE.Mesh(fogGeo, fogMat);
+      cncOverlayGroup.add(cncFogMesh);
+    }
+    buildCncFogOverlayMesh();
+
+    // 4 Autonomous C&C Fleet Drones + 1 Spotlight Cone + Safety Standoff Ring + Guidance Path
+    const cncDrones = [
+      { id: 'DRONE-SIERRA-01', role: 'PRIORITY_FOLLOW', x: -32, z: 58, alt: 28, radius: 34, color: '#00e676', phase: 0.0 },
+      { id: 'DRONE-KILO-02',   role: 'SHROUD_MAPPER',   x: -85, z: -25, alt: 55, radius: 38, color: '#00e5ff', phase: 1.4 },
+      { id: 'DRONE-ECHO-03',   role: 'SHROUD_MAPPER',   x: 25,  z: -35, alt: 55, radius: 38, color: '#00e5ff', phase: 2.8 },
+      { id: 'DRONE-FOXTROT-04',role: 'SHROUD_MAPPER',   x: 55,  z: 55,  alt: 55, radius: 38, color: '#00e5ff', phase: 4.2 }
+    ];
+
+    cncDrones.forEach(d => {
+      const m = new THREE.Mesh(
+        new THREE.OctahedronGeometry(2.1, 0),
+        new THREE.MeshBasicMaterial({ color: d.color === '#00e676' ? 0xff6b00 : 0x00e5ff })
+      );
+      m.scale.set(1.4, 0.45, 1.4);
+      d.mesh = m;
+      cncOverlayGroup.add(m);
+    });
+
+    // 3D Golden 1,500 lm Spotlight Cone for Opaslyhty / Convoy Guidance
+    const cncSpotlightConeGeo = new THREE.ConeGeometry(8.5, 28.0, 24, 1, true);
+    const cncSpotlightConeMat = new THREE.MeshBasicMaterial({
+      color: 0xffd54f,
+      transparent: true,
+      opacity: 0.34,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+    const cncSpotlightConeMesh = new THREE.Mesh(cncSpotlightConeGeo, cncSpotlightConeMat);
+    cncOverlayGroup.add(cncSpotlightConeMesh);
+
+    // 15m Human/Vehicle Safety Bubble Ring
+    const cncSafetyRingMesh = new THREE.Mesh(
+      new THREE.RingGeometry(14.5, 15.5, 48),
+      new THREE.MeshBasicMaterial({ color: 0x00e676, side: THREE.DoubleSide, transparent: true, opacity: 0.85 })
+    );
+    cncSafetyRingMesh.rotation.x = -Math.PI / 2;
+    cncOverlayGroup.add(cncSafetyRingMesh);
+
+    // Guided Path Line from Locked Person/Vehicle to Autiotupa or Plowed Road
+    const cncGuidePathGeo = new THREE.BufferGeometry();
+    const cncGuidePathLine = new THREE.Line(
+      cncGuidePathGeo,
+      new THREE.LineBasicMaterial({ color: 0x00e676, linewidth: 2 })
+    );
+    cncOverlayGroup.add(cncGuidePathLine);
+
+    function resetCncFogOfWar() {
+      cncExploredGrid.fill(0);
+      // Pre-mark Cabin Hub immediate yard as explored
+      markCncCircleExplored(CABIN_POS.x, CABIN_POS.z, 26);
+    }
+    resetCncFogOfWar();
+
+    function markCncCircleExplored(wx, wz, radM) {
+      const gxCenter = ((wx + TERRAIN_W / 2) / TERRAIN_W) * CNC_GRID_W;
+      const gzCenter = ((wz + TERRAIN_D / 2) / TERRAIN_D) * CNC_GRID_H;
+      const gRadX = (radM / TERRAIN_W) * CNC_GRID_W;
+      const gRadZ = (radM / TERRAIN_D) * CNC_GRID_H;
+      const x0 = Math.max(0, Math.floor(gxCenter - gRadX));
+      const x1 = Math.min(CNC_GRID_W - 1, Math.ceil(gxCenter + gRadX));
+      const z0 = Math.max(0, Math.floor(gzCenter - gRadZ));
+      const z1 = Math.min(CNC_GRID_H - 1, Math.ceil(gzCenter + gRadZ));
+      for (let gz = z0; gz <= z1; gz++) {
+        for (let gx = x0; gx <= x1; gx++) {
+          const dx = (gx - gxCenter) / gRadX;
+          const dz = (gz - gzCenter) / gRadZ;
+          if (dx * dx + dz * dz <= 1.0) {
+            cncExploredGrid[gz * CNC_GRID_W + gx] = 1;
+          }
+        }
+      }
+    }
+
+    function toggleCncOverwatchMode() {
+      cncOverwatchActive = !cncOverwatchActive;
+      const btn = document.getElementById('btn-mode-cnc');
+      const dock = document.getElementById('cnc-command-dock');
+      if (btn) btn.classList.toggle('active', cncOverwatchActive);
+      if (dock) dock.style.display = cncOverwatchActive ? 'flex' : 'none';
+      cncOverlayGroup.visible = cncOverwatchActive;
+
+      if (cncOverwatchActive) {
+        // Ensure at least one lost person and one snowmobile exist for live priority preemption
+        if (!movingTargets.some(t => t.type === 'person')) spawnTarget('person');
+        if (!movingTargets.some(t => t.type === 'snowmobile')) spawnTarget('snowmobile');
+        layerGroups.droneObserver.visible = true;
+        // Tilt camera to iconic Command & Conquer high-angle tactical view
+        targetSpherical = { radius: 255, theta: 0.25, phi: 0.42 };
+        targetCamTarget = new THREE.Vector3(-15, 10, 15);
+        syncCncOptions();
+      }
+    }
+
+    function toggleCncZoneDrawMode() {
+      cncZoneDrawMode = !cncZoneDrawMode;
+      cncClickSpotlightMode = false;
+      const btn = document.getElementById('btn-cnc-draw-zone');
+      if (btn) {
+        btn.textContent = cncZoneDrawMode ? '🟢 Drag Box on Map Now...' : '📐 Drag Observe Area';
+        btn.classList.toggle('active', cncZoneDrawMode);
+      }
+      container.style.cursor = cncZoneDrawMode ? 'crosshair' : 'grab';
+    }
+
+    function toggleCncClickSpotlightMode() {
+      cncClickSpotlightMode = !cncClickSpotlightMode;
+      cncZoneDrawMode = false;
+      const btn = document.getElementById('btn-cnc-click-spot');
+      if (btn) {
+        btn.textContent = cncClickSpotlightMode ? '🟢 Click Map to Aim Beam...' : '🎯 Click Map to Aim Beam';
+        btn.classList.toggle('active', cncClickSpotlightMode);
+      }
+      container.style.cursor = cncClickSpotlightMode ? 'crosshair' : 'grab';
+    }
+
+    function setCncTaskMode(mode) {
+      cncTaskMode = mode;
+      const b1 = document.getElementById('btn-cnc-auto-sweep');
+      const b2 = document.getElementById('btn-cnc-jet-recon');
+      if (b1) b1.classList.toggle('active', mode === 'AUTO_OBSERVE_AND_SEARCH');
+      if (b2) b2.classList.toggle('active', mode === 'JET_MOTHERSHIP_SWEEP');
+      syncCncOptions();
+    }
+
+    function switchCncGuidedSubject(subj) {
+      cncGuidedSubject = subj;
+      const inp = document.getElementById('inp-cnc-voice');
+      if (inp) {
+        inp.value = subj === 'LOST_VEHICLE'
+          ? 'SEURAA DRONEN VALOKEILAA AURATULLE TIELLE 1.4 KM (AVOID THIN LAKE ICE)'
+          : 'SEURAA VALOKEILAA AUTIOTUVALLE 420m NE / FOLLOW LIGHT TO HUT';
+      }
+      updateCncSubpanelText();
+      syncCncOptions();
+    }
+
+    function setCncGuidanceMode(mode) {
+      cncGuidanceMode = mode;
+      const pAuto = document.getElementById('pill-cnc-auto');
+      const pRc = document.getElementById('pill-cnc-rc');
+      const subAuto = document.getElementById('cnc-subpanel-auto');
+      const subRc = document.getElementById('cnc-subpanel-rc');
+      if (pAuto) pAuto.classList.toggle('active', mode === 'AUTONOMOUS_GUIDANCE');
+      if (pRc) pRc.classList.toggle('active', mode === 'MANUAL_REMOTE_CONTROL');
+      if (subAuto) subAuto.style.display = mode === 'AUTONOMOUS_GUIDANCE' ? 'block' : 'none';
+      if (subRc) subRc.style.display = mode === 'MANUAL_REMOTE_CONTROL' ? 'block' : 'none';
+      updateCncSubpanelText();
+      syncCncOptions();
+    }
+
+    function updateCncSubpanelText() {
+      const desc = document.getElementById('cnc-auto-desc');
+      if (!desc) return;
+      if (cncGuidedSubject === 'LOST_VEHICLE') {
+        desc.innerHTML = '<b>Autonomous 45m Convoy Route Corridor:</b> Computes ice-free forestry road route, flies <b>35m ahead @ 45m AGL</b> projecting <b>1,500 lm corridor beam</b> to <b>Plowed Roadhead (1.4 km WNW)</b>.';
+      } else {
+        desc.innerHTML = '<b>Opaslyhty 28m Above-Canopy Pull-Guide:</b> Drops <b>+42&deg;C Berry Cask</b> at 15m offset, projects <b>1,500 lm (10&deg;)</b> spotlight cone 15m ahead along trail to <b>Jussink&auml;mpp&auml; Autiotupa (420m NE)</b>.';
+      }
+    }
+
+    function spawnCncLostSubject(type) {
+      const tObj = spawnTarget(type);
+      if (type === 'person') {
+        cncGuidedSubject = 'LOST_PERSON';
+        const sel = document.getElementById('sel-cnc-subject');
+        if (sel) sel.value = 'LOST_PERSON';
+      } else {
+        cncGuidedSubject = 'LOST_VEHICLE';
+        const sel = document.getElementById('sel-cnc-subject');
+        if (sel) sel.value = 'LOST_VEHICLE';
+      }
+      updateCncSubpanelText();
+      syncCncOptions();
+      return tObj;
+    }
+
+    function nudgeCncManualRc(dx, dz, dAlt, resetBrake = false) {
+      if (resetBrake) {
+        cncManualOffset = { dx: 0, dz: 0, dAlt: 0 };
+      } else {
+        cncManualOffset.dx = Math.max(-45, Math.min(45, cncManualOffset.dx + dx));
+        cncManualOffset.dz = Math.max(-45, Math.min(45, cncManualOffset.dz + dz));
+        cncManualOffset.dAlt = Math.max(-10, Math.min(50, cncManualOffset.dAlt + dAlt));
+      }
+      syncCncOptions();
+    }
+
+    function triggerCncAutoAction(act) {
+      if (act === 'drop_cask') {
+        triggerDroneApproach('approach', 'public_release_sar_cask');
+      } else {
+        triggerDroneApproach('lantern-guide');
+      }
+      syncCncOptions();
+    }
+
+    function broadcastCncVoice() {
+      const inp = document.getElementById('inp-cnc-voice');
+      const msg = inp ? inp.value : '';
+      playAlertChime('person');
+      syncCncOptions(msg);
+    }
+
+    async function syncCncOptions(voiceMsgOverride = null) {
+      const preempt = document.getElementById('chk-cnc-preempt')?.checked ?? true;
+      const detPpl = document.getElementById('chk-cnc-people')?.checked ?? true;
+      const detVeh = document.getElementById('chk-cnc-vehicles')?.checked ?? true;
+      const splitPol = document.getElementById('sel-cnc-split-policy')?.value || 'SPLIT_1_FOLLOW_REST_MAP';
+
+      const badge = document.getElementById('cnc-preempt-badge');
+      const banner = document.getElementById('cnc-priority-banner');
+      if (badge) {
+        badge.textContent = preempt ? 'PRIORITY PREEMPT ON' : 'MAP-FIRST MODE';
+        badge.style.color = preempt ? 'var(--accent-amber)' : 'var(--accent-cyan)';
+      }
+      if (banner) {
+        if (preempt) {
+          const subjLabel = cncGuidedSubject === 'LOST_VEHICLE' ? 'P3 Stranded Snowmobile/Vehicle' : 'P1 Lost Hiker';
+          banner.innerHTML = `⚡ <b>PRIORITY FOLLOW ACTIVE:</b> <code>DRONE-SIERRA-01</code> preempts area mapping to follow &amp; guide <b>${subjLabel}</b> (${splitPol === 'SPLIT_1_FOLLOW_REST_MAP' ? 'Drones 2–4 continue mapping black shroud' : 'Fleet converged'}).`;
+        } else {
+          banner.innerHTML = `🗺️ <b>AREA MAPPING PRIORITY:</b> Geo-pinning detected targets on map while all 4 drones finish clearing black Fog-of-War shroud.`;
+        }
+      }
+
+      try {
+        const qs = new URLSearchParams({
+          action: 'cnc-overwatch',
+          task_mode: cncTaskMode,
+          preempt: preempt ? '1' : '0',
+          detect_people: detPpl ? '1' : '0',
+          detect_vehicles: detVeh ? '1' : '0',
+          split_policy: splitPol,
+          subject_type: cncGuidedSubject,
+          guidance_mode: cncGuidanceMode,
+          de: String(cncManualOffset.dx),
+          dn: String(cncManualOffset.dz),
+          da: String(cncManualOffset.dAlt)
+        });
+        if (voiceMsgOverride) qs.set('voice_msg', voiceMsgOverride);
+        const res = await fetch(`/api/drone?${qs.toString()}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.guidance_execution) {
+            const g = data.guidance_execution;
+            const rcTelem = document.getElementById('cnc-rc-telemetry');
+            const safeBadge = document.getElementById('cnc-guide-safety-badge');
+            if (safeBadge) {
+              safeBadge.textContent = g.safety_bubble_clamped ? '⚠️ >=15m CLAMPED' : '✓ >=15m SAFE';
+              safeBadge.style.color = g.safety_bubble_clamped ? 'var(--accent-amber)' : 'var(--accent-green)';
+            }
+            if (rcTelem) {
+              rcTelem.innerHTML = `Alt: <b>${g.drone_alt_agl_m}m AGL</b> | Standoff: <b>${g.horiz_standoff_m}m</b> (${g.safety_bubble_clamped ? 'Clamped &ge;15m' : '&ge;15m Bubble OK'}) | Mode: <b>${g.guidance_mode === 'MANUAL_REMOTE_CONTROL' ? 'MANUAL RC' : 'AUTO'}</b>`;
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    // Virtual Joystick Drag & Keyboard WASD Handler for Manual Remote Control
+    (function initCncJoystickAndMapTools() {
+      const pad = document.getElementById('cnc-joy-pad');
+      const knob = document.getElementById('cnc-joy-knob');
+      let joyActive = false;
+
+      if (pad && knob) {
+        const updateJoy = (clientX, clientY) => {
+          const r = pad.getBoundingClientRect();
+          const cx = r.left + r.width / 2;
+          const cy = r.top + r.height / 2;
+          let dx = clientX - cx;
+          let dy = clientY - cy;
+          const dist = Math.hypot(dx, dy);
+          const maxR = r.width / 2 - 11;
+          if (dist > maxR) {
+            dx = (dx / dist) * maxR;
+            dy = (dy / dist) * maxR;
+          }
+          knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+          cncManualOffset.dx = Math.max(-45, Math.min(45, cncManualOffset.dx + (dx / maxR) * 1.4));
+          cncManualOffset.dz = Math.max(-45, Math.min(45, cncManualOffset.dz + (dy / maxR) * 1.4));
+        };
+        pad.addEventListener('pointerdown', e => {
+          joyActive = true;
+          pad.setPointerCapture(e.pointerId);
+          updateJoy(e.clientX, e.clientY);
+        });
+        pad.addEventListener('pointermove', e => {
+          if (!joyActive) return;
+          updateJoy(e.clientX, e.clientY);
+        });
+        const endJoy = () => {
+          if (!joyActive) return;
+          joyActive = false;
+          knob.style.transform = 'translate(-50%, -50%)';
+          syncCncOptions();
+        };
+        pad.addEventListener('pointerup', endJoy);
+        pad.addEventListener('pointercancel', endJoy);
+      }
+
+      // WASD / Arrow Keys when in Manual RC mode
+      window.addEventListener('keydown', e => {
+        if (!cncOverwatchActive || cncGuidanceMode !== 'MANUAL_REMOTE_CONTROL') return;
+        if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+        const k = e.key.toLowerCase();
+        if (k === 'w' || e.key === 'ArrowUp') { nudgeCncManualRc(0, -5, 0); e.preventDefault(); }
+        else if (k === 's' || e.key === 'ArrowDown') { nudgeCncManualRc(0, 5, 0); e.preventDefault(); }
+        else if (k === 'a' || e.key === 'ArrowLeft') { nudgeCncManualRc(-5, 0, 0); e.preventDefault(); }
+        else if (k === 'd' || e.key === 'ArrowRight') { nudgeCncManualRc(5, 0, 0); e.preventDefault(); }
+        else if (k === 'r') { nudgeCncManualRc(0, 0, 4); e.preventDefault(); }
+        else if (k === 'f') { nudgeCncManualRc(0, 0, -4); e.preventDefault(); }
+        else if (k === ' ') { nudgeCncManualRc(0, 0, 0, true); e.preventDefault(); }
+      });
+
+      // Map Drag-to-Observe Zone & Click-to-Aim Spotlight Raycaster
+      const raycaster = new THREE.Raycaster();
+      const mouseNdc = new THREE.Vector2();
+      let dragStartScreen = null;
+      let dragStartWorld = null;
+      const dragRectEl = document.getElementById('cnc-drag-rect');
+
+      function screenToTerrainWorld(clientX, clientY) {
+        if (!terrainMesh) return null;
+        mouseNdc.x = (clientX / window.innerWidth) * 2 - 1;
+        mouseNdc.y = -(clientY / window.innerHeight) * 2 + 1;
+        raycaster.setFromCamera(mouseNdc, camera);
+        const hits = raycaster.intersectObject(terrainMesh);
+        return hits.length > 0 ? hits[0].point : null;
+      }
+
+      container.addEventListener('mousedown', e => {
+        if (!cncOverwatchActive) return;
+        if (cncClickSpotlightMode && e.button === 0) {
+          const pt = screenToTerrainWorld(e.clientX, e.clientY);
+          if (pt) {
+            cncSpotlightAim = { x: pt.x, z: pt.z };
+            toggleCncClickSpotlightMode();
+          }
+          e.stopPropagation();
+          return;
+        }
+        if (cncZoneDrawMode && e.button === 0) {
+          const pt = screenToTerrainWorld(e.clientX, e.clientY);
+          if (pt) {
+            dragStartScreen = { x: e.clientX, y: e.clientY };
+            dragStartWorld = { x: pt.x, z: pt.z };
+            if (dragRectEl) {
+              dragRectEl.style.display = 'block';
+              dragRectEl.style.left = `${e.clientX}px`;
+              dragRectEl.style.top = `${e.clientY}px`;
+              dragRectEl.style.width = '0px';
+              dragRectEl.style.height = '0px';
+            }
+          }
+          e.stopPropagation();
+        }
+      }, true);
+
+      window.addEventListener('mousemove', e => {
+        if (!dragStartScreen || !cncZoneDrawMode) return;
+        const x0 = Math.min(dragStartScreen.x, e.clientX);
+        const y0 = Math.min(dragStartScreen.y, e.clientY);
+        const w = Math.abs(e.clientX - dragStartScreen.x);
+        const h = Math.abs(e.clientY - dragStartScreen.y);
+        if (dragRectEl) {
+          dragRectEl.style.left = `${x0}px`;
+          dragRectEl.style.top = `${y0}px`;
+          dragRectEl.style.width = `${w}px`;
+          dragRectEl.style.height = `${h}px`;
+        }
+      });
+
+      window.addEventListener('mouseup', e => {
+        if (!dragStartScreen || !cncZoneDrawMode) return;
+        const endPt = screenToTerrainWorld(e.clientX, e.clientY);
+        if (endPt && dragStartWorld) {
+          const xMin = Math.max(-170, Math.min(dragStartWorld.x, endPt.x));
+          const xMax = Math.min(170, Math.max(dragStartWorld.x, endPt.x));
+          const zMin = Math.max(-140, Math.min(dragStartWorld.z, endPt.z));
+          const zMax = Math.min(140, Math.max(dragStartWorld.z, endPt.z));
+          if (xMax - xMin > 25 && zMax - zMin > 25) {
+            cncObserveZone = { xMin, zMin, xMax, zMax };
+            const wM = Math.round(xMax - xMin);
+            const hM = Math.round(zMax - zMin);
+            const ha = ((wM * hM) / 10000).toFixed(2);
+            const zEl = document.getElementById('cnc-zone-readout');
+            if (zEl) zEl.innerHTML = `Zone: <b>${wM}m &times; ${hM}m (${ha} ha)</b> | Feeds on Map: <b>3 Ground + 4 Drones</b>`;
+          }
+        }
+        dragStartScreen = null;
+        dragStartWorld = null;
+        if (dragRectEl) dragRectEl.style.display = 'none';
+        toggleCncZoneDrawMode();
+      });
+    })();
+
+    function updateCncOverwatchStep() {
+      if (!cncOverwatchActive) return;
+
+      const preempt = document.getElementById('chk-cnc-preempt')?.checked ?? true;
+      const detPpl = document.getElementById('chk-cnc-people')?.checked ?? true;
+      const detVeh = document.getElementById('chk-cnc-vehicles')?.checked ?? true;
+      const splitPol = document.getElementById('sel-cnc-split-policy')?.value || 'SPLIT_1_FOLLOW_REST_MAP';
+
+      // Find active Priority Target (Person or Vehicle)
+      let lockedTargetObj = null;
+      if (cncGuidedSubject === 'LOST_VEHICLE' && detVeh) {
+        lockedTargetObj = movingTargets.find(t => t.type === 'snowmobile' || t.type === 'vehicle');
+      }
+      if (!lockedTargetObj && detPpl) {
+        lockedTargetObj = movingTargets.find(t => t.type === 'person');
+      }
+      if (!lockedTargetObj && detVeh) {
+        lockedTargetObj = movingTargets.find(t => t.type === 'snowmobile' || t.type === 'vehicle');
+      }
+
+      const tgtPos = lockedTargetObj
+        ? lockedTargetObj.mesh.position
+        : new THREE.Vector3(-35, getTerrainHeight(-35, 62), 62);
+
+      // Update 4 C&C Drones: Drone #1 either Preempts to Follow/Guide Target or sweeps Sector 1
+      const zW = cncObserveZone.xMax - cncObserveZone.xMin;
+      const zH = cncObserveZone.zMax - cncObserveZone.zMin;
+      const nowSec = performance.now() * 0.001;
+
+      cncDrones.forEach((d, idx) => {
+        if (preempt && (idx === 0 || splitPol === 'ALL_CONVERGE_RESCUE')) {
+          d.role = idx === 0 ? 'PRIORITY_FOLLOW' : 'RELAY_ESCORT';
+          let offX = idx === 0 ? 15.0 : -22.0 * idx;
+          let offZ = idx === 0 ? 11.0 : 18.0 * idx;
+          if (idx === 0 && cncGuidanceMode === 'MANUAL_REMOTE_CONTROL') {
+            offX += cncManualOffset.dx;
+            offZ += cncManualOffset.dz;
+            const dist = Math.hypot(offX, offZ);
+            if (dist < 15.0) {
+              const s = 15.0 / Math.max(0.01, dist);
+              offX *= s;
+              offZ *= s;
+            }
+          }
+          const goalX = tgtPos.x + offX;
+          const goalZ = tgtPos.z + offZ;
+          d.x += (goalX - d.x) * 0.08;
+          d.z += (goalZ - d.z) * 0.08;
+          const baseAlt = (cncGuidedSubject === 'LOST_VEHICLE') ? 45.0 : 28.0;
+          d.alt = Math.max(28.0, baseAlt + (idx === 0 ? cncManualOffset.dAlt : 18.0 * idx));
+        } else {
+          // Lawnmower / Boustrophedon sweep inside cncObserveZone
+          d.role = 'SHROUD_MAPPER';
+          const sectorW = zW / 4;
+          const secX0 = cncObserveZone.xMin + idx * sectorW;
+          const sweepPhase = (nowSec * 0.22 + d.phase) % 2.0;
+          const u = sweepPhase <= 1.0 ? sweepPhase : (2.0 - sweepPhase);
+          const laneX = secX0 + sectorW * (0.2 + 0.6 * (0.5 + 0.5 * Math.sin(nowSec * 0.7 + idx)));
+          const laneZ = cncObserveZone.zMin + u * zH;
+          d.x += (laneX - d.x) * 0.06;
+          d.z += (laneZ - d.z) * 0.06;
+          d.alt = cncTaskMode === 'JET_MOTHERSHIP_SWEEP' ? 85.0 : 52.0;
+          d.radius = cncTaskMode === 'JET_MOTHERSHIP_SWEEP' ? 54.0 : 38.0;
+        }
+        const ty = getTerrainHeight(d.x, d.z);
+        d.mesh.position.set(d.x, ty + d.alt * 0.55, d.z);
+        markCncCircleExplored(d.x, d.z, d.radius);
+      });
+
+      // Mark fixed ground camera frustums explored
+      NODES.forEach(n => {
+        const mx = (n.pos.x + n.lookAt.x) * 0.5;
+        const mz = (n.pos.z + n.lookAt.z) * 0.5;
+        markCncCircleExplored(mx, mz, 28);
+      });
+
+      // Position 15m Safety Bubble Ring & 1,500 lm Spotlight Cone + Guidance Path
+      cncSafetyRingMesh.position.set(tgtPos.x, tgtPos.y + 0.45, tgtPos.z);
+
+      const destPos = (cncGuidedSubject === 'LOST_VEHICLE')
+        ? new THREE.Vector3(-135, getTerrainHeight(-135, 95) + 0.6, 95) // Plowed Roadhead
+        : new THREE.Vector3(CABIN_POS.x, getTerrainHeight(CABIN_POS.x, CABIN_POS.z) + 0.6, CABIN_POS.z); // Warm Autiotupa
+
+      const dirToDest = new THREE.Vector3().subVectors(destPos, tgtPos).normalize();
+      const leadDist = (cncGuidedSubject === 'LOST_VEHICLE') ? 26.0 : 15.0;
+      const spotGroundX = (cncGuidanceMode === 'MANUAL_REMOTE_CONTROL')
+        ? cncSpotlightAim.x
+        : (tgtPos.x + dirToDest.x * leadDist);
+      const spotGroundZ = (cncGuidanceMode === 'MANUAL_REMOTE_CONTROL')
+        ? cncSpotlightAim.z
+        : (tgtPos.z + dirToDest.z * leadDist);
+      const spotGroundY = getTerrainHeight(spotGroundX, spotGroundZ);
+
+      const d0 = cncDrones[0].mesh.position;
+      cncSpotlightConeMesh.position.set(
+        (d0.x + spotGroundX) * 0.5,
+        (d0.y + spotGroundY) * 0.5,
+        (d0.z + spotGroundZ) * 0.5
+      );
+      cncSpotlightConeMesh.lookAt(spotGroundX, spotGroundY, spotGroundZ);
+      cncSpotlightConeMesh.rotateX(Math.PI / 2);
+
+      // Update Green Guidance Path from Subject -> Spotlight Lead -> Destination Hut/Road
+      const midPt = new THREE.Vector3(spotGroundX, spotGroundY + 0.65, spotGroundZ);
+      cncGuidePathGeo.setFromPoints([
+        new THREE.Vector3(tgtPos.x, tgtPos.y + 0.65, tgtPos.z),
+        midPt,
+        destPos
+      ]);
+
+      // Render 1024x1024 C&C Fog-of-War & Live Camera Feeds onto Map Texture
+      const W = 1024, H = 1024;
+      const toPx = (wx, wz) => [
+        ((wx + TERRAIN_W / 2) / TERRAIN_W) * W,
+        ((wz + TERRAIN_D / 2) / TERRAIN_D) * H
+      ];
+
+      // 1. Base Layer: Pitch-Black Unexplored Shroud (#020408) + Explored Memory Dim Shroud
+      cncFogCtx.clearRect(0, 0, W, H);
+      const cellW = W / CNC_GRID_W;
+      const cellH = H / CNC_GRID_H;
+      let exploredCount = 0;
+      for (let gz = 0; gz < CNC_GRID_H; gz++) {
+        for (let gx = 0; gx < CNC_GRID_W; gx++) {
+          const exp = cncExploredGrid[gz * CNC_GRID_W + gx];
+          if (exp) {
+            exploredCount++;
+            cncFogCtx.fillStyle = 'rgba(5, 14, 26, 0.58)';
+          } else {
+            cncFogCtx.fillStyle = 'rgba(2, 4, 8, 0.96)';
+          }
+          cncFogCtx.fillRect(gx * cellW, gz * cellH, Math.ceil(cellW), Math.ceil(cellH));
+        }
+      }
+
+      const pctEl = document.getElementById('cnc-mapped-pct');
+      if (pctEl) {
+        const pct = ((exploredCount / (CNC_GRID_W * CNC_GRID_H)) * 100).toFixed(1);
+        pctEl.textContent = `${pct}% MAPPED`;
+      }
+
+      // 2. Carve Open Active Camera & Drone Sensor Footprints and Draw Live Camera Feeds on Map!
+      const drawProjectedCameraFeedOnMap = (wx, wz, radM, labelStr, modeColor, isLockedFeed) => {
+        const [px, py] = toPx(wx, wz);
+        const rPx = (radM / TERRAIN_W) * W;
+
+        // Punch crystal-clear aperture through the black shroud
+        cncFogCtx.save();
+        cncFogCtx.globalCompositeOperation = 'destination-out';
+        const grad = cncFogCtx.createRadialGradient(px, py, rPx * 0.55, px, py, rPx);
+        grad.addColorStop(0, 'rgba(0,0,0,1)');
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        cncFogCtx.fillStyle = grad;
+        cncFogCtx.beginPath();
+        cncFogCtx.arc(px, py, rPx, 0, Math.PI * 2);
+        cncFogCtx.fill();
+        cncFogCtx.restore();
+
+        // Draw C&C Live Camera Feed HUD Overlay directly onto the ground footprint
+        cncFogCtx.save();
+        cncFogCtx.beginPath();
+        cncFogCtx.arc(px, py, rPx * 0.88, 0, Math.PI * 2);
+        cncFogCtx.clip();
+
+        // Subtle Night-Vision / Thermal scanlines inside the map camera cone
+        cncFogCtx.fillStyle = isLockedFeed ? 'rgba(255, 179, 0, 0.10)' : 'rgba(0, 230, 118, 0.08)';
+        cncFogCtx.fillRect(px - rPx, py - rPx, rPx * 2, rPx * 2);
+        cncFogCtx.strokeStyle = isLockedFeed ? 'rgba(255, 179, 0, 0.22)' : 'rgba(0, 229, 255, 0.18)';
+        cncFogCtx.lineWidth = 1;
+        for (let sy = py - rPx; sy <= py + rPx; sy += 6) {
+          cncFogCtx.beginPath();
+          cncFogCtx.moveTo(px - rPx, sy);
+          cncFogCtx.lineTo(px + rPx, sy);
+          cncFogCtx.stroke();
+        }
+        cncFogCtx.restore();
+
+        // Outer C&C Sensor Feed Ring + Corner Brackets + Telemetry Header on Map
+        cncFogCtx.save();
+        cncFogCtx.strokeStyle = modeColor;
+        cncFogCtx.lineWidth = isLockedFeed ? 2.5 : 1.8;
+        cncFogCtx.setLineDash(isLockedFeed ? [] : [6, 4]);
+        cncFogCtx.beginPath();
+        cncFogCtx.arc(px, py, rPx * 0.88, 0, Math.PI * 2);
+        cncFogCtx.stroke();
+        cncFogCtx.setLineDash([]);
+
+        // Center crosshair reticle
+        cncFogCtx.beginPath();
+        cncFogCtx.moveTo(px - 10, py); cncFogCtx.lineTo(px + 10, py);
+        cncFogCtx.moveTo(px, py - 10); cncFogCtx.lineTo(px, py + 10);
+        cncFogCtx.stroke();
+
+        // Camera Feed Header Pill drawn on map
+        cncFogCtx.fillStyle = 'rgba(4, 10, 20, 0.86)';
+        cncFogCtx.fillRect(px - 68, py - rPx * 0.82, 136, 15);
+        cncFogCtx.strokeStyle = modeColor;
+        cncFogCtx.strokeRect(px - 68, py - rPx * 0.82, 136, 15);
+        cncFogCtx.fillStyle = modeColor;
+        cncFogCtx.font = 'bold 9.5px monospace';
+        cncFogCtx.textAlign = 'center';
+        cncFogCtx.fillText(labelStr, px, py - rPx * 0.82 + 11);
+        cncFogCtx.restore();
+      };
+
+      // Ground Trail Cameras rendered as Live Camera Feeds on Map
+      NODES.forEach(n => {
+        const mx = (n.pos.x + n.lookAt.x) * 0.5;
+        const mz = (n.pos.z + n.lookAt.z) * 0.5;
+        drawProjectedCameraFeedOnMap(mx, mz, 28, `CAM: ${n.id}`, '#00e676', false);
+      });
+
+      // Airborne SAR Drones rendered as Live Camera Feeds on Map
+      cncDrones.forEach((d, idx) => {
+        const isPri = idx === 0 && preempt;
+        const lbl = isPri ? `${d.id} [PRIORITY LOCK]` : `${d.id} [CAM FEED]`;
+        drawProjectedCameraFeedOnMap(d.x, d.z, d.radius, lbl, isPri ? '#ffb300' : '#00e5ff', isPri);
+      });
+
+      // Spotlight Ground Pool drawn on map
+      const [spx, spy] = toPx(spotGroundX, spotGroundZ);
+      cncFogCtx.save();
+      cncFogCtx.fillStyle = 'rgba(255, 213, 79, 0.35)';
+      cncFogCtx.beginPath();
+      cncFogCtx.arc(spx, spy, 18, 0, Math.PI * 2);
+      cncFogCtx.fill();
+      cncFogCtx.strokeStyle = '#ffd54f';
+      cncFogCtx.lineWidth = 2;
+      cncFogCtx.stroke();
+      cncFogCtx.fillStyle = '#fff';
+      cncFogCtx.font = 'bold 9px monospace';
+      cncFogCtx.textAlign = 'center';
+      cncFogCtx.fillText('1500 LM GUIDE BEAM', spx, spy + 3);
+      cncFogCtx.restore();
+
+      // Draw Desired Observation Zone Green C&C Box on Map
+      const [zx0, zy0] = toPx(cncObserveZone.xMin, cncObserveZone.zMin);
+      const [zx1, zy1] = toPx(cncObserveZone.xMax, cncObserveZone.zMax);
+      cncFogCtx.save();
+      cncFogCtx.strokeStyle = '#00e676';
+      cncFogCtx.lineWidth = 2.5;
+      cncFogCtx.setLineDash([10, 6]);
+      cncFogCtx.strokeRect(zx0, zy0, zx1 - zx0, zy1 - zy0);
+      cncFogCtx.setLineDash([]);
+      cncFogCtx.fillStyle = 'rgba(0, 230, 118, 0.85)';
+      cncFogCtx.font = 'bold 11px monospace';
+      cncFogCtx.fillText('C&C DESIRED OBSERVATION & SEARCH ZONE', zx0 + 8, zy0 + 15);
+      cncFogCtx.restore();
+
+      // Draw AI Bounding Boxes on Map for any Target inside an active Camera/Drone Feed
+      movingTargets.forEach(t => {
+        const tx = t.mesh.position.x;
+        const tz = t.mesh.position.z;
+        const inDroneCone = cncDrones.some(d => Math.hypot(tx - d.x, tz - d.z) <= d.radius);
+        const inNodeCone = NODES.some(n => {
+          const mx = (n.pos.x + n.lookAt.x) * 0.5;
+          const mz = (n.pos.z + n.lookAt.z) * 0.5;
+          return Math.hypot(tx - mx, tz - mz) <= 30;
+        });
+        // Hide 3D mesh & label if target is inside pitch-black unobserved shroud!
+        const gx = Math.max(0, Math.min(CNC_GRID_W - 1, Math.floor(((tx + TERRAIN_W / 2) / TERRAIN_W) * CNC_GRID_W)));
+        const gz = Math.max(0, Math.min(CNC_GRID_H - 1, Math.floor(((tz + TERRAIN_D / 2) / TERRAIN_D) * CNC_GRID_H)));
+        const isExplored = cncExploredGrid[gz * CNC_GRID_W + gx] === 1;
+        t.mesh.visible = isExplored || inDroneCone || inNodeCone;
+
+        if (inDroneCone || inNodeCone) {
+          const [px, py] = toPx(tx, tz);
+          cncFogCtx.save();
+          cncFogCtx.strokeStyle = '#ff5252';
+          cncFogCtx.lineWidth = 2.2;
+          cncFogCtx.strokeRect(px - 16, py - 16, 32, 32);
+          cncFogCtx.fillStyle = 'rgba(255, 82, 82, 0.9)';
+          cncFogCtx.fillRect(px - 42, py - 29, 84, 12);
+          cncFogCtx.fillStyle = '#fff';
+          cncFogCtx.font = 'bold 8.5px monospace';
+          cncFogCtx.textAlign = 'center';
+          cncFogCtx.fillText(`LOCK: ${t.type.toUpperCase()}`, px, py - 20);
+          cncFogCtx.restore();
+        }
+      });
+
+      cncFogTexture.needsUpdate = true;
+      drawCncTerrainProfile();
+    }
+
+    function drawCncTerrainProfile() {
+      const cvs = document.getElementById('cnc-terrain-profile-canvas');
+      if (!cvs) return;
+      const ctx = cvs.getContext('2d');
+      const w = cvs.width, h = cvs.height;
+      ctx.fillStyle = '#040a14';
+      ctx.fillRect(0, 0, w, h);
+
+      // Sample 40 points along the active drone mission transect across the Desired Observation Zone
+      const N = 40;
+      const zMid = (cncObserveZone.zMin + cncObserveZone.zMax) * 0.5;
+      const aglTarget = cncDrones[0] ? cncDrones[0].alt : 28.0;
+
+      // Ground DEM polygon
+      ctx.beginPath();
+      ctx.moveTo(0, h);
+      for (let i = 0; i <= N; i++) {
+        const u = i / N;
+        const wx = cncObserveZone.xMin + u * (cncObserveZone.xMax - cncObserveZone.xMin);
+        const demY = getTerrainHeight(wx, zMid);
+        const py = h - Math.min(h - 6, (demY / 55.0) * (h - 14));
+        ctx.lineTo(u * w, py);
+      }
+      ctx.lineTo(w, h);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(56, 109, 148, 0.45)';
+      ctx.fill();
+
+      // Tree Canopy (+18m) dashed line
+      ctx.beginPath();
+      for (let i = 0; i <= N; i++) {
+        const u = i / N;
+        const wx = cncObserveZone.xMin + u * (cncObserveZone.xMax - cncObserveZone.xMin);
+        const canY = getTerrainHeight(wx, zMid) + 9.0;
+        const py = h - Math.min(h - 4, (canY / 55.0) * (h - 14));
+        if (i === 0) ctx.moveTo(u * w, py); else ctx.lineTo(u * w, py);
+      }
+      ctx.strokeStyle = 'rgba(0, 230, 118, 0.55)';
+      ctx.setLineDash([3, 3]);
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Terrain-Following Drone Flight Trajectory (Z_ASL = DEM + Canopy + h_AGL)
+      ctx.beginPath();
+      for (let i = 0; i <= N; i++) {
+        const u = i / N;
+        const wx = cncObserveZone.xMin + u * (cncObserveZone.xMax - cncObserveZone.xMin);
+        const fltY = getTerrainHeight(wx, zMid) + 9.0 + (aglTarget * 0.35);
+        const py = Math.max(5, h - (fltY / 55.0) * (h - 14));
+        if (i === 0) ctx.moveTo(u * w, py); else ctx.lineTo(u * w, py);
+      }
+      ctx.strokeStyle = '#ffb300';
+      ctx.lineWidth = 2.0;
+      ctx.stroke();
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '9px monospace';
+      ctx.fillText(`DEM Ground + 18m Canopy | Flight: +${Math.round(aglTarget)}m AGL (TF02-Pro LiDAR)`, 6, 11);
+    }
+
+    function exportCncQgcWaypoints() {
+      const lat0 = parseFloat(document.getElementById('api-lat')?.value || '66.3708');
+      const lon0 = parseFloat(document.getElementById('api-lon')?.value || '29.3175');
+      const mPerLat = 111132.0;
+      const mPerLon = 111320.0 * Math.cos(lat0 * Math.PI / 180.0);
+      const agl = cncDrones[0] ? Math.round(cncDrones[0].alt) : 55;
+      const lanes = 4;
+      const lines = ['QGC WPL 110'];
+      lines.push(`0\t1\t0\t16\t0\t0\t0\t0\t${lat0.toFixed(7)}\t${lon0.toFixed(7)}\t250.0\t1`);
+      let seq = 1;
+      for (let i = 0; i < lanes; i++) {
+        const wx = cncObserveZone.xMin + (i / (lanes - 1)) * (cncObserveZone.xMax - cncObserveZone.xMin);
+        const zPair = (i % 2 === 0) ? [cncObserveZone.zMin, cncObserveZone.zMax] : [cncObserveZone.zMax, cncObserveZone.zMin];
+        zPair.forEach(wz => {
+          const lat = lat0 + (wz / mPerLat);
+          const lon = lon0 + (wx / mPerLon);
+          // Frame 10 = MAV_FRAME_GLOBAL_TERRAIN_ALT
+          lines.push(`${seq}\t0\t10\t16\t0.0\t5.0\t0.0\t0.0\t${lat.toFixed(7)}\t${lon.toFixed(7)}\t${(agl + 18).toFixed(1)}\t1`);
+          seq++;
+        });
+      }
+      lines.push(`${seq}\t0\t10\t20\t0\t0\t0\t0\t0.0000000\t0.0000000\t0.0\t1`);
+      const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'karhunkierros_sar_terrain_following.waypoints';
+      a.click();
+    }
+
     function animate() {
       requestAnimationFrame(animate);
 
@@ -3327,6 +4452,7 @@
         ]);
       }
 
+      updateCncOverwatchStep();
       update3DLabels();
       drawSimulatedCameraView();
       drawMinimap();

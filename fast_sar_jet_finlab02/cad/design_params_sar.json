@@ -123,6 +123,10 @@
       "engine_od_mm": 97.0,
       "dorsal_hump_width_mm": 150.0,
       "dorsal_hump_top_z_mm": 132.0,
+      "boundary_layer_diverter_standoff_mm": 22.0,
+      "auxiliary_blow_in_suction_louvers": "2x 45x30 mm passive spring/living-hinge dorsal cheek louvers (open at dP < -350 Pa during static/25.5 m/s TOGA climb, seal flush > 45 m/s cruise; 0 servos, +12 g, +0 EUR)",
+      "intake_lip_anti_ice_heater_w": 8.0,
+      "fod_screen_radial_bypass_gap_mm": 10.0,
       "aerogel_insulation_thickness_mm": 10.0,
       "stainless_304_shield_thickness_mm": 0.3
     },
