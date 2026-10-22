@@ -692,6 +692,203 @@
       gap: 6px;
       font-size: 12px;
     }
+
+    /* Apple Human Interface Guidelines (HIG) Simplified Sidebar Styles */
+    .apple-card {
+      background: rgba(28, 28, 32, 0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 14px;
+      padding: 12px 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+    }
+    .apple-section-title {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #f5f5f7;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .apple-seg-bar {
+      display: flex;
+      background: rgba(118, 118, 128, 0.24);
+      padding: 3px;
+      border-radius: 10px;
+      gap: 2px;
+    }
+    .apple-seg-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #a1a1aa;
+      font-family: var(--font-sans);
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 6px 6px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.16s ease;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .apple-seg-btn:hover {
+      color: #ffffff;
+    }
+    .apple-seg-btn.active {
+      background: rgba(255, 255, 255, 0.16);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+    }
+    .apple-seg-btn.active.blue {
+      background: #0a84ff;
+      color: #ffffff;
+    }
+    .apple-seg-btn.active.green {
+      background: #30d158;
+      color: #041f0c;
+    }
+    .apple-target-list {
+      display: flex;
+      flex-direction: column;
+      background: rgba(0, 0, 0, 0.26);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .apple-target-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 10px;
+      gap: 8px;
+      transition: background 0.15s ease;
+    }
+    .apple-target-row + .apple-target-row {
+      border-top: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .apple-target-row.locked {
+      background: rgba(48, 209, 88, 0.12);
+    }
+    .apple-target-info {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+    }
+    .apple-target-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .apple-target-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #f5f5f7;
+      line-height: 1.2;
+    }
+    .apple-target-sub {
+      font-size: 11px;
+      color: #a1a1aa;
+      line-height: 1.25;
+      margin-top: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .apple-target-actions {
+      display: flex;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+    .apple-pill-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 5px 11px;
+      font-family: var(--font-sans);
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.14s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .apple-pill-btn.follow {
+      background: rgba(10, 132, 255, 0.18);
+      color: #47a1ff;
+    }
+    .apple-pill-btn.follow:hover, .apple-pill-btn.follow.active {
+      background: #0a84ff;
+      color: #ffffff;
+    }
+    .apple-pill-btn.talk {
+      background: rgba(48, 209, 88, 0.18);
+      color: #4ade80;
+    }
+    .apple-pill-btn.talk:hover, .apple-pill-btn.talk.active {
+      background: #30d158;
+      color: #041f0c;
+    }
+    .apple-phrase-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .apple-phrase-chip {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 9px;
+      padding: 6px 8px;
+      color: #e4e4e7;
+      font-family: var(--font-sans);
+      font-size: 11.5px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.14s ease;
+    }
+    .apple-phrase-chip:hover {
+      background: rgba(255, 255, 255, 0.13);
+      border-color: rgba(255, 255, 255, 0.22);
+      color: #ffffff;
+    }
+    .apple-details {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      background: rgba(20, 20, 25, 0.65);
+      overflow: hidden;
+    }
+    .apple-details summary {
+      padding: 10px 13px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #a1a1aa;
+      cursor: pointer;
+      user-select: none;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .apple-details summary::-webkit-details-marker {
+      display: none;
+    }
+    .apple-details summary:hover {
+      color: #f5f5f7;
+      background: rgba(255, 255, 255, 0.04);
+    }
   </style>
 </head>
 <body>
@@ -931,444 +1128,453 @@
       <div class="v-splitter" id="vSplitter2" title="Drag left/right to resize Controls Sidebar"></div>
 
       <!-- =================================================================== -->
-      <!-- PANE 3: MISSION, TARGET & PAYLOAD DROP CONTROLS (RIGHT)             -->
+      <!-- PANE 3: APPLE-SIMPLE MISSION CONTROL SIDEBAR (RIGHT)                -->
       <!-- =================================================================== -->
-      <div class="pane" id="controlPane" style="width: 375px; flex: 0 0 375px;">
+      <div class="pane" id="controlPane" style="width: 368px; flex: 0 0 368px;">
         <div class="pane-header">
           <div class="pane-title-group">
-            <span class="pane-badge" style="background:rgba(48,209,88,0.2);color:#4ade80;">View 3 • Controls</span>
-            <span>Search Sectors, Target Lock &amp; Drop</span>
+            <span class="pane-badge" style="background:rgba(10,132,255,0.22);color:#70b7ff;">Mission Control</span>
+            <span style="color:#a1a1aa;font-weight:500;">Fly, Follow &amp; Talk</span>
           </div>
           <div class="pane-win-btns">
-            <button class="win-btn close" onclick="togglePane('controlPane')" title="Close Controls Sidebar">✕</button>
+            <button class="win-btn close" onclick="togglePane('controlPane')" title="Close Sidebar">✕</button>
           </div>
         </div>
 
-        <div class="operator-dock">
-          <!-- CARD 0: STRUCTURED PLAYBOOK FEATURES OR MANUAL CONTROL (ZERO OFFLINE REGEX PARSING!) -->
-          <div class="step-card" style="border-color:rgba(10,132,255,0.45);background:linear-gradient(180deg,rgba(10,132,255,0.08),rgba(28,28,35,0.95));">
-            <div class="step-header">
-              <span class="step-title">🤖 Playbook &amp; Control Mode (AID)</span>
-              <span class="step-badge" id="badgeAidState" style="background:rgba(48,209,88,0.18);color:#4ade80;">Structured • &lt;1ms</span>
+        <div class="operator-dock" style="gap:11px;padding:11px;">
+
+          <!-- =============================================================== -->
+          <!-- APPLE CARD 1: FLIGHT MODE, SPEED & ACTIVE DRONE                 -->
+          <!-- =============================================================== -->
+          <div class="apple-card">
+            <div class="apple-section-title">
+              <span>Flight Mode</span>
+              <span id="appleModeStatusPill" style="font-size:11px;font-weight:600;color:#4ade80;">1x Real-Time</span>
             </div>
-            <div class="form-grid" style="margin-top:2px;">
-              <div class="field-box">
-                <span class="field-label">Control Mode (No Regex!)</span>
-                <select id="selAidMode" class="select-input" onchange="updateAidMode(this.value)" style="width:100%;padding:3px 5px;font-size:11px;">
-                  <option value="OFFLINE_DETERMINISTIC" selected>⚡ Option A: Structured Playbook (&lt;1ms)</option>
-                  <option value="MANUAL_HUMAN_ONLY">🛑 Option B: Manual Control Only (No LLM)</option>
-                  <option value="CLOUD_LLM_JEV">🧠 Optional: Cloud LLM JEV (Auto-Cutout)</option>
-                  <option value="ADVISORY_ONLY">💡 Advisory Co-Pilot Only (No Auto-Act)</option>
-                </select>
-              </div>
-              <div class="field-box">
-                <span class="field-label">When No LLM Available</span>
-                <select id="selAidFallback" class="select-input" onchange="updateAidFallbackPolicy(this.value)" style="width:100%;padding:3px 5px;font-size:11px;">
-                  <option value="OFFLINE_DETERMINISTIC" selected>Option A: Structured Playbook Fields</option>
-                  <option value="MANUAL_HUMAN_ONLY">Option B: Manual Control Only (No LLM)</option>
-                </select>
-              </div>
+
+            <!-- 3-Way Segmented Flight Mode -->
+            <div class="apple-seg-bar" role="tablist" aria-label="Flight Mode">
+              <button class="apple-seg-btn active blue" id="segModeAuto" onclick="setAppleFlightMode('AUTO_SEARCH')" title="All 4 drones scan sectors automatically">🤖 Auto Search</button>
+              <button class="apple-seg-btn" id="segModeManual" onclick="setAppleFlightMode('MANUAL_FLY')" title="Fly manually at 1x real-time speed">🕹️ Manual Fly</button>
+              <button class="apple-seg-btn" id="segModeTrack" onclick="setAppleFlightMode('AUTO_FOLLOW')" title="Automatically follow the Snowmobile or Hiker">🎯 Follow Target</button>
             </div>
-            <div class="field-box" style="padding:5px 7px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;">
-                <span class="field-label">Predefined SAR Feature Profile</span>
-                <div style="display:flex;gap:4px;align-items:center;">
-                  <button class="win-btn" onclick="toggleLlmApiKeyPanel()" id="btnToggleApiKeyPanel" style="font-size:10px;padding:1px 6px;" title="Configure External LLM API Key (Session or Save to Disk)">🔑 API Key</button>
-                  <button class="win-btn" onclick="togglePlaybookEditor()" id="btnTogglePbEditor" style="font-size:10px;padding:1px 6px;color:#38bdf8;border-color:rgba(56,189,248,0.45);">⚙️ Structured Fields</button>
-                </div>
+
+            <!-- Simulation Speed Segmented Bar -->
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+              <span style="font-size:11.5px;color:#a1a1aa;font-weight:500;">Speed</span>
+              <div class="apple-seg-bar" style="flex:1;">
+                <button class="apple-seg-btn" id="segSpd05" onclick="setSimSpeed(0.5)">0.5x</button>
+                <button class="apple-seg-btn active" id="segSpd1" onclick="setSimSpeed(1)">1x Real</button>
+                <button class="apple-seg-btn" id="segSpd5" onclick="setSimSpeed(5)">5x</button>
+                <button class="apple-seg-btn" id="segSpd25" onclick="setSimSpeed(25)">25x</button>
+                <button class="apple-seg-btn" id="segSpd100" onclick="setSimSpeed(100)">100x</button>
               </div>
-              <select id="selPlaybookPreset" class="select-input" onchange="selectPlaybookPreset(this.value)" style="width:100%;padding:3px 5px;font-size:11px;margin-top:2px;">
-                <option value="PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY" selected>1. Night Hiker Search &amp; Opaslyhty Hut Escort (55m/28m)</option>
-                <option value="PLAYBOOK_02_CAUTIOUS_HUMAN_CONFIRM_DROP">2. Cautious Search (Require Human Confirm for Drop)</option>
-                <option value="PLAYBOOK_03_STRANDED_SNOWMOBILE_CORRIDOR">3. Stranded Snowmobile / Vehicle Corridor Escort (65m/45m)</option>
-                <option value="PLAYBOOK_04_EW_DENIED_PASSIVE_RECON">4. GNSS-Denied / Reindeer-Safe High Sweep (85m/35m)</option>
+              <select id="selCardSimSpeed" onchange="setSimSpeed(this.value)" style="display:none;">
+                <option value="0.5">0.5x</option>
+                <option value="1" selected>1x</option>
+                <option value="2">2x</option>
+                <option value="5">5x</option>
+                <option value="10">10x</option>
+                <option value="25">25x</option>
+                <option value="100">100x</option>
               </select>
+            </div>
 
-              <!-- EXTERNAL LLM & OPTIONAL GOOGLE MAPS TILE API KEY DRAWER -->
-              <div id="llmApiKeyPanelWrap" style="display:none;flex-direction:column;gap:6px;margin-top:6px;padding:7px 8px;background:rgba(10,132,255,0.10);border:1px solid rgba(10,132,255,0.45);border-radius:6px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;">
-                  <strong style="font-size:11px;color:#64d2ff;">🔑 LLM &amp; Google Maps API Keys</strong>
-                  <span id="lblApiKeyStatusBadge" style="font-size:10px;font-family:var(--font-mono);color:#fbbf24;">Earth: 0-Key Live • LLM: Offline</span>
+            <!-- Active Drone Segmented Bar -->
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+              <span style="font-size:11.5px;color:#a1a1aa;font-weight:500;">Drone</span>
+              <div class="apple-seg-bar" style="flex:1;">
+                <button class="apple-seg-btn active" id="segDrone0" onclick="selectAppleActiveDrone(0)">Drone 1</button>
+                <button class="apple-seg-btn" id="segDrone1" onclick="selectAppleActiveDrone(1)">Drone 2</button>
+                <button class="apple-seg-btn" id="segDrone2" onclick="selectAppleActiveDrone(2)">Drone 3</button>
+                <button class="apple-seg-btn" id="segDrone3" onclick="selectAppleActiveDrone(3)">Drone 4</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- =============================================================== -->
+          <!-- APPLE CARD 2: PEOPLE & VEHICLES — FOLLOW & TALK ("FIND MY")     -->
+          <!-- =============================================================== -->
+          <div class="apple-card">
+            <div class="apple-section-title">
+              <span>People &amp; Vehicles</span>
+              <label style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:500;color:#a1a1aa;cursor:pointer;" title="Automatically lock onto Snowmobile or Hiker when they enter the camera view">
+                <span>Auto-Follow on Sight</span>
+                <input type="checkbox" id="chkAutoTrackOnSight" checked onchange="toggleAutoTrackOnSight(this.checked)" style="accent-color:#30d158;cursor:pointer;" />
+              </label>
+            </div>
+
+            <!-- Find My Style Target List -->
+            <div class="apple-target-list">
+              <!-- Snowmobile Row -->
+              <div class="apple-target-row" id="appleRowSnowmobile">
+                <div class="apple-target-info">
+                  <div class="apple-target-icon">🛸</div>
+                  <div style="min-width:0;">
+                    <div class="apple-target-name">Snowmobile</div>
+                    <div class="apple-target-sub" id="appleSubSnowmobile">+34.0°C &bull; Trail Corridor</div>
+                  </div>
                 </div>
-                <div style="font-size:10px;color:#a1a1aa;line-height:1.32;background:rgba(0,0,0,0.28);padding:4px 6px;border-radius:4px;">
-                  🌍 <strong>Google Earth Tiles:</strong> Streams live <code>mt0..3.google.com/vt</code> satellite &amp; hybrid tiles <strong>without requiring an API key</strong> (+ local offline orthophoto cache). You can optionally add a paid Google Maps Platform key or External LLM key below:
-                </div>
-                <div style="display:flex;gap:5px;align-items:center;">
-                  <select id="selLlmProviderModel" class="select-input" style="flex:1;padding:3px 5px;font-size:10.5px;">
-                    <option value="openai|gpt-5.4-mini" selected>OpenAI • gpt-5.4-mini (&le;650ms JEV)</option>
-                    <option value="openai|gpt-4.1-mini">OpenAI • gpt-4.1-mini (&le;550ms JEV)</option>
-                    <option value="gemini|gemini-2.5-flash">Google Gemini • gemini-2.5-flash (&le;750ms JEV)</option>
-                    <option value="anthropic|claude-haiku-4-5-20251001">Anthropic • claude-haiku-4-5 (&le;500ms JEV)</option>
-                    <option value="anthropic|claude-sonnet-4-6">Anthropic • claude-sonnet-4-6</option>
-                  </select>
-                </div>
-                <div style="display:flex;gap:4px;align-items:center;">
-                  <input type="password" id="txtLlmApiKey" placeholder="LLM API Key (sk-... or sk-ant-...)" autocomplete="off" style="flex:1;background:#0e0e12;color:#f5f5f7;border:1px solid var(--border-strong);border-radius:5px;padding:4px 7px;font-family:var(--font-mono);font-size:11px;" />
-                  <button class="win-btn" onclick="toggleApiKeyVisibility()" id="btnShowHideApiKey" style="font-size:10px;padding:3px 6px;" title="Show/Hide API Keys">👁️</button>
-                </div>
-                <div style="display:flex;gap:4px;align-items:center;">
-                  <input type="password" id="txtGoogleMapsApiKey" placeholder="Optional Google Maps Tile Key (AIza... — Leave blank for free 0-key stream)" autocomplete="off" style="flex:1;background:#0e0e12;color:#f5f5f7;border:1px solid var(--border-subtle);border-radius:5px;padding:4px 7px;font-family:var(--font-mono);font-size:10.5px;" />
-                </div>
-                <label style="display:flex;align-items:flex-start;gap:6px;font-size:10.5px;color:var(--text-primary);cursor:pointer;line-height:1.3;">
-                  <input type="checkbox" id="chkSaveKeyToDisk" checked style="margin-top:2px;accent-color:var(--accent-blue);" />
-                  <span><strong>💾 Save API keys to disk</strong> (<code style="font-size:9.5px;color:#64d2ff;">_private/llm_api_credentials.json</code>, <code>chmod 0600</code> gitignored). Uncheck for session-only RAM.</span>
-                </label>
-                <div style="display:flex;gap:5px;">
-                  <button class="btn success" onclick="saveAndActivateLlmApiKey()" style="flex:1;padding:4px 7px;font-size:11px;">✓ Save Keys &amp; Apply</button>
-                  <button class="btn danger" onclick="clearSavedLlmApiKey()" style="padding:4px 7px;font-size:10.5px;" title="Remove API keys from RAM and delete from disk">🗑️ Clear</button>
-                  <button class="btn" onclick="cancelApiKeyPromptAndUseOffline()" style="padding:4px 7px;font-size:10.5px;">✕ Close</button>
+                <div class="apple-target-actions">
+                  <button class="apple-pill-btn follow" id="btnAppleFollowSnowmobile" onclick="assignDroneToAutoTrack('VEHICLE', null, false)">Follow</button>
+                  <button class="apple-pill-btn talk" id="btnAppleTalkSnowmobile" onclick="flyCloseAndOpenVoiceIntercom('VEHICLE')">🔊 Talk</button>
                 </div>
               </div>
 
-              <!-- STRUCTURED PARAMETER FORM FIELDS (NO REGEX / NO FREE-TEXT PARSING!) -->
-              <div id="playbookEditorWrap" style="display:flex;flex-direction:column;gap:5px;margin-top:6px;padding:6px 7px;background:rgba(15,23,42,0.85);border:1px solid rgba(56,189,248,0.35);border-radius:6px;">
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">
-                  <div>
-                    <label style="font-size:9.5px;color:#94a3b8;display:block;">Search Alt (m)</label>
-                    <input type="number" id="inpPbSearchAlt" min="28" max="120" step="1" value="55" style="width:100%;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:2px 5px;font-family:var(--font-mono);font-size:11px;" />
-                  </div>
-                  <div>
-                    <label style="font-size:9.5px;color:#94a3b8;display:block;">Track Alt (m)</label>
-                    <input type="number" id="inpPbTrackAlt" min="28" max="120" step="1" value="28" style="width:100%;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:2px 5px;font-family:var(--font-mono);font-size:11px;" />
-                  </div>
-                  <div>
-                    <label style="font-size:9.5px;color:#94a3b8;display:block;">Standoff (m)</label>
-                    <input type="number" id="inpPbDropOffset" min="15" max="50" step="1" value="15" style="width:100%;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:2px 5px;font-family:var(--font-mono);font-size:11px;" />
+              <!-- Lost Hiker Row -->
+              <div class="apple-target-row" id="appleRowHiker">
+                <div class="apple-target-info">
+                  <div class="apple-target-icon">🚶</div>
+                  <div style="min-width:0;">
+                    <div class="apple-target-name">Lost Hiker</div>
+                    <div class="apple-target-sub" id="appleSubHiker">+31.4°C &bull; Canyon Trail</div>
                   </div>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
-                  <div>
-                    <label style="font-size:9.5px;color:#94a3b8;display:block;">Target Priority</label>
-                    <select id="selPbTargetType" class="select-input" style="width:100%;padding:2px 4px;font-size:10.5px;">
-                      <option value="PERSON" selected>Lost Hiker (Person)</option>
-                      <option value="VEHICLE">Snowmobile (Vehicle)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style="font-size:9.5px;color:#94a3b8;display:block;">Payload Drop Policy</label>
-                    <select id="selPbDropPolicy" class="select-input" style="width:100%;padding:2px 4px;font-size:10.5px;">
-                      <option value="AUTO_RELEASE" selected>Auto Queue &amp; Release</option>
-                      <option value="REQUIRE_CONFIRM">Queue + Human Confirm</option>
-                      <option value="MANUAL_ONLY">Manual Drop Only</option>
-                    </select>
-                  </div>
-                </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
-                  <div>
-                    <label style="font-size:9.5px;color:#94a3b8;display:block;">RTH Battery Floor (%)</label>
-                    <input type="number" id="inpPbRthBatt" min="20" max="50" step="1" value="22" style="width:100%;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:2px 5px;font-family:var(--font-mono);font-size:11px;" />
-                  </div>
-                  <div>
-                    <label style="font-size:9.5px;color:#94a3b8;display:block;">Veto Cooldown (s)</label>
-                    <input type="number" id="inpPbVetoSec" min="30" max="1800" step="30" value="300" style="width:100%;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:2px 5px;font-family:var(--font-mono);font-size:11px;" />
-                  </div>
-                </div>
-                <div style="display:flex;gap:5px;">
-                  <button class="btn primary" onclick="compileAndApplyCustomPlaybook()" style="flex:1;padding:3px 7px;font-size:11px;">⚡ Apply Structured Fields</button>
-                  <button class="btn warning" onclick="simulateLlmOutageTest()" style="padding:3px 7px;font-size:11px;" title="Test what happens when External LLM API disconnects">🔌 Test Cutout</button>
+                <div class="apple-target-actions">
+                  <button class="apple-pill-btn follow" id="btnAppleFollowHiker" onclick="assignDroneToAutoTrack('PERSON', null, false)">Follow</button>
+                  <button class="apple-pill-btn talk" id="btnAppleTalkHiker" onclick="flyCloseAndOpenVoiceIntercom('PERSON')">🔊 Talk</button>
                 </div>
               </div>
             </div>
-            <div class="assignment-box" style="padding:6px 8px;font-size:11px;gap:3px;" id="jevStatusBox">
+
+            <!-- Stop Following Button (shown when locked) -->
+            <button class="btn danger" id="btnAppleStopFollow" onclick="cancelTargetAssignment()" style="display:none;width:100%;border-radius:10px;padding:6px 10px;font-size:12px;">
+              ✕ Stop Following (Return to Search)
+            </button>
+
+            <!-- Clean Drone Speaker & Mic Intercom -->
+            <div id="voiceIntercomBox" style="display:flex;flex-direction:column;gap:7px;padding-top:2px;">
               <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span style="color:var(--text-secondary);">Active Rules (<span id="lblPbEpoch">Epoch #1</span>):</span>
-                <strong style="color:#64d2ff;font-family:var(--font-mono);font-size:10.5px;" id="lblCompiledSummary">55m (0% ovl) • Track 28m • Drop 15m</strong>
+                <span style="font-size:11.5px;font-weight:600;color:#a1a1aa;">🔊 Drone Speaker &amp; Mic</span>
+                <span id="lblIntercomLinkBadge" style="font-size:11px;color:#4ade80;font-weight:600;">Ready</span>
               </div>
-              <div style="font-family:var(--font-mono);font-size:10.5px;color:#4ade80;background:rgba(0,0,0,0.32);padding:4px 6px;border-radius:5px;" id="lblJevDecision">
-                JEV VERIFIED: Lock Lost Hiker (28m AGL) &bull; 3 Drones Scan Sectors
+
+              <!-- Hidden synced selectors for compatibility -->
+              <div style="display:none;">
+                <select id="selIntercomDrone" onchange="changeAssignedTrackDrone(this.value)">
+                  <option value="0" selected>Drone 1</option>
+                  <option value="1">Drone 2</option>
+                  <option value="2">Drone 3</option>
+                  <option value="3">Drone 4</option>
+                </select>
+                <select id="selIntercomTarget" onchange="assignDroneToAutoTrack(this.value, null, closeTalkHoverActive)">
+                  <option value="VEHICLE">Snowmobile</option>
+                  <option value="PERSON" selected>Lost Hiker</option>
+                </select>
               </div>
-              <div style="font-family:var(--font-mono);font-size:9.5px;color:#93c5fd;background:rgba(15,23,42,0.65);padding:3px 6px;border-radius:4px;line-height:1.28;" id="lblJevRationaleTrace">
-                Judge: Thermal lock (94%) &bull; Verify: PASS Epoch #1, Standoff 15m, RTH &ge; 22%
+
+              <!-- 4 Clean Phrase Chips -->
+              <div class="apple-phrase-grid">
+                <button class="apple-phrase-chip" onclick="sendVoiceIntercomPreset('HALT_LISTEN')">🛑 "Stop &amp; Talk"</button>
+                <button class="apple-phrase-chip" onclick="sendVoiceIntercomPreset('STATUS_CHECK')">🩺 "Are You OK?"</button>
+                <button class="apple-phrase-chip" onclick="sendVoiceIntercomPreset('FOLLOW_LIGHT')">🟢 "Follow Drone"</button>
+                <button class="apple-phrase-chip" onclick="sendVoiceIntercomPreset('STAND_CLEAR_DROP')">🪂 "Stand Clear"</button>
               </div>
-              <div id="lblVetoBanner" style="display:none;justify-content:space-between;align-items:center;color:#fca5a5;font-size:10.5px;padding-top:2px;">
-                <span id="lblVetoText">🛑 Human Veto Bubble Active (60m, 300s)</span>
-                <button class="win-btn" onclick="clearAllHumanVetoes()" style="font-size:10px;padding:1px 5px;color:#4ade80;">↺ Clear Veto</button>
+
+              <!-- iMessage Style Input -->
+              <div style="display:flex;gap:6px;">
+                <input type="text" id="txtVoiceIntercomInput" placeholder="Speak through drone speaker..." onkeydown="if(event.key==='Enter')sendCustomVoiceIntercomMessage()" style="flex:1;background:rgba(0,0,0,0.35);color:#f5f5f7;border:1px solid rgba(255,255,255,0.14);border-radius:999px;padding:6px 12px;font-size:12px;outline:none;" />
+                <button class="apple-pill-btn talk active" onclick="sendCustomVoiceIntercomMessage()" style="padding:6px 13px;">Speak</button>
+              </div>
+
+              <!-- Clean Conversation Bubble -->
+              <div id="lblVoiceIntercomTranscript" style="font-size:11.5px;color:#d4d4d8;background:rgba(0,0,0,0.28);padding:8px 10px;border-radius:10px;line-height:1.38;">
+                Tap <strong>🔊 Talk</strong> next to Snowmobile or Lost Hiker (or click their yellow box in the video) to fly down and talk.
               </div>
             </div>
           </div>
 
-          <!-- CARD 0B: 1:1 TRACKPAD / STICK STEERING, AUTO-TRACK & 2-WAY VOICE INTERCOM -->
-          <div class="step-card" style="border-color:rgba(56,189,248,0.55);background:linear-gradient(180deg,rgba(56,189,248,0.10),rgba(20,22,30,0.96));padding:9px 11px;">
-            <div class="step-header">
-              <span class="step-title">🕹️ Manual Practice, Auto-Track &amp; Talk</span>
-              <span class="step-badge" id="badgeStickState" style="background:rgba(56,189,248,0.16);color:#38bdf8;">1x Real-Time (12.5 m/s)</span>
-            </div>
-            <div style="display:flex;gap:5px;align-items:center;">
-              <button class="btn primary" onclick="startManualPracticeMission()" style="flex:1.25;padding:4px 7px;font-size:11px;" title="Start a Manual Practice Mission at 1x Normal Real-Time speed (12.5 m/s) with AI auto-override turned OFF">🕹️ Start Practice Mission (1x)</button>
-              <select id="selCardSimSpeed" class="select-input" onchange="setSimSpeed(this.value)" style="flex:0.95;padding:3px 5px;font-size:10.5px;" title="Simulation Speed Scale (1x Normal Real-Time vs. 2x..100x Accelerated)">
-                <option value="0.5">0.5x Slow (6 m/s)</option>
-                <option value="1" selected>1x Normal (12.5 m/s)</option>
-                <option value="2">2x Fast (25 m/s)</option>
-                <option value="5">5x Scale (62 m/s)</option>
-                <option value="10">10x Scale (125 m/s)</option>
-                <option value="25">25x Scale (312 m/s)</option>
-                <option value="100">100x Scale (1.25 km/s)</option>
-              </select>
-            </div>
-            <!-- 1-CLICK AUTO-TRACK & FLY CLOSE TO TALK BAR -->
-            <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-top:2px;">
-              <button class="btn primary" onclick="assignDroneToAutoTrack('VEHICLE', null, false)" style="flex:1;padding:4px 6px;font-size:10.5px;" title="Assign selected drone to Auto-Track &amp; Follow the Snowmobile (+34.0°C)">🛸 Auto-Track Snowmobile</button>
-              <button class="btn primary" onclick="assignDroneToAutoTrack('PERSON', null, false)" style="flex:1;padding:4px 6px;font-size:10.5px;" title="Assign selected drone to Auto-Track &amp; Follow the Lost Hiker (+31.4°C)">🚶 Auto-Track Hiker</button>
-              <button class="btn success" onclick="flyCloseAndOpenVoiceIntercom()" style="flex:1;padding:4px 6px;font-size:10.5px;" title="Fly drone within 10m of target at 20m AGL and open 2-Way Voice / Loudhailer Intercom to talk to them!">🔊 Fly Close &amp; Talk</button>
-            </div>
-            <label style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:10.5px;color:#e2e8f0;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.35);padding:3px 7px;border-radius:5px;cursor:pointer;">
-              <span>🤖 <strong>Auto-Track Automatically</strong> when Target enters Camera View</span>
-              <input type="checkbox" id="chkAutoTrackOnSight" checked onchange="toggleAutoTrackOnSight(this.checked)" style="accent-color:#10b981;cursor:pointer;" />
-            </label>
-
-            <!-- LIVE 2-WAY VOICE / OPASLYHTY SPEAKER-MIC INTERCOM PANEL -->
-            <div id="voiceIntercomBox" style="display:flex;flex-direction:column;gap:4px;padding:6px 7px;background:rgba(15,23,42,0.92);border:1px solid rgba(56,189,248,0.45);border-radius:6px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;">
-                <strong style="font-size:10.5px;color:#38bdf8;">🔊 2-Way Voice Intercom (85 dBA Speaker + Mic)</strong>
-                <span id="lblIntercomLinkBadge" style="font-size:9.5px;font-family:var(--font-mono);color:#4ade80;">Ready • Click Target</span>
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
-                <select id="selIntercomDrone" class="select-input" onchange="changeAssignedTrackDrone(this.value)" style="width:100%;padding:2px 4px;font-size:10px;" title="Choose which Drone follows &amp; talks to the target">
-                  <option value="0" selected>🚁 Drone 1 (Sierra)</option>
-                  <option value="1">🚁 Drone 2 (Kilo)</option>
-                  <option value="2">🚁 Drone 3 (Echo)</option>
-                  <option value="3">🚁 Drone 4 (Foxtrot)</option>
-                </select>
-                <select id="selIntercomTarget" class="select-input" onchange="assignDroneToAutoTrack(this.value, null, closeTalkHoverActive)" style="width:100%;padding:2px 4px;font-size:10px;" title="Choose who to follow &amp; talk to">
-                  <option value="VEHICLE">🛸 Snowmobile (+34.0°C)</option>
-                  <option value="PERSON" selected>🚶 Lost Hiker (+31.4°C)</option>
-                </select>
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
-                <button class="win-btn" onclick="sendVoiceIntercomPreset('HALT_LISTEN')" style="font-size:9.5px;padding:3px 5px;color:#fbbf24;border-color:rgba(251,191,36,0.45);" title="Ask Snowmobile / Hiker to stop moving and listen to the drone speaker">🛑 "Stop &amp; Talk to Drone"</button>
-                <button class="win-btn" onclick="sendVoiceIntercomPreset('STATUS_CHECK')" style="font-size:9.5px;padding:3px 5px;color:#64d2ff;border-color:rgba(100,210,255,0.45);" title="Ask if they are injured or need medical/fuel assistance">🩺 "Are You OK / Status?"</button>
-                <button class="win-btn" onclick="sendVoiceIntercomPreset('FOLLOW_LIGHT')" style="font-size:9.5px;padding:3px 5px;color:#4ade80;border-color:rgba(74,222,128,0.45);" title="Tell them to follow the drone's green guide beam to the Road Bridge / Hut">🟢 "Follow Drone to Safety"</button>
-                <button class="win-btn" onclick="sendVoiceIntercomPreset('STAND_CLEAR_DROP')" style="font-size:9.5px;padding:3px 5px;color:#fb923c;border-color:rgba(251,146,60,0.45);" title="Warn them to stand 15m clear for the heated survival barrel drop">🪂 "Stand Clear (Drop)"</button>
-              </div>
-              <div style="display:flex;gap:4px;">
-                <input type="text" id="txtVoiceIntercomInput" placeholder="Type message to speak over drone loudhailer..." onkeydown="if(event.key==='Enter')sendCustomVoiceIntercomMessage()" style="flex:1;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:3px 6px;font-size:10.5px;outline:none;" />
-                <button class="btn success" onclick="sendCustomVoiceIntercomMessage()" style="padding:3px 8px;font-size:10.5px;">🔊 Speak</button>
-              </div>
-              <div id="lblVoiceIntercomTranscript" style="font-family:var(--font-mono);font-size:9.5px;color:#e2e8f0;background:rgba(0,0,0,0.42);padding:4px 6px;border-radius:4px;line-height:1.32;">
-                📢 <strong>Speaker Ready:</strong> Click <em>🛸 Auto-Track Snowmobile</em> or <em>🔊 Fly Close &amp; Talk</em> to fly within 10m and talk to the rider/hiker!
-              </div>
+          <!-- =============================================================== -->
+          <!-- APPLE CARD 3: FLIGHT STICK & WARM SUPPLY DROP                   -->
+          <!-- =============================================================== -->
+          <div class="apple-card">
+            <div class="apple-section-title">
+              <span>Steer &amp; Supply Drop</span>
+              <span class="step-badge" id="badgeStickState" style="background:rgba(10,132,255,0.18);color:#70b7ff;font-size:10.5px;">Ready</span>
             </div>
 
-            <div id="lblManualPilotTelemetry" style="font-family:var(--font-mono);font-size:10px;color:#4ade80;background:rgba(0,0,0,0.34);padding:4px 6px;border-radius:5px;border:1px solid rgba(56,189,248,0.25);line-height:1.3;">
-              🚁 Drone 1: 12.5 m/s (45 km/h) &bull; 🎯 Hiker: 18m SE (125°)
+            <div id="lblManualPilotTelemetry" style="font-size:11.5px;color:#a1a1aa;line-height:1.35;">
+              🚁 Drone 1 &bull; 12.5 m/s
             </div>
-            <div style="font-size:10.5px;color:var(--text-secondary);line-height:1.3;">
-              Steer with <strong>WASD / Arrows</strong>, <strong>2D Box below</strong>, or <strong>📍 Send Drone to Point</strong>. <strong>Click box / Space</strong> to hold position at <strong>(0%, 0%)</strong>!
-            </div>
-            <canvas id="trackpadSteerCanvas" width="280" height="156" style="width:100%;height:124px;background:#090b10;border:1px solid rgba(56,189,248,0.45);border-radius:7px;cursor:crosshair;display:block;touch-action:none;" title="Move inside box to steer 1:1. Click once (or press Space/Esc) to immediately center (0%, 0%) and hold position!"></canvas>
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;font-family:var(--font-mono);font-size:10px;">
-              <span id="lblStickAxisReadout" style="color:#64d2ff;">X: +0% [-100..+100] &bull; Y: +0% [-100..+100]</span>
-              <div style="display:flex;gap:4px;">
-                <button class="win-btn" id="btnToggleStickArm" onclick="toggleStickArmPause()" style="font-size:9.5px;padding:2px 5px;" title="Pause/Resume trackpad cursor follow and hold position">⏸ Hold Pos [Click/Space]</button>
-                <button class="win-btn" onclick="resumeSelectedDroneAutoScan()" style="font-size:9.5px;padding:2px 5px;color:#4ade80;" title="Return selected drone from Manual Pilot to automatic sector scanning">↺ Auto Scan</button>
-              </div>
-            </div>
-          </div>
 
-          <!-- CARD 1: CONTINUOUS RADAR PATROL, COUNTER-INFILTRATION & SCAN DECAY -->
-          <div class="step-card">
-            <div class="step-header">
-              <span class="step-title">1. Continuous Radar Patrol &amp; Decay</span>
-              <span class="step-badge" id="badgeScanStatus">Radar Sweep #1 (N↕S)</span>
-            </div>
-            <p class="step-desc">
-              Drones <strong>never stop after 1 pass</strong>: they alternate <strong>Up/Down (N&#8597;S Pincer)</strong> &amp; <strong>Side-to-Side (E&#8596;W Cross)</strong> sweeps to trap moving targets, while scanned areas <strong>decay (darken)</strong> until refreshed by live video.
-            </p>
-            <div class="form-grid">
-              <div class="field-box">
-                <span class="field-label">Patrol &amp; Anti-Leak Pattern</span>
-                <select id="selMissionPattern" class="select-input" onchange="updateMissionPattern(this.value)" style="width:100%;padding:3px 5px;font-size:11px;">
-                  <option value="PINCER_CROSS_RADAR" selected>🔄 Pincer N&#8597;S + E&#8596;W Cross (Anti-Leak)</option>
-                  <option value="BOUNDARY_SEAL_SPIRAL">🛡️ Perimeter Seal &rarr; Interior Sweep</option>
-                  <option value="DISJOINT_SECTORS">↕️ Continuous Reciprocal N&#8597;S Strips</option>
-                  <option value="LINE_ABREAST_RAKE">🧱 Synchronized Line-Abreast Wall</option>
-                </select>
-              </div>
-              <div class="field-box">
-                <span class="field-label">Scan Decay (Moving Target)</span>
-                <select id="selScanDecayHalfLife" class="select-input" onchange="updateScanDecayHalfLife(this.value)" style="width:100%;padding:3px 5px;font-size:11px;" title="How quickly already-scanned areas darken back into stale shroud (faster decay along unscanned borders where moving targets can enter)">
-                  <option value="32">⚡ Fast Decay (32s • Vehicle/Runner)</option>
-                  <option value="55" selected>🚶 Standard Decay (55s • Hiker 1.5m/s)</option>
-                  <option value="120">🐢 Slow Decay (120s • Stationary)</option>
-                  <option value="999999">📌 Static Map (No Decay)</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-grid">
-              <div class="field-box">
-                <span class="field-label">Flight Altitude (AGL)</span>
-                <select id="selAglClearance" class="select-input" onchange="recomputeAutoMission(false)" style="width:100%;padding:3px 5px;font-size:11px;">
-                  <option value="40">40 m (72 m Swath)</option>
-                  <option value="55" selected>55 m (86 m Swath)</option>
-                  <option value="85">85 m (116 m Swath)</option>
-                </select>
-              </div>
-              <div class="field-box">
-                <span class="field-label">Fresh vs. Stale / Leak Risk</span>
-                <span class="field-value" id="valAreaSwath" style="font-size:11px;color:#4ade80;">68% Fresh • 14% Decaying</span>
-              </div>
-            </div>
-            <div class="form-grid">
-              <div class="field-box">
-                <span class="field-label">Active Radar Cycle</span>
-                <span class="field-value" id="valRadarCycleInfo" style="font-size:11px;color:#38bdf8;">Pass #1 (N&#8597;S Pincer)</span>
-              </div>
-              <div class="field-box">
-                <span class="field-label">Boundary Anti-Leak Guard</span>
-                <span class="field-value" id="valDemRange" style="font-size:11px;color:#fbbf24;">2.2&times; Edge Decay + Cross</span>
-              </div>
-            </div>
+            <canvas id="trackpadSteerCanvas" width="280" height="142" style="width:100%;height:122px;background:#101116;border:1px solid rgba(255,255,255,0.12);border-radius:12px;cursor:crosshair;display:block;touch-action:none;" title="Move inside pad or use WASD / Arrow Keys to steer. Click pad or press Space to Hover."></canvas>
+
             <div style="display:flex;gap:6px;">
-              <button class="btn primary" onclick="restartCooperativeSearch()" style="flex:1.2;">↺ Restart Clean Radar Scan</button>
-              <button class="btn" onclick="exportQgcWaypoints()" style="flex:0.8;">Export Plan</button>
+              <button class="btn" id="btnToggleStickArm" onclick="toggleStickArmPause()" style="flex:1;border-radius:9px;padding:6px 8px;font-size:11.5px;">⏸ Hover (Space)</button>
+              <button class="btn" onclick="toggleMapSubTool('GOTO_POINT')" style="flex:1;border-radius:9px;padding:6px 8px;font-size:11.5px;" title="Click any spot on Map or Video to fly there">📍 Click to Fly</button>
             </div>
-          </div>
+            <span id="lblStickAxisReadout" style="display:none;">X: +0% • Y: +0%</span>
 
-          <!-- CARD 2: TARGET ASSIGNMENT & AUTO-TRACK (WITH EASY 1-CLICK CANCEL!) -->
-          <div class="step-card">
-            <div class="step-header">
-              <span class="step-title">2. Target Tracking Assignment</span>
-              <span class="step-badge amber" id="badgeTargetState">Drone 1 Assigned</span>
-            </div>
-
-            <label class="toggle-row">
-              <span><strong>Auto-Assign Drone to Detected Person / Vehicle</strong></span>
-              <input type="checkbox" id="chkPreemptMapping" checked onchange="toggleTargetLockSwitch(this.checked)" />
-            </label>
-
-            <div class="assignment-box" id="targetAssignmentCard">
+            <!-- Clean 1-Tap Supply Drop -->
+            <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:9px;display:flex;flex-direction:column;gap:6px;">
               <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span style="color:var(--text-secondary);">Assigned Drone:</span>
-                <div style="display:flex;align-items:center;gap:6px;">
-                  <strong style="color:#ff9f0a;display:none;" id="lblAssignedDrone">Drone 1 (Sierra)</strong>
-                  <select id="selCard2AssignedDrone" class="select-input" onchange="changeAssignedTrackDrone(this.value)" style="padding:3px 6px;font-size:11.5px;">
-                    <option value="0" selected>🚁 Drone 1 (Sierra)</option>
-                    <option value="1">🚁 Drone 2 (Kilo)</option>
-                    <option value="2">🚁 Drone 3 (Echo)</option>
-                    <option value="3">🚁 Drone 4 (Foxtrot)</option>
-                  </select>
-                </div>
+                <span style="font-size:12px;font-weight:600;color:#f5f5f7;">🪂 Warm Survival Barrel (+42°C)</span>
+                <span class="step-badge" id="badgeDropStatus" style="font-size:10px;">Ready</span>
               </div>
-              <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span style="color:var(--text-secondary);">Tracked Target:</span>
-                <select id="selGuidedTarget" class="select-input" onchange="switchGuidedTarget(this.value)" style="padding:3px 6px;font-size:11.5px;">
-                  <option value="PERSON" selected>🚶 Lost Hiker (+31.4°C) &rarr; Hut</option>
-                  <option value="VEHICLE">🛸 Snowmobile (+34.0°C) &rarr; Road</option>
-                </select>
+              <div id="dropStatusDescription" style="font-size:11px;color:#a1a1aa;line-height:1.35;">
+                Drops a heated survival barrel &amp; radio 15m from the target.
               </div>
-              <div style="display:flex;gap:5px;margin-top:2px;">
-                <button class="btn primary" onclick="assignDroneToAutoTrack('VEHICLE', null, false)" style="flex:1;padding:4px 6px;font-size:11px;">🛸 Track Snowmobile</button>
-                <button class="btn primary" onclick="assignDroneToAutoTrack('PERSON', null, false)" style="flex:1;padding:4px 6px;font-size:11px;">🚶 Track Hiker</button>
-                <button class="btn success" onclick="flyCloseAndOpenVoiceIntercom()" style="flex:1;padding:4px 6px;font-size:11px;">🔊 Fly Close &amp; Talk</button>
-              </div>
-              <div style="display:flex;gap:6px;margin-top:3px;">
-                <button class="btn danger" id="btnSidebarCancelTarget" onclick="cancelTargetAssignment()" style="flex:1;">
-                  ✕ Cancel Target Lock (Return to Scan)
+              <div style="display:flex;gap:6px;" id="dropActionButtons">
+                <button class="btn warning" id="btnQueueDropNearTarget" onclick="queueDropNearActiveTarget()" style="flex:1;border-radius:10px;padding:7px 10px;">
+                  🪂 Drop Supply Near Target
                 </button>
-                <button class="btn success" id="btnSidebarReassignTarget" onclick="reassignTargetLock()" style="flex:1;display:none;">
-                  🎯 Assign Drone to Target
-                </button>
-              </div>
-              <div style="display:flex;gap:5px;margin-top:3px;">
-                <button class="btn" onclick="toggleMapSubTool('GOTO_POINT')" style="flex:1;padding:4px 6px;font-size:11px;" title="Click anywhere on Map or Video to fly selected drone there">📍 Click Map to Send Drone</button>
-                <button class="btn" onclick="toggleMapSubTool('TRACK_OBJECT')" style="flex:1;padding:4px 6px;font-size:11px;" title="Click any object on Map or Video to lock &amp; track it">🎯 Click Object to Track</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- CARD 3: CLEAR PAYLOAD DROP SWITCH & CANCELABLE DROP QUEUE -->
-          <div class="step-card">
-            <div class="step-header">
-              <span class="step-title">3. Payload Drop (+42 °C Rescue Cask)</span>
-              <span class="step-badge" id="badgeDropStatus">Ready Aboard Drone 1</span>
-            </div>
-
-            <label class="toggle-row" style="background:rgba(255,159,10,0.10);border:1px solid rgba(255,159,10,0.35);padding:7px 9px;border-radius:8px;">
-              <span><strong>🪂 Enable "Mark Payload Drop" Mode</strong><br/><small style="color:var(--text-secondary);">Turn ON, then click Map or Video to set drop point</small></span>
-              <input type="checkbox" class="amber-switch" id="chkDropMarkerMode" onchange="setDropMarkerMode(this.checked)" />
-            </label>
-
-            <div class="assignment-box" id="dropStatusCard">
-              <div id="dropStatusDescription" style="color:var(--text-secondary);line-height:1.4;">
-                <strong>No Drop Queued:</strong> Turn on the <em>Mark Payload Drop</em> switch above (or click <em>Queue Drop 15m from Hiker</em> below) to assign a drop point. You can cancel anytime before release.
-              </div>
-
-              <div style="display:flex;gap:6px;margin-top:4px;" id="dropActionButtons">
-                <button class="btn warning" id="btnQueueDropNearTarget" onclick="queueDropNearActiveTarget()" style="flex:1;">
-                  🪂 Queue Drop 15m from Target
-                </button>
-                <button class="btn danger" id="btnSidebarCancelDrop" onclick="cancelPendingDrop()" style="flex:1;display:none;">
-                  ✕ Cancel Drop Assignment
+                <button class="btn danger" id="btnSidebarCancelDrop" onclick="cancelPendingDrop()" style="flex:1;display:none;border-radius:10px;padding:7px 10px;">
+                  ✕ Cancel Drop
                 </button>
               </div>
               <div style="display:flex;gap:6px;" id="dropConfirmRow">
-                <button class="btn success" id="btnSidebarReleaseNow" onclick="executeImmediateDrop()" style="flex:1;display:none;">
-                  ✓ Release Payload Now
+                <button class="btn success" id="btnSidebarReleaseNow" onclick="executeImmediateDrop()" style="flex:1;display:none;border-radius:10px;padding:7px 10px;">
+                  ✓ Release Supply Now
                 </button>
-                <button class="btn" id="btnSidebarReloadPayload" onclick="reloadPayloadSimulation()" style="flex:1;display:none;">
-                  ↺ Reload Payload for Test
+                <button class="btn" id="btnSidebarReloadPayload" onclick="reloadPayloadSimulation()" style="flex:1;display:none;border-radius:10px;padding:7px 10px;">
+                  ↺ Reload Supply
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- CARD 4: FIELD-TEST HARDWARE & BINARY MAVLINK v2 TELEMETRY BRIDGE -->
-          <div class="step-card">
-            <div class="step-header">
-              <span class="step-title">4. Field Hardware &amp; MAVLink v2</span>
-              <span class="step-badge amber" id="badgeMavlinkLink" title="Software protocol is 100% production MAVLink v2; indicates whether a physical Cube Orange+ is currently sending RX heartbeats">SW: 100% Prod • HIL Standby</span>
-            </div>
-            <div class="assignment-box" style="font-size:11px;gap:4px;">
-              <div style="display:flex;justify-content:space-between;">
-                <span style="color:var(--text-secondary);">MAVLink v2 Bridge:</span>
-                <strong style="color:#4ade80;" id="lblMavEndpoint">UDP :14550 (0xFD CRC-16 TX/RX)</strong>
+          <!-- =============================================================== -->
+          <!-- COLLAPSIBLE DRAWER: ADVANCED AI, SEARCH GRID & HARDWARE         -->
+          <!-- (Tucked away by default to keep the sidebar effortless!)        -->
+          <!-- =============================================================== -->
+          <details class="apple-details">
+            <summary>
+              <span>⚙️ Advanced AI, Search Grid &amp; Hardware</span>
+              <span style="font-size:10.5px;color:#71717a;">Show ▾</span>
+            </summary>
+            <div style="padding:10px;display:flex;flex-direction:column;gap:10px;border-top:1px solid rgba(255,255,255,0.07);">
+
+              <!-- ADVANCED CARD A: AI PLAYBOOK & LLM SETTINGS -->
+              <div class="step-card">
+                <div class="step-header">
+                  <span class="step-title">🤖 AI Playbook &amp; LLM Settings</span>
+                  <span class="step-badge" id="badgeAidState">Structured • &lt;1ms</span>
+                </div>
+                <div class="form-grid">
+                  <div class="field-box">
+                    <span class="field-label">Control Policy</span>
+                    <select id="selAidMode" class="select-input" onchange="updateAidMode(this.value)" style="width:100%;padding:3px 5px;font-size:11px;">
+                      <option value="OFFLINE_DETERMINISTIC" selected>⚡ Auto Search &amp; Track (&lt;1ms)</option>
+                      <option value="MANUAL_HUMAN_ONLY">🛑 Manual Control Only</option>
+                      <option value="CLOUD_LLM_JEV">🧠 Cloud LLM Co-Pilot</option>
+                      <option value="ADVISORY_ONLY">💡 Advisory Only</option>
+                    </select>
+                  </div>
+                  <div class="field-box">
+                    <span class="field-label">Offline Fallback</span>
+                    <select id="selAidFallback" class="select-input" onchange="updateAidFallbackPolicy(this.value)" style="width:100%;padding:3px 5px;font-size:11px;">
+                      <option value="OFFLINE_DETERMINISTIC" selected>Structured Playbook</option>
+                      <option value="MANUAL_HUMAN_ONLY">Manual Control Only</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="field-box" style="padding:5px 7px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;">
+                    <span class="field-label">Mission Profile</span>
+                    <div style="display:flex;gap:4px;align-items:center;">
+                      <button class="win-btn" onclick="toggleLlmApiKeyPanel()" id="btnToggleApiKeyPanel" style="font-size:10px;padding:1px 6px;">🔑 API Key</button>
+                      <button class="win-btn" onclick="togglePlaybookEditor()" id="btnTogglePbEditor" style="font-size:10px;padding:1px 6px;color:#38bdf8;">⚙️ Parameters</button>
+                    </div>
+                  </div>
+                  <select id="selPlaybookPreset" class="select-input" onchange="selectPlaybookPreset(this.value)" style="width:100%;padding:3px 5px;font-size:11px;margin-top:2px;">
+                    <option value="PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY" selected>1. Night Hiker Search &amp; Hut Escort (55m/28m)</option>
+                    <option value="PLAYBOOK_02_CAUTIOUS_HUMAN_CONFIRM_DROP">2. Cautious Search (Confirm Drop)</option>
+                    <option value="PLAYBOOK_03_STRANDED_SNOWMOBILE_CORRIDOR">3. Snowmobile Corridor Escort (65m/45m)</option>
+                    <option value="PLAYBOOK_04_EW_DENIED_PASSIVE_RECON">4. High Altitude Sweep (85m/35m)</option>
+                  </select>
+
+                  <div id="llmApiKeyPanelWrap" style="display:none;flex-direction:column;gap:6px;margin-top:6px;padding:7px 8px;background:rgba(10,132,255,0.10);border:1px solid rgba(10,132,255,0.45);border-radius:6px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                      <strong style="font-size:11px;color:#64d2ff;">🔑 LLM &amp; Google Maps API Keys</strong>
+                      <span id="lblApiKeyStatusBadge" style="font-size:10px;font-family:var(--font-mono);color:#fbbf24;">Earth: 0-Key Live</span>
+                    </div>
+                    <select id="selLlmProviderModel" class="select-input" style="width:100%;padding:3px 5px;font-size:10.5px;">
+                      <option value="openai|gpt-5.4-mini" selected>OpenAI • gpt-5.4-mini</option>
+                      <option value="openai|gpt-4.1-mini">OpenAI • gpt-4.1-mini</option>
+                      <option value="gemini|gemini-2.5-flash">Google Gemini • gemini-2.5-flash</option>
+                      <option value="anthropic|claude-haiku-4-5-20251001">Anthropic • claude-haiku-4-5</option>
+                      <option value="anthropic|claude-sonnet-4-6">Anthropic • claude-sonnet-4-6</option>
+                    </select>
+                    <div style="display:flex;gap:4px;align-items:center;">
+                      <input type="password" id="txtLlmApiKey" placeholder="LLM API Key (sk-...)" autocomplete="off" style="flex:1;background:#0e0e12;color:#f5f5f7;border:1px solid var(--border-strong);border-radius:5px;padding:4px 7px;font-family:var(--font-mono);font-size:11px;" />
+                      <button class="win-btn" onclick="toggleApiKeyVisibility()" id="btnShowHideApiKey" style="font-size:10px;padding:3px 6px;">👁️</button>
+                    </div>
+                    <input type="password" id="txtGoogleMapsApiKey" placeholder="Optional Google Maps Key (AIza...)" autocomplete="off" style="width:100%;background:#0e0e12;color:#f5f5f7;border:1px solid var(--border-subtle);border-radius:5px;padding:4px 7px;font-family:var(--font-mono);font-size:10.5px;" />
+                    <label style="display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--text-primary);cursor:pointer;">
+                      <input type="checkbox" id="chkSaveKeyToDisk" checked style="accent-color:var(--accent-blue);" />
+                      <span>Save API keys to disk (<code>chmod 0600</code>)</span>
+                    </label>
+                    <div style="display:flex;gap:5px;">
+                      <button class="btn success" onclick="saveAndActivateLlmApiKey()" style="flex:1;padding:4px 7px;font-size:11px;">✓ Save</button>
+                      <button class="btn danger" onclick="clearSavedLlmApiKey()" style="padding:4px 7px;font-size:10.5px;">🗑️ Clear</button>
+                      <button class="btn" onclick="cancelApiKeyPromptAndUseOffline()" style="padding:4px 7px;font-size:10.5px;">✕</button>
+                    </div>
+                  </div>
+
+                  <div id="playbookEditorWrap" style="display:none;flex-direction:column;gap:5px;margin-top:6px;padding:6px 7px;background:rgba(15,23,42,0.85);border:1px solid rgba(56,189,248,0.35);border-radius:6px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">
+                      <div>
+                        <label style="font-size:9.5px;color:#94a3b8;display:block;">Search Alt (m)</label>
+                        <input type="number" id="inpPbSearchAlt" min="28" max="120" step="1" value="55" style="width:100%;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:2px 5px;font-size:11px;" />
+                      </div>
+                      <div>
+                        <label style="font-size:9.5px;color:#94a3b8;display:block;">Track Alt (m)</label>
+                        <input type="number" id="inpPbTrackAlt" min="28" max="120" step="1" value="28" style="width:100%;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:2px 5px;font-size:11px;" />
+                      </div>
+                      <div>
+                        <label style="font-size:9.5px;color:#94a3b8;display:block;">Standoff (m)</label>
+                        <input type="number" id="inpPbDropOffset" min="15" max="50" step="1" value="15" style="width:100%;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:2px 5px;font-size:11px;" />
+                      </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+                      <div>
+                        <label style="font-size:9.5px;color:#94a3b8;display:block;">Target Priority</label>
+                        <select id="selPbTargetType" class="select-input" style="width:100%;padding:2px 4px;font-size:10.5px;">
+                          <option value="PERSON" selected>Lost Hiker (Person)</option>
+                          <option value="VEHICLE">Snowmobile (Vehicle)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label style="font-size:9.5px;color:#94a3b8;display:block;">Drop Policy</label>
+                        <select id="selPbDropPolicy" class="select-input" style="width:100%;padding:2px 4px;font-size:10.5px;">
+                          <option value="AUTO_RELEASE" selected>Auto Queue &amp; Release</option>
+                          <option value="REQUIRE_CONFIRM">Queue + Human Confirm</option>
+                          <option value="MANUAL_ONLY">Manual Drop Only</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+                      <div>
+                        <label style="font-size:9.5px;color:#94a3b8;display:block;">RTH Battery (%)</label>
+                        <input type="number" id="inpPbRthBatt" min="20" max="50" step="1" value="22" style="width:100%;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:2px 5px;font-size:11px;" />
+                      </div>
+                      <div>
+                        <label style="font-size:9.5px;color:#94a3b8;display:block;">Veto Cooldown (s)</label>
+                        <input type="number" id="inpPbVetoSec" min="30" max="1800" step="30" value="300" style="width:100%;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:2px 5px;font-size:11px;" />
+                      </div>
+                    </div>
+                    <div style="display:flex;gap:5px;">
+                      <button class="btn primary" onclick="compileAndApplyCustomPlaybook()" style="flex:1;padding:3px 7px;font-size:11px;">⚡ Apply</button>
+                      <button class="btn warning" onclick="simulateLlmOutageTest()" style="padding:3px 7px;font-size:11px;">🔌 Test Cutout</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="assignment-box" style="padding:6px 8px;font-size:10.5px;gap:3px;" id="jevStatusBox">
+                  <div style="display:flex;justify-content:space-between;">
+                    <span style="color:var(--text-secondary);">Active (<span id="lblPbEpoch">Epoch #1</span>):</span>
+                    <strong style="color:#64d2ff;" id="lblCompiledSummary">55m • Track 28m • Drop 15m</strong>
+                  </div>
+                  <div style="font-family:var(--font-mono);font-size:10px;color:#4ade80;" id="lblJevDecision">Ready</div>
+                  <div style="font-family:var(--font-mono);font-size:9.5px;color:#93c5fd;" id="lblJevRationaleTrace">Safety Verifier: PASS</div>
+                  <div id="lblVetoBanner" style="display:none;justify-content:space-between;align-items:center;color:#fca5a5;font-size:10px;">
+                    <span id="lblVetoText">Veto Active</span>
+                    <button class="win-btn" onclick="clearAllHumanVetoes()" style="font-size:10px;padding:1px 5px;color:#4ade80;">↺ Clear</button>
+                  </div>
+                </div>
               </div>
-              <div style="display:flex;justify-content:space-between;">
-                <span style="color:var(--text-secondary);">Physical Autopilot RX:</span>
-                <strong style="color:#fbbf24;" id="lblPhysicalFcStatus">HIL Standby (No Cube Orange+ RX)</strong>
+
+              <!-- ADVANCED CARD B: SEARCH GRID & PATROL SETTINGS -->
+              <div class="step-card">
+                <div class="step-header">
+                  <span class="step-title">Search Grid &amp; Decay</span>
+                  <span class="step-badge" id="badgeScanStatus">Sweep #1</span>
+                </div>
+                <div class="form-grid">
+                  <div class="field-box">
+                    <span class="field-label">Sweep Pattern</span>
+                    <select id="selMissionPattern" class="select-input" onchange="updateMissionPattern(this.value)" style="width:100%;padding:3px 5px;font-size:11px;">
+                      <option value="PINCER_CROSS_RADAR" selected>🔄 Pincer N&#8597;S + E&#8596;W Cross</option>
+                      <option value="BOUNDARY_SEAL_SPIRAL">🛡️ Perimeter &rarr; Interior</option>
+                      <option value="DISJOINT_SECTORS">↕️ Parallel Strips</option>
+                      <option value="LINE_ABREAST_RAKE">🧱 Line-Abreast Wall</option>
+                    </select>
+                  </div>
+                  <div class="field-box">
+                    <span class="field-label">Map Freshness Decay</span>
+                    <select id="selScanDecayHalfLife" class="select-input" onchange="updateScanDecayHalfLife(this.value)" style="width:100%;padding:3px 5px;font-size:11px;">
+                      <option value="32">⚡ Fast (32s)</option>
+                      <option value="55" selected>🚶 Standard (55s)</option>
+                      <option value="120">🐢 Slow (120s)</option>
+                      <option value="999999">📌 No Decay</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-grid">
+                  <div class="field-box">
+                    <span class="field-label">Search Altitude</span>
+                    <select id="selAglClearance" class="select-input" onchange="recomputeAutoMission(false)" style="width:100%;padding:3px 5px;font-size:11px;">
+                      <option value="40">40 m AGL</option>
+                      <option value="55" selected>55 m AGL</option>
+                      <option value="85">85 m AGL</option>
+                    </select>
+                  </div>
+                  <div class="field-box">
+                    <span class="field-label">Coverage Freshness</span>
+                    <span class="field-value" id="valAreaSwath" style="font-size:11px;color:#4ade80;">68% Fresh</span>
+                  </div>
+                </div>
+                <div style="display:none;">
+                  <span id="valRadarCycleInfo"></span>
+                  <span id="valDemRange"></span>
+                  <span id="badgeTargetState"></span>
+                  <span id="lblAssignedDrone"></span>
+                  <input type="checkbox" id="chkPreemptMapping" checked onchange="toggleTargetLockSwitch(this.checked)" />
+                  <select id="selCard2AssignedDrone" onchange="changeAssignedTrackDrone(this.value)"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select>
+                  <select id="selGuidedTarget" onchange="switchGuidedTarget(this.value)"><option value="PERSON">PERSON</option><option value="VEHICLE">VEHICLE</option></select>
+                  <button id="btnSidebarCancelTarget" onclick="cancelTargetAssignment()"></button>
+                  <button id="btnSidebarReassignTarget" onclick="reassignTargetLock()"></button>
+                  <input type="checkbox" id="chkDropMarkerMode" onchange="setDropMarkerMode(this.checked)" />
+                </div>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn primary" onclick="restartCooperativeSearch()" style="flex:1;">↺ Restart Clean Scan</button>
+                  <button class="btn" onclick="exportQgcWaypoints()" style="flex:1;">💾 Export Plan</button>
+                </div>
               </div>
-              <div style="display:flex;justify-content:space-between;">
-                <span style="color:var(--text-secondary);">Winch Servo (Ch 9):</span>
-                <strong id="lblServoPwm" style="color:#ffffff;">1100 &micro;s (Locked 25 N)</strong>
-              </div>
-              <div id="lblLastMavTx" style="color:#60a5fa;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;word-break:break-all;margin-top:2px;">
-                TX #1: MISSION_ITEM_INT (#73) [FD 25 00 00 01 FF BE 49 00 00 ... CRC OK]
-              </div>
-            </div>
-            <div style="display:flex;gap:6px;">
-              <button class="btn" id="btnConnectHwVideo" onclick="toggleHardwareUvcVideo()" style="flex:1;">
-                📹 Connect USB/VRX Camera
-              </button>
-              <button class="btn" onclick="exportQgcWaypoints()" style="flex:1;">
-                💾 QGC .waypoints
-              </button>
-            </div>
-            <!-- Multi-Persona Ecosystem Sync (Personas 3, 4, 5, 6) -->
-            <div style="margin-top:6px;padding:6px 8px;background:rgba(15,23,42,0.85);border:1px solid rgba(56,189,248,0.35);border-radius:7px;font-size:10.5px;display:flex;flex-direction:column;gap:4px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;">
-                <strong style="color:#38bdf8;">🛷 4. Ground SAR Responder:</strong>
-                <a href="/mobile_responder.html" style="color:#4ade80;font-weight:700;text-decoration:none;font-family:var(--font-mono);" id="lblGroundResponderAck">🟢 En Route (380m • 034° NE) ↗</a>
-              </div>
-              <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span style="color:var(--text-secondary);">🌲 3. Trail-Cam + Sky-Diode:</span>
-                <span style="color:#4ade80;font-family:var(--font-mono);" id="lblTrailCamStatus">SW: 100% • Bench Standby (+55.8 dB)</span>
-              </div>
-              <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span style="color:var(--text-secondary);">🔦 5. Opaslyhty &amp; 6. Heli Cap:</span>
-                <div style="display:flex;gap:4px;align-items:center;">
+
+              <!-- ADVANCED CARD C: HARDWARE & MAVLINK v2 BRIDGE -->
+              <div class="step-card">
+                <div class="step-header">
+                  <span class="step-title">Hardware &amp; MAVLink v2</span>
+                  <span class="step-badge amber" id="badgeMavlinkLink">HIL Standby</span>
+                </div>
+                <div class="assignment-box" style="font-size:10.5px;gap:3px;">
+                  <div style="display:flex;justify-content:space-between;">
+                    <span style="color:var(--text-secondary);">MAVLink v2:</span>
+                    <strong style="color:#4ade80;" id="lblMavEndpoint">UDP :14550</strong>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;">
+                    <span style="color:var(--text-secondary);">Autopilot RX:</span>
+                    <strong style="color:#fbbf24;" id="lblPhysicalFcStatus">HIL Standby</strong>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;">
+                    <span style="color:var(--text-secondary);">Winch Ch 9:</span>
+                    <strong id="lblServoPwm" style="color:#ffffff;">1100 &micro;s</strong>
+                  </div>
+                  <div id="lblLastMavTx" style="color:#60a5fa;font-family:var(--font-mono);font-size:9.5px;word-break:break-all;">
+                    TX #1: MISSION_ITEM_INT (#73)
+                  </div>
+                </div>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn" id="btnConnectHwVideo" onclick="toggleHardwareUvcVideo()" style="flex:1;font-size:11px;">📹 USB Camera</button>
+                  <button class="btn" id="btnHeliCeilingLock" onclick="toggleMannedHeliCeilingLock()" style="flex:1;font-size:11px;">🚁 Heli 35m: OFF</button>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:10.5px;padding-top:2px;">
+                  <a href="/mobile_responder.html" style="color:#4ade80;text-decoration:none;font-weight:600;" id="lblGroundResponderAck">🛷 Ground SAR App ↗</a>
+                  <span id="lblTrailCamStatus" style="color:#a1a1aa;font-size:10px;">Trail-Cam Ready</span>
                   <select id="selCncLanternLang" class="select-input" onchange="syncEcosystemLangOrHeli()" style="padding:1px 4px;font-size:10px;">
                     <option value="FI" selected>🇫🇮 FI</option>
                     <option value="EN">🇬🇧 EN</option>
                     <option value="SE">🇸🇪 SE</option>
                   </select>
-                  <button class="win-btn" id="btnHeliCeilingLock" onclick="toggleMannedHeliCeilingLock()" style="font-size:9.5px;padding:1px 5px;" title="Enforce 35m AGL Drone Ceiling for FINHEMS Manned Helicopter Co-Use">🚁 Heli 35m: OFF</button>
                 </div>
+                <button class="btn warning" onclick="toggleProdReadinessModal(true)" style="width:100%;font-size:10.5px;">
+                  🛡️ Production Readiness Matrix
+                </button>
               </div>
-              <button class="btn warning" onclick="toggleProdReadinessModal(true)" style="width:100%;margin-top:2px;padding:4px 8px;font-size:10.5px;justify-content:center;">
-                🛡️ View Full 6-Persona Production vs. Missing Bench/Field Matrix
-              </button>
+
             </div>
-          </div>
+          </details>
+
         </div>
       </div>
 
@@ -3895,11 +4101,55 @@
       if (selTop && String(selTop.value) !== String(simSpeed)) selTop.value = String(simSpeed);
       const selCard = document.getElementById('selCardSimSpeed');
       if (selCard && String(selCard.value) !== String(simSpeed)) selCard.value = String(simSpeed);
+      // Sync Apple Speed Segmented Bar
+      [
+        ['segSpd05', 0.5],
+        ['segSpd1', 1],
+        ['segSpd5', 5],
+        ['segSpd25', 25],
+        ['segSpd100', 100]
+      ].forEach(([id, s]) => {
+        document.getElementById(id)?.classList.toggle('active', Math.abs(simSpeed - s) < 0.01);
+      });
+      const pill = document.getElementById('appleModeStatusPill');
+      if (pill) {
+        pill.textContent = simSpeed === 1 ? '1x Real-Time' : `${simSpeed}x Speed`;
+      }
       updateStickReadoutUI();
       updateTargetAndDropUI();
       const cruiseMps = (12.5 * simSpeed).toFixed(1);
       const cruiseKmh = Math.round(12.5 * simSpeed * 3.6);
       updateAidBannerUI(`⏱️ Simulation Time Scale Set to ${simSpeed}x (${cruiseMps} m/s = ${cruiseKmh} km/h Drone Cruise • ${(1.45 * simSpeed).toFixed(1)} m/s Hiker Walk)`);
+    }
+
+    function selectAppleActiveDrone(idx) {
+      const dIdx = Math.max(0, Math.min(3, parseInt(idx, 10) || 0));
+      selectCameraSource(`DRONE_${dIdx}`);
+      assignedTrackDroneIdx = dIdx;
+      syncTrackSelectorsUI();
+    }
+
+    function setAppleFlightMode(mode) {
+      if (mode === 'AUTO_SEARCH') {
+        targetLockActive = false;
+        closeTalkHoverActive = false;
+        drones.forEach(d => {
+          d.manualHold = false;
+          d.customGoal = null;
+          d.role = 'SHROUD_MAPPER';
+        });
+        updateAidMode('OFFLINE_DETERMINISTIC');
+        recomputeAutoMission(false);
+        updateTargetAndDropUI();
+      } else if (mode === 'MANUAL_FLY') {
+        startManualPracticeMission();
+      } else if (mode === 'AUTO_FOLLOW') {
+        const dIdx = getActiveSelectedDroneIndex();
+        const d = drones[dIdx] || drones[0];
+        const dVeh = Math.hypot(lostVehicle.x - d.x, lostVehicle.y - d.y);
+        const dPer = Math.hypot(lostPerson.x - d.x, lostPerson.y - d.y);
+        assignDroneToAutoTrack(dVeh <= dPer + 25 ? 'VEHICLE' : 'PERSON', dIdx, false);
+      }
     }
 
     function cycleSimSpeed() {
@@ -4419,10 +4669,8 @@
           const rect = padCanvas.getBoundingClientRect();
           const cx = (clientX - rect.left) * (padCanvas.width / Math.max(1, rect.width));
           const cy = (clientY - rect.top) * (padCanvas.height / Math.max(1, rect.height));
-          const boxX0 = 12, boxX1 = 224, boxY0 = 10, boxY1 = 128;
+          const boxX0 = 10, boxX1 = padCanvas.width - 10, boxY0 = 10, boxY1 = padCanvas.height - 10;
 
-          // If cursor moves outside the inner 2D Stick Box (e.g. over the right Y-axis bar, bottom X-axis bar, or outer border on the way out),
-          // immediately auto-center to (0%, 0%) so exiting the box NEVER leaves the stick pointing to one side!
           if (cx < boxX0 || cx > boxX1 || cy < boxY0 || cy > boxY1) {
             stickState.x = 0.0;
             stickState.y = 0.0;
@@ -4433,13 +4681,11 @@
           const normX = ((cx - (boxX0 + boxX1) * 0.5) / ((boxX1 - boxX0) * 0.5));
           const normY = (((boxY0 + boxY1) * 0.5 - cy) / ((boxY1 - boxY0) * 0.5));
 
-          // If paused (disarmed via Click/Space/Esc), keep stick locked at (0%, 0%) while operator moves cursor out of the box!
-          // Re-arm automatically if operator brings cursor back into the center neutral circle (|normX| < 0.16 && |normY| < 0.16).
           if (!stickState.padArmed) {
-            if (Math.hypot(normX, normY) < 0.16) {
+            if (Math.hypot(normX, normY) < 0.18) {
               stickState.padArmed = true;
               const btnArm = document.getElementById('btnToggleStickArm');
-              if (btnArm) btnArm.textContent = '⏸ Pause/Center [Click/Space]';
+              if (btnArm) btnArm.textContent = '⏸ Hover (Space)';
             } else {
               stickState.x = 0.0;
               stickState.y = 0.0;
@@ -4458,15 +4704,12 @@
         });
         padCanvas.addEventListener('mousedown', e => {
           e.preventDefault();
-          // Clicking inside the pad toggles Pause/Center (0%, 0%) vs. Armed Follow!
-          // When you want to stop steering without pulling the stick to one side as your cursor exits, simply click once!
           toggleStickArmPause();
           if (stickState.padArmed) {
             updateStickFromPadEvent(e.clientX, e.clientY);
           }
         });
         padCanvas.addEventListener('mouseleave', () => {
-          // Always snap back to (0%, 0%) when cursor leaves the pad (never leave stuck at 100%!)
           stickState.x = 0.0;
           stickState.y = 0.0;
           stickState.fingerInsidePad = false;
@@ -4503,124 +4746,67 @@
       const ctx = padCanvas.getContext('2d');
       const W = padCanvas.width, H = padCanvas.height;
       ctx.clearRect(0, 0, W, H);
-      ctx.fillStyle = '#090b10';
+
+      // Clean Apple Trackpad dark glass surface
+      ctx.fillStyle = '#121318';
       ctx.fillRect(0, 0, W, H);
 
-      // 2D Bounds Box: x=[12..224], y=[10..128]
-      const bx0 = 12, bx1 = 224, by0 = 10, by1 = 128;
+      const bx0 = 10, bx1 = W - 10, by0 = 10, by1 = H - 10;
       const bw = bx1 - bx0, bh = by1 - by0;
-      const bcx = (bx0 + bx1) * 0.5, bcy = (by0 + by1) * 0.5;
+      const bcx = W * 0.5, bcy = H * 0.5;
 
-      // Subtle grid + 50% and 100% bounds rings
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      // Soft concentric rings + subtle crosshair
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
       ctx.lineWidth = 1;
-      ctx.strokeRect(bx0 + bw * 0.25, by0 + bh * 0.25, bw * 0.5, bh * 0.5);
-
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
       ctx.beginPath();
-      ctx.moveTo(bx0, bcy); ctx.lineTo(bx1, bcy);
-      ctx.moveTo(bcx, by0); ctx.lineTo(bcx, by1);
+      ctx.arc(bcx, bcy, Math.min(bw, bh) * 0.25, 0, Math.PI * 2);
+      ctx.arc(bcx, bcy, Math.min(bw, bh) * 0.45, 0, Math.PI * 2);
       ctx.stroke();
 
-      const sx = bcx + stickState.x * (bw * 0.5);
-      const sy = bcy - stickState.y * (bh * 0.5);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.09)';
+      ctx.beginPath();
+      ctx.moveTo(bx0 + 16, bcy); ctx.lineTo(bx1 - 16, bcy);
+      ctx.moveTo(bcx, by0 + 16); ctx.lineTo(bcx, by1 - 16);
+      ctx.stroke();
+
+      // Cardinal Compass Labels (N, S, W, E)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+      ctx.font = '600 10px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('▲ N', bcx, by0 + 8);
+      ctx.fillText('▼ S', bcx, by1 - 2);
+      ctx.textAlign = 'left';
+      ctx.fillText('◀ W', bx0 + 2, bcy + 3.5);
+      ctx.textAlign = 'right';
+      ctx.fillText('E ▶', bx1 - 2, bcy + 3.5);
+
+      const sx = bcx + stickState.x * (bw * 0.46);
+      const sy = bcy - stickState.y * (bh * 0.46);
       const isDeflected = Math.hypot(stickState.x, stickState.y) > 0.025;
 
-      // Outer 100% Bounds Frame
-      ctx.strokeStyle = isDeflected ? '#38bdf8' : 'rgba(255, 255, 255, 0.32)';
-      ctx.lineWidth = 1.6;
-      ctx.strokeRect(bx0, by0, bw, bh);
+      // Smooth vector line from center to thumb puck
+      if (isDeflected) {
+        ctx.strokeStyle = 'rgba(10, 132, 255, 0.65)';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(bcx, bcy);
+        ctx.lineTo(sx, sy);
+        ctx.stroke();
+      }
 
-      // Corner Bound Labels inside 2D box
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.48)';
-      ctx.font = '600 8.5px -apple-system, BlinkMacSystemFont, "SF Mono", monospace';
-      ctx.textAlign = 'left';
-      ctx.fillText('BOUND -100% X / +100% Y (NW)', bx0 + 4, by0 + 10);
-      ctx.textAlign = 'right';
-      ctx.fillText('+100% X / -100% Y (SE)', bx1 - 4, by1 - 4);
-
-      // Horizontal X-Axis vs. Bounds Bar at bottom: x=[12..224], y=[136..152]
-      const xBarY = 136, xBarH = 15;
-      ctx.fillStyle = '#131722';
-      ctx.fillRect(bx0, xBarY, bw, xBarH);
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.55)';
-      ctx.lineWidth = 1.2;
-      ctx.strokeRect(bx0, xBarY, bw, xBarH);
-
-      // Fill X-Axis bar from center (bcx) to sx
-      ctx.fillStyle = 'rgba(56, 189, 248, 0.42)';
-      ctx.fillRect(Math.min(bcx, sx), xBarY + 1, Math.abs(sx - bcx), xBarH - 2);
-      // X-Axis center tick & stick marker
-      ctx.strokeStyle = '#ffffff';
+      // Soft outer glow around thumb puck
+      const glow = ctx.createRadialGradient(sx, sy, 2, sx, sy, 20);
+      glow.addColorStop(0, isDeflected ? 'rgba(48, 209, 88, 0.45)' : 'rgba(10, 132, 255, 0.35)');
+      glow.addColorStop(1, 'rgba(10, 132, 255, 0.0)');
+      ctx.fillStyle = glow;
       ctx.beginPath();
-      ctx.moveTo(bcx, xBarY); ctx.lineTo(bcx, xBarY + xBarH);
-      ctx.stroke();
-      ctx.fillStyle = '#38bdf8';
-      ctx.fillRect(sx - 2.5, xBarY - 1, 5, xBarH + 2);
+      ctx.arc(sx, sy, 20, 0, Math.PI * 2);
+      ctx.fill();
 
-      ctx.fillStyle = '#e2e8f0';
-      ctx.font = '700 8.5px "SF Mono", Menlo, monospace';
-      ctx.textAlign = 'left';
-      ctx.fillText('-100%', bx0 + 3, xBarY + 10.5);
-      ctx.textAlign = 'center';
-      ctx.fillText(`X AXIS: ${stickState.x >= 0 ? '+' : ''}${Math.round(stickState.x * 100)}%`, bcx, xBarY + 10.5);
-      ctx.textAlign = 'right';
-      ctx.fillText('+100%', bx1 - 3, xBarY + 10.5);
-
-      // Vertical Y-Axis vs. Bounds Bar on right: x=[234..268], y=[10..128]
-      const yBarX = 234, yBarW = 34;
-      ctx.fillStyle = '#131722';
-      ctx.fillRect(yBarX, by0, yBarW, bh);
-      ctx.strokeStyle = 'rgba(48, 209, 88, 0.55)';
-      ctx.lineWidth = 1.2;
-      ctx.strokeRect(yBarX, by0, yBarW, bh);
-
-      // Fill Y-Axis bar from center (bcy) to sy
-      ctx.fillStyle = 'rgba(48, 209, 88, 0.38)';
-      ctx.fillRect(yBarX + 1, Math.min(bcy, sy), yBarW - 2, Math.abs(sy - bcy));
-      ctx.strokeStyle = '#ffffff';
+      // Apple Thumb Puck
+      ctx.fillStyle = isDeflected ? '#30d158' : '#0a84ff';
       ctx.beginPath();
-      ctx.moveTo(yBarX, bcy); ctx.lineTo(yBarX + yBarW, bcy);
-      ctx.stroke();
-      ctx.fillStyle = '#30d158';
-      ctx.fillRect(yBarX - 1, sy - 2.5, yBarW + 2, 5);
-
-      ctx.fillStyle = '#e2e8f0';
-      ctx.font = '700 8px "SF Mono", Menlo, monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText('+100%', yBarX + yBarW * 0.5, by0 + 9);
-      ctx.fillText(`Y:${stickState.y >= 0 ? '+' : ''}${Math.round(stickState.y * 100)}%`, yBarX + yBarW * 0.5, bcy + 3);
-      ctx.fillText('-100%', yBarX + yBarW * 0.5, by1 - 3);
-
-      // Dashed X & Y Projection Lines from Stick Dot to the X-Axis and Y-Axis Bounds Bars!
-      ctx.save();
-      ctx.setLineDash([3, 3]);
-      ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 1.3;
-      ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      ctx.lineTo(sx, xBarY);
-      ctx.stroke();
-
-      ctx.strokeStyle = '#30d158';
-      ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      ctx.lineTo(yBarX, sy);
-      ctx.stroke();
-      ctx.restore();
-
-      // Vector line from center (0,0) to Stick Dot (sx, sy)
-      ctx.strokeStyle = isDeflected ? '#ffd60a' : 'rgba(255, 255, 255, 0.4)';
-      ctx.lineWidth = 2.2;
-      ctx.beginPath();
-      ctx.moveTo(bcx, bcy);
-      ctx.lineTo(sx, sy);
-      ctx.stroke();
-
-      // Stick Thumb Dot
-      ctx.fillStyle = isDeflected ? '#ffd60a' : '#38bdf8';
-      ctx.beginPath();
-      ctx.arc(sx, sy, 7.5, 0, Math.PI * 2);
+      ctx.arc(sx, sy, 8.5, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 2.0;
@@ -4630,22 +4816,22 @@
       if (lblReadout) {
         const xp = Math.round(stickState.x * 100);
         const yp = Math.round(stickState.y * 100);
-        lblReadout.textContent = `X: ${xp >= 0 ? '+' : ''}${xp}% [-100..+100]  •  Y: ${yp >= 0 ? '+' : ''}${yp}% [-100..+100]`;
+        lblReadout.textContent = `X AXIS: ${xp >= 0 ? '+' : ''}${xp}% • Y: ${yp >= 0 ? '+' : ''}${yp}%`;
       }
       const badge = document.getElementById('badgeStickState');
       if (badge) {
         const activeDIdx = selectedCameraSource === 'QUAD_4UP' ? 0 : (parseInt(selectedCameraSource.replace('DRONE_', ''), 10) || 0);
         if (!stickState.padArmed && !isDeflected) {
-          badge.textContent = `⏸ Paused at (0%, 0%) • Safe Exit`;
-          badge.style.background = 'rgba(255, 214, 10, 0.20)';
+          badge.textContent = `⏸ Hovering`;
+          badge.style.background = 'rgba(255, 214, 10, 0.18)';
           badge.style.color = '#ffd60a';
         } else if (isDeflected) {
-          badge.textContent = `🕹️ Steering D${activeDIdx + 1} (Click/Space = Center)`;
-          badge.style.background = 'rgba(48, 209, 88, 0.22)';
+          badge.textContent = `Flying Drone ${activeDIdx + 1}`;
+          badge.style.background = 'rgba(48, 209, 88, 0.20)';
           badge.style.color = '#4ade80';
         } else {
-          badge.textContent = `1:1 Finger Follow (${ drones[activeDIdx].shortName })`;
-          badge.style.background = 'rgba(10, 132, 255, 0.18)';
+          badge.textContent = `WASD or Drag Pad`;
+          badge.style.background = 'rgba(10, 132, 255, 0.16)';
           badge.style.color = '#70b7ff';
         }
       }
@@ -4927,25 +5113,79 @@
         }
       });
 
-      // Update Live Manual Pilot Telemetry HUD in Card 0B
+      // Update Live Apple Mission Control Sidebar State & Telemetry
+      const pd = drones[steeredDroneIdx] || drones[0];
+      const spdMps = pd.lastSpeedMps ?? (simRunning ? DRONE_CRUISE_MPS * simSpeed : 0.0);
+      const spdKmh = Math.round(spdMps * 3.6);
+      const hdg = String(Math.round(pd.lastHeadingDeg ?? 45)).padStart(3, '0');
+      const cards = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+      const dxH = lostPerson.x - pd.x;
+      const dyH = lostPerson.y - pd.y;
+      const distH = Math.round(Math.hypot(dxH, dyH));
+      const brgH = ((Math.atan2(dxH, -dyH) * 180 / Math.PI) + 360) % 360;
+      const cardH = cards[Math.round(brgH / 45) % 8];
+      const dxV = lostVehicle.x - pd.x;
+      const dyV = lostVehicle.y - pd.y;
+      const distV = Math.round(Math.hypot(dxV, dyV));
+      const brgV = ((Math.atan2(dxV, -dyV) * 180 / Math.PI) + 360) % 360;
+      const cardV = cards[Math.round(brgV / 45) % 8];
+
       const teleEl = document.getElementById('lblManualPilotTelemetry');
       if (teleEl) {
-        const pd = drones[steeredDroneIdx] || drones[0];
-        const spdMps = pd.lastSpeedMps ?? (simRunning ? DRONE_CRUISE_MPS * simSpeed : 0.0);
-        const spdKmh = Math.round(spdMps * 3.6);
-        const hdg = String(Math.round(pd.lastHeadingDeg ?? 45)).padStart(3, '0');
-        const cards = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-        const dxH = lostPerson.x - pd.x;
-        const dyH = lostPerson.y - pd.y;
-        const distH = Math.round(Math.hypot(dxH, dyH));
-        const brgH = ((Math.atan2(dxH, -dyH) * 180 / Math.PI) + 360) % 360;
-        const cardH = cards[Math.round(brgH / 45) % 8];
-        const dxV = lostVehicle.x - pd.x;
-        const dyV = lostVehicle.y - pd.y;
-        const distV = Math.round(Math.hypot(dxV, dyV));
-        const brgV = ((Math.atan2(dxV, -dyV) * 180 / Math.PI) + 360) % 360;
-        const cardV = cards[Math.round(brgV / 45) % 8];
-        teleEl.innerHTML = `🚁 <strong>${pd.shortName}</strong> (${simSpeed}x): <strong>${spdMps.toFixed(1)} m/s</strong> (${spdKmh} km/h) • HDG ${hdg}°<br>🎯 Hiker: <strong>${distH}m ${cardH}</strong> (${Math.round(brgH)}°) &bull; 🛸 Snowmobile: <strong>${distV}m ${cardV}</strong> (${Math.round(brgV)}°)`;
+        teleEl.innerHTML = `🚁 <strong style="color:#f5f5f7;">${pd.shortName}</strong> &bull; <strong style="color:#4ade80;">${spdMps.toFixed(1)} m/s</strong> (${spdKmh} km/h) &bull; Heading ${hdg}°`;
+      }
+
+      // Sync Apple Segmented Mode & Drone Pills
+      const isManualMode = (pd.role === 'MANUAL_HOLD' || pd.role === 'CUSTOM_GOTO' || aidState.mode === 'MANUAL_HUMAN_ONLY') && !targetLockActive;
+      document.getElementById('segModeAuto')?.classList.toggle('active', !targetLockActive && !isManualMode);
+      document.getElementById('segModeAuto')?.classList.toggle('blue', !targetLockActive && !isManualMode);
+      document.getElementById('segModeManual')?.classList.toggle('active', isManualMode);
+      document.getElementById('segModeManual')?.classList.toggle('blue', isManualMode);
+      document.getElementById('segModeTrack')?.classList.toggle('active', targetLockActive);
+      document.getElementById('segModeTrack')?.classList.toggle('green', targetLockActive);
+      [0, 1, 2, 3].forEach(i => {
+        document.getElementById(`segDrone${i}`)?.classList.toggle('active', i === steeredDroneIdx);
+      });
+
+      // Sync Apple "Find My" People & Vehicles Rows
+      const trackD = drones[assignedTrackDroneIdx] || drones[0];
+      const lockSnow = targetLockActive && guidedTargetType === 'VEHICLE';
+      const lockHiker = targetLockActive && guidedTargetType === 'PERSON';
+      document.getElementById('appleRowSnowmobile')?.classList.toggle('locked', lockSnow);
+      document.getElementById('appleRowHiker')?.classList.toggle('locked', lockHiker);
+      const subSnow = document.getElementById('appleSubSnowmobile');
+      if (subSnow) {
+        subSnow.innerHTML = lockSnow
+          ? `<span style="color:#4ade80;font-weight:600;">${closeTalkHoverActive ? '🔊 Talking' : '🟢 Following'} (${trackD.shortName}) &bull; ${distV}m</span>`
+          : `${distV}m ${cardV} &bull; +34.0°C`;
+      }
+      const subHiker = document.getElementById('appleSubHiker');
+      if (subHiker) {
+        subHiker.innerHTML = lockHiker
+          ? `<span style="color:#4ade80;font-weight:600;">${closeTalkHoverActive ? '🔊 Talking' : '🟢 Following'} (${trackD.shortName}) &bull; ${distH}m</span>`
+          : `${distH}m ${cardH} &bull; +31.4°C`;
+      }
+      const btnFolSnow = document.getElementById('btnAppleFollowSnowmobile');
+      if (btnFolSnow) {
+        btnFolSnow.textContent = lockSnow ? '✓ Following' : 'Follow';
+        btnFolSnow.classList.toggle('active', lockSnow && !closeTalkHoverActive);
+      }
+      const btnTalkSnow = document.getElementById('btnAppleTalkSnowmobile');
+      if (btnTalkSnow) {
+        btnTalkSnow.classList.toggle('active', lockSnow && closeTalkHoverActive);
+      }
+      const btnFolHiker = document.getElementById('btnAppleFollowHiker');
+      if (btnFolHiker) {
+        btnFolHiker.textContent = lockHiker ? '✓ Following' : 'Follow';
+        btnFolHiker.classList.toggle('active', lockHiker && !closeTalkHoverActive);
+      }
+      const btnTalkHiker = document.getElementById('btnAppleTalkHiker');
+      if (btnTalkHiker) {
+        btnTalkHiker.classList.toggle('active', lockHiker && closeTalkHoverActive);
+      }
+      const btnStopFol = document.getElementById('btnAppleStopFollow');
+      if (btnStopFol) {
+        btnStopFol.style.display = targetLockActive ? 'inline-flex' : 'none';
       }
 
       const covStats = updateBoxFreshnessAndMovingTargetLeakGrid();
