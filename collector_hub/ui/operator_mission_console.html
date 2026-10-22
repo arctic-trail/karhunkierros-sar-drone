@@ -806,12 +806,17 @@
                 <button class="btn" onclick="setMapTool('PAN_MAP')" style="padding:3px 9px;font-size:11.5px;">✕ Cancel Draw</button>
               </div>
 
-              <div class="floating-status-card" id="mapTargetBanner">
+              <div class="floating-status-card" id="mapTargetBanner" style="flex-wrap:wrap;gap:6px;">
                 <div>
                   <span style="color:#fbbf24;font-weight:700;">🎯 Target Assignment:</span>
                   <span id="mapTargetBannerText"><strong>Drone 1</strong> is following <strong>Lost Hiker (+31.4°C)</strong></span>
                 </div>
-                <button class="btn danger" id="btnMapCancelTarget" onclick="cancelTargetAssignment()" style="padding:3px 9px;font-size:11.5px;">✕ Cancel Target Lock</button>
+                <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;">
+                  <button class="btn primary" onclick="assignDroneToAutoTrack('VEHICLE', null, false)" style="padding:3px 8px;font-size:11px;" title="Assign selected drone (or nearest drone) to Auto-Track the Snowmobile (+34.0°C)">🛸 Auto-Track Snowmobile</button>
+                  <button class="btn primary" onclick="assignDroneToAutoTrack('PERSON', null, false)" style="padding:3px 8px;font-size:11px;" title="Assign selected drone to Auto-Track the Lost Hiker (+31.4°C)">🚶 Auto-Track Hiker</button>
+                  <button class="btn success" onclick="flyCloseAndOpenVoiceIntercom()" style="padding:3px 8px;font-size:11px;" title="Send drone to 10m low-altitude hover next to target and open 2-Way Voice / Speaker Intercom">🔊 Fly Close &amp; Talk</button>
+                  <button class="btn danger" id="btnMapCancelTarget" onclick="cancelTargetAssignment()" style="padding:3px 9px;font-size:11px;">✕ Cancel Lock</button>
+                </div>
               </div>
 
               <div class="floating-status-card" id="mapDropBanner" style="display:none;border-color:#ff9f0a;">
@@ -902,10 +907,13 @@
           </button>
         </div>
 
-        <!-- Camera Zoom, Sensor & 1:1 Trackpad Stick Steering Subbar -->
-        <div class="osd-subbar">
-          <span id="videoSubbarHint">Live Google Earth z=18..19 feed • Drag Drone on Map or use Trackpad Stick to steer</span>
-          <div style="display:flex;gap:4px;align-items:center;">
+        <!-- Camera Zoom, Sensor, Auto-Track & 1:1 Trackpad Stick Steering Subbar -->
+        <div class="osd-subbar" style="flex-wrap:wrap;gap:4px;">
+          <span id="videoSubbarHint">💡 <strong>Click any Target Box in Video</strong> to Auto-Track &amp; Talk!</span>
+          <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;">
+            <button class="btn primary" onclick="assignDroneToAutoTrack('VEHICLE', null, false)" style="padding:2px 7px;font-size:10.5px;" title="Auto-Track the Snowmobile (+34.0°C) with the active drone">🛸 Auto-Track Snowmobile</button>
+            <button class="btn primary" onclick="assignDroneToAutoTrack('PERSON', null, false)" style="padding:2px 7px;font-size:10.5px;" title="Auto-Track the Lost Hiker (+31.4°C) with the active drone">🚶 Auto-Track Hiker</button>
+            <button class="btn success" onclick="flyCloseAndOpenVoiceIntercom()" style="padding:2px 7px;font-size:10.5px;" title="Fly within 10m of target at 20m AGL and open 2-Way Voice / Loudhailer Intercom">🔊 Fly Close &amp; Talk</button>
             <button class="btn" id="btnVideoTrackpadSteer" onclick="toggleVideoTrackpadSteerMode()" style="padding:2px 8px;border-color:rgba(56,189,248,0.5);color:#38bdf8;" title="Move your finger on the trackpad inside the Drone Video (or use the 2D Trackpad Box on the right) to steer the selected drone 1:1">🕹️ Trackpad Steer: OFF</button>
             <button class="btn" onclick="adjustOsdZoom(-0.8)" style="padding:2px 7px;">−</button>
             <button class="btn success" id="btnOsdZoomPill" onclick="adjustOsdZoom(0)" style="padding:2px 7px;">3.0x</button>
@@ -1079,10 +1087,10 @@
             </div>
           </div>
 
-          <!-- CARD 0B: 1:1 TRACKPAD / STICK STEERING & MANUAL PRACTICE MISSION -->
+          <!-- CARD 0B: 1:1 TRACKPAD / STICK STEERING, AUTO-TRACK & 2-WAY VOICE INTERCOM -->
           <div class="step-card" style="border-color:rgba(56,189,248,0.55);background:linear-gradient(180deg,rgba(56,189,248,0.10),rgba(20,22,30,0.96));padding:9px 11px;">
             <div class="step-header">
-              <span class="step-title">🕹️ Manual Practice &amp; Stick Steering</span>
+              <span class="step-title">🕹️ Manual Practice, Auto-Track &amp; Talk</span>
               <span class="step-badge" id="badgeStickState" style="background:rgba(56,189,248,0.16);color:#38bdf8;">1x Real-Time (12.5 m/s)</span>
             </div>
             <div style="display:flex;gap:5px;align-items:center;">
@@ -1097,13 +1105,57 @@
                 <option value="100">100x Scale (1.25 km/s)</option>
               </select>
             </div>
+            <!-- 1-CLICK AUTO-TRACK & FLY CLOSE TO TALK BAR -->
+            <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-top:2px;">
+              <button class="btn primary" onclick="assignDroneToAutoTrack('VEHICLE', null, false)" style="flex:1;padding:4px 6px;font-size:10.5px;" title="Assign selected drone to Auto-Track &amp; Follow the Snowmobile (+34.0°C)">🛸 Auto-Track Snowmobile</button>
+              <button class="btn primary" onclick="assignDroneToAutoTrack('PERSON', null, false)" style="flex:1;padding:4px 6px;font-size:10.5px;" title="Assign selected drone to Auto-Track &amp; Follow the Lost Hiker (+31.4°C)">🚶 Auto-Track Hiker</button>
+              <button class="btn success" onclick="flyCloseAndOpenVoiceIntercom()" style="flex:1;padding:4px 6px;font-size:10.5px;" title="Fly drone within 10m of target at 20m AGL and open 2-Way Voice / Loudhailer Intercom to talk to them!">🔊 Fly Close &amp; Talk</button>
+            </div>
+            <label style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:10.5px;color:#e2e8f0;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.35);padding:3px 7px;border-radius:5px;cursor:pointer;">
+              <span>🤖 <strong>Auto-Track Automatically</strong> when Target enters Camera View</span>
+              <input type="checkbox" id="chkAutoTrackOnSight" checked onchange="toggleAutoTrackOnSight(this.checked)" style="accent-color:#10b981;cursor:pointer;" />
+            </label>
+
+            <!-- LIVE 2-WAY VOICE / OPASLYHTY SPEAKER-MIC INTERCOM PANEL -->
+            <div id="voiceIntercomBox" style="display:flex;flex-direction:column;gap:4px;padding:6px 7px;background:rgba(15,23,42,0.92);border:1px solid rgba(56,189,248,0.45);border-radius:6px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;">
+                <strong style="font-size:10.5px;color:#38bdf8;">🔊 2-Way Voice Intercom (85 dBA Speaker + Mic)</strong>
+                <span id="lblIntercomLinkBadge" style="font-size:9.5px;font-family:var(--font-mono);color:#4ade80;">Ready • Click Target</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+                <select id="selIntercomDrone" class="select-input" onchange="changeAssignedTrackDrone(this.value)" style="width:100%;padding:2px 4px;font-size:10px;" title="Choose which Drone follows &amp; talks to the target">
+                  <option value="0" selected>🚁 Drone 1 (Sierra)</option>
+                  <option value="1">🚁 Drone 2 (Kilo)</option>
+                  <option value="2">🚁 Drone 3 (Echo)</option>
+                  <option value="3">🚁 Drone 4 (Foxtrot)</option>
+                </select>
+                <select id="selIntercomTarget" class="select-input" onchange="assignDroneToAutoTrack(this.value, null, closeTalkHoverActive)" style="width:100%;padding:2px 4px;font-size:10px;" title="Choose who to follow &amp; talk to">
+                  <option value="VEHICLE">🛸 Snowmobile (+34.0°C)</option>
+                  <option value="PERSON" selected>🚶 Lost Hiker (+31.4°C)</option>
+                </select>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+                <button class="win-btn" onclick="sendVoiceIntercomPreset('HALT_LISTEN')" style="font-size:9.5px;padding:3px 5px;color:#fbbf24;border-color:rgba(251,191,36,0.45);" title="Ask Snowmobile / Hiker to stop moving and listen to the drone speaker">🛑 "Stop &amp; Talk to Drone"</button>
+                <button class="win-btn" onclick="sendVoiceIntercomPreset('STATUS_CHECK')" style="font-size:9.5px;padding:3px 5px;color:#64d2ff;border-color:rgba(100,210,255,0.45);" title="Ask if they are injured or need medical/fuel assistance">🩺 "Are You OK / Status?"</button>
+                <button class="win-btn" onclick="sendVoiceIntercomPreset('FOLLOW_LIGHT')" style="font-size:9.5px;padding:3px 5px;color:#4ade80;border-color:rgba(74,222,128,0.45);" title="Tell them to follow the drone's green guide beam to the Road Bridge / Hut">🟢 "Follow Drone to Safety"</button>
+                <button class="win-btn" onclick="sendVoiceIntercomPreset('STAND_CLEAR_DROP')" style="font-size:9.5px;padding:3px 5px;color:#fb923c;border-color:rgba(251,146,60,0.45);" title="Warn them to stand 15m clear for the heated survival barrel drop">🪂 "Stand Clear (Drop)"</button>
+              </div>
+              <div style="display:flex;gap:4px;">
+                <input type="text" id="txtVoiceIntercomInput" placeholder="Type message to speak over drone loudhailer..." onkeydown="if(event.key==='Enter')sendCustomVoiceIntercomMessage()" style="flex:1;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:3px 6px;font-size:10.5px;outline:none;" />
+                <button class="btn success" onclick="sendCustomVoiceIntercomMessage()" style="padding:3px 8px;font-size:10.5px;">🔊 Speak</button>
+              </div>
+              <div id="lblVoiceIntercomTranscript" style="font-family:var(--font-mono);font-size:9.5px;color:#e2e8f0;background:rgba(0,0,0,0.42);padding:4px 6px;border-radius:4px;line-height:1.32;">
+                📢 <strong>Speaker Ready:</strong> Click <em>🛸 Auto-Track Snowmobile</em> or <em>🔊 Fly Close &amp; Talk</em> to fly within 10m and talk to the rider/hiker!
+              </div>
+            </div>
+
             <div id="lblManualPilotTelemetry" style="font-family:var(--font-mono);font-size:10px;color:#4ade80;background:rgba(0,0,0,0.34);padding:4px 6px;border-radius:5px;border:1px solid rgba(56,189,248,0.25);line-height:1.3;">
               🚁 Drone 1: 12.5 m/s (45 km/h) &bull; 🎯 Hiker: 18m SE (125°)
             </div>
             <div style="font-size:10.5px;color:var(--text-secondary);line-height:1.3;">
               Steer with <strong>WASD / Arrows</strong>, <strong>2D Box below</strong>, or <strong>📍 Send Drone to Point</strong>. <strong>Click box / Space</strong> to hold position at <strong>(0%, 0%)</strong>!
             </div>
-            <canvas id="trackpadSteerCanvas" width="280" height="156" style="width:100%;height:136px;background:#090b10;border:1px solid rgba(56,189,248,0.45);border-radius:7px;cursor:crosshair;display:block;touch-action:none;" title="Move inside box to steer 1:1. Click once (or press Space/Esc) to immediately center (0%, 0%) and hold position!"></canvas>
+            <canvas id="trackpadSteerCanvas" width="280" height="156" style="width:100%;height:124px;background:#090b10;border:1px solid rgba(56,189,248,0.45);border-radius:7px;cursor:crosshair;display:block;touch-action:none;" title="Move inside box to steer 1:1. Click once (or press Space/Esc) to immediately center (0%, 0%) and hold position!"></canvas>
             <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;font-family:var(--font-mono);font-size:10px;">
               <span id="lblStickAxisReadout" style="color:#64d2ff;">X: +0% [-100..+100] &bull; Y: +0% [-100..+100]</span>
               <div style="display:flex;gap:4px;">
@@ -1172,7 +1224,7 @@
             </div>
           </div>
 
-          <!-- CARD 2: TARGET ASSIGNMENT (WITH EASY 1-CLICK CANCEL!) -->
+          <!-- CARD 2: TARGET ASSIGNMENT & AUTO-TRACK (WITH EASY 1-CLICK CANCEL!) -->
           <div class="step-card">
             <div class="step-header">
               <span class="step-title">2. Target Tracking Assignment</span>
@@ -1180,28 +1232,41 @@
             </div>
 
             <label class="toggle-row">
-              <span><strong>Auto-Assign Drone 1 to Detected Person / Vehicle</strong></span>
+              <span><strong>Auto-Assign Drone to Detected Person / Vehicle</strong></span>
               <input type="checkbox" id="chkPreemptMapping" checked onchange="toggleTargetLockSwitch(this.checked)" />
             </label>
 
             <div class="assignment-box" id="targetAssignmentCard">
               <div style="display:flex;justify-content:space-between;align-items:center;">
                 <span style="color:var(--text-secondary);">Assigned Drone:</span>
-                <strong style="color:#ff9f0a;" id="lblAssignedDrone">Drone 1 (Sierra)</strong>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <strong style="color:#ff9f0a;display:none;" id="lblAssignedDrone">Drone 1 (Sierra)</strong>
+                  <select id="selCard2AssignedDrone" class="select-input" onchange="changeAssignedTrackDrone(this.value)" style="padding:3px 6px;font-size:11.5px;">
+                    <option value="0" selected>🚁 Drone 1 (Sierra)</option>
+                    <option value="1">🚁 Drone 2 (Kilo)</option>
+                    <option value="2">🚁 Drone 3 (Echo)</option>
+                    <option value="3">🚁 Drone 4 (Foxtrot)</option>
+                  </select>
+                </div>
               </div>
               <div style="display:flex;justify-content:space-between;align-items:center;">
                 <span style="color:var(--text-secondary);">Tracked Target:</span>
                 <select id="selGuidedTarget" class="select-input" onchange="switchGuidedTarget(this.value)" style="padding:3px 6px;font-size:11.5px;">
-                  <option value="PERSON" selected>Lost Hiker (+31.4°C) &rarr; Hut</option>
-                  <option value="VEHICLE">Snowmobile (+34.0°C) &rarr; Road</option>
+                  <option value="PERSON" selected>🚶 Lost Hiker (+31.4°C) &rarr; Hut</option>
+                  <option value="VEHICLE">🛸 Snowmobile (+34.0°C) &rarr; Road</option>
                 </select>
+              </div>
+              <div style="display:flex;gap:5px;margin-top:2px;">
+                <button class="btn primary" onclick="assignDroneToAutoTrack('VEHICLE', null, false)" style="flex:1;padding:4px 6px;font-size:11px;">🛸 Track Snowmobile</button>
+                <button class="btn primary" onclick="assignDroneToAutoTrack('PERSON', null, false)" style="flex:1;padding:4px 6px;font-size:11px;">🚶 Track Hiker</button>
+                <button class="btn success" onclick="flyCloseAndOpenVoiceIntercom()" style="flex:1;padding:4px 6px;font-size:11px;">🔊 Fly Close &amp; Talk</button>
               </div>
               <div style="display:flex;gap:6px;margin-top:3px;">
                 <button class="btn danger" id="btnSidebarCancelTarget" onclick="cancelTargetAssignment()" style="flex:1;">
                   ✕ Cancel Target Lock (Return to Scan)
                 </button>
                 <button class="btn success" id="btnSidebarReassignTarget" onclick="reassignTargetLock()" style="flex:1;display:none;">
-                  🎯 Assign Drone 1 to Target
+                  🎯 Assign Drone to Target
                 </button>
               </div>
               <div style="display:flex;gap:5px;margin-top:3px;">
@@ -1806,6 +1871,16 @@
 
     let targetLockActive = true;
     let guidedTargetType = 'PERSON';
+    let assignedTrackDroneIdx = 0;
+    let autoTrackOnSight = true;
+    let closeTalkHoverActive = false;
+    let voiceIntercomState = {
+      lastTxText: '',
+      lastRxText: '',
+      lastTxSec: -999,
+      lastRxSec: -999,
+      haltedTargetKey: null
+    };
 
     let dropMarkerMode = false;
     let payloadState = {
@@ -2116,7 +2191,7 @@
           d.customGoal = null;
           d.manualHold = false;
         }
-        if (idx === 0 && targetLockActive) {
+        if (idx === assignedTrackDroneIdx && targetLockActive) {
           d.role = 'PRIORITY_FOLLOW';
           d.customGoal = null;
           d.manualHold = false;
@@ -2141,8 +2216,10 @@
       const tangentSwath = Math.max(coneRadius * 1.95, sectorSpan / 5.0);
 
       drones.forEach((d, idx) => {
-        d.altAgl = (idx === 0 && targetLockActive) ? (aidState.compiled?.trackAltM || 28) : agl;
-        d.radius = (idx === 0 && targetLockActive) ? Math.min(coneRadius, Math.max(38, coneRadius * 0.8)) : coneRadius;
+        const isTrackDrone = (idx === assignedTrackDroneIdx && targetLockActive);
+        const trackAlt = closeTalkHoverActive ? 20 : (aidState.compiled?.trackAltM || 28);
+        d.altAgl = isTrackDrone ? trackAlt : agl;
+        d.radius = isTrackDrone ? Math.min(coneRadius, Math.max(38, coneRadius * 0.8)) : coneRadius;
       });
 
       activeSectors = [];
@@ -2223,15 +2300,17 @@
       });
 
       if (targetLockActive) {
+        const td = drones[assignedTrackDroneIdx] || drones[0];
         const subj = guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson;
-        drones[0].sectorName = guidedTargetType === 'VEHICLE' ? 'Following Snowmobile' : 'Following Hiker';
+        const modePrefix = closeTalkHoverActive ? '🔊 Close Talk ->' : '🎯 Auto-Track ->';
+        td.sectorName = `${modePrefix} ${guidedTargetType === 'VEHICLE' ? 'Snowmobile' : 'Hiker'}`;
         if (repositionDrones) {
-          drones[0].x = subj.x - 14;
-          drones[0].y = subj.y - 6;
-          drones[0].trail = [{ x: drones[0].x, y: drones[0].y }];
+          td.x = subj.x - 14;
+          td.y = subj.y - 6;
+          td.trail = [{ x: td.x, y: td.y }];
         } else {
-          if (!drones[0].trail || drones[0].trail.length === 0) {
-            drones[0].trail = [{ x: drones[0].x, y: drones[0].y }];
+          if (!td.trail || td.trail.length === 0) {
+            td.trail = [{ x: td.x, y: td.y }];
           }
         }
       }
@@ -3047,6 +3126,12 @@
 
     function cancelTargetAssignment(byHuman = true) {
       targetLockActive = false;
+      closeTalkHoverActive = false;
+      voiceIntercomState.haltedTargetKey = null;
+      const td = drones[assignedTrackDroneIdx] || drones[0];
+      if (td && td.role === 'PRIORITY_FOLLOW') {
+        td.role = 'SHROUD_MAPPER';
+      }
       const chk = document.getElementById('chkPreemptMapping');
       if (chk) chk.checked = false;
       if (byHuman) {
@@ -3070,31 +3155,231 @@
       logAndDispatchMavlinkV2(`COMMAND_INT (#75) • Cancel Target Lock (Epoch #${aidState.epochId})`, 75, 'FD 23 00 00 02 FF BE 4B 00 00', '/api/field/target?active=0');
     }
 
-    function reassignTargetLock(targetType = null, byHuman = true) {
+    function syncTrackSelectorsUI() {
+      const sel1 = document.getElementById('selGuidedTarget');
+      if (sel1 && sel1.value !== guidedTargetType) sel1.value = guidedTargetType;
+      const sel2 = document.getElementById('selIntercomTarget');
+      if (sel2 && sel2.value !== guidedTargetType) sel2.value = guidedTargetType;
+      const selD1 = document.getElementById('selIntercomDrone');
+      if (selD1 && String(selD1.value) !== String(assignedTrackDroneIdx)) selD1.value = String(assignedTrackDroneIdx);
+      const selD2 = document.getElementById('selCard2AssignedDrone');
+      if (selD2 && String(selD2.value) !== String(assignedTrackDroneIdx)) selD2.value = String(assignedTrackDroneIdx);
+    }
+
+    function assignDroneToAutoTrack(targetType = null, droneIdx = null, closeTalk = false) {
       if (targetType) {
         guidedTargetType = targetType;
-        const sel = document.getElementById('selGuidedTarget');
-        if (sel) sel.value = targetType;
       }
-      if (byHuman) {
-        aidState.epochId += 1;
-        aidState.vetoBubbles = [];
-        if (window.location.protocol.startsWith('http')) {
-          fetch(`/api/playbook/veto?action=clear_target&type=${guidedTargetType}`).catch(() => {});
+      if (droneIdx !== null && droneIdx !== undefined) {
+        assignedTrackDroneIdx = Math.max(0, Math.min(3, parseInt(droneIdx, 10) || 0));
+      } else {
+        assignedTrackDroneIdx = getActiveSelectedDroneIndex();
+      }
+      closeTalkHoverActive = !!closeTalk;
+      // Clear any previous manual hold / custom goal on the assigned tracking drone so it immediately auto-tracks!
+      drones.forEach((d, idx) => {
+        if (idx === assignedTrackDroneIdx) {
+          d.customGoal = null;
+          d.manualHold = false;
+          d.role = 'PRIORITY_FOLLOW';
+        } else if (d.role === 'PRIORITY_FOLLOW') {
+          d.role = 'SHROUD_MAPPER';
+        }
+      });
+
+      const subj = guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson;
+      // If target had previously finished its route, reset arrived=false so the drone actively tracks & escorts it!
+      if (subj.arrived) {
+        subj.arrived = false;
+        if (guidedTargetType === 'VEHICLE') {
+          subj.x = (searchBox.xMin + searchBox.xMax) * 0.5 - 145;
+          subj.y = (searchBox.yMin + searchBox.yMax) * 0.5 + 85;
         }
       }
+      if (!closeTalk) {
+        voiceIntercomState.haltedTargetKey = null;
+      }
+
+      aidState.epochId += 1;
+      aidState.vetoBubbles = [];
       targetLockActive = true;
       const chk = document.getElementById('chkPreemptMapping');
       if (chk) chk.checked = true;
+      syncTrackSelectorsUI();
+      selectCameraSource(`DRONE_${assignedTrackDroneIdx}`);
       recomputeAutoMission(false);
-      updateAidBannerUI(`JEV VERIFIED (E#${aidState.epochId}): Lock ${guidedTargetType} (${aidState.compiled.trackAltM}m AGL) • 3 Drones Scan`);
-      logAndDispatchMavlinkV2(`SET_POSITION_TARGET_GLOBAL_INT (#86) • Guide ${guidedTargetType}`, 86, 'FD 35 00 00 03 FF BE 56 00 00', `/api/field/target?active=1&type=${guidedTargetType}`);
+
+      const td = drones[assignedTrackDroneIdx] || drones[0];
+      const distM = Math.round(Math.hypot(subj.x - td.x, subj.y - td.y));
+      const modeDesc = closeTalkHoverActive ? '🔊 Close 10m Intercom Hover (20m AGL)' : `🎯 Auto-Tracking (${aidState.compiled.trackAltM}m AGL)`;
+      updateAidBannerUI(`${modeDesc}: ${td.shortName} locked onto ${subj.label} (${subj.tempC} • ${distM}m away)`);
+      const badgeEl = document.getElementById('lblIntercomLinkBadge');
+      if (badgeEl) {
+        badgeEl.textContent = `${td.shortName} -> ${subj.label} (${distM}m)`;
+        badgeEl.style.color = '#4ade80';
+      }
+      logAndDispatchMavlinkV2(`SET_POSITION_TARGET_GLOBAL_INT (#86) • ${td.shortName} Auto-Track ${guidedTargetType}`, 86, 'FD 35 00 00 03 FF BE 56 00 00', `/api/field/target?active=1&type=${guidedTargetType}`);
+    }
+
+    function changeAssignedTrackDrone(droneIdxVal) {
+      const idx = Math.max(0, Math.min(3, parseInt(droneIdxVal, 10) || 0));
+      assignDroneToAutoTrack(guidedTargetType, idx, closeTalkHoverActive);
+    }
+
+    function toggleAutoTrackOnSight(enabled) {
+      autoTrackOnSight = !!enabled;
+      const chk = document.getElementById('chkAutoTrackOnSight');
+      if (chk && chk.checked !== autoTrackOnSight) chk.checked = autoTrackOnSight;
+      updateAidBannerUI(autoTrackOnSight
+        ? '🤖 Auto-Track on Sight ON: Drone will automatically lock & track Snowmobile or Hiker as soon as they enter camera view!'
+        : '🤖 Auto-Track on Sight OFF: Click any target box in Video/Map or click Auto-Track buttons to lock manually.');
+    }
+
+    function flyCloseAndOpenVoiceIntercom(explicitTargetType = null) {
+      const activeIdx = getActiveSelectedDroneIndex();
+      const d = drones[activeIdx] || drones[0];
+      let chosenTarget = explicitTargetType || guidedTargetType;
+      if (!explicitTargetType) {
+        // Check if either Snowmobile or Hiker is currently inside the active drone's camera frame (or pick whichever is closer to the active drone!)
+        const dVeh = Math.hypot(lostVehicle.x - d.x, lostVehicle.y - d.y);
+        const dPer = Math.hypot(lostPerson.x - d.x, lostPerson.y - d.y);
+        if (!targetLockActive) {
+          chosenTarget = (dVeh <= dPer + 25) ? 'VEHICLE' : 'PERSON';
+        }
+      }
+      assignDroneToAutoTrack(chosenTarget, activeIdx, true);
+      sendVoiceIntercomPreset('HALT_LISTEN');
+      const inp = document.getElementById('txtVoiceIntercomInput');
+      if (inp) inp.focus();
+    }
+
+    function sendVoiceIntercomPreset(presetKey) {
+      if (!targetLockActive) {
+        const activeIdx = getActiveSelectedDroneIndex();
+        const d = drones[activeIdx] || drones[0];
+        const dVeh = Math.hypot(lostVehicle.x - d.x, lostVehicle.y - d.y);
+        const dPer = Math.hypot(lostPerson.x - d.x, lostPerson.y - d.y);
+        assignDroneToAutoTrack(dVeh <= dPer + 25 ? 'VEHICLE' : 'PERSON', activeIdx, true);
+      } else {
+        closeTalkHoverActive = true;
+      }
+      const isVeh = guidedTargetType === 'VEHICLE';
+      const subj = isVeh ? lostVehicle : lostPerson;
+      const td = drones[assignedTrackDroneIdx] || drones[0];
+      let txMsg = '';
+      let rxMsg = '';
+
+      if (presetKey === 'HALT_LISTEN') {
+        voiceIntercomState.haltedTargetKey = guidedTargetType;
+        txMsg = isVeh
+          ? 'SAR Drone overhead! Please stop your snowmobile and listen to our speaker.'
+          : 'SAR Drone overhead! Stay right where you are — help is here, talk to us!';
+        rxMsg = isVeh
+          ? 'Snowmobile Rider (Mic RX): "Copy SAR Drone! Stopping engine now — my drive belt frayed in the deep drift, I can hear you loud and clear!"'
+          : 'Lost Hiker (Mic RX): "I hear you! Stopping here — I lost the trail in the dark and my hands are freezing, thank God you found me!"';
+      } else if (presetKey === 'STATUS_CHECK') {
+        txMsg = 'Are you injured or in need of medical evacuation? Wave BOTH arms for YES, ONE arm for NO, or speak now!';
+        rxMsg = isVeh
+          ? 'Snowmobile Rider (Mic RX + 1-Arm Wave): "No injuries! Just stranded with a slipping belt and low fuel — can you guide me out to Plowed Road Bridge?"'
+          : 'Lost Hiker (Mic RX + 1-Arm Wave): "Uninjured but mildly hypothermic — if you have a warm pack and can light the path to Oulanka Hut, I can walk!"';
+      } else if (presetKey === 'FOLLOW_LIGHT') {
+        voiceIntercomState.haltedTargetKey = null;
+        subj.arrived = false;
+        txMsg = isVeh
+          ? 'Follow our green Opaslyhty guide beam at 20 km/h — escorting you along the packed corridor to Plowed Road Bridge now!'
+          : 'Follow our green Opaslyhty spotlight beam — guiding you step-by-step along the trail to Oulanka Wilderness Hut!';
+        rxMsg = isVeh
+          ? 'Snowmobile Rider (Mic RX): "Copy! Following your green light toward Plowed Road Bridge now!"'
+          : 'Lost Hiker (Mic RX): "Copy! Walking behind your spotlight beam toward the hut now!"';
+      } else if (presetKey === 'STAND_CLEAR_DROP') {
+        txMsg = 'Stand back 15 meters! Dropping a +42°C heated survival cask, thermal blanket, and VHF radio right beside you now!';
+        rxMsg = isVeh
+          ? 'Snowmobile Rider (Mic RX): "Stepping back 15m clear of the snowmobile — ready for drop!"'
+          : 'Lost Hiker (Mic RX): "Stepped 15m clear into the snow opening — ready for payload drop!"';
+        if (payloadState.status === 'READY_ABOARD') {
+          queueDropNearActiveTarget(true);
+        }
+      }
+      broadcastVoiceIntercomPair(td, subj, txMsg, rxMsg);
+    }
+
+    function sendCustomVoiceIntercomMessage() {
+      const inp = document.getElementById('txtVoiceIntercomInput');
+      const raw = (inp?.value || '').trim();
+      if (!raw) {
+        sendVoiceIntercomPreset('HALT_LISTEN');
+        return;
+      }
+      if (!targetLockActive) {
+        const activeIdx = getActiveSelectedDroneIndex();
+        const d = drones[activeIdx] || drones[0];
+        const dVeh = Math.hypot(lostVehicle.x - d.x, lostVehicle.y - d.y);
+        const dPer = Math.hypot(lostPerson.x - d.x, lostPerson.y - d.y);
+        assignDroneToAutoTrack(dVeh <= dPer + 25 ? 'VEHICLE' : 'PERSON', activeIdx, true);
+      } else {
+        closeTalkHoverActive = true;
+      }
+      if (inp) inp.value = '';
+      const isVeh = guidedTargetType === 'VEHICLE';
+      const subj = isVeh ? lostVehicle : lostPerson;
+      const td = drones[assignedTrackDroneIdx] || drones[0];
+      const lower = raw.toLowerCase();
+      let rxMsg = '';
+      if (lower.includes('stop') || lower.includes('wait') || lower.includes('stay') || lower.includes('hold')) {
+        voiceIntercomState.haltedTargetKey = guidedTargetType;
+        rxMsg = isVeh
+          ? `Snowmobile Rider (Mic RX): "Copy '${raw}' — holding my snowmobile right here beneath ${td.shortName}!"`
+          : `Lost Hiker (Mic RX): "Copy '${raw}' — staying right here beneath your spotlight!"`;
+      } else if (lower.includes('follow') || lower.includes('come') || lower.includes('go') || lower.includes('move') || lower.includes('hut') || lower.includes('road')) {
+        voiceIntercomState.haltedTargetKey = null;
+        subj.arrived = false;
+        rxMsg = isVeh
+          ? `Snowmobile Rider (Mic RX): "Understood! Following ${td.shortName} toward Plowed Road Bridge now!"`
+          : `Lost Hiker (Mic RX): "Understood! Following ${td.shortName} toward Oulanka Wilderness Hut now!"`;
+      } else {
+        rxMsg = isVeh
+          ? `Snowmobile Rider (Mic RX + Thumbs Up): "Heard you loud & clear ('${raw}')! Standing by at (${Math.round(subj.x)}m, ${Math.round(subj.y)}m) — ready for your lead!"`
+          : `Lost Hiker (Mic RX + Wave): "Heard you loud & clear ('${raw}')! I see ${td.shortName} hovering above me!"`;
+      }
+      broadcastVoiceIntercomPair(td, subj, raw, rxMsg);
+    }
+
+    function broadcastVoiceIntercomPair(td, subj, txMsg, rxMsg) {
+      const nowSec = performance.now() / 1000.0;
+      voiceIntercomState.lastTxText = txMsg;
+      voiceIntercomState.lastRxText = rxMsg;
+      voiceIntercomState.lastTxSec = nowSec;
+      voiceIntercomState.lastRxSec = nowSec + 0.8;
+
+      const distM = Math.round(Math.hypot(subj.x - td.x, subj.y - td.y));
+      const trEl = document.getElementById('lblVoiceIntercomTranscript');
+      if (trEl) {
+        trEl.innerHTML = `<div style="color:#ffd60a;">📢 <strong>${td.shortName} Loudhailer (85 dBA @ ${distM}m):</strong> "${txMsg}"</div><div style="color:#4ade80;margin-top:2px;">🎙️ <strong>${rxMsg}</strong></div>`;
+      }
+      const badgeEl = document.getElementById('lblIntercomLinkBadge');
+      if (badgeEl) {
+        badgeEl.textContent = `🔊 LIVE (${distM}m • 85 dBA)`;
+        badgeEl.style.color = '#4ade80';
+      }
+      updateAidBannerUI(`🔊 ${td.shortName} Intercom -> ${subj.label} (${distM}m): "${txMsg}" | ${rxMsg}`);
+      logAndDispatchMavlinkV2(`STATUSTEXT / OPASLYHTY_INTERCOM (#253) • ${td.shortName} TX: "${txMsg.slice(0, 32)}"`, 253, 'FD 32 00 00 0E FF BE FD 00 00', `/api/field/target?active=1&type=${guidedTargetType}`);
+
+      try {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(txMsg);
+          u.rate = 1.05;
+          window.speechSynthesis.speak(u);
+        }
+      } catch (_) {}
+    }
+
+    function reassignTargetLock(targetType = null, byHuman = true) {
+      assignDroneToAutoTrack(targetType || guidedTargetType, assignedTrackDroneIdx, closeTalkHoverActive);
     }
 
     function switchGuidedTarget(val) {
-      guidedTargetType = val;
-      if (!targetLockActive) reassignTargetLock(val, true);
-      else updateTargetAndDropUI();
+      assignDroneToAutoTrack(val, assignedTrackDroneIdx, closeTalkHoverActive);
     }
 
     function toggleDropMarkerMode() {
@@ -3193,21 +3478,26 @@
       const btnSideCancelTgt = document.getElementById('btnSidebarCancelTarget');
       const btnSideReassign = document.getElementById('btnSidebarReassignTarget');
 
+      const td = drones[assignedTrackDroneIdx] || drones[0];
+      const subj = guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson;
       const tName = guidedTargetType === 'VEHICLE' ? 'Stranded Snowmobile (+34.0°C)' : 'Lost Hiker (+31.4°C)';
+      syncTrackSelectorsUI();
       if (targetLockActive) {
+        const distM = Math.round(Math.hypot(subj.x - td.x, subj.y - td.y));
+        const modeTag = closeTalkHoverActive ? `🔊 Close Talk Hover (${distM}m)` : `🎯 Auto-Tracking (${distM}m)`;
         if (tBanner) tBanner.style.borderColor = 'rgba(255, 159, 10, 0.5)';
-        if (tBannerTxt) tBannerTxt.innerHTML = `<strong>Drone 1</strong> is tracking &amp; guiding <strong>${tName}</strong>`;
+        if (tBannerTxt) tBannerTxt.innerHTML = `<strong style="color:${td.color};">${td.shortName}</strong> ${modeTag} &rarr; <strong>${tName}</strong>`;
         if (btnMapCancelTgt) btnMapCancelTgt.style.display = 'inline-flex';
-        if (badgeTgt) { badgeTgt.textContent = 'Drone 1 Assigned'; badgeTgt.className = 'step-badge amber'; }
-        if (lblDrone) { lblDrone.textContent = 'Drone 1 (Sierra)'; lblDrone.style.color = '#ff9f0a'; }
+        if (badgeTgt) { badgeTgt.textContent = `${td.shortName} Auto-Tracking`; badgeTgt.className = 'step-badge amber'; }
+        if (lblDrone) { lblDrone.textContent = td.id; lblDrone.style.color = td.color; }
         if (btnSideCancelTgt) btnSideCancelTgt.style.display = 'inline-flex';
         if (btnSideReassign) btnSideReassign.style.display = 'none';
       } else {
         if (tBanner) tBanner.style.borderColor = 'var(--border-subtle)';
-        if (tBannerTxt) tBannerTxt.innerHTML = `No drone assigned to target — <strong>All 4 drones scanning sectors (4.0&times; speed)</strong>`;
+        if (tBannerTxt) tBannerTxt.innerHTML = `No target locked — Click <strong>🛸 Auto-Track Snowmobile</strong>, <strong>🚶 Auto-Track Hiker</strong>, or click any target box in Video!`;
         if (btnMapCancelTgt) btnMapCancelTgt.style.display = 'none';
-        if (badgeTgt) { badgeTgt.textContent = 'All 4 Scanning'; badgeTgt.className = 'step-badge'; }
-        if (lblDrone) { lblDrone.textContent = 'None (All 4 Mapping)'; lblDrone.style.color = '#4ade80'; }
+        if (badgeTgt) { badgeTgt.textContent = 'Ready to Auto-Track'; badgeTgt.className = 'step-badge'; }
+        if (lblDrone) { lblDrone.textContent = 'None (Click to Assign)'; lblDrone.style.color = '#4ade80'; }
         if (btnSideCancelTgt) btnSideCancelTgt.style.display = 'none';
         if (btnSideReassign) btnSideReassign.style.display = 'inline-flex';
       }
@@ -3303,9 +3593,9 @@
     function getDroneVideoFootprintWorldRect(droneIdx, viewW, viewH) {
       const d = drones[droneIdx] || drones[0];
       const subj = guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson;
-      const isTracking = (droneIdx === 0 && targetLockActive);
-      const centerWx = isTracking ? (d.x * 0.35 + subj.x * 0.65) : d.x;
-      const centerWy = isTracking ? (d.y * 0.35 + subj.y * 0.65) : d.y;
+      const isTracking = (droneIdx === assignedTrackDroneIdx && targetLockActive);
+      const centerWx = isTracking ? (d.x * 0.30 + subj.x * 0.70) : d.x;
+      const centerWy = isTracking ? (d.y * 0.30 + subj.y * 0.70) : d.y;
 
       const aspect = (viewW > 10 && viewH > 10) ? (viewW / viewH) : 1.15;
       const halfW = Math.max(18, (d.radius * 2.1) / Math.sqrt(osdZoomFactor));
@@ -4069,12 +4359,6 @@
           const ux = (e.clientX - rect.left) / rect.width;
           const uy = (e.clientY - rect.top) / rect.height;
 
-          // If Video Trackpad Steer is ON and no map/drop tool is active, clicking in video immediately pauses & centers (0%, 0%) so operator can move cursor out without side pull!
-          if (stickState.videoSteerMode && !dropMarkerMode && activeMapTool === 'PAN_MAP') {
-            toggleStickArmPause();
-            return;
-          }
-
           if (selectedCameraSource === 'QUAD_4UP') {
             const qIdx = (uy < 0.5 ? 0 : 2) + (ux < 0.5 ? 0 : 1);
             selectCameraSource(`DRONE_${qIdx}`);
@@ -4088,13 +4372,35 @@
 
           if (dropMarkerMode) {
             assignDropTargetAtWorld(clickWx, clickWy);
-          } else if (activeMapTool === 'GOTO_POINT') {
+            return;
+          }
+          if (activeMapTool === 'GOTO_POINT') {
             sendDroneToWorldPoint(dIdx, clickWx, clickWy, 'Video Click Go-To Pin');
             setMapTool('PAN_MAP');
-          } else if (activeMapTool === 'TRACK_OBJECT') {
+            return;
+          }
+          if (activeMapTool === 'TRACK_OBJECT') {
             markOrLockObjectAtWorld(clickWx, clickWy, dIdx);
             setMapTool('PAN_MAP');
+            return;
           }
+
+          // Direct 1-click on Snowmobile (+34.0°C) or Lost Hiker (+31.4°C) inside Drone Video -> immediately Auto-Track & Talk!
+          const hitSubj = findSubjectNearWorldPoint(clickWx, clickWy, Math.max(24, fp.w * 0.16));
+          if (hitSubj && (hitSubj.key === 'PERSON' || hitSubj.key === 'VEHICLE')) {
+            assignDroneToAutoTrack(hitSubj.key, dIdx, true);
+            sendVoiceIntercomPreset('HALT_LISTEN');
+            return;
+          }
+
+          // If Video Trackpad Steer is ON, clicking empty space pauses & centers (0%, 0%)
+          if (stickState.videoSteerMode) {
+            toggleStickArmPause();
+            return;
+          }
+
+          // Otherwise clicking any point in the video commands the active drone to fly there!
+          sendDroneToWorldPoint(dIdx, clickWx, clickWy, 'Video Click Go-To Pin');
         });
 
         osdCanvas.addEventListener('wheel', e => {
@@ -4409,8 +4715,9 @@
         sd.manualHold = true;
         sd.customGoal = null;
         sd.sectorName = `🕹️ Manual (${cmdSpeedMps.toFixed(1)} m/s)`;
-        if (steeredDroneIdx === 0 && targetLockActive) {
+        if (steeredDroneIdx === assignedTrackDroneIdx && targetLockActive) {
           targetLockActive = false;
+          closeTalkHoverActive = false;
           const chk = document.getElementById('chkPreemptMapping');
           if (chk) chk.checked = false;
           updateTargetAndDropUI();
@@ -4425,6 +4732,18 @@
         if (sd && sd.role === 'MANUAL_HOLD') {
           sd.lastSpeedMps = 0.0;
           sd.sectorName = '🕹️ Manual Hold (Loiter)';
+          // Automatic Visual/Thermal Auto-Track on Sight when pilot brings Snowmobile or Hiker into camera view (<38m) and releases stick!
+          if (autoTrackOnSight && !targetLockActive) {
+            const dVeh = Math.hypot(lostVehicle.x - sd.x, lostVehicle.y - sd.y);
+            const dPer = Math.hypot(lostPerson.x - sd.x, lostPerson.y - sd.y);
+            if (dVeh <= 38.0 && !isPointInVetoBubble(lostVehicle.x, lostVehicle.y)) {
+              assignDroneToAutoTrack('VEHICLE', steeredDroneIdx, false);
+              updateAidBannerUI(`🤖 AUTO-TRACK LOCKED ON SIGHT: ${sd.shortName} detected Snowmobile (+34.0°C @ ${Math.round(dVeh)}m) — Auto-Tracking! Click "🔊 Fly Close & Talk" to speak!`);
+            } else if (dPer <= 38.0 && !isPointInVetoBubble(lostPerson.x, lostPerson.y)) {
+              assignDroneToAutoTrack('PERSON', steeredDroneIdx, false);
+              updateAidBannerUI(`🤖 AUTO-TRACK LOCKED ON SIGHT: ${sd.shortName} detected Lost Hiker (+31.4°C @ ${Math.round(dPer)}m) — Auto-Tracking! Click "🔊 Fly Close & Talk" to speak!`);
+            }
+          }
         }
       }
 
@@ -4433,20 +4752,31 @@
           ? customTrackedObject
           : (guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson);
         const dest = guidedTargetType === 'VEHICLE' ? PLOWED_ROADHEAD : AUTIOTUPA_HUT;
-        const dx = dest.x - subj.x;
-        const dy = dest.y - subj.y;
-        const dist = Math.hypot(dx, dy);
-        if (dist > 10.0 && guidedTargetType !== 'CUSTOM_OBJECT') {
-          const spdMps = guidedTargetType === 'VEHICLE' ? VEHICLE_MOVE_MPS : HIKER_WALK_MPS;
-          const stepSubj = Math.min(dist, spdMps * simDtSec);
-          subj.x += (dx / dist) * stepSubj;
-          subj.y += (dy / dist) * stepSubj;
-        } else if (dist <= 10.0 && guidedTargetType !== 'CUSTOM_OBJECT') {
-          subj.arrived = true;
-          // Playbook Rule: When escorted subject reaches shelter/roadhead, release target lock and return to 4-sector scan!
-          if (aidState.mode === 'OFFLINE_DETERMINISTIC' || aidState.mode === 'CLOUD_LLM_JEV') {
-            cancelTargetAssignment(false);
-            updateAidBannerUI(`✓ JEV SHELTER ARRIVAL: ${subj.label} Safe at ${dest.name} -> All 4 Drones Scanning Sectors`);
+        const isHaltedToTalk = (voiceIntercomState.haltedTargetKey === guidedTargetType);
+        if (!isHaltedToTalk && guidedTargetType !== 'CUSTOM_OBJECT') {
+          const dx = dest.x - subj.x;
+          const dy = dest.y - subj.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist > 10.0) {
+            const spdMps = guidedTargetType === 'VEHICLE' ? VEHICLE_MOVE_MPS : HIKER_WALK_MPS;
+            const stepSubj = Math.min(dist, spdMps * simDtSec);
+            subj.x += (dx / dist) * stepSubj;
+            subj.y += (dy / dist) * stepSubj;
+          } else {
+            // Reached destination during practice or escort -> if Snowmobile reached bridge, loop along trail corridor unless in autonomous JEV shelter release
+            if (aidState.mode === 'OFFLINE_DETERMINISTIC' || aidState.mode === 'CLOUD_LLM_JEV') {
+              subj.arrived = true;
+              cancelTargetAssignment(false);
+              updateAidBannerUI(`✓ JEV SHELTER ARRIVAL: ${subj.label} Safe at ${dest.name} -> All 4 Drones Scanning Sectors`);
+            } else {
+              // In Manual Practice mode, keep target moving along a realistic canyon patrol loop so the drone actively auto-tracks!
+              const loopAng = simClockSec * 0.08;
+              const spdMps = guidedTargetType === 'VEHICLE' ? (VEHICLE_MOVE_MPS * 0.75) : HIKER_WALK_MPS;
+              subj.x += Math.cos(loopAng) * spdMps * simDtSec;
+              subj.y += Math.sin(loopAng * 0.8) * spdMps * 0.7 * simDtSec;
+              subj.x = Math.max(searchBox.xMin + 30, Math.min(searchBox.xMax - 30, subj.x));
+              subj.y = Math.max(searchBox.yMin + 30, Math.min(searchBox.yMax - 30, subj.y));
+            }
           }
         }
       }
@@ -4456,16 +4786,22 @@
         : (guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson);
       const activeDest = guidedTargetType === 'VEHICLE' ? PLOWED_ROADHEAD : AUTIOTUPA_HUT;
 
-      // Un-escorted secondary moving object slowly patrols/moves across sector boundaries at realistic 0.85 m/s
+      // Move any un-escorted target along a realistic canyon trail path (unless halted by voice intercom)
       if (simDtSec > 0) {
-        const unescorted = guidedTargetType === 'VEHICLE' ? lostPerson : lostVehicle;
-        if (!unescorted.arrived) {
-          const driftAng = simClockSec * 0.045;
-          unescorted.x += Math.cos(driftAng) * 0.85 * simDtSec;
-          unescorted.y += Math.sin(driftAng * 0.7) * 0.70 * simDtSec;
-          unescorted.x = Math.max(searchBox.xMin + 24, Math.min(searchBox.xMax - 24, unescorted.x));
-          unescorted.y = Math.max(searchBox.yMin + 24, Math.min(searchBox.yMax - 24, unescorted.y));
-        }
+        [
+          { key: 'VEHICLE', obj: lostVehicle, spd: 3.4, freq: 0.055 },
+          { key: 'PERSON',  obj: lostPerson,  spd: 1.1, freq: 0.040 }
+        ].forEach(item => {
+          if (targetLockActive && guidedTargetType === item.key) return;
+          if (voiceIntercomState.haltedTargetKey === item.key) return;
+          if (!item.obj.arrived) {
+            const driftAng = simClockSec * item.freq + (item.key === 'VEHICLE' ? 0.5 : 2.1);
+            item.obj.x += Math.cos(driftAng) * item.spd * simDtSec;
+            item.obj.y += Math.sin(driftAng * 0.75) * (item.spd * 0.7) * simDtSec;
+            item.obj.x = Math.max(searchBox.xMin + 28, Math.min(searchBox.xMax - 28, item.obj.x));
+            item.obj.y = Math.max(searchBox.yMin + 28, Math.min(searchBox.yMax - 28, item.obj.y));
+          }
+        });
       }
 
       let maxPassCount = 1;
@@ -4511,20 +4847,31 @@
             }
             updateTargetAndDropUI();
           } else if (d.role === 'PRIORITY_FOLLOW') {
-            const gx = activeSubj.x - 14;
-            const gy = activeSubj.y - 6;
+            // Close Intercom Hover flies within 7m (20m AGL); standard Auto-Track Escort flies at 14m standoff (28m AGL)
+            const standoffX = closeTalkHoverActive ? -6 : -13;
+            const standoffY = closeTalkHoverActive ? -4 : -6;
+            const gx = activeSubj.x + standoffX;
+            const gy = activeSubj.y + standoffY;
             const dx = gx - d.x;
             const dy = gy - d.y;
             const dist = Math.hypot(dx, dy);
-            if (dist > 0.8) {
+            d.altAgl = closeTalkHoverActive ? 20 : (aidState.compiled?.trackAltM || 28);
+            const tLabel = guidedTargetType === 'VEHICLE' ? 'Snowmobile' : 'Hiker';
+            d.sectorName = closeTalkHoverActive ? `🔊 Talking -> ${tLabel} (8m)` : `🎯 Auto-Track -> ${tLabel}`;
+            if (dist > 0.6) {
               // Fly at realistic bounded speed from previous position (NEVER teleport/snap!)
-              const step = Math.min(dist, viewAdaptiveStepM * 1.05);
+              const step = Math.min(dist, viewAdaptiveStepM * 1.12);
               d.x += (dx / dist) * step;
               d.y += (dy / dist) * step;
               d.lastSpeedMps = (step / Math.max(0.001, dtRealSec));
               d.lastHeadingDeg = ((Math.atan2(dx, -dy) * 180 / Math.PI) + 360) % 360;
+              if (Math.hypot(d.x - (d.trail[d.trail.length - 1]?.x || d.x), d.y - (d.trail[d.trail.length - 1]?.y || d.y)) > 6.0) {
+                d.trail.push({ x: d.x, y: d.y });
+                if (d.trail.length > 50) d.trail.shift();
+              }
             } else {
-              d.lastSpeedMps = HIKER_WALK_MPS * simSpeed;
+              const isHalted = (voiceIntercomState.haltedTargetKey === guidedTargetType);
+              d.lastSpeedMps = isHalted ? 0.0 : ((guidedTargetType === 'VEHICLE' ? VEHICLE_MOVE_MPS : HIKER_WALK_MPS) * simSpeed);
             }
           } else if (d.role === 'SHROUD_MAPPER' && d.waypoints && d.waypoints.length > 0) {
             d.sectorDone = false; // Continuous radar patrol NEVER parks at Done!
@@ -4587,13 +4934,18 @@
         const spdMps = pd.lastSpeedMps ?? (simRunning ? DRONE_CRUISE_MPS * simSpeed : 0.0);
         const spdKmh = Math.round(spdMps * 3.6);
         const hdg = String(Math.round(pd.lastHeadingDeg ?? 45)).padStart(3, '0');
+        const cards = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
         const dxH = lostPerson.x - pd.x;
         const dyH = lostPerson.y - pd.y;
         const distH = Math.round(Math.hypot(dxH, dyH));
         const brgH = ((Math.atan2(dxH, -dyH) * 180 / Math.PI) + 360) % 360;
-        const cards = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
         const cardH = cards[Math.round(brgH / 45) % 8];
-        teleEl.innerHTML = `🚁 <strong>${pd.shortName}</strong> (${simSpeed}x): <strong>${spdMps.toFixed(1)} m/s</strong> (${spdKmh} km/h) • HDG ${hdg}° &bull; 🎯 Hiker: <strong>${distH}m ${cardH}</strong> (${Math.round(brgH)}°)`;
+        const dxV = lostVehicle.x - pd.x;
+        const dyV = lostVehicle.y - pd.y;
+        const distV = Math.round(Math.hypot(dxV, dyV));
+        const brgV = ((Math.atan2(dxV, -dyV) * 180 / Math.PI) + 360) % 360;
+        const cardV = cards[Math.round(brgV / 45) % 8];
+        teleEl.innerHTML = `🚁 <strong>${pd.shortName}</strong> (${simSpeed}x): <strong>${spdMps.toFixed(1)} m/s</strong> (${spdKmh} km/h) • HDG ${hdg}°<br>🎯 Hiker: <strong>${distH}m ${cardH}</strong> (${Math.round(brgH)}°) &bull; 🛸 Snowmobile: <strong>${distV}m ${cardV}</strong> (${Math.round(brgV)}°)`;
       }
 
       const covStats = updateBoxFreshnessAndMovingTargetLeakGrid();
@@ -5227,9 +5579,10 @@
       subjectsInVideo.forEach(subj => {
         if (subj.x >= fp.xMin && subj.x <= fp.xMax && subj.y >= fp.yMin && subj.y <= fp.yMax) {
           const [vx, vy] = worldToVideoPx(subj.x, subj.y);
+          const isLockedThisSubj = targetLockActive && getActiveTrackedSubject() === subj;
           const subjGrad = ctx.createRadialGradient(vx, vy, 2, vx, vy, 16);
           subjGrad.addColorStop(0, '#ffffff');
-          subjGrad.addColorStop(0.45, '#ff9f0a');
+          subjGrad.addColorStop(0.45, isLockedThisSubj ? '#30d158' : '#ff9f0a');
           subjGrad.addColorStop(1, 'rgba(255, 69, 58, 0.0)');
           ctx.fillStyle = subjGrad;
           ctx.beginPath();
@@ -5237,24 +5590,65 @@
           ctx.fill();
 
           const bSize = isCompactQuad ? 44 : 62;
-          ctx.strokeStyle = '#ffd60a';
-          ctx.lineWidth = 2.2;
+          ctx.strokeStyle = isLockedThisSubj ? '#30d158' : '#ffd60a';
+          ctx.lineWidth = isLockedThisSubj ? 2.8 : 2.2;
           ctx.strokeRect(vx - bSize * 0.5, vy - bSize * 0.5, bSize, bSize);
 
           if (!isCompactQuad) {
             const lbl = `${subj.label} • ${subj.tempC}`;
             ctx.font = '600 11.5px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
             const lw = Math.ceil(ctx.measureText(lbl).width) + 14;
-            ctx.fillStyle = 'rgba(15, 16, 22, 0.90)';
+            ctx.fillStyle = 'rgba(15, 16, 22, 0.92)';
             ctx.beginPath();
             ctx.roundRect(vx - lw * 0.5, vy - bSize * 0.5 - 24, lw, 20, 5);
             ctx.fill();
-            ctx.fillStyle = '#ffd60a';
+            ctx.fillStyle = isLockedThisSubj ? '#4ade80' : '#ffd60a';
             ctx.textAlign = 'center';
             ctx.fillText(lbl, vx, vy - bSize * 0.5 - 10);
+
+            // Action badge below target box so operator sees immediately they can click to auto-track & talk!
+            const subBadge = isLockedThisSubj
+              ? (closeTalkHoverActive ? '🔊 CLOSE HOVER (8m) • INTERCOM LIVE' : '🟢 AUTO-TRACKING • CLICK TO TALK')
+              : '🎯 CLICK BOX TO AUTO-TRACK & TALK';
+            ctx.font = '700 10.5px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+            const sbw = Math.ceil(ctx.measureText(subBadge).width) + 14;
+            ctx.fillStyle = isLockedThisSubj ? 'rgba(20, 83, 45, 0.92)' : 'rgba(30, 58, 138, 0.92)';
+            ctx.beginPath();
+            ctx.roundRect(vx - sbw * 0.5, vy + bSize * 0.5 + 5, sbw, 19, 5);
+            ctx.fill();
+            ctx.strokeStyle = isLockedThisSubj ? '#4ade80' : '#38bdf8';
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(subBadge, vx, vy + bSize * 0.5 + 18);
           }
         }
       });
+
+      // Render Live 2-Way Voice Intercom Overlay on Video Feed when active
+      if (!isCompactQuad && voiceIntercomState && voiceIntercomState.lastTxText && (Date.now() - voiceIntercomState.lastTxTimeMs < 35000 || closeTalkHoverActive)) {
+        const icW = Math.min(W - 24, 560);
+        const icX = (W - icW) * 0.5;
+        const icY = H - 104;
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+        ctx.beginPath();
+        ctx.roundRect(icX, icY, icW, 50, 8);
+        ctx.fill();
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.textAlign = 'left';
+        ctx.font = '700 11.5px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+        ctx.fillStyle = '#38bdf8';
+        const txClip = voiceIntercomState.lastTxText.length > 68 ? voiceIntercomState.lastTxText.slice(0, 68) + '...' : voiceIntercomState.lastTxText;
+        ctx.fillText(`🔊 DRONE 85dBA PA: "${txClip}"`, icX + 12, icY + 19);
+        ctx.font = '600 11.5px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+        ctx.fillStyle = '#4ade80';
+        const rxClip = voiceIntercomState.lastRxText
+          ? (voiceIntercomState.lastRxText.length > 68 ? voiceIntercomState.lastRxText.slice(0, 68) + '...' : voiceIntercomState.lastRxText)
+          : '🎙️ Listening on directional array mic...';
+        ctx.fillText(`🎙️ REPLY: ${rxClip}`, icX + 12, icY + 39);
+      }
 
       if (payloadState.status !== 'READY_ABOARD') {
         const [px, py] = worldToVideoPx(payloadState.targetX, payloadState.targetY);
