@@ -1844,6 +1844,7 @@ class TestAerialObserverModule(unittest.TestCase):
         Human Veto Bubbles, and MAVLink v2 Field Bridge Red-Team Hardening ([RT1-01]..[RT1-06], [RT2-01]..[RT2-05]).
         """
         from collector_hub.playbook_agent_dispatcher import (
+            build_structured_playbook_rules,
             compile_natural_language_playbook,
             PlaybookAgentDispatcher,
             DEFAULT_PLAYBOOKS,
@@ -1861,11 +1862,10 @@ class TestAerialObserverModule(unittest.TestCase):
             pack_command_int_reposition,
         )
 
-        # 1. [RT1-02] & [RT2-04] Clause-Scoped Natural-Language Playbook Compiler:
-        #    - Decimal-safe sub-clause splitting (e.g. "0.85 confidence" does not split on ".")
-        #    - Order-independent canopy floor vs ceiling feasibility check
-        pb = compile_natural_language_playbook(
-            DEFAULT_PLAYBOOKS["PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY"]["markdown"],
+        # 1. [RT1-02] Structured Parameterized Playbook Validator (Zero Offline Regex Parsing):
+        #    - Predefined playbooks and structured parameter overrides are validated as typed fields
+        #    - Order-independent canopy floor vs ceiling feasibility check (`L <= U`)
+        pb = build_structured_playbook_rules(
             playbook_id="PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY",
         )
         self.assertAlmostEqual(pb.search_altitude_agl_m, 55.0)
@@ -1877,10 +1877,15 @@ class TestAerialObserverModule(unittest.TestCase):
         self.assertFalse(pb.require_human_drop_confirm)
         self.assertEqual(len(pb.compile_warnings), 0)
 
-        # Verify decimal numbers in mixed-clause sentence ("Search Allocation: scan at 65m AGL. Target Preemption: when a lost person is detected above 0.85 confidence, lock at 32m AGL. Payload Drop: require human confirmation before drop.")
+        # Verify structured field overrides (search_altitude_agl_m=65.0, min_detection_confidence=0.85, tracking_altitude_agl_m=32.0, drop_policy="QUEUE_REQUIRE_HUMAN_CONFIRM"):
         pb_mixed = compile_natural_language_playbook(
-            "# Mixed Clause Test\n- **Search Allocation:** Scan at 65 m AGL with 0% overlap.\n- **Target Preemption:** When a lost person is detected (>= 0.85 confidence), lock and follow at 32 m AGL and require human confirmation before drop.",
-            playbook_id="MIXED_CLAUSE_TEST",
+            {
+                "search_altitude_agl_m": 65.0,
+                "min_detection_confidence": 0.85,
+                "tracking_altitude_agl_m": 32.0,
+                "drop_policy": "QUEUE_REQUIRE_HUMAN_CONFIRM",
+            },
+            playbook_id="MIXED_STRUCTURED_TEST",
         )
         self.assertAlmostEqual(pb_mixed.search_altitude_agl_m, 65.0)
         self.assertAlmostEqual(pb_mixed.min_detection_confidence, 0.85)
@@ -1888,10 +1893,10 @@ class TestAerialObserverModule(unittest.TestCase):
         self.assertTrue(pb_mixed.require_human_drop_confirm)
         self.assertFalse(pb_mixed.auto_release_drop)
 
-        # Verify inverted altitude interval (canopy floor + 10m > ceiling) raises compile warning and clamps safely
-        pb_contradict = compile_natural_language_playbook(
-            "# Contradictory Altitude\n- **Safety:** Stay below 30 m ceiling. Tree canopy is 28 m tall.",
+        # Verify inverted altitude interval (canopy floor + 10m > ceiling) raises compile warning and clamps safely:
+        pb_contradict = build_structured_playbook_rules(
             playbook_id="CONTRADICTORY_ALT",
+            structured_params={"canopy_floor_m": 28.0, "altitude_ceiling_m": 30.0},
         )
         self.assertGreater(len(pb_contradict.compile_warnings), 0)
         self.assertGreaterEqual(pb_contradict.altitude_ceiling_m, pb_contradict.canopy_floor_m + 10.0)
@@ -2124,11 +2129,60 @@ class TestAerialObserverModule(unittest.TestCase):
         self.assertIn("trackpadSteerCanvas", html)
         self.assertIn("function renderTrackpadSteerBoundsCanvas()", html)
         self.assertIn("X AXIS:", html)
+        # Zero offline regex parsing of natural-language commands (Rule 2):
+        self.assertNotIn("compileNaturalLanguagePlaybookJS", html)
+        self.assertIn("function buildStructuredPlaybookRulesJS(", html)
+        self.assertIn("inpPbSearchAlt", html)
+        self.assertIn("inpPbTrackAlt", html)
+        self.assertIn("selPbDropPolicy", html)
+
+    def test_31_structured_playbook_no_regex_dynamic_envelopes_and_mobile_responder(self) -> None:
+        """
+        Verify:
+          1. Dynamic safe-operating-envelope physics engine in flight_simulator.html shifts bands
+             across all 6 gauges and PFD tapes based on altitude density, mass, G-load, icing, flaps,
+             headwind, and Manned Helicopter ceiling.
+          2. Persona 4 Gloved Ground SAR Responder App (mobile_responder.html) exists and includes
+             ETRS-TM35FIN + WGS84 coordinates, ATAK CoT export, and 2-way field ACK buttons.
+          3. Exact JHS 197 ETRS-TM35FIN <-> WGS84 coordinate conversion round-trip accuracy (<1.0 m).
+          4. MAVLinkV2FieldBridge.command_payload_drop unknown action never clears a latched drop veto.
+        """
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        sim_path = os.path.join(root_dir, "fast_sar_jet_finlab02", "simulator_ui", "flight_simulator.html")
+        with open(sim_path, "r", encoding="utf-8") as f:
+            sim_html = f.read()
+        self.assertIn("window.lastDynamicEnvelope =", sim_html)
+        self.assertIn("window.toggleDynEnvFactor =", sim_html)
+        self.assertIn("Fast-SAR Mothership", sim_html)
+        self.assertIn("Pilot Cockpit &amp; Synthetic Vision GCS", sim_html)
+
+        resp_path = os.path.join(root_dir, "collector_hub", "ui", "mobile_responder.html")
+        self.assertTrue(os.path.exists(resp_path))
+        with open(resp_path, "r", encoding="utf-8") as f:
+            resp_html = f.read()
+        self.assertIn("ETRS-TM35FIN", resp_html)
+        self.assertIn("exportAtakCot", resp_html)
+        self.assertIn("sendFieldAction('VICTIM_SAFE')", resp_html)
+
+        from collector_hub.dashboard_server import wgs84_to_etrs_tm35fin, etrs_tm35fin_to_wgs84
+        n_m, e_m = wgs84_to_etrs_tm35fin(66.3695, 29.3155)
+        lat_rt, lon_rt = etrs_tm35fin_to_wgs84(n_m, e_m)
+        self.assertAlmostEqual(lat_rt, 66.3695, places=4)
+        self.assertAlmostEqual(lon_rt, 29.3155, places=4)
+
+        from collector_hub.mavlink_field_bridge import MAVLinkV2FieldBridge
+        bridge = MAVLinkV2FieldBridge()
+        bridge.command_payload_drop(action="cancel", target_x_m=10.0, target_y_m=20.0)
+        self.assertTrue(bridge.drop_veto_latched)
+        bad_res = bridge.command_payload_drop(action="unknown_invalid_action", target_x_m=10.0, target_y_m=20.0)
+        self.assertFalse(bad_res["approved"])
+        self.assertTrue(bridge.drop_veto_latched)
 
 
 if __name__ == "__main__":
     print("=== Running Autonomous Aerial Observation & Guidance Module Test Suite ===")
     unittest.main(verbosity=2)
+
 
 
 

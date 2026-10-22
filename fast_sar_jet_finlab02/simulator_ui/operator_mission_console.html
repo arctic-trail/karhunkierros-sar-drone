@@ -701,30 +701,37 @@
       <div class="brand">
         <div class="status-dot"></div>
         <span class="brand-title">Karhunkierros SAR</span>
-        <span class="brand-sub">Google Earth Cooperative Search &amp; Rescue Console</span>
+        <span class="brand-sub">Swarm C&amp;C &amp; Structured Playbook Console</span>
       </div>
 
       <div class="top-controls">
-        <!-- Quick Jump to Any Region on Google Earth + Arbitrary 112 SOS Coordinate Input -->
+        <!-- 3-Endpoint Ecosystem Switcher -->
+        <div class="pane-toggle-group" style="border-color:rgba(56,189,248,0.4);" title="Switch between the 3 live production SAR operator endpoints">
+          <a class="pane-pill on" href="/operator_mission_console.html" style="text-decoration:none;">🌍 1. Swarm C&amp;C</a>
+          <a class="pane-pill" href="/mothership_cockpit.html" style="text-decoration:none;">✈️ 2. Mothership Cockpit</a>
+          <a class="pane-pill" href="/mobile_responder.html" style="text-decoration:none;">🛷 4. Ground SAR</a>
+        </div>
+
+        <!-- Quick Jump to Any Region on Google Earth + Multi-Format 112 SOS Coordinate Input (ETRS-TM35FIN / DDM / WGS84) -->
         <select id="selGeoRegion" class="select-input" onchange="jumpToGoogleEarthRegion(this.value)" title="Jump anywhere on Google Earth and drag or stretch a Search Area">
-          <option value="OULANKA" selected>📍 Oulanka Canyon / Kiutaköngäs (66.3695°N, 29.3155°E)</option>
-          <option value="RUKA">📍 Ruka Fell &amp; Ski Village (66.1658°N, 29.1520°E)</option>
+          <option value="OULANKA" selected>📍 Oulanka Canyon (N 7362415 E 598784)</option>
+          <option value="RUKA">📍 Ruka Fell (66.1658°N, 29.1520°E)</option>
           <option value="JUUMA">📍 Juuma / Pieni Karhunkierros (66.2625°N, 29.3765°E)</option>
-          <option value="KUUSAMO">📍 Kuusamo Town &amp; Lakes (65.9645°N, 29.1830°E)</option>
+          <option value="KUUSAMO">📍 Kuusamo Town (65.9645°N, 29.1830°E)</option>
         </select>
-        <div style="display:flex;align-items:center;gap:4px;background:#1c1c23;border:1px solid var(--border-strong);border-radius:7px;padding:2px 5px;" title="Enter any real 112 emergency GPS coordinates (Lat, Lon) to jump the SAR mission there">
+        <div style="display:flex;align-items:center;gap:4px;background:#1c1c23;border:1px solid var(--border-strong);border-radius:7px;padding:2px 5px;" title="Enter 112 SOS coordinates in ETRS-TM35FIN (N 7362415 E 598784), Aviation DDM (66 22.17N 29 18.93E), or WGS84 Decimal (66.3695, 29.3155)">
           <span style="font-size:10.5px;color:#fbbf24;font-weight:700;">112 SOS:</span>
-          <input type="text" id="txtCustomSosCoords" placeholder="66.3695, 29.3155" onkeydown="if(event.key==='Enter')jumpToCustomSosCoords()" style="width:118px;background:transparent;border:none;color:#f5f5f7;font-family:var(--font-mono);font-size:11px;outline:none;" />
+          <input type="text" id="txtCustomSosCoords" placeholder="N 7362415 E 598784 or Lat,Lon" onkeydown="if(event.key==='Enter')jumpToCustomSosCoords()" style="width:136px;background:transparent;border:none;color:#f5f5f7;font-family:var(--font-mono);font-size:11px;outline:none;" />
           <button class="win-btn" onclick="jumpToCustomSosCoords()" style="padding:2px 6px;font-size:10.5px;color:#64d2ff;border-color:rgba(10,132,255,0.45);">🎯 Go</button>
         </div>
 
         <!-- Show / Hide Any View Pills -->
         <div class="pane-toggle-group" title="Show, hide, or restore any view panel">
-          <button class="pane-pill on" id="pillShowMap" onclick="togglePane('mapPane')">🌍 1. Google Earth Map</button>
-          <button class="pane-pill on" id="pillShowVideo" onclick="togglePane('videoPane')">📷 2. Drone Video</button>
-          <button class="pane-pill on" id="pillShowProfile" onclick="togglePane('profileBar')">⛰️ Elevation</button>
-          <button class="pane-pill on" id="pillShowControls" onclick="togglePane('controlPane')">⚙️ 3. Controls</button>
-          <button class="pane-pill" onclick="resetWorkspaceLayout()" title="Restore default balanced split layout">↺ Reset Views</button>
+          <button class="pane-pill on" id="pillShowMap" onclick="togglePane('mapPane')">🌍 Map</button>
+          <button class="pane-pill on" id="pillShowVideo" onclick="togglePane('videoPane')">📷 Video</button>
+          <button class="pane-pill on" id="pillShowProfile" onclick="togglePane('profileBar')">⛰️ DEM</button>
+          <button class="pane-pill on" id="pillShowControls" onclick="togglePane('controlPane')">⚙️ Controls</button>
+          <button class="pane-pill" onclick="resetWorkspaceLayout()" title="Restore default balanced split layout">↺ Reset</button>
         </div>
 
         <button class="btn success active" id="btnSimPlayPause" onclick="toggleSimPlayPause()">⏸ Sim Running</button>
@@ -766,11 +773,12 @@
             </div>
 
             <div class="toolbar-cluster">
-              <select id="selEarthLayer" class="select-input" onchange="setGoogleEarthLayer(this.value)" style="padding:4px 7px;font-size:11.5px;">
-                <option value="y" selected>🌍 Google Earth Hybrid (Sat + Labels)</option>
-                <option value="s">🛰️ Google Earth Pure Satellite</option>
-                <option value="p">🏔️ Google Terrain + Contours</option>
+              <select id="selEarthLayer" class="select-input" onchange="setGoogleEarthLayer(this.value)" style="padding:4px 7px;font-size:11.5px;" title="Streams live Google Earth Web Mercator tiles (mt0..3.google.com/vt) with 0 API key required, plus optional Google Maps Platform API key support">
+                <option value="y" selected>🌍 Google Earth Hybrid (Live • 0-Key)</option>
+                <option value="s">🛰️ Google Earth Pure Satellite (Live)</option>
+                <option value="p">🏔️ Google Terrain + Contours (Live)</option>
               </select>
+              <button class="btn" onclick="toggleLlmApiKeyPanel()" title="Google Earth tiles stream directly without an API key; click here to configure an optional Google Maps Platform Tile Key or External LLM API Key" style="padding:4px 7px;font-size:11px;border-color:rgba(74,222,128,0.45);color:#4ade80;">🔑 Tile/LLM Keys</button>
               <button class="btn" onclick="zoomMapBy(0.65)" title="Zoom Out">−</button>
               <button class="btn" id="btnMapZoomReadout" onclick="fitMapToSearchBox()" title="Fit Current Search Area">z=16</button>
               <button class="btn" onclick="zoomMapBy(1.5)" title="Zoom In">+</button>
@@ -918,50 +926,53 @@
         </div>
 
         <div class="operator-dock">
-          <!-- CARD 0: NATURAL-LANGUAGE OPERATIONS PLAYBOOK & JEV AGENT DISPATCHER (OFFLINE-SAFE) -->
+          <!-- CARD 0: STRUCTURED PLAYBOOK FEATURES OR MANUAL CONTROL (ZERO OFFLINE REGEX PARSING!) -->
           <div class="step-card" style="border-color:rgba(10,132,255,0.45);background:linear-gradient(180deg,rgba(10,132,255,0.08),rgba(28,28,35,0.95));">
             <div class="step-header">
-              <span class="step-title">🤖 AI Playbook Dispatcher (AID)</span>
-              <span class="step-badge" id="badgeAidState" style="background:rgba(48,209,88,0.18);color:#4ade80;">Offline Compiled • &lt;1ms</span>
+              <span class="step-title">🤖 Playbook &amp; Control Mode (AID)</span>
+              <span class="step-badge" id="badgeAidState" style="background:rgba(48,209,88,0.18);color:#4ade80;">Structured • &lt;1ms</span>
             </div>
             <div class="form-grid" style="margin-top:2px;">
               <div class="field-box">
-                <span class="field-label">AID Execution Mode</span>
+                <span class="field-label">Control Mode (No Regex!)</span>
                 <select id="selAidMode" class="select-input" onchange="updateAidMode(this.value)" style="width:100%;padding:3px 5px;font-size:11px;">
-                  <option value="OFFLINE_DETERMINISTIC" selected>⚡ Auto: Offline Playbook (&lt;1ms, No API)</option>
-                  <option value="CLOUD_LLM_JEV">🧠 Auto: LLM JEV Agent (Auto-Cutout)</option>
+                  <option value="OFFLINE_DETERMINISTIC" selected>⚡ Option A: Structured Playbook (&lt;1ms)</option>
+                  <option value="MANUAL_HUMAN_ONLY">🛑 Option B: Manual Control Only (No LLM)</option>
+                  <option value="CLOUD_LLM_JEV">🧠 Optional: Cloud LLM JEV (Auto-Cutout)</option>
                   <option value="ADVISORY_ONLY">💡 Advisory Co-Pilot Only (No Auto-Act)</option>
-                  <option value="MANUAL_HUMAN_ONLY">🛑 AID OFF (100% Manual Human Only)</option>
                 </select>
               </div>
               <div class="field-box">
-                <span class="field-label">No-LLM API Fallback</span>
+                <span class="field-label">When No LLM Available</span>
                 <select id="selAidFallback" class="select-input" onchange="updateAidFallbackPolicy(this.value)" style="width:100%;padding:3px 5px;font-size:11px;">
-                  <option value="OFFLINE_DETERMINISTIC" selected>Run Offline Playbook (&lt;1ms)</option>
-                  <option value="MANUAL_HUMAN_ONLY">Turn AID OFF (Manual Only)</option>
+                  <option value="OFFLINE_DETERMINISTIC" selected>Option A: Structured Playbook Fields</option>
+                  <option value="MANUAL_HUMAN_ONLY">Option B: Manual Control Only (No LLM)</option>
                 </select>
               </div>
             </div>
             <div class="field-box" style="padding:5px 7px;">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;">
-                <span class="field-label">Natural-Language Operations Playbook</span>
+                <span class="field-label">Predefined SAR Feature Profile</span>
                 <div style="display:flex;gap:4px;align-items:center;">
                   <button class="win-btn" onclick="toggleLlmApiKeyPanel()" id="btnToggleApiKeyPanel" style="font-size:10px;padding:1px 6px;" title="Configure External LLM API Key (Session or Save to Disk)">🔑 API Key</button>
-                  <button class="win-btn" onclick="togglePlaybookEditor()" id="btnTogglePbEditor" style="font-size:10px;padding:1px 6px;">📝 Edit NL Rules</button>
+                  <button class="win-btn" onclick="togglePlaybookEditor()" id="btnTogglePbEditor" style="font-size:10px;padding:1px 6px;color:#38bdf8;border-color:rgba(56,189,248,0.45);">⚙️ Structured Fields</button>
                 </div>
               </div>
               <select id="selPlaybookPreset" class="select-input" onchange="selectPlaybookPreset(this.value)" style="width:100%;padding:3px 5px;font-size:11px;margin-top:2px;">
-                <option value="PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY" selected>1. Night Hiker Search &amp; Opaslyhty Hut Escort (Default)</option>
+                <option value="PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY" selected>1. Night Hiker Search &amp; Opaslyhty Hut Escort (55m/28m)</option>
                 <option value="PLAYBOOK_02_CAUTIOUS_HUMAN_CONFIRM_DROP">2. Cautious Search (Require Human Confirm for Drop)</option>
-                <option value="PLAYBOOK_03_STRANDED_SNOWMOBILE_CORRIDOR">3. Stranded Snowmobile / Vehicle Corridor Escort</option>
-                <option value="PLAYBOOK_04_EW_DENIED_PASSIVE_RECON">4. GNSS-Denied / Reindeer-Safe High Sweep (&ge;100m)</option>
+                <option value="PLAYBOOK_03_STRANDED_SNOWMOBILE_CORRIDOR">3. Stranded Snowmobile / Vehicle Corridor Escort (65m/45m)</option>
+                <option value="PLAYBOOK_04_EW_DENIED_PASSIVE_RECON">4. GNSS-Denied / Reindeer-Safe High Sweep (85m/35m)</option>
               </select>
 
-              <!-- EXTERNAL LLM API KEY PROMPT & SAVE-TO-DISK DRAWER -->
+              <!-- EXTERNAL LLM & OPTIONAL GOOGLE MAPS TILE API KEY DRAWER -->
               <div id="llmApiKeyPanelWrap" style="display:none;flex-direction:column;gap:6px;margin-top:6px;padding:7px 8px;background:rgba(10,132,255,0.10);border:1px solid rgba(10,132,255,0.45);border-radius:6px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
-                  <strong style="font-size:11px;color:#64d2ff;">🔑 External LLM API Key Configuration</strong>
-                  <span id="lblApiKeyStatusBadge" style="font-size:10px;font-family:var(--font-mono);color:#fbbf24;">Not Configured</span>
+                  <strong style="font-size:11px;color:#64d2ff;">🔑 LLM &amp; Google Maps API Keys</strong>
+                  <span id="lblApiKeyStatusBadge" style="font-size:10px;font-family:var(--font-mono);color:#fbbf24;">Earth: 0-Key Live • LLM: Offline</span>
+                </div>
+                <div style="font-size:10px;color:#a1a1aa;line-height:1.32;background:rgba(0,0,0,0.28);padding:4px 6px;border-radius:4px;">
+                  🌍 <strong>Google Earth Tiles:</strong> Streams live <code>mt0..3.google.com/vt</code> satellite &amp; hybrid tiles <strong>without requiring an API key</strong> (+ local offline orthophoto cache). You can optionally add a paid Google Maps Platform key or External LLM key below:
                 </div>
                 <div style="display:flex;gap:5px;align-items:center;">
                   <select id="selLlmProviderModel" class="select-input" style="flex:1;padding:3px 5px;font-size:10.5px;">
@@ -972,31 +983,75 @@
                   </select>
                 </div>
                 <div style="display:flex;gap:4px;align-items:center;">
-                  <input type="password" id="txtLlmApiKey" placeholder="Paste API Key (sk-... or sk-ant-...)" autocomplete="off" style="flex:1;background:#0e0e12;color:#f5f5f7;border:1px solid var(--border-strong);border-radius:5px;padding:4px 7px;font-family:var(--font-mono);font-size:11px;" />
-                  <button class="win-btn" onclick="toggleApiKeyVisibility()" id="btnShowHideApiKey" style="font-size:10px;padding:3px 6px;" title="Show/Hide API Key">👁️</button>
+                  <input type="password" id="txtLlmApiKey" placeholder="LLM API Key (sk-... or sk-ant-...)" autocomplete="off" style="flex:1;background:#0e0e12;color:#f5f5f7;border:1px solid var(--border-strong);border-radius:5px;padding:4px 7px;font-family:var(--font-mono);font-size:11px;" />
+                  <button class="win-btn" onclick="toggleApiKeyVisibility()" id="btnShowHideApiKey" style="font-size:10px;padding:3px 6px;" title="Show/Hide API Keys">👁️</button>
+                </div>
+                <div style="display:flex;gap:4px;align-items:center;">
+                  <input type="password" id="txtGoogleMapsApiKey" placeholder="Optional Google Maps Tile Key (AIza... — Leave blank for free 0-key stream)" autocomplete="off" style="flex:1;background:#0e0e12;color:#f5f5f7;border:1px solid var(--border-subtle);border-radius:5px;padding:4px 7px;font-family:var(--font-mono);font-size:10.5px;" />
                 </div>
                 <label style="display:flex;align-items:flex-start;gap:6px;font-size:10.5px;color:var(--text-primary);cursor:pointer;line-height:1.3;">
                   <input type="checkbox" id="chkSaveKeyToDisk" checked style="margin-top:2px;accent-color:var(--accent-blue);" />
-                  <span><strong>💾 Save API key to disk</strong> (<code style="font-size:9.5px;color:#64d2ff;">_private/llm_api_credentials.json</code>, <code>chmod 0600</code> gitignored). Uncheck for session-only RAM.</span>
+                  <span><strong>💾 Save API keys to disk</strong> (<code style="font-size:9.5px;color:#64d2ff;">_private/llm_api_credentials.json</code>, <code>chmod 0600</code> gitignored). Uncheck for session-only RAM.</span>
                 </label>
                 <div style="display:flex;gap:5px;">
-                  <button class="btn success" onclick="saveAndActivateLlmApiKey()" style="flex:1;padding:4px 7px;font-size:11px;">✓ Save Key &amp; Activate LLM</button>
-                  <button class="btn danger" onclick="clearSavedLlmApiKey()" style="padding:4px 7px;font-size:10.5px;" title="Remove API key from RAM and delete from disk">🗑️ Clear</button>
-                  <button class="btn" onclick="cancelApiKeyPromptAndUseOffline()" style="padding:4px 7px;font-size:10.5px;">✕ Offline</button>
+                  <button class="btn success" onclick="saveAndActivateLlmApiKey()" style="flex:1;padding:4px 7px;font-size:11px;">✓ Save Keys &amp; Apply</button>
+                  <button class="btn danger" onclick="clearSavedLlmApiKey()" style="padding:4px 7px;font-size:10.5px;" title="Remove API keys from RAM and delete from disk">🗑️ Clear</button>
+                  <button class="btn" onclick="cancelApiKeyPromptAndUseOffline()" style="padding:4px 7px;font-size:10.5px;">✕ Close</button>
                 </div>
               </div>
 
-              <div id="playbookEditorWrap" style="display:none;flex-direction:column;gap:5px;margin-top:5px;">
-                <textarea id="txtPlaybookMarkdown" rows="5" style="width:100%;background:#0e0e12;color:#f5f5f7;border:1px solid var(--border-strong);border-radius:6px;padding:6px;font-family:var(--font-mono);font-size:10.5px;line-height:1.35;"></textarea>
+              <!-- STRUCTURED PARAMETER FORM FIELDS (NO REGEX / NO FREE-TEXT PARSING!) -->
+              <div id="playbookEditorWrap" style="display:flex;flex-direction:column;gap:5px;margin-top:6px;padding:6px 7px;background:rgba(15,23,42,0.85);border:1px solid rgba(56,189,248,0.35);border-radius:6px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">
+                  <div>
+                    <label style="font-size:9.5px;color:#94a3b8;display:block;">Search Alt (m)</label>
+                    <input type="number" id="inpPbSearchAlt" min="28" max="120" step="1" value="55" style="width:100%;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:2px 5px;font-family:var(--font-mono);font-size:11px;" />
+                  </div>
+                  <div>
+                    <label style="font-size:9.5px;color:#94a3b8;display:block;">Track Alt (m)</label>
+                    <input type="number" id="inpPbTrackAlt" min="28" max="120" step="1" value="28" style="width:100%;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:2px 5px;font-family:var(--font-mono);font-size:11px;" />
+                  </div>
+                  <div>
+                    <label style="font-size:9.5px;color:#94a3b8;display:block;">Standoff (m)</label>
+                    <input type="number" id="inpPbDropOffset" min="15" max="50" step="1" value="15" style="width:100%;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:2px 5px;font-family:var(--font-mono);font-size:11px;" />
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+                  <div>
+                    <label style="font-size:9.5px;color:#94a3b8;display:block;">Target Priority</label>
+                    <select id="selPbTargetType" class="select-input" style="width:100%;padding:2px 4px;font-size:10.5px;">
+                      <option value="PERSON" selected>Lost Hiker (Person)</option>
+                      <option value="VEHICLE">Snowmobile (Vehicle)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style="font-size:9.5px;color:#94a3b8;display:block;">Payload Drop Policy</label>
+                    <select id="selPbDropPolicy" class="select-input" style="width:100%;padding:2px 4px;font-size:10.5px;">
+                      <option value="AUTO_RELEASE" selected>Auto Queue &amp; Release</option>
+                      <option value="REQUIRE_CONFIRM">Queue + Human Confirm</option>
+                      <option value="MANUAL_ONLY">Manual Drop Only</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+                  <div>
+                    <label style="font-size:9.5px;color:#94a3b8;display:block;">RTH Battery Floor (%)</label>
+                    <input type="number" id="inpPbRthBatt" min="20" max="50" step="1" value="22" style="width:100%;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:2px 5px;font-family:var(--font-mono);font-size:11px;" />
+                  </div>
+                  <div>
+                    <label style="font-size:9.5px;color:#94a3b8;display:block;">Veto Cooldown (s)</label>
+                    <input type="number" id="inpPbVetoSec" min="30" max="1800" step="30" value="300" style="width:100%;background:#090d16;color:#f8fafc;border:1px solid #334155;border-radius:4px;padding:2px 5px;font-family:var(--font-mono);font-size:11px;" />
+                  </div>
+                </div>
                 <div style="display:flex;gap:5px;">
-                  <button class="btn primary" onclick="compileAndApplyCustomPlaybook()" style="flex:1;padding:3px 7px;font-size:11px;">⚡ Compile &amp; Apply NL Playbook</button>
-                  <button class="btn warning" onclick="simulateLlmOutageTest()" style="padding:3px 7px;font-size:11px;" title="Test what happens when External LLM API disconnects">🔌 Test No-API Cutout</button>
+                  <button class="btn primary" onclick="compileAndApplyCustomPlaybook()" style="flex:1;padding:3px 7px;font-size:11px;">⚡ Apply Structured Fields</button>
+                  <button class="btn warning" onclick="simulateLlmOutageTest()" style="padding:3px 7px;font-size:11px;" title="Test what happens when External LLM API disconnects">🔌 Test Cutout</button>
                 </div>
               </div>
             </div>
             <div class="assignment-box" style="padding:6px 8px;font-size:11px;gap:3px;" id="jevStatusBox">
               <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span style="color:var(--text-secondary);">Compiled AST (<span id="lblPbEpoch">Epoch #1</span>):</span>
+                <span style="color:var(--text-secondary);">Active Rules (<span id="lblPbEpoch">Epoch #1</span>):</span>
                 <strong style="color:#64d2ff;font-family:var(--font-mono);font-size:10.5px;" id="lblCompiledSummary">55m (0% ovl) • Track 28m • Drop 15m</strong>
               </div>
               <div style="font-family:var(--font-mono);font-size:10.5px;color:#4ade80;background:rgba(0,0,0,0.32);padding:4px 6px;border-radius:5px;" id="lblJevDecision">
@@ -1016,56 +1071,73 @@
               <span class="step-badge" id="badgeStickState" style="background:rgba(56,189,248,0.16);color:#38bdf8;">1:1 Finger Follow</span>
             </div>
             <div style="font-size:10.5px;color:var(--text-secondary);line-height:1.3;">
-              Move finger over the <strong>2D Bounds Box</strong> below (or enable <strong>🕹️ Trackpad Steer</strong> in View 2 / <strong>WASD</strong>). Shows live <strong>X &amp; Y axis position vs. &pm;100% bounds</strong>.
+              Move finger inside the <strong>2D Bounds Box</strong> (or use <strong>WASD</strong>). <strong>To stop without pulling to the side:</strong> <strong>Click once</strong> (or press <strong>Space / Esc</strong>) to lock at <strong>(0%, 0%)</strong> while moving cursor out!
             </div>
-            <canvas id="trackpadSteerCanvas" width="280" height="156" style="width:100%;height:142px;background:#090b10;border:1px solid rgba(56,189,248,0.45);border-radius:7px;cursor:crosshair;display:block;touch-action:none;"></canvas>
+            <canvas id="trackpadSteerCanvas" width="280" height="156" style="width:100%;height:142px;background:#090b10;border:1px solid rgba(56,189,248,0.45);border-radius:7px;cursor:crosshair;display:block;touch-action:none;" title="Move inside box to steer 1:1. Click once (or press Space/Esc) to immediately center (0%, 0%) and pause follow so you can move cursor out without deflecting to one side!"></canvas>
             <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;font-family:var(--font-mono);font-size:10px;">
               <span id="lblStickAxisReadout" style="color:#64d2ff;">X: +0% [-100..+100] &bull; Y: +0% [-100..+100]</span>
               <div style="display:flex;gap:4px;">
-                <button class="win-btn" onclick="centerManualStick(true)" style="font-size:9.5px;padding:2px 5px;">🛑 Center</button>
+                <button class="win-btn" id="btnToggleStickArm" onclick="toggleStickArmPause()" style="font-size:9.5px;padding:2px 5px;" title="Pause/Resume trackpad cursor follow without deflecting to the side">⏸ Pause/Center [Click/Space]</button>
                 <button class="win-btn" onclick="resumeSelectedDroneAutoScan()" style="font-size:9.5px;padding:2px 5px;color:#4ade80;">↺ Auto Scan</button>
               </div>
             </div>
           </div>
 
-          <!-- CARD 1: COOPERATIVE SECTOR SCAN -->
+          <!-- CARD 1: CONTINUOUS RADAR PATROL, COUNTER-INFILTRATION & SCAN DECAY -->
           <div class="step-card">
             <div class="step-header">
-              <span class="step-title">1. Cooperative Area Search</span>
-              <span class="step-badge" id="badgeScanStatus">Scanning • 0% Overlap</span>
+              <span class="step-title">1. Continuous Radar Patrol &amp; Decay</span>
+              <span class="step-badge" id="badgeScanStatus">Radar Sweep #1 (N↕S)</span>
             </div>
             <p class="step-desc">
-              Drag any edge/corner handle (<code>□</code>) to stretch the Search Box, or enable <strong>📐 Draw New Box</strong> to draw from scratch. Drones fly continuously from their previous positions.
+              Drones <strong>never stop after 1 pass</strong>: they alternate <strong>Up/Down (N&#8597;S Pincer)</strong> &amp; <strong>Side-to-Side (E&#8596;W Cross)</strong> sweeps to trap moving targets, while scanned areas <strong>decay (darken)</strong> until refreshed by live video.
             </p>
             <div class="form-grid">
               <div class="field-box">
-                <span class="field-label">Search Allocation</span>
-                <select id="selMissionPattern" class="select-input" onchange="updateMissionPattern(this.value)" style="width:100%;padding:3px 5px;font-size:11.5px;">
-                  <option value="DISJOINT_SECTORS" selected>Separate Strips (1 per Drone)</option>
-                  <option value="LINE_ABREAST_RAKE">Side-by-Side Line Sweep</option>
+                <span class="field-label">Patrol &amp; Anti-Leak Pattern</span>
+                <select id="selMissionPattern" class="select-input" onchange="updateMissionPattern(this.value)" style="width:100%;padding:3px 5px;font-size:11px;">
+                  <option value="PINCER_CROSS_RADAR" selected>🔄 Pincer N&#8597;S + E&#8596;W Cross (Anti-Leak)</option>
+                  <option value="BOUNDARY_SEAL_SPIRAL">🛡️ Perimeter Seal &rarr; Interior Sweep</option>
+                  <option value="DISJOINT_SECTORS">↕️ Continuous Reciprocal N&#8597;S Strips</option>
+                  <option value="LINE_ABREAST_RAKE">🧱 Synchronized Line-Abreast Wall</option>
                 </select>
               </div>
               <div class="field-box">
+                <span class="field-label">Scan Decay (Moving Target)</span>
+                <select id="selScanDecayHalfLife" class="select-input" onchange="updateScanDecayHalfLife(this.value)" style="width:100%;padding:3px 5px;font-size:11px;" title="How quickly already-scanned areas darken back into stale shroud (faster decay along unscanned borders where moving targets can enter)">
+                  <option value="32">⚡ Fast Decay (32s • Vehicle/Runner)</option>
+                  <option value="55" selected>🚶 Standard Decay (55s • Hiker 1.5m/s)</option>
+                  <option value="120">🐢 Slow Decay (120s • Stationary)</option>
+                  <option value="999999">📌 Static Map (No Decay)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-grid">
+              <div class="field-box">
                 <span class="field-label">Flight Altitude (AGL)</span>
-                <select id="selAglClearance" class="select-input" onchange="recomputeAutoMission(false)" style="width:100%;padding:3px 5px;font-size:11.5px;">
+                <select id="selAglClearance" class="select-input" onchange="recomputeAutoMission(false)" style="width:100%;padding:3px 5px;font-size:11px;">
                   <option value="40">40 m (72 m Swath)</option>
                   <option value="55" selected>55 m (86 m Swath)</option>
                   <option value="85">85 m (116 m Swath)</option>
                 </select>
               </div>
+              <div class="field-box">
+                <span class="field-label">Fresh vs. Stale / Leak Risk</span>
+                <span class="field-value" id="valAreaSwath" style="font-size:11px;color:#4ade80;">68% Fresh • 14% Decaying</span>
+              </div>
             </div>
             <div class="form-grid">
               <div class="field-box">
-                <span class="field-label">Fleet Speedup</span>
-                <span class="field-value" id="valAreaSwath">3 Strips • 3.0&times; Speed</span>
+                <span class="field-label">Active Radar Cycle</span>
+                <span class="field-value" id="valRadarCycleInfo" style="font-size:11px;color:#38bdf8;">Pass #1 (N&#8597;S Pincer)</span>
               </div>
               <div class="field-box">
-                <span class="field-label">Pass Spacing</span>
-                <span class="field-value" id="valDemRange">86 m (0% Overlap)</span>
+                <span class="field-label">Boundary Anti-Leak Guard</span>
+                <span class="field-value" id="valDemRange" style="font-size:11px;color:#fbbf24;">2.2&times; Edge Decay + Cross</span>
               </div>
             </div>
             <div style="display:flex;gap:6px;">
-              <button class="btn primary" onclick="restartCooperativeSearch()" style="flex:1.2;">↺ Restart Clean Sector Scan</button>
+              <button class="btn primary" onclick="restartCooperativeSearch()" style="flex:1.2;">↺ Restart Clean Radar Scan</button>
               <button class="btn" onclick="exportQgcWaypoints()" style="flex:0.8;">Export Plan</button>
             </div>
           </div>
@@ -1171,6 +1243,28 @@
               <button class="btn" onclick="exportQgcWaypoints()" style="flex:1;">
                 💾 QGC .waypoints
               </button>
+            </div>
+            <!-- Multi-Persona Ecosystem Sync (Personas 3, 4, 5, 6) -->
+            <div style="margin-top:6px;padding:6px 8px;background:rgba(15,23,42,0.85);border:1px solid rgba(56,189,248,0.35);border-radius:7px;font-size:10.5px;display:flex;flex-direction:column;gap:4px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <strong style="color:#38bdf8;">🛷 4. Ground SAR Responder:</strong>
+                <a href="/mobile_responder.html" style="color:#4ade80;font-weight:700;text-decoration:none;font-family:var(--font-mono);" id="lblGroundResponderAck">🟢 Open Responder App ↗</a>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:var(--text-secondary);">🌲 3. Trail-Cam + Sky-Diode:</span>
+                <span style="color:#4ade80;font-family:var(--font-mono);">3-Zone Vault OK • +55.8 dB</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:var(--text-secondary);">🔦 5. Opaslyhty &amp; 6. Heli Cap:</span>
+                <div style="display:flex;gap:4px;align-items:center;">
+                  <select id="selCncLanternLang" class="select-input" onchange="syncEcosystemLangOrHeli()" style="padding:1px 4px;font-size:10px;">
+                    <option value="FI" selected>🇫🇮 FI</option>
+                    <option value="EN">🇬🇧 EN</option>
+                    <option value="SE">🇸🇪 SE</option>
+                  </select>
+                  <button class="win-btn" id="btnHeliCeilingLock" onclick="toggleMannedHeliCeilingLock()" style="font-size:9.5px;padding:1px 5px;" title="Enforce 35m AGL Drone Ceiling for FINHEMS Manned Helicopter Co-Use">🚁 Heli 35m: OFF</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1422,25 +1516,45 @@
     function jumpToCustomSosCoords() {
       const inp = document.getElementById('txtCustomSosCoords');
       if (!inp || !inp.value.trim()) return;
-      const nums = inp.value.trim().match(/-?\d+(?:\.\d+)?/g);
+      const q = inp.value.trim();
+      const applyJump = (lat, lon, etrsLbl) => {
+        if (isNaN(lat) || isNaN(lon) || lat < -85 || lat > 85 || lon < -180 || lon > 180) {
+          updateAidBannerUI('⚠️ Coordinates out of valid range (-85..85°N, -180..180°E)');
+          return;
+        }
+        ORIGIN_LAT = lat;
+        ORIGIN_LON = lon;
+        mapCenter = { x: 0.0, y: -10.0 };
+        mapZoom = 0.88;
+        searchBox = { xMin: -230, yMin: -155, xMax: 230, yMax: 135 };
+        restartCooperativeSearch();
+        const gridTag = etrsLbl ? ` (${etrsLbl})` : '';
+        updateAidBannerUI(`🎯 112 SOS Locked: ${lat.toFixed(5)}°N, ${lon.toFixed(5)}°E${gridTag} • 4-Drone Search Deployed`);
+        logAndDispatchMavlinkV2(`MISSION_COUNT (#44) • 112 SOS Jump (${lat.toFixed(4)}N, ${lon.toFixed(4)}E)`, 44, 'FD 05 00 00 08 FF BE 2C 00 00', `/api/field/upload_mission?lat=${lat}&lon=${lon}`);
+      };
+      if (window.location.protocol.startsWith('http')) {
+        fetch(`/api/coords/convert?q=${encodeURIComponent(q)}`).then(r => r.json()).then(res => {
+          if (res && typeof res.lat === 'number' && typeof res.lon === 'number') {
+            applyJump(res.lat, res.lon, res.etrs_tm35fin_str || '');
+          }
+        }).catch(() => {});
+        return;
+      }
+      const nums = q.match(/-?\d+(?:\.\d+)?/g);
       if (!nums || nums.length < 2) {
-        updateAidBannerUI('⚠️ Invalid 112 SOS Coordinates — Enter Lat, Lon (e.g. 66.3695, 29.3155)');
+        updateAidBannerUI('⚠️ Invalid 112 SOS Coordinates — Enter ETRS-TM35FIN (N 7362415 E 598784) or Lat, Lon');
         return;
       }
-      const lat = parseFloat(nums[0]);
-      const lon = parseFloat(nums[1]);
-      if (isNaN(lat) || isNaN(lon) || lat < -85 || lat > 85 || lon < -180 || lon > 180) {
-        updateAidBannerUI('⚠️ Coordinates out of valid WGS84 range (-85..85°N, -180..180°E)');
-        return;
+      const v0 = parseFloat(nums[0]);
+      const v1 = parseFloat(nums[1]);
+      if (v0 > 6000000 && v1 > 50000) {
+        // Quick offline ETRS-TM35FIN approximation around Kuusamo/Oulanka
+        const lat = 66.3695 + (v0 - 7362415) / 111132.0;
+        const lon = 29.3155 + (v1 - 598784) / (111320.0 * Math.cos(66.3695 * Math.PI / 180.0));
+        applyJump(lat, lon, `N ${Math.round(v0)} E ${Math.round(v1)}`);
+      } else {
+        applyJump(v0, v1, '');
       }
-      ORIGIN_LAT = lat;
-      ORIGIN_LON = lon;
-      mapCenter = { x: 0.0, y: -10.0 };
-      mapZoom = 0.88;
-      searchBox = { xMin: -230, yMin: -155, xMax: 230, yMax: 135 };
-      restartCooperativeSearch();
-      updateAidBannerUI(`🎯 112 SOS Coordinates Locked: ${lat.toFixed(5)}°N, ${lon.toFixed(5)}°E • 4-Drone Search Deployed`);
-      logAndDispatchMavlinkV2(`MISSION_COUNT (#44) • 112 SOS Jump (${lat.toFixed(4)}N, ${lon.toFixed(4)}E)`, 44, 'FD 05 00 00 08 FF BE 2C 00 00', `/api/field/upload_mission?lat=${lat}&lon=${lon}`);
     }
 
     const mapCanvas = document.getElementById('cncMapCanvas');
@@ -1622,9 +1736,15 @@
     let exploredStampList = [];
     const BOX_GRID_NX = 90, BOX_GRID_NY = 60;
     const boxExploredGrid = new Uint8Array(BOX_GRID_NX * BOX_GRID_NY);
+    const boxLastSeenSecGrid = new Float32Array(BOX_GRID_NX * BOX_GRID_NY);
+    boxLastSeenSecGrid.fill(-1e9);
+    const boxFreshnessGrid = new Float32Array(BOX_GRID_NX * BOX_GRID_NY);
+    const boxLeakRiskGrid = new Uint8Array(BOX_GRID_NX * BOX_GRID_NY);
+    let simClockSec = 0.0;
+    let scanDecayHalfLifeSec = 55.0; // Default 55s radar decay window for walking hiker (1.5 m/s)
 
     let searchBox = { xMin: -230, yMin: -155, xMax: 230, yMax: 135 };
-    let missionPattern = 'DISJOINT_SECTORS';
+    let missionPattern = 'PINCER_CROSS_RADAR';
     // Default tool is PAN_MAP ("Pan & Stretch Box") so operators can stretch edges/corners anytime,
     // and must explicitly enable "Draw New Box" to redraw from scratch!
     let activeMapTool = 'PAN_MAP';
@@ -1654,6 +1774,7 @@
       x: 0.0,              // [-1.00 .. +1.00] West (-) to East (+)
       y: 0.0,              // [-1.00 .. +1.00] South (-) to North (+)
       fingerInsidePad: false,
+      padArmed: true,      // true = follow cursor inside 2D box; false = centered (0%,0%) & paused so operator can move cursor out without side pull!
       videoSteerMode: false,
       keysDown: {}
     };
@@ -1686,15 +1807,33 @@
     };
 
     const drones = [
-      { id: 'Drone 1 (Sierra)', shortName: 'Drone 1', color: '#ff9f0a', x: 38,   y: 56,   altAgl: 28, radius: 40, role: 'PRIORITY_FOLLOW', sectorName: 'Following Hiker', waypoints: [], wpIdx: 0, sectorDone: false, trail: [], lastStampX: -9999, lastStampY: -9999 },
-      { id: 'Drone 2 (Kilo)',   shortName: 'Drone 2', color: '#38bdf8', x: -182, y: -110, altAgl: 55, radius: 43, role: 'SHROUD_MAPPER',   sectorName: 'Sector 1 (West)', waypoints: [], wpIdx: 0, sectorDone: false, trail: [], lastStampX: -9999, lastStampY: -9999 },
-      { id: 'Drone 3 (Echo)',   shortName: 'Drone 3', color: '#a855f7', x: -28,  y: -110, altAgl: 55, radius: 43, role: 'SHROUD_MAPPER',   sectorName: 'Sector 2 (Center)', waypoints: [], wpIdx: 0, sectorDone: false, trail: [], lastStampX: -9999, lastStampY: -9999 },
-      { id: 'Drone 4 (Foxtrot)',shortName: 'Drone 4', color: '#30d158', x: 125,  y: -110, altAgl: 55, radius: 43, role: 'SHROUD_MAPPER',   sectorName: 'Sector 3 (East)', waypoints: [], wpIdx: 0, sectorDone: false, trail: [], lastStampX: -9999, lastStampY: -9999 }
+      { id: 'Drone 1 (Sierra)', shortName: 'Drone 1', color: '#ff9f0a', x: 38,   y: 56,   altAgl: 28, radius: 40, role: 'PRIORITY_FOLLOW', sectorName: 'Following Hiker', waypoints: [], wpIdx: 0, sectorDone: false, scanPassCount: 1, sweepModeTag: 'N↕S Pincer', trail: [], lastStampX: -9999, lastStampY: -9999 },
+      { id: 'Drone 2 (Kilo)',   shortName: 'Drone 2', color: '#38bdf8', x: -182, y: -110, altAgl: 55, radius: 43, role: 'SHROUD_MAPPER',   sectorName: 'Sector 1 (West)', waypoints: [], wpIdx: 0, sectorDone: false, scanPassCount: 1, sweepModeTag: 'N↕S Pincer', trail: [], lastStampX: -9999, lastStampY: -9999 },
+      { id: 'Drone 3 (Echo)',   shortName: 'Drone 3', color: '#a855f7', x: -28,  y: -110, altAgl: 55, radius: 43, role: 'SHROUD_MAPPER',   sectorName: 'Sector 2 (Center)', waypoints: [], wpIdx: 0, sectorDone: false, scanPassCount: 1, sweepModeTag: 'N↕S Pincer', trail: [], lastStampX: -9999, lastStampY: -9999 },
+      { id: 'Drone 4 (Foxtrot)',shortName: 'Drone 4', color: '#30d158', x: 125,  y: -110, altAgl: 55, radius: 43, role: 'SHROUD_MAPPER',   sectorName: 'Sector 3 (East)', waypoints: [], wpIdx: 0, sectorDone: false, scanPassCount: 1, sweepModeTag: 'N↕S Pincer', trail: [], lastStampX: -9999, lastStampY: -9999 }
     ];
 
     let activeSectors = [];
 
-    function projectStampOntoBoxGrid(wx, wy, radM) {
+    function updateScanDecayHalfLife(val) {
+      scanDecayHalfLifeSec = Math.max(10.0, parseFloat(val) || 55.0);
+      const elGuard = document.getElementById('valDemRange');
+      if (elGuard) {
+        elGuard.textContent = scanDecayHalfLifeSec > 90000
+          ? 'Static Map (Decay OFF)'
+          : `2.2× Edge Decay (${Math.round(scanDecayHalfLifeSec)}s τ)`;
+      }
+    }
+
+    function computeStampFreshness(st) {
+      if (scanDecayHalfLifeSec > 90000) return 1.0;
+      const age = Math.max(0.0, simClockSec - (st.ts ?? 0.0));
+      const edgeMult = st.nearEdge ? 1.65 : 1.0;
+      const effAge = age * edgeMult;
+      return Math.max(0.0, Math.exp(-effAge / scanDecayHalfLifeSec) - 0.10 * (effAge / scanDecayHalfLifeSec));
+    }
+
+    function projectStampOntoBoxGrid(wx, wy, radM, stampTs = simClockSec) {
       const bw = Math.max(10, searchBox.xMax - searchBox.xMin);
       const bh = Math.max(10, searchBox.yMax - searchBox.yMin);
       const u0 = (wx - searchBox.xMin) / bw;
@@ -1713,7 +1852,11 @@
           const dx = (ix + 0.5 - gx0) / Math.max(0.001, rx);
           const dy = (iy + 0.5 - gy0) / Math.max(0.001, ry);
           if (dx * dx + dy * dy <= 1.0) {
-            boxExploredGrid[iy * BOX_GRID_NX + ix] = 1;
+            const idx = iy * BOX_GRID_NX + ix;
+            boxExploredGrid[idx] = 1;
+            if (stampTs > boxLastSeenSecGrid[idx]) {
+              boxLastSeenSecGrid[idx] = stampTs;
+            }
           }
         }
       }
@@ -1721,16 +1864,172 @@
 
     function recomputeBoxExploredGridFromStamps() {
       boxExploredGrid.fill(0);
+      boxLastSeenSecGrid.fill(-1e9);
       for (let i = 0; i < exploredStampList.length; i++) {
         const st = exploredStampList[i];
-        projectStampOntoBoxGrid(st.x, st.y, st.r);
+        projectStampOntoBoxGrid(st.x, st.y, st.r, st.ts ?? simClockSec);
       }
     }
 
     function markCircleExplored(wx, wy, radM) {
-      exploredStampList.push({ x: wx, y: wy, r: radM });
-      if (exploredStampList.length > 5000) exploredStampList.splice(0, 500);
-      projectStampOntoBoxGrid(wx, wy, radM);
+      const nearBoxEdge = (
+        Math.abs(wx - searchBox.xMin) < radM * 1.4 ||
+        Math.abs(wx - searchBox.xMax) < radM * 1.4 ||
+        Math.abs(wy - searchBox.yMin) < radM * 1.4 ||
+        Math.abs(wy - searchBox.yMax) < radM * 1.4
+      );
+      exploredStampList.push({ x: wx, y: wy, r: radM, ts: simClockSec, nearEdge: nearBoxEdge });
+      if (exploredStampList.length > 3600) exploredStampList.splice(0, 400);
+      projectStampOntoBoxGrid(wx, wy, radM, simClockSec);
+    }
+
+    // Update per-cell freshness & moving-target boundary contamination (cells next to unscanned/stale cells decay 2.2x faster!)
+    function updateBoxFreshnessAndMovingTargetLeakGrid() {
+      let freshCount = 0;
+      let decayingCount = 0;
+      let everVisitedCount = 0;
+      const nCells = BOX_GRID_NX * BOX_GRID_NY;
+
+      // Pass 1: Base age freshness
+      for (let i = 0; i < nCells; i++) {
+        if (boxExploredGrid[i]) everVisitedCount++;
+        const ts = boxLastSeenSecGrid[i];
+        if (ts < -1e6) {
+          boxFreshnessGrid[i] = 0.0;
+          boxLeakRiskGrid[i] = 0;
+          continue;
+        }
+        if (scanDecayHalfLifeSec > 90000) {
+          boxFreshnessGrid[i] = 1.0;
+          boxLeakRiskGrid[i] = 0;
+          continue;
+        }
+        const age = Math.max(0.0, simClockSec - ts);
+        boxFreshnessGrid[i] = Math.max(0.0, Math.exp(-age / scanDecayHalfLifeSec) - 0.08 * (age / scanDecayHalfLifeSec));
+      }
+
+      // Pass 2: Moving-Target Boundary Contamination (Advection-Diffusion from adjacent unscanned/dark cells!)
+      if (scanDecayHalfLifeSec <= 90000) {
+        for (let iy = 0; iy < BOX_GRID_NY; iy++) {
+          for (let ix = 0; ix < BOX_GRID_NX; ix++) {
+            const idx = iy * BOX_GRID_NX + ix;
+            const f0 = boxFreshnessGrid[idx];
+            if (f0 <= 0.02) {
+              boxLeakRiskGrid[idx] = 0;
+              continue;
+            }
+            const isOuterBorder = (ix <= 1 || ix >= BOX_GRID_NX - 2 || iy <= 1 || iy >= BOX_GRID_NY - 2);
+            let hasDarkNeighbor = isOuterBorder;
+            if (!hasDarkNeighbor) {
+              const nL = boxFreshnessGrid[idx - 1];
+              const nR = boxFreshnessGrid[idx + 1];
+              const nU = boxFreshnessGrid[idx - BOX_GRID_NX];
+              const nD = boxFreshnessGrid[idx + BOX_GRID_NX];
+              if (nL < 0.25 || nR < 0.25 || nU < 0.25 || nD < 0.25) {
+                hasDarkNeighbor = true;
+              }
+            }
+            if (hasDarkNeighbor) {
+              const age = Math.max(0.0, simClockSec - boxLastSeenSecGrid[idx]);
+              // Moving target can cross from adjacent unscanned area into this boundary cell -> 2.2x faster decay!
+              const edgeAge = age * 2.2;
+              const fEdge = Math.max(0.0, Math.exp(-edgeAge / scanDecayHalfLifeSec) - 0.12 * (edgeAge / scanDecayHalfLifeSec));
+              boxFreshnessGrid[idx] = fEdge;
+              boxLeakRiskGrid[idx] = (fEdge > 0.06 && fEdge < 0.68 && age > 4.0) ? 1 : 0;
+            } else {
+              boxLeakRiskGrid[idx] = (f0 > 0.08 && f0 < 0.45) ? 1 : 0;
+            }
+          }
+        }
+      }
+
+      for (let i = 0; i < nCells; i++) {
+        const f = boxFreshnessGrid[i];
+        if (f >= 0.48) freshCount++;
+        else if (f >= 0.08) decayingCount++;
+      }
+
+      // Prune completely decayed stamps so the dark shroud re-covers expired areas until re-scanned!
+      if (scanDecayHalfLifeSec <= 90000 && exploredStampList.length > 0) {
+        exploredStampList = exploredStampList.filter(st => computeStampFreshness(st) > 0.06);
+      }
+
+      return {
+        freshPct: Math.min(100, Math.round((freshCount / nCells) * 100)),
+        decayingPct: Math.min(100, Math.round((decayingCount / nCells) * 100)),
+        visitedPct: Math.min(100, Math.round((everVisitedCount / nCells) * 100))
+      };
+    }
+
+    // Build waypoints for a sector on a given continuous Radar Pass (#1, #2, #3...):
+    // - Odd passes (#1, #3, #5...): Up-and-Down (N↕S) Pincer Sweep (adjacent sectors sweep in converging directions to seal seams!)
+    // - Even passes (#2, #4, #6...): Side-to-Side (E↔W) Orthogonal Cross-Sweep (catches targets moving N-S or hiding behind canopy!)
+    // - BOUNDARY_SEAL_SPIRAL: Traces the outer sector perimeter first to trap moving targets, then sweeps the interior!
+    function buildSectorRadarPassWaypoints(sec, passNum, kSec, M, coneRadius, tangentSwath, agl, curX, curY) {
+      const sxMin = sec.xMin, sxMax = sec.xMax, syMin = sec.yMin, syMax = sec.yMax;
+      const wSec = sxMax - sxMin;
+      const hSec = syMax - syMin;
+      const insetX = Math.min(wSec * 0.40, coneRadius * 0.80);
+      const insetY = Math.min(hSec * 0.38, coneRadius * 0.78);
+      const x0 = sxMin + insetX, x1 = sxMax - insetX;
+      const y0 = syMin + insetY, y1 = syMax - insetY;
+      const innerW = Math.max(4, x1 - x0);
+      const innerH = Math.max(4, y1 - y0);
+
+      let wps = [];
+      let modeTag = 'N↕S Pincer';
+
+      if (missionPattern === 'BOUNDARY_SEAL_SPIRAL') {
+        modeTag = (passNum % 2 === 1) ? '🛡️ Seal->Core' : '🔄 Core->Seal';
+        const perim = [
+          { x: x0, y: y0 }, { x: x1, y: y0 },
+          { x: x1, y: y1 }, { x: x0, y: y1 }, { x: x0, y: y0 }
+        ];
+        const midX = (x0 + x1) * 0.5;
+        const inner = [
+          { x: midX, y: y0 + innerH * 0.15 },
+          { x: midX, y: y1 - innerH * 0.15 }
+        ];
+        const pts = (passNum % 2 === 1) ? perim.concat(inner) : inner.slice().reverse().concat(perim.slice().reverse());
+        pts.forEach(p => {
+          wps.push({ seq: wps.length + 1, x: p.x, y: p.y, demAsl: sampleDemAsl(p.x, p.y), agl });
+        });
+      } else if (missionPattern === 'PINCER_CROSS_RADAR' && (passNum % 2 === 0)) {
+        // EVEN PASS (#2, #4, #6...): ORTHOGONAL SIDE-TO-SIDE (E <-> W) CROSS-HATCH SWEEP!
+        modeTag = `E↔W Cross #${passNum}`;
+        const numRows = Math.max(2, Math.min(8, Math.round(innerH / (tangentSwath * 0.92)) + 1));
+        const startFromBottom = Math.abs(curY - y1) < Math.abs(curY - y0);
+        for (let r = 0; r < numRows; r++) {
+          const rowIdx = startFromBottom ? (numRows - 1 - r) : r;
+          const v = numRows === 1 ? 0.5 : (rowIdx / (numRows - 1));
+          const ly = y0 + v * innerH;
+          const pairX = (r % 2 === 0)
+            ? (Math.abs(curX - x1) < Math.abs(curX - x0) ? [x1, x0] : [x0, x1])
+            : (Math.abs(curX - x1) < Math.abs(curX - x0) ? [x0, x1] : [x1, x0]);
+          pairX.forEach(lx => {
+            wps.push({ seq: wps.length + 1, x: lx, y: ly, demAsl: sampleDemAsl(lx, ly), agl });
+          });
+        }
+      } else {
+        // ODD PASS (#1, #3, #5...) or Continuous N↕S: UP-AND-DOWN (N ↕ S) CONVERGING PINCER SWEEP!
+        // Adjacent sectors sweep in opposing lateral directions so their beams meet at the sector boundary seam!
+        const numLanes = Math.max(2, Math.min(8, Math.round(innerW / tangentSwath) + 1));
+        const pincerReverseX = ((kSec + passNum) % 2 === 0);
+        modeTag = missionPattern === 'PINCER_CROSS_RADAR'
+          ? `N↕S Pincer #${passNum}`
+          : `N↕S Sweep #${passNum}`;
+        const startSouth = (passNum > 1) && (Math.abs(curY - y1) < Math.abs(curY - y0));
+        for (let i = 0; i < numLanes; i++) {
+          const laneIdx = pincerReverseX ? (numLanes - 1 - i) : i;
+          const u = numLanes === 1 ? 0.5 : (laneIdx / (numLanes - 1));
+          const lx = x0 + u * innerW;
+          const pairY = ((i % 2 === 0) !== startSouth) ? [y0, y1] : [y1, y0];
+          pairY.forEach(ly => {
+            wps.push({ seq: wps.length + 1, x: lx, y: ly, demAsl: sampleDemAsl(lx, ly), agl });
+          });
+        }
+      }
+      return { wps, modeTag };
     }
 
     function recomputeAutoMission(repositionDrones = false, isNewBoxFromScratch = false) {
@@ -1806,29 +2105,27 @@
           syMax = syMin + sectorSpan;
         }
 
-        activeSectors.push({
+        const secObj = {
           xMin: sxMin, xMax: sxMax, yMin: syMin, yMax: syMax,
-          label: sName, color: d.color, droneIdx: dIdx
-        });
+          label: sName, color: d.color, droneIdx: dIdx, kSec: k, M: M,
+          coneRadius: coneRadius, tangentSwath: tangentSwath, agl: agl
+        };
+        activeSectors.push(secObj);
+
+        if (repositionDrones) {
+          d.scanPassCount = 1;
+        } else if (!d.scanPassCount) {
+          d.scanPassCount = 1;
+        }
+
+        const built = buildSectorRadarPassWaypoints(
+          secObj, d.scanPassCount, k, M, coneRadius, tangentSwath, agl, d.x, d.y
+        );
+        let wps = built.wps;
+        d.sweepModeTag = built.modeTag;
 
         const wSec = sxMax - sxMin;
         const hSec = syMax - syMin;
-        const insetX = Math.min(wSec * 0.42, coneRadius * 0.85);
-        const insetY = Math.min(hSec * 0.40, coneRadius * 0.82);
-        const innerW = Math.max(4, wSec - 2 * insetX);
-        const numLanes = Math.max(1, Math.min(8, Math.round(innerW / tangentSwath) + 1));
-
-        let wps = [];
-        for (let i = 0; i < numLanes; i++) {
-          const u = numLanes === 1 ? 0.5 : (i / (numLanes - 1));
-          const lx = sxMin + insetX + u * innerW;
-          const y0 = syMin + insetY;
-          const y1 = syMax - insetY;
-          const pair = (i % 2 === 0) ? [y0, y1] : [y1, y0];
-          pair.forEach(ly => {
-            wps.push({ seq: wps.length + 1, x: lx, y: ly, demAsl: sampleDemAsl(lx, ly), agl });
-          });
-        }
 
         if (repositionDrones && wps.length >= 2) {
           // ONLY used on initial load or explicit "Restart Scan" button!
@@ -1880,19 +2177,19 @@
         recomputeBoxExploredGridFromStamps();
       }
 
-      const elArea = document.getElementById('valAreaSwath');
-      if (elArea) elArea.textContent = `${M} Strips • ${M}.0× Speed`;
-      const elLane = document.getElementById('valDemRange');
-      if (elLane) elLane.textContent = `${Math.round(tangentSwath)} m (0% Overlap)`;
       const tpSum = document.getElementById('tpSummaryLabel');
-      if (tpSum) tpSum.textContent = `${M} Cooperative Sectors • ${Math.round(tangentSwath)}m Edge-Tangent Passes (0% Overlap)`;
+      if (tpSum) tpSum.textContent = `${M} Continuous Radar Sectors • Pincer N↕S + Orthogonal E↔W Cross-Sweep`;
       updateTargetAndDropUI();
       updateCameraSwitcherLabels();
     }
 
     function restartCooperativeSearch() {
+      simClockSec = 0.0;
       exploredStampList = [];
       boxExploredGrid.fill(0);
+      boxLastSeenSecGrid.fill(-1e9);
+      boxFreshnessGrid.fill(0);
+      boxLeakRiskGrid.fill(0);
       lostPerson.x = (searchBox.xMin + searchBox.xMax) * 0.5 + 52;
       lostPerson.y = (searchBox.yMin + searchBox.yMax) * 0.5 + 64;
       lostPerson.arrived = false;
@@ -1904,12 +2201,20 @@
 
       recomputeAutoMission(true);
 
-      drones.forEach(d => {
+      // Seed realistic radar decay gradient along the initial partial sweep so the operator immediately sees fresh vs. aging scan!
+      drones.forEach((d, dIdx) => {
         if (d.role === 'SHROUD_MAPPER' && d.waypoints.length >= 2) {
           const x0 = d.waypoints[0].x, y0 = d.waypoints[0].y;
-          for (let s = 0; s <= 10; s++) {
-            const u = s / 10;
-            markCircleExplored(x0 + (d.x - x0) * u, y0 + (d.y - y0) * u, d.radius);
+          for (let s = 0; s <= 12; s++) {
+            const u = s / 12;
+            const sx = x0 + (d.x - x0) * u;
+            const sy = y0 + (d.y - y0) * u;
+            // Older stamps near the start of the lane have an earlier timestamp so they visibly show radar decay!
+            const stampAgeOffset = (1.0 - u) * 26.0 + (dIdx * 3.0);
+            const savedClock = simClockSec;
+            simClockSec = Math.max(-40.0, savedClock - stampAgeOffset);
+            markCircleExplored(sx, sy, d.radius);
+            simClockSec = savedClock;
           }
         } else {
           markCircleExplored(d.x, d.y, d.radius);
@@ -1968,13 +2273,33 @@
     }
 
     // =========================================================================
-    // 4B. NATURAL-LANGUAGE OPERATIONS PLAYBOOK & JEV AGENT DISPATCHER (OFFLINE-SAFE)
+    // 4B. PREDEFINED STRUCTURED PLAYBOOK FEATURES OR MANUAL CONTROL (NO REGEX!)
     // =========================================================================
-    const PLAYBOOK_PRESETS_JS = {
-      PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY: `# PLAYBOOK: Karhunkierros Night Hiker Search & Opaslyhty Hut Escort\n- Search Allocation: Divide the search box into disjoint strips with 0% overlap at 55 m AGL above the 18 m boreal tree canopy.\n- Target Preemption: When a lost person (confidence >= 80%) is detected, assign 1 closest drone to lock and follow the person at 28 m AGL while the remaining drones continue scanning their sectors.\n- Vehicle Policy: Do NOT preempt mapping for vehicles when a lost hiker is active.\n- Payload Drop Policy: Automatically queue and release the +42°C rescue cask at a safe 15 m horizontal offset once the tracking drone is within 25 m of the hiker.\n- Shelter Escort: Guide the hiker with the 1500 lm spotlight along the trail to the nearest wilderness hut. When the hiker reaches within 15 m of the shelter, release target lock and return the drone to sector scanning.\n- Safety & Veto Rules: Respect human cancel vetoes for 300 seconds in a 60 m spatial bubble. Maintain >= 100 m altitude over reindeer/wildlife. Trigger RTH if battery drops below 22%.`,
-      PLAYBOOK_02_CAUTIOUS_HUMAN_CONFIRM_DROP: `# PLAYBOOK: Cautious Search — Human Confirmation Required for Payload Drop\n- Search Allocation: Divide the search box into disjoint strips with 0% overlap at 55 m AGL.\n- Target Preemption: Preempt 1 closest drone to track any detected lost person or stranded vehicle (confidence >= 80%) at 30 m AGL.\n- Payload Drop Policy: Do NOT auto-drop payload. Queue the drop at 15 m offset and REQUIRE explicit human confirmation before releasing the winch servo.\n- Shelter Escort: Escort the tracked subject to the nearest wilderness hut or plowed road bridge, then return to cooperative scanning.\n- Safety & Veto Rules: Respect human cancel vetoes for 600 seconds in a 60 m spatial bubble. Maintain >= 100 m altitude over wildlife. Trigger RTH if battery drops below 25%.`,
-      PLAYBOOK_03_STRANDED_SNOWMOBILE_CORRIDOR: `# PLAYBOOK: Winter Snowmobile & Vehicle Breakdown Escort\n- Search Allocation: Divide the search box into disjoint strips with 0% overlap at 65 m AGL for wide-swath coverage.\n- Target Preemption: Prioritize stranded vehicles and snowmobiles (confidence >= 75%). Assign 1 drone to escort the vehicle at 45 m AGL toward the plowed road bridge.\n- Payload Drop Policy: Do NOT auto-drop the rescue cask on a moving vehicle; require explicit human confirmation at a 15 m offset.\n- Safety & Veto Rules: Respect human cancel vetoes for 300 seconds in a 60 m spatial bubble. Maintain >= 100 m altitude over wildlife. Trigger RTH if battery drops below 22%.`,
-      PLAYBOOK_04_EW_DENIED_PASSIVE_RECON: `# PLAYBOOK: GNSS-Denied & Reindeer-Safe High-Standoff Sweep\n- Search Allocation: Scan in disjoint strips with 0% overlap at 85 m AGL using optical flow + TF02-Pro LiDAR terrain following.\n- Target Preemption: Track detected persons at 35 m AGL minimum floor (confidence >= 85%). Do NOT preempt on vehicles.\n- Payload Drop Policy: Do NOT auto-drop payload; require human confirmation at >= 15 m standoff.\n- Safety & Veto Rules: Enforce >= 100 m Poronhoitolaki altitude floor over reindeer herds. Respect human cancel vetoes for 600 seconds. Trigger RTH if battery drops below 28%.`
+    const STRUCTURED_PLAYBOOK_PRESETS_JS = {
+      PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY: {
+        searchAltM: 55, overlapPct: 0, trackAltM: 28, canopyFloorM: 18, ceilingM: 120,
+        preferredTarget: 'PERSON', preemptPerson: true, preemptVehicle: false,
+        autoQueueDrop: true, autoReleaseDrop: true, requireHumanDropConfirm: false,
+        dropOffsetM: 15, vetoCooldownS: 300, vetoBubbleRadiusM: 60, rthBatteryPct: 22
+      },
+      PLAYBOOK_02_CAUTIOUS_HUMAN_CONFIRM_DROP: {
+        searchAltM: 55, overlapPct: 0, trackAltM: 30, canopyFloorM: 18, ceilingM: 120,
+        preferredTarget: 'PERSON', preemptPerson: true, preemptVehicle: true,
+        autoQueueDrop: true, autoReleaseDrop: false, requireHumanDropConfirm: true,
+        dropOffsetM: 15, vetoCooldownS: 600, vetoBubbleRadiusM: 60, rthBatteryPct: 25
+      },
+      PLAYBOOK_03_STRANDED_SNOWMOBILE_CORRIDOR: {
+        searchAltM: 65, overlapPct: 0, trackAltM: 45, canopyFloorM: 18, ceilingM: 120,
+        preferredTarget: 'VEHICLE', preemptPerson: true, preemptVehicle: true,
+        autoQueueDrop: true, autoReleaseDrop: false, requireHumanDropConfirm: true,
+        dropOffsetM: 15, vetoCooldownS: 300, vetoBubbleRadiusM: 60, rthBatteryPct: 22
+      },
+      PLAYBOOK_04_EW_DENIED_PASSIVE_RECON: {
+        searchAltM: 85, overlapPct: 0, trackAltM: 35, canopyFloorM: 18, ceilingM: 120,
+        preferredTarget: 'PERSON', preemptPerson: true, preemptVehicle: false,
+        autoQueueDrop: true, autoReleaseDrop: false, requireHumanDropConfirm: true,
+        dropOffsetM: 15, vetoCooldownS: 600, vetoBubbleRadiusM: 60, rthBatteryPct: 28
+      }
     };
 
     let aidState = {
@@ -1983,117 +2308,82 @@
       activePlaybookId: 'PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY',
       epochId: 1,
       circuitBreakerTripped: false,
-      circuitBreakerReason: 'Offline Compiled • <1ms',
+      circuitBreakerReason: 'Structured Playbook • <1ms',
       llmApiKeyConfigured: false,
       llmApiKeyMasked: 'Not Configured',
       llmApiKeySavedOnDisk: false,
       llmProvider: 'openai',
       llmModel: 'gpt-5.4-mini',
-      compiled: {
-        searchAltM: 55,
-        overlapPct: 0,
-        trackAltM: 28,
-        preferredTarget: 'PERSON',
-        preemptPerson: true,
-        preemptVehicle: false,
-        autoQueueDrop: true,
-        autoReleaseDrop: true,
-        requireHumanDropConfirm: false,
-        dropOffsetM: 15,
-        vetoCooldownS: 300,
-        vetoBubbleRadiusM: 60,
-        rthBatteryPct: 22
-      },
-      // [RT1-01] Spatial-Temporal Veto Bubbles + Permanent Drop Veto Latch
+      compiled: Object.assign({}, STRUCTURED_PLAYBOOK_PRESETS_JS.PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY),
       vetoBubbles: [],
       dropVetoLatched: false,
-      // [RT1-03] Dwell timer & Pre-Filter Proposed State-Flip Thrash Counter
       lastAcceptedTransitionTs: 0,
       proposedStateHistory: []
     };
 
-    function compileNaturalLanguagePlaybookJS(mdText) {
-      const rules = {
-        searchAltM: 55,
-        overlapPct: 0,
-        trackAltM: 28,
-        canopyFloorM: 18,
-        ceilingM: 120,
-        preferredTarget: 'PERSON',
-        preemptPerson: true,
-        preemptVehicle: false,
-        autoQueueDrop: true,
-        autoReleaseDrop: true,
-        requireHumanDropConfirm: false,
-        dropOffsetM: 15,
-        vetoCooldownS: 300,
-        vetoBubbleRadiusM: 60,
-        rthBatteryPct: 22
-      };
-      let rawSearchAlt = null;
-      let rawTrackAlt = null;
-      const lines = (mdText || '').split('\n').map(s => s.trim()).filter(Boolean);
-      for (const ln of lines) {
-        if (ln.startsWith('#')) continue;
-        // [RT2-04] Split into sub-clauses without breaking decimal numbers like 0.85
-        const subs = ln.toLowerCase().split(/(?<!\d)\.(?!\d)|;|\band then\b|,\s*and\b|\band\b(?=\s+(?:queue|drop|release|track|lock|require|do\s+not))/i).map(s => s.trim()).filter(Boolean);
-        for (const cl of subs) {
-          const hasNeg = /\b(do\s+not|don't|never|no|prohibit|ignore)\b/.test(cl);
-          if (cl.includes('search') || cl.includes('overlap') || cl.includes('strips') || cl.includes('scan at')) {
-            const mAlt = cl.match(/at\s+(\d{2,3}(?:\.\d+)?)\s*m/);
-            if (mAlt) rawSearchAlt = parseFloat(mAlt[1]);
-            const mOv = cl.match(/(\d{1,2}(?:\.\d+)?)\s*%\s*overlap/);
-            if (mOv) rules.overlapPct = Math.max(0, Math.min(50, parseFloat(mOv[1])));
-          }
-          if (cl.includes('canopy')) {
-            const mCan = cl.match(/(\d{1,2}(?:\.\d+)?)\s*m\s*(?:boreal\s+)?(?:tree\s+)?canopy|canopy\s+(?:is\s+)?(\d{1,2}(?:\.\d+)?)\s*m/);
-            if (mCan) rules.canopyFloorM = Math.max(15, Math.min(35, parseFloat(mCan[1] || mCan[2])));
-          }
-          if (cl.includes('ceiling')) {
-            const mCeil = cl.match(/(?:below|<|<=|under|max)\s*(\d{2,3}(?:\.\d+)?)\s*m\s*(?:agl\s*)?ceiling|ceiling\s*(?:of\s*|is\s*)?(\d{2,3}(?:\.\d+)?)\s*m/);
-            if (mCeil) rules.ceilingM = Math.max(20, Math.min(150, parseFloat(mCeil[1] || mCeil[2])));
-          }
-          if (cl.includes('vehicle policy')) {
-            if (hasNeg) rules.preemptVehicle = false;
-          }
-          if (cl.includes('preemption') || cl.includes('prioritize') || cl.includes('track detected') || cl.includes('when a lost person') || cl.includes('lock and follow') || cl.includes('lock at')) {
-            if (cl.includes('snowmobile') || cl.includes('prioritize stranded vehicle') || cl.includes('vehicle')) {
-              rules.preemptVehicle = !hasNeg;
-              if (!hasNeg && (cl.includes('snowmobile') || cl.includes('prioritize'))) rules.preferredTarget = 'VEHICLE';
-            }
-            if (cl.includes('person') || cl.includes('hiker')) {
-              rules.preemptPerson = !hasNeg;
-            }
-            const mTAlt = cl.match(/at\s+(\d{2,3}(?:\.\d+)?)\s*m/);
-            if (mTAlt) rawTrackAlt = parseFloat(mTAlt[1]);
-          }
-          if (cl.includes('payload drop') || cl.includes('rescue cask') || cl.includes('auto-drop') || cl.includes('drop') || cl.includes('human confirm')) {
-            const reqHuman = /require\s+(explicit\s+)?human/.test(cl);
-            if (hasNeg || reqHuman) {
-              rules.autoReleaseDrop = false;
-              rules.requireHumanDropConfirm = true;
-              if (cl.includes('queue')) rules.autoQueueDrop = true;
-            } else if (cl.includes('queue') || cl.includes('release') || cl.includes('auto')) {
-              rules.autoReleaseDrop = true;
-              rules.requireHumanDropConfirm = false;
-              rules.autoQueueDrop = true;
-            }
-            const mOff = cl.match(/(\d{1,2}(?:\.\d+)?)\s*m\s*(horizontal\s+)?(offset|standoff)/);
-            if (mOff) rules.dropOffsetM = Math.max(15, parseFloat(mOff[1]));
-          }
-          if (cl.includes('safety') || cl.includes('veto') || cl.includes('battery')) {
-            const mVeto = cl.match(/veto(?:es)?\s+for\s+(\d{2,4})\s*s/);
-            if (mVeto) rules.vetoCooldownS = Math.max(30, parseInt(mVeto[1], 10));
-            const mBatt = cl.match(/battery\s+(?:drops\s+)?(?:below|<|<=)\s*(\d{2}(?:\.\d+)?)\s*%/);
-            if (mBatt) rules.rthBatteryPct = Math.max(20, parseFloat(mBatt[1]));
+    function buildStructuredPlaybookRulesJS(presetId, overrides = null) {
+      const base = Object.assign(
+        {},
+        STRUCTURED_PLAYBOOK_PRESETS_JS[presetId] || STRUCTURED_PLAYBOOK_PRESETS_JS.PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY
+      );
+      if (overrides && typeof overrides === 'object') {
+        const lowerBound = Math.max(28, (base.canopyFloorM || 18) + 10);
+        const ceilM = window.heliCeilingLocked ? 35 : (base.ceilingM || 120);
+        if (overrides.searchAltM !== undefined) {
+          base.searchAltM = Math.min(ceilM, Math.max(lowerBound, Number(overrides.searchAltM) || 55));
+        }
+        if (overrides.trackAltM !== undefined) {
+          base.trackAltM = Math.min(ceilM, Math.max(lowerBound, Number(overrides.trackAltM) || 28));
+        }
+        if (overrides.preferredTarget === 'VEHICLE' || overrides.preferredTarget === 'PERSON') {
+          base.preferredTarget = overrides.preferredTarget;
+          base.preemptVehicle = (overrides.preferredTarget === 'VEHICLE');
+          base.preemptPerson = true;
+        }
+        if (overrides.dropPolicy) {
+          if (overrides.dropPolicy === 'AUTO_RELEASE') {
+            base.autoQueueDrop = true;
+            base.autoReleaseDrop = true;
+            base.requireHumanDropConfirm = false;
+          } else if (overrides.dropPolicy === 'REQUIRE_CONFIRM') {
+            base.autoQueueDrop = true;
+            base.autoReleaseDrop = false;
+            base.requireHumanDropConfirm = true;
+          } else {
+            base.autoQueueDrop = false;
+            base.autoReleaseDrop = false;
+            base.requireHumanDropConfirm = true;
           }
         }
+        if (overrides.dropOffsetM !== undefined) {
+          base.dropOffsetM = Math.min(50, Math.max(15, Number(overrides.dropOffsetM) || 15));
+        }
+        if (overrides.rthBatteryPct !== undefined) {
+          base.rthBatteryPct = Math.min(50, Math.max(20, Number(overrides.rthBatteryPct) || 22));
+        }
+        if (overrides.vetoCooldownS !== undefined) {
+          base.vetoCooldownS = Math.min(1800, Math.max(30, Number(overrides.vetoCooldownS) || 300));
+        }
       }
-      const lowerBound = Math.max(28, rules.canopyFloorM + 10);
-      if (lowerBound > rules.ceilingM) rules.ceilingM = 120;
-      if (rawSearchAlt !== null) rules.searchAltM = Math.min(rules.ceilingM, Math.max(lowerBound, rawSearchAlt));
-      if (rawTrackAlt !== null) rules.trackAltM = Math.min(rules.ceilingM, Math.max(lowerBound, rawTrackAlt));
-      return rules;
+      return base;
+    }
+
+    function syncStructuredFormFieldsFromRules(r) {
+      if (!r) return;
+      const elS = document.getElementById('inpPbSearchAlt');
+      const elT = document.getElementById('inpPbTrackAlt');
+      const elO = document.getElementById('inpPbDropOffset');
+      const elP = document.getElementById('selPbTargetType');
+      const elD = document.getElementById('selPbDropPolicy');
+      const elB = document.getElementById('inpPbRthBatt');
+      const elV = document.getElementById('inpPbVetoSec');
+      if (elS) elS.value = r.searchAltM;
+      if (elT) elT.value = r.trackAltM;
+      if (elO) elO.value = r.dropOffsetM;
+      if (elP) elP.value = r.preferredTarget;
+      if (elD) elD.value = r.autoReleaseDrop ? 'AUTO_RELEASE' : (r.autoQueueDrop ? 'REQUIRE_CONFIRM' : 'MANUAL_ONLY');
+      if (elB) elB.value = r.rthBatteryPct;
+      if (elV) elV.value = r.vetoCooldownS;
     }
 
     function hydrateCompiledRulesFromBackend(cr) {
@@ -2111,6 +2401,7 @@
       aidState.compiled.vetoCooldownS = cr.human_cancel_veto_cooldown_s ?? aidState.compiled.vetoCooldownS;
       aidState.compiled.vetoBubbleRadiusM = cr.veto_bubble_radius_m ?? aidState.compiled.vetoBubbleRadiusM;
       aidState.compiled.rthBatteryPct = cr.rth_battery_floor_pct ?? aidState.compiled.rthBatteryPct;
+      syncStructuredFormFieldsFromRules(aidState.compiled);
     }
 
     function updateAidBannerUI(decisionText = null) {
@@ -2124,12 +2415,12 @@
 
       if (epEl) epEl.textContent = `Epoch #${aidState.epochId}`;
       if (sumEl) {
-        const dropModeStr = r.autoReleaseDrop ? `Auto @ ${r.dropOffsetM}m` : (r.autoQueueDrop ? `Queue+Confirm @ ${r.dropOffsetM}m` : `Confirm @ ${r.dropOffsetM}m`);
+        const dropModeStr = r.autoReleaseDrop ? `Auto @ ${r.dropOffsetM}m` : (r.autoQueueDrop ? `Queue+Confirm @ ${r.dropOffsetM}m` : `Manual @ ${r.dropOffsetM}m`);
         sumEl.textContent = `${r.searchAltM}m (${r.overlapPct}% ovl) • Track ${r.trackAltM}m • Drop: ${dropModeStr}`;
       }
       if (badge) {
         if (aidState.mode === 'MANUAL_HUMAN_ONLY') {
-          badge.textContent = aidState.circuitBreakerTripped ? '⚠️ Cutout -> AID OFF' : '🛑 AID OFF (Manual)';
+          badge.textContent = aidState.circuitBreakerTripped ? '⚠️ Cutout -> Manual' : '🛑 Manual Only (No LLM)';
           badge.className = 'step-badge red';
         } else if (aidState.mode === 'ADVISORY_ONLY') {
           badge.textContent = '💡 Advisory Only';
@@ -2138,10 +2429,10 @@
           badge.textContent = `☁️ LLM JEV • ${aidState.llmApiKeySavedOnDisk ? 'Disk' : 'RAM'}`;
           badge.className = 'step-badge';
         } else if (aidState.circuitBreakerTripped) {
-          badge.textContent = '⚡ Offline Fallback (<1ms)';
+          badge.textContent = '⚡ Structured Cutout (<1ms)';
           badge.className = 'step-badge amber';
         } else {
-          badge.textContent = 'Offline Compiled • <1ms';
+          badge.textContent = 'Structured • <1ms';
           badge.className = 'step-badge';
         }
       }
@@ -2192,21 +2483,18 @@
 
     function togglePlaybookEditor() {
       const wrap = document.getElementById('playbookEditorWrap');
-      const txt = document.getElementById('txtPlaybookMarkdown');
       if (!wrap) return;
       const isHidden = wrap.style.display === 'none';
       wrap.style.display = isHidden ? 'flex' : 'none';
-      if (isHidden && txt && !txt.value.trim()) {
-        txt.value = PLAYBOOK_PRESETS_JS[aidState.activePlaybookId] || PLAYBOOK_PRESETS_JS.PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY;
+      if (isHidden) {
+        syncStructuredFormFieldsFromRules(aidState.compiled);
       }
     }
 
     function selectPlaybookPreset(pbId) {
       aidState.activePlaybookId = pbId;
-      const md = PLAYBOOK_PRESETS_JS[pbId] || PLAYBOOK_PRESETS_JS.PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY;
-      const txt = document.getElementById('txtPlaybookMarkdown');
-      if (txt) txt.value = md;
-      aidState.compiled = compileNaturalLanguagePlaybookJS(md);
+      aidState.compiled = buildStructuredPlaybookRulesJS(pbId);
+      syncStructuredFormFieldsFromRules(aidState.compiled);
       applyCompiledPlaybookToControls();
       if (window.location.protocol.startsWith('http')) {
         fetch(`/api/playbook/select?id=${encodeURIComponent(pbId)}`).then(r => r.json()).then(st => {
@@ -2219,18 +2507,94 @@
     }
 
     function compileAndApplyCustomPlaybook() {
-      const txt = document.getElementById('txtPlaybookMarkdown');
-      const md = txt ? txt.value : PLAYBOOK_PRESETS_JS[aidState.activePlaybookId];
-      aidState.compiled = compileNaturalLanguagePlaybookJS(md);
+      const overrides = {
+        searchAltM: parseFloat(document.getElementById('inpPbSearchAlt')?.value || '55'),
+        trackAltM: parseFloat(document.getElementById('inpPbTrackAlt')?.value || '28'),
+        dropOffsetM: parseFloat(document.getElementById('inpPbDropOffset')?.value || '15'),
+        preferredTarget: document.getElementById('selPbTargetType')?.value || 'PERSON',
+        dropPolicy: document.getElementById('selPbDropPolicy')?.value || 'AUTO_RELEASE',
+        rthBatteryPct: parseFloat(document.getElementById('inpPbRthBatt')?.value || '22'),
+        vetoCooldownS: parseInt(document.getElementById('inpPbVetoSec')?.value || '300', 10)
+      };
+      aidState.compiled = buildStructuredPlaybookRulesJS(aidState.activePlaybookId, overrides);
+      syncStructuredFormFieldsFromRules(aidState.compiled);
       applyCompiledPlaybookToControls();
       if (window.location.protocol.startsWith('http')) {
-        fetch(`/api/playbook/select?id=CUSTOM_NL_PLAYBOOK&markdown=${encodeURIComponent(md)}`).then(r => r.json()).then(st => {
+        const r = aidState.compiled;
+        fetch('/api/playbook/structured', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            preset_id: aidState.activePlaybookId,
+            search_altitude_agl_m: r.searchAltM,
+            tracking_altitude_agl_m: r.trackAltM,
+            preferred_target_type: r.preferredTarget,
+            auto_queue_drop: r.autoQueueDrop,
+            auto_release_drop: r.autoReleaseDrop,
+            require_human_drop_confirm: r.requireHumanDropConfirm,
+            drop_offset_m: r.dropOffsetM,
+            rth_battery_floor_pct: r.rthBatteryPct,
+            human_cancel_veto_cooldown_s: r.vetoCooldownS
+          })
+        }).then(res => res.json()).then(st => {
           if (st && st.compiled_rules) {
             hydrateCompiledRulesFromBackend(st.compiled_rules);
             applyCompiledPlaybookToControls();
           }
         }).catch(() => {});
       }
+    }
+
+    window.heliCeilingLocked = false;
+    function toggleMannedHeliCeilingLock() {
+      window.heliCeilingLocked = !window.heliCeilingLocked;
+      const btn = document.getElementById('btnHeliCeilingLock');
+      if (btn) {
+        btn.textContent = window.heliCeilingLocked ? '🚁 Heli 35m: LOCKED' : '🚁 Heli 35m: OFF';
+        btn.style.color = window.heliCeilingLocked ? '#fbbf24' : '';
+        btn.style.borderColor = window.heliCeilingLocked ? '#fbbf24' : '';
+      }
+      if (window.heliCeilingLocked) {
+        aidState.compiled.searchAltM = Math.min(35, aidState.compiled.searchAltM);
+        aidState.compiled.trackAltM = Math.min(35, aidState.compiled.trackAltM);
+        syncStructuredFormFieldsFromRules(aidState.compiled);
+        applyCompiledPlaybookToControls();
+        updateAidBannerUI('🚁 FINHEMS Manned Helicopter Ceiling Lock Active: All drones clamped ≤ 35m AGL');
+      } else {
+        selectPlaybookPreset(aidState.activePlaybookId);
+      }
+      syncEcosystemLangOrHeli();
+    }
+
+    function syncEcosystemLangOrHeli() {
+      if (!window.location.protocol.startsWith('http')) return;
+      const lang = document.getElementById('selCncLanternLang')?.value || 'FI';
+      fetch('/api/responder/ack', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lantern_language: lang,
+          helicopter_deconfliction: { active: !!window.heliCeilingLocked, hard_drone_ceiling_agl_m: 35 }
+        })
+      }).catch(() => {});
+    }
+
+    // Poll shared multi-persona ecosystem state (Ground Responder 2-way ACK, Trail-Cam, Helicopter Cap)
+    if (window.location.protocol.startsWith('http')) {
+      setInterval(() => {
+        fetch('/api/ecosystem/state').then(r => r.json()).then(st => {
+          if (st && st.responder_ack) {
+            const el = document.getElementById('lblGroundResponderAck');
+            if (el) {
+              const s = st.responder_ack.status;
+              if (s === 'EN_ROUTE') el.textContent = '🟢 ACK: En Route ↗';
+              else if (s === 'AT_HUT') el.textContent = '🏕️ ACK: At Hut ↗';
+              else if (s === 'NEED_MEDEVAC') el.textContent = '🚁 MEDEVAC REQ! ↗';
+              else el.textContent = '🛷 Open Responder App ↗';
+            }
+          }
+        }).catch(() => {});
+      }, 2500);
     }
 
     function applyCompiledPlaybookToControls() {
@@ -2709,7 +3073,11 @@
     function updateCameraSwitcherLabels() {
       drones.forEach((d, idx) => {
         const sub = document.getElementById(`camSub${idx}`);
-        if (sub) sub.textContent = d.sectorDone ? '✓ Sector 100% Done' : d.sectorName;
+        if (sub) {
+          sub.textContent = d.role === 'SHROUD_MAPPER'
+            ? (d.sectorPassTag || d.sectorName)
+            : d.sectorName;
+        }
       });
       const titleEl = document.getElementById('osdActiveCameraTitle');
       const badgeEl = document.getElementById('videoPaneBadge');
@@ -2720,7 +3088,7 @@
       } else {
         const idx = parseInt(selectedCameraSource.replace('DRONE_', ''), 10) || 0;
         const d = drones[idx] || drones[0];
-        titleEl.innerHTML = `<strong style="color:${d.color};">${d.shortName} (${d.sectorName})</strong> — Matches <span style="color:${d.color};">Highlighted Box</span> on Map`;
+        titleEl.innerHTML = `<strong style="color:${d.color};">${d.shortName} (${d.sectorPassTag || d.sectorName})</strong> — Matches <span style="color:${d.color};">Highlighted Box</span> on Map`;
         if (badgeEl) { badgeEl.style.background = 'rgba(10,132,255,0.22)'; badgeEl.style.color = d.color; }
       }
     }
@@ -2873,9 +3241,10 @@
 
     function toggleVideoTrackpadSteerMode() {
       stickState.videoSteerMode = !stickState.videoSteerMode;
+      stickState.padArmed = true;
       const btn = document.getElementById('btnVideoTrackpadSteer');
       if (btn) {
-        btn.textContent = stickState.videoSteerMode ? '🕹️ Trackpad Steer: ON (Move Finger in Video)' : '🕹️ Trackpad Steer: OFF';
+        btn.textContent = stickState.videoSteerMode ? '🕹️ Trackpad Steer: ON (Click/Space to Pause)' : '🕹️ Trackpad Steer: OFF';
         btn.classList.toggle('primary', stickState.videoSteerMode);
       }
       if (!stickState.videoSteerMode) {
@@ -2883,13 +3252,43 @@
       }
     }
 
+    function toggleStickArmPause() {
+      if (stickState.padArmed && (stickState.fingerInsidePad || Math.hypot(stickState.x, stickState.y) > 0.01)) {
+        // Pause & center so operator can move cursor out without pulling to one side
+        stickState.padArmed = false;
+        stickState.x = 0.0;
+        stickState.y = 0.0;
+        stickState.fingerInsidePad = false;
+        updateStickReadoutUI();
+        updateAidBannerUI(`⏸ Trackpad Stick Centered (0%, 0%) & Paused — Move cursor away freely without side pull! (Click pad to resume)`);
+      } else {
+        stickState.padArmed = !stickState.padArmed;
+        stickState.x = 0.0;
+        stickState.y = 0.0;
+        if (!stickState.padArmed) stickState.fingerInsidePad = false;
+        updateStickReadoutUI();
+        updateAidBannerUI(stickState.padArmed
+          ? `🕹️ Trackpad Stick Armed — Move finger inside 2D box to steer 1:1 (Click or Space to pause & center)`
+          : `⏸ Trackpad Stick Centered (0%, 0%) & Paused — Move cursor away freely without side pull!`);
+      }
+      const btnArm = document.getElementById('btnToggleStickArm');
+      if (btnArm) {
+        btnArm.textContent = stickState.padArmed ? '⏸ Pause/Center [Click/Space]' : '▶ Resume Follow [Click]';
+      }
+    }
+
     function centerManualStick(updateBanner = false) {
       stickState.x = 0.0;
       stickState.y = 0.0;
       stickState.fingerInsidePad = false;
+      stickState.padArmed = false; // Disarm on explicit center/Esc/Space so moving cursor away never pulls to the side!
+      const btnArm = document.getElementById('btnToggleStickArm');
+      if (btnArm) {
+        btnArm.textContent = '▶ Resume Follow [Click]';
+      }
       updateStickReadoutUI();
       if (updateBanner) {
-        updateAidBannerUI(`🛑 Manual Stick Centered (X: 0%, Y: 0%) • Drone Holding Current Position`);
+        updateAidBannerUI(`🛑 Manual Stick Centered (X: 0%, Y: 0%) & Paused • Move cursor out freely without side deflection!`);
       }
     }
 
@@ -3354,11 +3753,17 @@
           const ux = (e.clientX - rect.left) / rect.width;
           const uy = (e.clientY - rect.top) / rect.height;
 
-          // If 1:1 Trackpad Steering is enabled on Drone Video, follow finger 1:1 immediately!
+          // If 1:1 Trackpad Steering is enabled on Drone Video, follow finger 1:1 when armed (and auto-center at outer 4% exit border!)
           if (stickState.videoSteerMode) {
-            stickState.x = Math.max(-1.0, Math.min(1.0, (ux - 0.5) * 2.12));
-            stickState.y = Math.max(-1.0, Math.min(1.0, (0.5 - uy) * 2.12));
-            stickState.fingerInsidePad = true;
+            if (!stickState.padArmed || ux < 0.04 || ux > 0.96 || uy < 0.06 || uy > 0.96) {
+              stickState.x = 0.0;
+              stickState.y = 0.0;
+              stickState.fingerInsidePad = false;
+            } else {
+              stickState.x = Math.max(-1.0, Math.min(1.0, (ux - 0.5) * 2.18));
+              stickState.y = Math.max(-1.0, Math.min(1.0, (0.5 - uy) * 2.18));
+              stickState.fingerInsidePad = true;
+            }
           }
 
           if (selectedCameraSource === 'QUAD_4UP') {
@@ -3376,7 +3781,7 @@
 
         osdCanvas.addEventListener('mouseleave', () => {
           videoHoverWorldPt = null;
-          if (stickState.videoSteerMode && !stickState.holdLatched) {
+          if (stickState.videoSteerMode) {
             stickState.x = 0.0;
             stickState.y = 0.0;
             stickState.fingerInsidePad = false;
@@ -3387,6 +3792,12 @@
           const rect = osdCanvas.getBoundingClientRect();
           const ux = (e.clientX - rect.left) / rect.width;
           const uy = (e.clientY - rect.top) / rect.height;
+
+          // If Video Trackpad Steer is ON and no map/drop tool is active, clicking in video immediately pauses & centers (0%, 0%) so operator can move cursor out without side pull!
+          if (stickState.videoSteerMode && !dropMarkerMode && activeMapTool === 'PAN_MAP') {
+            toggleStickArmPause();
+            return;
+          }
 
           if (selectedCameraSource === 'QUAD_4UP') {
             const qIdx = (uy < 0.5 ? 0 : 2) + (ux < 0.5 ? 0 : 1);
@@ -3417,17 +3828,44 @@
       }
 
       // 1:1 Direct Finger-Follow Trackpad Steering Pad & Keyboard Listeners
+      // How to stop steering without leaving the stick pointing to one side:
+      // 1) Click/Tap once inside the pad (or press Space/Esc) -> immediately snaps stick to (0%, 0%) and pauses cursor follow while you move your cursor out!
+      // 2) Moving cursor outside the inner 2D Stick Box (over the right Y-bar, bottom X-bar, or leaving the canvas) ALWAYS resets stick to (0%, 0%)!
       const padCanvas = document.getElementById('trackpadSteerCanvas');
       if (padCanvas) {
         const updateStickFromPadEvent = (clientX, clientY) => {
           const rect = padCanvas.getBoundingClientRect();
-          // Plot region inside the 280x164 canvas:
-          // Left 2D Stick Box: x=[10..226], y=[10..130] (Bottom bar at y=[136..154], Right Y bar at x=[234..254])
           const cx = (clientX - rect.left) * (padCanvas.width / Math.max(1, rect.width));
           const cy = (clientY - rect.top) * (padCanvas.height / Math.max(1, rect.height));
           const boxX0 = 12, boxX1 = 224, boxY0 = 10, boxY1 = 128;
+
+          // If cursor moves outside the inner 2D Stick Box (e.g. over the right Y-axis bar, bottom X-axis bar, or outer border on the way out),
+          // immediately auto-center to (0%, 0%) so exiting the box NEVER leaves the stick pointing to one side!
+          if (cx < boxX0 || cx > boxX1 || cy < boxY0 || cy > boxY1) {
+            stickState.x = 0.0;
+            stickState.y = 0.0;
+            stickState.fingerInsidePad = false;
+            return;
+          }
+
           const normX = ((cx - (boxX0 + boxX1) * 0.5) / ((boxX1 - boxX0) * 0.5));
           const normY = (((boxY0 + boxY1) * 0.5 - cy) / ((boxY1 - boxY0) * 0.5));
+
+          // If paused (disarmed via Click/Space/Esc), keep stick locked at (0%, 0%) while operator moves cursor out of the box!
+          // Re-arm automatically if operator brings cursor back into the center neutral circle (|normX| < 0.16 && |normY| < 0.16).
+          if (!stickState.padArmed) {
+            if (Math.hypot(normX, normY) < 0.16) {
+              stickState.padArmed = true;
+              const btnArm = document.getElementById('btnToggleStickArm');
+              if (btnArm) btnArm.textContent = '⏸ Pause/Center [Click/Space]';
+            } else {
+              stickState.x = 0.0;
+              stickState.y = 0.0;
+              stickState.fingerInsidePad = false;
+              return;
+            }
+          }
+
           stickState.x = Math.max(-1.0, Math.min(1.0, normX));
           stickState.y = Math.max(-1.0, Math.min(1.0, normY));
           stickState.fingerInsidePad = true;
@@ -3438,28 +3876,30 @@
         });
         padCanvas.addEventListener('mousedown', e => {
           e.preventDefault();
-          stickState.holdLatched = !stickState.holdLatched;
-          updateStickFromPadEvent(e.clientX, e.clientY);
+          // Clicking inside the pad toggles Pause/Center (0%, 0%) vs. Armed Follow!
+          // When you want to stop steering without pulling the stick to one side as your cursor exits, simply click once!
+          toggleStickArmPause();
+          if (stickState.padArmed) {
+            updateStickFromPadEvent(e.clientX, e.clientY);
+          }
         });
         padCanvas.addEventListener('mouseleave', () => {
-          if (!stickState.holdLatched) {
-            stickState.x = 0.0;
-            stickState.y = 0.0;
-            stickState.fingerInsidePad = false;
-          }
+          // Always snap back to (0%, 0%) when cursor leaves the pad (never leave stuck at 100%!)
+          stickState.x = 0.0;
+          stickState.y = 0.0;
+          stickState.fingerInsidePad = false;
         });
         padCanvas.addEventListener('touchmove', e => {
           if (e.touches && e.touches.length > 0) {
             e.preventDefault();
+            stickState.padArmed = true;
             updateStickFromPadEvent(e.touches[0].clientX, e.touches[0].clientY);
           }
         }, { passive: false });
         padCanvas.addEventListener('touchend', () => {
-          if (!stickState.holdLatched) {
-            stickState.x = 0.0;
-            stickState.y = 0.0;
-            stickState.fingerInsidePad = false;
-          }
+          stickState.x = 0.0;
+          stickState.y = 0.0;
+          stickState.fingerInsidePad = false;
         });
       }
 
@@ -3613,8 +4053,12 @@
       const badge = document.getElementById('badgeStickState');
       if (badge) {
         const activeDIdx = selectedCameraSource === 'QUAD_4UP' ? 0 : (parseInt(selectedCameraSource.replace('DRONE_', ''), 10) || 0);
-        if (isDeflected) {
-          badge.textContent = `🕹️ Steering D${activeDIdx + 1} (${stickState.holdLatched ? 'Hold Locked' : '1:1 Live'})`;
+        if (!stickState.padArmed && !isDeflected) {
+          badge.textContent = `⏸ Paused at (0%, 0%) • Safe Exit`;
+          badge.style.background = 'rgba(255, 214, 10, 0.20)';
+          badge.style.color = '#ffd60a';
+        } else if (isDeflected) {
+          badge.textContent = `🕹️ Steering D${activeDIdx + 1} (Click/Space = Center)`;
           badge.style.background = 'rgba(48, 209, 88, 0.22)';
           badge.style.color = '#4ade80';
         } else {
@@ -3634,6 +4078,9 @@
       requestAnimationFrame(renderLoop);
       resizeCanvases();
       const dtScale = simRunning ? simSpeed : 0.0;
+      if (dtScale > 0) {
+        simClockSec += 0.068 * dtScale;
+      }
       const gCur = getMapGeometry();
       const viewAdaptiveStepM = Math.max(0.75, 1.45 / Math.max(0.002, gCur.scale)) * dtScale;
 
@@ -3691,7 +4138,20 @@
         : (guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson);
       const activeDest = guidedTargetType === 'VEHICLE' ? PLOWED_ROADHEAD : AUTIOTUPA_HUT;
 
-      let allSectorsDone = true;
+      // Un-escorted secondary moving object slowly patrols/moves across sector boundaries (simulating an object moving from unscanned into scanned areas!)
+      if (dtScale > 0) {
+        const unescorted = guidedTargetType === 'VEHICLE' ? lostPerson : lostVehicle;
+        if (!unescorted.arrived) {
+          const driftAng = simClockSec * 0.045;
+          unescorted.x += Math.cos(driftAng) * 0.055 * dtScale;
+          unescorted.y += Math.sin(driftAng * 0.7) * 0.045 * dtScale;
+          unescorted.x = Math.max(searchBox.xMin + 24, Math.min(searchBox.xMax - 24, unescorted.x));
+          unescorted.y = Math.max(searchBox.yMin + 24, Math.min(searchBox.yMax - 24, unescorted.y));
+        }
+      }
+
+      let maxPassCount = 1;
+      let activeModeSummary = 'N↕S Pincer';
       drones.forEach((d, idx) => {
         const isBeingManuallySteered = (idx === steeredDroneIdx && Math.hypot(stickState.x, stickState.y) > 0.03);
         if (dtScale > 0 && !isBeingManuallySteered) {
@@ -3733,29 +4193,46 @@
               d.y += (dy / dist) * step;
             }
           } else if (d.role === 'SHROUD_MAPPER' && d.waypoints && d.waypoints.length > 0) {
-            if (!d.sectorDone) {
-              allSectorsDone = false;
-              const wp = d.waypoints[d.wpIdx];
-              const dx = wp.x - d.x;
-              const dy = wp.y - d.y;
-              const dist = Math.hypot(dx, dy);
-              const arriveTol = Math.max(3.5, viewAdaptiveStepM * 1.15);
-              if (dist <= arriveTol) {
-                d.x = wp.x;
-                d.y = wp.y;
-                d.trail.push({ x: wp.x, y: wp.y });
-                if (d.trail.length > 50) d.trail.shift();
-                if (d.wpIdx + 1 < d.waypoints.length) {
-                  d.wpIdx++;
-                } else {
-                  d.sectorDone = true;
-                  updateCameraSwitcherLabels();
-                }
+            d.sectorDone = false; // Continuous radar patrol NEVER parks at Done!
+            const wp = d.waypoints[d.wpIdx] || d.waypoints[0];
+            const dx = wp.x - d.x;
+            const dy = wp.y - d.y;
+            const dist = Math.hypot(dx, dy);
+            const arriveTol = Math.max(3.5, viewAdaptiveStepM * 1.15);
+            if (dist <= arriveTol) {
+              d.x = wp.x;
+              d.y = wp.y;
+              d.trail.push({ x: wp.x, y: wp.y });
+              if (d.trail.length > 50) d.trail.shift();
+              if (d.wpIdx + 1 < d.waypoints.length) {
+                d.wpIdx++;
               } else {
-                const step = Math.min(dist, viewAdaptiveStepM);
-                d.x += (dx / dist) * step;
-                d.y += (dy / dist) * step;
+                // Completed current pass -> Immediately launch next Orthogonal (E↔W Cross) or Pincer (N↕S) Radar Pass!
+                d.scanPassCount = (d.scanPassCount || 1) + 1;
+                const secObj = activeSectors.find(s => s.droneIdx === idx);
+                if (secObj) {
+                  const built = buildSectorRadarPassWaypoints(
+                    secObj, d.scanPassCount, secObj.kSec || 0, secObj.M || 3,
+                    secObj.coneRadius || d.radius, secObj.tangentSwath || d.radius * 1.9,
+                    secObj.agl || d.altAgl, d.x, d.y
+                  );
+                  d.waypoints = built.wps;
+                  d.sweepModeTag = built.modeTag;
+                  d.wpIdx = 0;
+                } else {
+                  d.waypoints = d.waypoints.slice().reverse();
+                  d.wpIdx = 0;
+                }
+                updateCameraSwitcherLabels();
               }
+            } else {
+              const step = Math.min(dist, viewAdaptiveStepM);
+              d.x += (dx / dist) * step;
+              d.y += (dy / dist) * step;
+            }
+            if ((d.scanPassCount || 1) >= maxPassCount) {
+              maxPassCount = d.scanPassCount || 1;
+              activeModeSummary = d.sweepModeTag || 'N↕S Pincer';
             }
           }
         }
@@ -3767,50 +4244,103 @@
         }
       });
 
+      const covStats = updateBoxFreshnessAndMovingTargetLeakGrid();
       const badgeScan = document.getElementById('badgeScanStatus');
       if (badgeScan) {
-        badgeScan.textContent = allSectorsDone ? '✓ All Sectors 100% Scanned' : 'Scanning • 0% Overlap';
+        badgeScan.textContent = `Radar ${activeModeSummary}`;
+      }
+      const elSwath = document.getElementById('valAreaSwath');
+      if (elSwath) {
+        elSwath.textContent = `${covStats.freshPct}% Fresh • ${covStats.decayingPct}% Fading`;
+      }
+      const elCycle = document.getElementById('valRadarCycleInfo');
+      if (elCycle) {
+        elCycle.textContent = `Cycle #${maxPassCount} (${activeModeSummary})`;
       }
 
       // =====================================================================
-      // 8. RENDER PANE 1: GOOGLE EARTH SATELLITE MAP
+      // 8. RENDER PANE 1: GOOGLE EARTH SATELLITE MAP (WITH PROGRESSIVE RADAR DECAY!)
       // =====================================================================
       if (paneState.mapPane) {
         const g = getMapGeometry();
         const W = g.W, H = g.H;
 
-        // 1. Base Dimmed Google Earth Satellite Context (24% brightness outside explored swaths so you can see rivers/towns when zooming out to pick a new search area!)
+        // 1. Base Unscanned / Expired Dark Shroud Satellite Context (22% brightness outside fresh swaths)
         mapCtx.fillStyle = '#050608';
         mapCtx.fillRect(0, 0, W, H);
-        drawWorldSatelliteLayer(mapCtx, 0.24);
+        drawWorldSatelliteLayer(mapCtx, 0.22);
 
-        // 2. Explored Terrain Memory (68% Brightness inside swept swaths)
+        // 2. Multi-Tier Decaying Terrain Memory (Already-scanned areas get darker and darker as they age until refreshed by a drone!)
         if (exploredStampList.length > 0) {
-          mapCtx.save();
-          mapCtx.beginPath();
-          for (let i = 0; i < exploredStampList.length; i++) {
-            const st = exploredStampList[i];
-            const [px, py] = worldToCanvas(st.x, st.y);
-            const rPx = st.r * g.scale;
-            if (px + rPx >= 0 && px - rPx <= W && py + rPx >= 0 && py - rPx <= H) {
-              mapCtx.moveTo(px + rPx, py);
-              mapCtx.arc(px, py, rPx, 0, Math.PI * 2);
+          const tiers = [
+            { minF: 0.06, maxF: 0.40, satAlpha: 0.36 }, // Tier 1: Stale / Darkened Scan (needs re-scan)
+            { minF: 0.40, maxF: 0.72, satAlpha: 0.56 }, // Tier 2: Aging Scan (moderately darkened)
+            { minF: 0.72, maxF: 1.05, satAlpha: 0.84 }  // Tier 3: Freshly Scanned (bright & clear)
+          ];
+          for (const tier of tiers) {
+            let countInTier = 0;
+            mapCtx.save();
+            mapCtx.beginPath();
+            for (let i = 0; i < exploredStampList.length; i++) {
+              const st = exploredStampList[i];
+              const f = computeStampFreshness(st);
+              if (f >= tier.minF && f < tier.maxF) {
+                const [px, py] = worldToCanvas(st.x, st.y);
+                const rPx = st.r * g.scale;
+                if (px + rPx >= 0 && px - rPx <= W && py + rPx >= 0 && py - rPx <= H) {
+                  mapCtx.moveTo(px + rPx, py);
+                  mapCtx.arc(px, py, rPx, 0, Math.PI * 2);
+                  countInTier++;
+                }
+              }
             }
+            if (countInTier > 0) {
+              mapCtx.clip();
+              drawWorldSatelliteLayer(mapCtx, tier.satAlpha);
+            }
+            mapCtx.restore();
           }
-          mapCtx.clip();
-          drawWorldSatelliteLayer(mapCtx, 0.72);
-          mapCtx.restore();
         }
 
-        let expCount = 0;
-        for (let i = 0; i < boxExploredGrid.length; i++) if (boxExploredGrid[i]) expCount++;
-        const pct = Math.min(100, Math.round((expCount / boxExploredGrid.length) * 100));
-        const mb = document.getElementById('hdrMappedBadge');
-        if (mb) mb.textContent = `• ${pct}% Scanned`;
-
-        // Draw Color-Coded Cooperative Sector Strips
         const [bx0, by0] = worldToCanvas(searchBox.xMin, searchBox.yMin);
         const [bx1, by1] = worldToCanvas(searchBox.xMax, searchBox.yMax);
+
+        // 2B. Render Moving-Target Boundary Contamination & Progressive Darkening Shroud Cells inside Search Box
+        if (scanDecayHalfLifeSec <= 90000) {
+          const cellW = (bx1 - bx0) / BOX_GRID_NX;
+          const cellH = (by1 - by0) / BOX_GRID_NY;
+          if (Math.abs(cellW) >= 1.5 && Math.abs(cellH) >= 1.5) {
+            mapCtx.save();
+            for (let iy = 0; iy < BOX_GRID_NY; iy++) {
+              const cy0 = by0 + iy * cellH;
+              for (let ix = 0; ix < BOX_GRID_NX; ix++) {
+                const idx = iy * BOX_GRID_NX + ix;
+                if (!boxExploredGrid[idx]) continue;
+                const f = boxFreshnessGrid[idx];
+                const cx0 = bx0 + ix * cellW;
+                if (f < 0.78) {
+                  // Progressive darkening veil over decaying cells
+                  const darkVeil = Math.min(0.58, (0.82 - f) * 0.65);
+                  mapCtx.fillStyle = `rgba(4, 6, 12, ${darkVeil.toFixed(2)})`;
+                  mapCtx.fillRect(cx0, cy0, cellW + 0.5, cellH + 0.5);
+                }
+                if (boxLeakRiskGrid[idx]) {
+                  // Subtle amber tint on decaying cells bordering unscanned areas where a moving target could have slipped in
+                  mapCtx.fillStyle = 'rgba(255, 159, 10, 0.13)';
+                  mapCtx.fillRect(cx0, cy0, cellW + 0.5, cellH + 0.5);
+                }
+              }
+            }
+            mapCtx.restore();
+          }
+        }
+
+        const mb = document.getElementById('hdrMappedBadge');
+        if (mb) {
+          mb.textContent = scanDecayHalfLifeSec > 90000
+            ? `• ${covStats.visitedPct}% Scanned (Static)`
+            : `• 🟢 ${covStats.freshPct}% Fresh · 🟠 ${covStats.decayingPct}% Fading (${ covStats.visitedPct }% Visited)`;
+        }
 
         activeSectors.forEach(sec => {
           const [sx0, sy0] = worldToCanvas(sec.xMin, sec.yMin);
@@ -4089,9 +4619,9 @@
             if (d0 > d.radius * 1.15) inTransitDist = Math.round(d0);
           }
 
-          const taskTxt = d.sectorDone
-            ? '✓ Done'
-            : (inTransitDist > 0 ? `✈️ En Route (${inTransitDist}m)` : d.sectorName.replace('Sector ', 'S'));
+          const taskTxt = (inTransitDist > 0)
+            ? `✈️ En Route (${inTransitDist}m)`
+            : (d.role === 'SHROUD_MAPPER' && d.sectorPassTag ? d.sectorPassTag : d.sectorName.replace('Sector ', 'S'));
           const lbl = isSelected ? `🎥 ${d.shortName} • ${taskTxt}` : `${d.shortName} • ${taskTxt}`;
           mapCtx.font = '600 10.5px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
           const pillW = Math.ceil(mapCtx.measureText(lbl).width) + 14;

@@ -748,23 +748,27 @@
 <body>
 
 <div class="app-shell">
-  <!-- 1. HEADER BAR (Apple iOS Dark Mode Toolbar + Segmented Mode Control) -->
+  <!-- 1. HEADER BAR (Production Fast-SAR Mothership Pilot Cockpit & Synthetic Vision GCS + 3-Endpoint Switcher) -->
   <header>
     <div class="title-row">
-      <h1><span class="accent">Fast-SAR Jet</span> Flight &amp; Mission Simulator</h1>
-      <span class="subtitle">6-DoF Newton-Euler Solver · Select a Mission Stage or Manual Flight Law</span>
+      <h1><span class="accent">Fast-SAR Mothership</span> Pilot Cockpit &amp; Synthetic Vision GCS</h1>
+      <span class="subtitle">Production 6-DoF FBW Cockpit · Dynamic Safe-Envelope Protection · Live MAVLink &amp; Digital-Twin Rehearsal</span>
     </div>
     <div class="header-badges">
-      <div class="ios-segmented" role="group" aria-label="Simulation Mode">
-        <button class="seg-btn seg-active-blue" id="btnRunAutoMission" title="Run Autonomous 8-Stage SAR Mission">Auto Mission</button>
-        <button class="seg-btn" id="btnFlyFpvAiRc" title="Fly FPV with AI Flight-Controller Assistance (Normal Law [Key 3])">AI-Assisted RC [3]</button>
-        <button class="seg-btn" id="btnToggleLiveFpv" title="Fly FPV with Raw Unaided Servos (Direct Law [Key 1])">Raw Servos [1]</button>
+      <div class="ios-segmented" role="group" aria-label="Ecosystem Endpoint Switcher" style="margin-right:4px;border:1px solid rgba(56,189,248,0.35);flex-shrink:0;">
+        <a class="seg-btn" href="/operator_mission_console.html" style="text-decoration:none;white-space:nowrap;" title="Switch to Persona 1 Swarm C&amp;C &amp; Structured Playbook Console">🌍 1. Swarm C&amp;C</a>
+        <a class="seg-btn seg-active-blue" href="/mothership_cockpit.html" style="text-decoration:none;white-space:nowrap;" title="Active: Persona 2 Fast-SAR Mothership Pilot Cockpit &amp; Synthetic Vision GCS">✈️ 2. Mothership</a>
+        <a class="seg-btn" href="/mobile_responder.html" style="text-decoration:none;white-space:nowrap;" title="Switch to Persona 4 Gloved Ground SAR Responder App">🛷 4. Ground SAR</a>
+      </div>
+      <div class="ios-segmented" role="group" aria-label="Flight Law &amp; Telemetry Mode" style="flex-shrink:0;">
+        <button class="seg-btn seg-active-blue" id="btnRunAutoMission" style="white-space:nowrap;" title="Run Autonomous 8-Stage SAR Mission / Digital-Twin Rehearsal">Auto Mission</button>
+        <button class="seg-btn" id="btnFlyFpvAiRc" style="white-space:nowrap;" title="Fly FPV with AI Flight-Controller Envelope Protection (Normal Law [Key 3])">FBW Normal [3]</button>
+        <button class="seg-btn" id="btnToggleLiveFpv" style="white-space:nowrap;" title="Fly FPV with Direct Servo Law ([Key 1])">Direct Law [1]</button>
       </div>
       <span class="badge cyan" id="hdrConfigBadge">Variant H-Evo (14.95 kg)</span>
       <span class="badge orange" id="hdrPhaseBadge">Stage 1: Launch</span>
       <span class="badge green" id="hdrQualBadge">Level 1 FBW</span>
-      <a class="badge btn-badge" href="operator_mission_console.html" style="text-decoration:none;border-color:#00e676;color:#00e676;" title="Open Live Field Operator C&amp;C Mission, Terrain Auto-Mapper &amp; Guidance Console">🎯 Field Operator UX (C&amp;C Map)</a>
-      <button class="badge btn-badge" id="btnOpenBenchModal">Airframes &amp; Sliders</button>
+      <button class="badge btn-badge" id="btnOpenBenchModal">Airframes &amp; Weather</button>
     </div>
   </header>
 
@@ -1053,8 +1057,22 @@
         <span>Primary Flight Instruments</span>
         <span id="lblNavStatus" style="font-size:10px;color:var(--accent-green)">GNSS Nominal</span>
       </div>
-      <div style="width:100%;height:156px;flex-shrink:0;border:1px solid rgba(255,255,255,0.08);border-radius:8px;background:#0a0a0c;overflow:hidden;margin-bottom:4px;position:relative;">
+      <div style="width:100%;height:126px;flex-shrink:0;border:1px solid rgba(255,255,255,0.08);border-radius:8px;background:#0a0a0c;overflow:hidden;margin-bottom:3px;position:relative;">
         <canvas id="canvasGlassPFD" style="width:100%;height:100%;display:block;"></canvas>
+      </div>
+      <!-- Dynamic Safe-Operating-Envelope Physics Banner & Quick Factor Toggles -->
+      <div id="dynEnvelopeBar" style="background:rgba(14,26,46,0.92);border:1px solid rgba(56,189,248,0.28);border-radius:7px;padding:4px 6px;margin-bottom:4px;display:flex;flex-direction:column;gap:3px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:8.5px;font-family:monospace;color:#7dd3fc;">
+          <span style="font-weight:700;">⚡ DYNAMIC SAFE-ENVELOPE BANDS (ρ, Mass, G, Ice, Wind)</span>
+          <span id="lblDynEnvelopeSummary" style="color:#30d158;font-weight:700;">ρ=1.34 kg/m³ · m=14.9kg</span>
+        </div>
+        <div style="display:flex;gap:3px;flex-wrap:wrap;">
+          <button type="button" class="cfd-pill" id="btnEnvToggleIce" style="font-size:8px;padding:1px 5px;" onclick="window.toggleDynEnvFactor('ice')" title="Simulate 2.5 mm Wing Rime Icing (raises Stall Vs band &amp; lowers critical Stall AoA α_crit)">❄️ Ice +2.5mm</button>
+          <button type="button" class="cfd-pill" id="btnEnvToggleFlaps" style="font-size:8px;padding:1px 5px;" onclick="window.toggleDynEnvFactor('flaps')" title="Deploy 20° Approach/Drop Flaps (lowers Vs floor by -14 km/h &amp; clamps Vne to Vfe 185 km/h)">🛬 Flaps 20°</button>
+          <button type="button" class="cfd-pill" id="btnEnvToggleHeli" style="font-size:8px;padding:1px 5px;" onclick="window.toggleDynEnvFactor('heli')" title="Activate FINHEMS Manned Helicopter Co-Use Ceiling (clamps Altitude AGL Red Ceiling at 120m)">🚁 Heli 120m</button>
+          <button type="button" class="cfd-pill" id="btnEnvToggleWind" style="font-size:8px;padding:1px 5px;" onclick="window.toggleDynEnvFactor('wind')" title="Simulate 18 m/s Arctic Headwind + Downdraft Shear (raises AGL Pull-Up Floor &amp; Fuel Bingo Reserve)">💨 18m/s Wind</button>
+          <button type="button" class="cfd-pill" id="btnEnvToggleDrop" style="font-size:8px;padding:1px 5px;" onclick="window.toggleDynEnvFactor('drop')" title="Release 5.0 kg Belly Quadcopter / Capsule (drops aircraft mass by -5kg &amp; lowers Stall Vs by -18 km/h)">🪂 -5kg Drop</button>
+        </div>
       </div>
       <div class="gauges-grid">
         <div class="gauge-card">
@@ -5003,10 +5021,8 @@ function updateUIForSample(idx) {
   const curAltAgl = fpvSim.active ? fpvSim.alt_agl : s.alt_agl;
   const curVsi    = fpvSim.active ? fpvSim.climbRate_mps : s.climb_rate;
   const curSpdKmh = fpvSim.active ? (fpvSim.tas_mps * 3.6) : s.vtas_kmh;
-  const curStallKmh = fpvSim.active ? (fpvSim.flapsDeployed ? 94.0 : 105.0) : (s.v_stall * 3.6);
   const curMach   = fpvSim.active ? (fpvSim.tas_mps / 322.0) : s.mach;
   const curAlpha  = fpvSim.active ? fpvSim.alpha_deg : s.alpha_deg;
-  const curStallAlpha = fpvSim.active ? (fpvSim.flapsDeployed ? 13.4 : 14.5) : (s.alpha_stall_deg || 13.8);
   const curGLoad  = fpvSim.active ? fpvSim.nz_g : (s.g_load !== undefined ? s.g_load : 1.0);
   const curLd     = s.L_over_D || 11.8;
   const curEgtC   = fpvSim.active ? (fpvSim.engineLit ? 465 + 365 * fpvSim.spoolFrac : 220) : s.fadec_egt_c;
@@ -5016,20 +5032,119 @@ function updateUIForSample(idx) {
   const fuelPct   = cfg.fuel_mass_kg > 0 ? (curFuelKg / cfg.fuel_mass_kg) * 100 : 100;
   const curUatPct = s.uat_fill_pct !== undefined ? s.uat_fill_pct : 100;
   const curBattSoc = s.batt_soc !== undefined ? s.batt_soc : 92;
-  const curBusV    = s.bus_voltage_v !== undefined ? s.bus_voltage_v : 24.4;
+  const rawBusV    = s.bus_voltage_v !== undefined ? s.bus_voltage_v : 24.4;
+  const curBusV    = rawBusV < 16.0 ? rawBusV * 2.0 : rawBusV;
   const curBayC    = s.avionics_bay_temp_c !== undefined ? s.avionics_bay_temp_c : 15;
   const inTerminalPhase = (!fpvSim.active && (s.phase === "1_LAUNCH" || s.phase === "8_LANDING")) || (fpvSim.active && fpvSim.onGround);
 
-  // 1. ALTITUDE AGL & TERRAIN CLEARANCE ENVELOPE (0..280 m)
-  const altFloorM = 25.0;
+  // ==========================================================================
+  // DYNAMIC SAFE-OPERATING-ENVELOPE PHYSICS ENGINE (60 Hz Real-Time Shifting)
+  // Shifts Red/Amber/Green/Cyan boundaries across all 6 gauges & PFD tapes
+  // based on Altitude Density ρ(h,T), Mass m(t), G-Load nz, Flaps, Wing Icing,
+  // Headwind/Downdraft Shear, Cold Bay Resistance & Manned Heli U-Space Cap.
+  // ==========================================================================
+  if (!window.dynEnvFactors) {
+    window.dynEnvFactors = { ice: false, flaps: false, heli: false, wind: false, drop: false };
+    window.toggleDynEnvFactor = function(key) {
+      window.dynEnvFactors[key] = !window.dynEnvFactors[key];
+      const btnMap = { ice: "btnEnvToggleIce", flaps: "btnEnvToggleFlaps", heli: "btnEnvToggleHeli", wind: "btnEnvToggleWind", drop: "btnEnvToggleDrop" };
+      const btn = document.getElementById(btnMap[key]);
+      if (btn) btn.classList.toggle("active", window.dynEnvFactors[key]);
+      if (key === "flaps" && fpvSim.active) fpvSim.flapsDeployed = window.dynEnvFactors.flaps;
+      const curIdx = Number(document.getElementById("rngScrub")?.value || 0);
+      updateUIForSample(curIdx);
+    };
+  }
+  const df = window.dynEnvFactors;
+  const surfTempC = Number(document.getElementById("rngTemp")?.value || -20) - (df.ice ? 6 : 0);
+  const atm = computeAtmosphere(curAltAgl, { surface_temp_c: surfTempC, surface_pressure_pa: 101325 });
+  const rhoRatio = Math.sqrt(1.225 / Math.max(0.45, atm.rho_kg_m3)); // TAS/EAS density ratio
+  const payloadDroppedNow = df.drop || (!fpvSim.active && (s.phase === "6_COLD_RELIGHT" || s.phase === "7_RTB_CRUISE" || s.phase === "8_LANDING"));
+  const effMassKg = Math.max(6.5, (fpvSim.active ? (cfg.empty_mass_kg + curFuelKg + (payloadDroppedNow ? 0 : cfg.payload_mass_kg)) : (df.drop && s.mass_kg > 11.5 ? s.mass_kg - cfg.payload_mass_kg : s.mass_kg)));
+  const refMassKg = cfg.empty_mass_kg + cfg.fuel_mass_kg + cfg.payload_mass_kg;
+  const massFactor = Math.sqrt(effMassKg / Math.max(6.0, refMassKg));
+  const iceMm = Math.max(0, Number(document.getElementById("rngIce")?.value || 0) + (df.ice ? 2.5 : 0));
+  const iceSpdFactor = 1.0 / Math.sqrt(Math.max(0.58, 1.0 - 0.088 * iceMm));
+  const gFactor = Math.sqrt(Math.max(1.0, Math.min(3.8, curGLoad)));
+  const flapsActive = Boolean((fpvSim.active && fpvSim.flapsDeployed) || df.flaps || s.phase === "5_PAYLOAD_DROP");
+  const windMps = Math.max(Number(document.getElementById("rngWind")?.value || 8), df.wind ? 18.0 : 0.0);
+
+  // Dynamic Airspeed Boundaries (Vs, 1.25*Vs, Vno, Vne)
+  const baseVsKmh = (fpvSim.active ? 105.0 : (s.v_stall * 3.6)) * (df.drop && !fpvSim.active && s.mass_kg > 11.5 ? massFactor : 1.0);
+  const curStallKmh = Math.round(Math.max(66, ((baseVsKmh * (fpvSim.active ? massFactor * rhoRatio : rhoRatio) * iceSpdFactor) - (flapsActive ? 14.0 : 0.0)) * gFactor));
+  const vCautionLowKmh = Math.round(Math.min(300, curStallKmh * 1.25));
+  const vneKmh = flapsActive ? 185 : Math.round(Math.min(412, 396.0 / Math.sqrt(Math.max(0.82, rhoRatio)) - iceMm * 12.0));
+  const vnoKmh = flapsActive ? 155 : Math.round(Math.min(vneKmh - 28, 330.0 - iceMm * 10.0 - Math.max(0, curGLoad - 1.3) * 20.0));
+
+  // Dynamic Altitude Boundaries (Sink/Shear Pull-Up Floor & Manned Heli U-Space Ceiling)
+  const sinkPullupAddM = Math.round(Math.max(0, -curVsi - 1.5) * 2.4 + (df.wind ? 10.0 : 0.0));
+  const altFloorM = Math.min(52, 25 + sinkPullupAddM);
+  const altWarnM  = Math.min(85, Math.max(55, altFloorM + 26));
+  const heliCapActive = Boolean(df.heli);
+  const altCeilWarnM = heliCapActive ? 95 : 220;
+  const altCeilRedM  = heliCapActive ? 120 : 280;
+
+  // Dynamic AoA & G-Load Boundaries
+  const curStallAlpha = Number(Math.max(8.2, (flapsActive ? 13.4 : (s.alpha_stall_deg || cfg.alpha_stall_deg || 14.2)) - 1.55 * iceMm - Math.max(0, curMach - 0.25) * 3.5).toFixed(1));
+  const curBuffetAlpha = Number(Math.max(5.5, curStallAlpha - 4.3).toFixed(1));
+  const curNegAlphaLim = flapsActive ? -1.5 : -2.2;
+
+  // Dynamic Turbine EGT Boundaries (Altitude Density Cooling Derate)
+  const altEgtDerateC = Math.round(Math.max(0, (1.25 - atm.rho_kg_m3) * 42.0));
+  const egtContMaxC = 690 - altEgtDerateC;
+  const egtDashMaxC = 740 - Math.round(altEgtDerateC * 0.7);
+
+  // Dynamic Kerosene Fuel Bingo & RTB Reserves (Affine-Breguet Headwind & Mass Reserve)
+  const payloadFuelAddPct = payloadDroppedNow ? 0 : 4;
+  const bingoFuelPct = Math.round(Math.min(44, 14 + payloadFuelAddPct + windMps * 0.65));
+  const rtbFuelPct   = Math.round(Math.min(68, bingoFuelPct + 16 + windMps * 0.35));
+
+  // Dynamic 6S Li-Ion Bus Reserve (Cold Bay Arrhenius R_int Sag & E-Prop Load)
+  const effBayC = df.ice ? Math.min(curBayC, -2.0) : curBayC;
+  const coldSagAddPct = Math.round(Math.max(0, (12.0 - effBayC) * 0.65));
+  const ePropSagAddPct = (curEgtC < 380.0 || s.phase === "4_SILENT_LOITER") ? 5 : 0;
+  const battRedPct  = Math.min(38, 18 + coldSagAddPct + ePropSagAddPct);
+  const battWarnPct = Math.min(58, battRedPct + 18);
+
+  // Expose to PFD Speed/Altitude Tapes & Ecosystem Telemetry
+  window.lastDynamicEnvelope = {
+    rho_kg_m3: atm.rho_kg_m3, mass_kg: effMassKg, g_load: curGLoad, ice_mm: iceMm, flaps: flapsActive,
+    heli_cap: heliCapActive, wind_mps: windMps, payload_dropped: payloadDroppedNow,
+    altFloorM, altWarnM, altCeilWarnM, altCeilRedM,
+    curStallKmh, vCautionLowKmh, vnoKmh, vneKmh,
+    curStallAlpha, curBuffetAlpha, curNegAlphaLim,
+    egtContMaxC, egtDashMaxC, bingoFuelPct, rtbFuelPct, battRedPct, battWarnPct
+  };
+
+  const dynSumEl = document.getElementById("lblDynEnvelopeSummary");
+  if (dynSumEl) {
+    dynSumEl.textContent = `ρ=${atm.rho_kg_m3.toFixed(2)} · m=${effMassKg.toFixed(1)}kg · Vs=${curStallKmh} · Vne=${vneKmh} · Bingo=${bingoFuelPct}%`;
+    dynSumEl.style.color = (df.ice || df.heli || df.wind || df.flaps) ? "#ffd60a" : "#30d158";
+  }
+
+  // 1. ALTITUDE AGL & TERRAIN CLEARANCE ENVELOPE (0..280 m — Dynamic Floor & Heli Ceiling)
   const altMarginM = curAltAgl - altFloorM;
-  const altLevel = (!inTerminalPhase && curAltAgl < 25.0)
+  const altOverCeil = heliCapActive && curAltAgl > altCeilRedM;
+  const altNearCeil = heliCapActive && curAltAgl > altCeilWarnM;
+  const altLevel = (!inTerminalPhase && (curAltAgl < altFloorM || altOverCeil))
     ? "DANGER"
-    : ((!inTerminalPhase && curAltAgl < 55.0) ? "WARN" : "SAFE");
+    : ((!inTerminalPhase && (curAltAgl < altWarnM || altNearCeil)) ? "WARN" : "SAFE");
   const altBadge = inTerminalPhase
     ? (curAltAgl < 2.0 ? "ON GROUND" : "LAUNCH/LAND")
-    : (curAltAgl < 25.0 ? "PULL UP!" : (curAltAgl < 55.0 ? "LOW / DROP" : "SAFE AGL"));
+    : (altOverCeil ? "HELI CAP!" : (curAltAgl < altFloorM ? "PULL UP!" : (curAltAgl < altWarnM ? "LOW / DROP" : (altNearCeil ? "NEAR CAP" : "SAFE AGL"))));
   const ttiSec = (curVsi < -1.2 && curAltAgl > 1.0) ? (curAltAgl / Math.abs(curVsi)) : null;
+  const altBands = heliCapActive ? [
+    { from: 0,            to: altFloorM,    color: "#ff453a" }, // Dynamic Shear/Terrain Floor
+    { from: altFloorM,    to: altWarnM,     color: "#ff9f0a" }, // Canopy / Drop Margin
+    { from: altWarnM,     to: altCeilWarnM, color: "#30d158" }, // Safe Deconflicted Band
+    { from: altCeilWarnM, to: altCeilRedM,  color: "#ff9f0a" }, // Approaching Heli Corridor
+    { from: altCeilRedM,  to: 280,          color: "#ff453a" }  // FINHEMS Manned Heli Ceiling (>120m)
+  ] : [
+    { from: 0,         to: altFloorM, color: "#ff453a" }, // Dynamic Shear/Terrain Floor
+    { from: altFloorM, to: altWarnM,  color: "#ff9f0a" }, // Canopy / Drop Margin
+    { from: altWarnM,  to: 220,       color: "#30d158" }, // Safe Cruise & Canyon Band
+    { from: 220,       to: 280,       color: "#38bdf8" }  // High Relay Band
+  ];
   drawEnvelopeGauge("gaugeAlt", "gsubAlt", {
     title: "ALTITUDE AGL",
     badge: altBadge,
@@ -5039,32 +5154,25 @@ function updateUIForSample(idx) {
     val: curAltAgl,
     minV: 0,
     maxV: 280,
-    bands: [
-      { from: 0,   to: 25,  color: "#ff453a" }, // Hard Tree/Terrain Floor
-      { from: 25,  to: 55,  color: "#ff9f0a" }, // Canopy / Drop Margin
-      { from: 55,  to: 220, color: "#30d158" }, // Safe Cruise & Canyon Band
-      { from: 220, to: 280, color: "#38bdf8" }  // High Relay Band
-    ],
+    bands: altBands,
     ticks: [
-      { v: 25,  label: "25m Min",  color: "#ff6961" },
-      { v: 65,  label: "65m Drop", color: "#ffd60a" },
-      { v: 220, label: "220m",     color: "#30d158" }
+      { v: altFloorM, label: `${altFloorM}m Min`, color: "#ff6961" },
+      { v: 65,        label: "65m Drop",          color: "#ffd60a" },
+      { v: heliCapActive ? 120 : 220, label: heliCapActive ? "120m Heli" : "220m", color: heliCapActive ? "#ff6961" : "#30d158" }
     ],
     footerText: ttiSec !== null && ttiSec < 12.0
       ? `▲ PULL UP! Impact ${ttiSec.toFixed(1)}s`
-      : (inTerminalPhase ? `✔ Rollout (VSI ${curVsi.toFixed(1)} m/s)` : `✔ +${altMarginM.toFixed(0)}m Above 25m Floor`)
+      : (altOverCeil ? `▲ DESCEND! Heli Cap ${altCeilRedM}m` : (inTerminalPhase ? `✔ Rollout (VSI ${curVsi.toFixed(1)} m/s)` : `✔ +${altMarginM.toFixed(0)}m Above ${altFloorM}m Floor`))
   });
 
-  // 2. AIRSPEED (IAS/TAS) vs. STALL (Vs) & Vne OPERATING ENVELOPE (60..420 km/h)
-  const vneKmh = 396.0;
-  const vnoKmh = 330.0;
+  // 2. AIRSPEED (IAS/TAS) vs. DYNAMIC STALL (Vs) & Vne OPERATING ENVELOPE (60..420 km/h)
   const stallMarginKmh = curSpdKmh - curStallKmh;
   const spdLevel = (!inTerminalPhase && (curSpdKmh < curStallKmh + 4 || curSpdKmh > vneKmh))
     ? "DANGER"
-    : ((!inTerminalPhase && (curSpdKmh < curStallKmh * 1.25 || curSpdKmh > vnoKmh)) ? "WARN" : "SAFE");
+    : ((!inTerminalPhase && (curSpdKmh < vCautionLowKmh || curSpdKmh > vnoKmh)) ? "WARN" : "SAFE");
   const spdBadge = inTerminalPhase
     ? "ROLLOUT"
-    : (curSpdKmh < curStallKmh + 4 ? "STALL!" : (curSpdKmh > vneKmh ? "OVERSPD!" : (spdLevel === "WARN" ? "CAUTION" : "SAFE ENV")));
+    : (curSpdKmh < curStallKmh + 4 ? "STALL!" : (curSpdKmh > vneKmh ? (flapsActive ? "FLAP SPD!" : "OVERSPD!") : (spdLevel === "WARN" ? "CAUTION" : "SAFE ENV")));
   drawEnvelopeGauge("gaugeSpeed", "gsubSpeed", {
     title: "AIRSPEED TAS",
     badge: spdBadge,
@@ -5075,31 +5183,31 @@ function updateUIForSample(idx) {
     minV: 60,
     maxV: 420,
     bands: [
-      { from: 60,                   to: curStallKmh,        color: "#ff453a" }, // Stall Regime
-      { from: curStallKmh,          to: curStallKmh * 1.25, color: "#ff9f0a" }, // Low Margin (<1.25 Vs)
-      { from: curStallKmh * 1.25,   to: vnoKmh,             color: "#30d158" }, // Safe Cruise & Dash Envelope
-      { from: vnoKmh,               to: vneKmh,             color: "#ff9f0a" }, // High-Speed Caution
-      { from: vneKmh,               to: 420,                color: "#ff453a" }  // Vne Never-Exceed
+      { from: 60,             to: curStallKmh,    color: "#ff453a" }, // Dynamic Stall Regime (f(ρ, m, nz, ice, flaps))
+      { from: curStallKmh,    to: vCautionLowKmh, color: "#ff9f0a" }, // Low Margin (<1.25 Vs)
+      { from: vCautionLowKmh, to: vnoKmh,         color: "#30d158" }, // Safe Cruise & Dash Envelope
+      { from: vnoKmh,         to: vneKmh,         color: "#ff9f0a" }, // High-Speed Caution
+      { from: vneKmh,         to: 420,            color: "#ff453a" }  // Dynamic Vne / Vfe Never-Exceed
     ],
-    subBand: { from: 94, to: 185, color: "#ffffff" }, // White Flap Operating Arc
+    subBand: { from: Math.max(78, curStallKmh - 10), to: 185, color: "#ffffff" }, // White Flap Operating Arc
     ticks: [
-      { v: curStallKmh, label: `Vs ${curStallKmh.toFixed(0)}`, color: "#ff6961" },
-      { v: 185,         label: "Va 185",                       color: "#ffffff" },
-      { v: 396,         label: "Vne 396",                      color: "#ff6961" }
+      { v: curStallKmh, label: `Vs ${curStallKmh}`, color: "#ff6961" },
+      { v: 185,         label: flapsActive ? "Vfe 185" : "Va 185", color: "#ffffff" },
+      { v: vneKmh,      label: `Vne ${vneKmh}`,     color: "#ff6961" }
     ],
     footerText: inTerminalPhase
       ? `✔ Chute / Skid Rollout`
-      : (stallMarginKmh < 15 ? `▲ +${stallMarginKmh.toFixed(0)} km/h Stall • Add Thr` : `✔ +${Math.max(0, stallMarginKmh).toFixed(0)} km/h Above Vs ${curStallKmh.toFixed(0)}`)
+      : (stallMarginKmh < 15 ? `▲ +${stallMarginKmh.toFixed(0)} km/h Stall • Add Thr` : `✔ +${Math.max(0, stallMarginKmh).toFixed(0)} Above Vs ${curStallKmh} (${effMassKg.toFixed(1)}kg)`)
   });
 
-  // 3. ANGLE OF ATTACK (α AoA) & STRUCTURAL G-LOAD ENVELOPE (-6° .. +18°)
+  // 3. ANGLE OF ATTACK (α AoA) & STRUCTURAL G-LOAD ENVELOPE (-6° .. +18° — Dynamic Ice/Mach Shift)
   const aoaMarginDeg = curStallAlpha - curAlpha;
-  const aoaLevel = (curAlpha >= curStallAlpha - 0.3 || curAlpha < -3.0 || curGLoad > 3.8 || curGLoad < -1.3)
+  const aoaLevel = (curAlpha >= curStallAlpha - 0.3 || curAlpha < curNegAlphaLim - 0.8 || curGLoad > 3.8 || curGLoad < -1.3)
     ? "DANGER"
-    : ((curAlpha >= 9.5 || curGLoad > 3.1) ? "WARN" : "SAFE");
+    : ((curAlpha >= curBuffetAlpha || curGLoad > 3.1) ? "WARN" : "SAFE");
   const aoaBadge = curAlpha >= curStallAlpha - 0.3
     ? "STALL α!"
-    : (curAlpha >= 9.5 ? "BUFFET" : "ATTACHED");
+    : (curAlpha >= curBuffetAlpha ? "BUFFET" : "ATTACHED");
   drawEnvelopeGauge("gaugeHeading", "gsubHeading", {
     title: "AoA α & G-LOAD",
     badge: aoaBadge,
@@ -5110,29 +5218,29 @@ function updateUIForSample(idx) {
     minV: -6,
     maxV: 18,
     bands: [
-      { from: -6.0,          to: -2.0,          color: "#ff453a" }, // Negative-G Unport Risk
-      { from: -2.0,          to: 9.5,           color: "#30d158" }, // Safe Attached Lift Envelope
-      { from: 9.5,           to: curStallAlpha, color: "#ff9f0a" }, // Vortex Buffet Onset
-      { from: curStallAlpha, to: 18.0,          color: "#ff453a" }  // Full Stall Departure
+      { from: -6.0,           to: curNegAlphaLim, color: "#ff453a" }, // Negative-G Unport Risk
+      { from: curNegAlphaLim, to: curBuffetAlpha, color: "#30d158" }, // Dynamic Attached Lift Envelope
+      { from: curBuffetAlpha, to: curStallAlpha,  color: "#ff9f0a" }, // Dynamic Vortex Buffet Onset
+      { from: curStallAlpha,  to: 18.0,           color: "#ff453a" }  // Dynamic Full Stall Departure
     ],
     ticks: [
-      { v: 0.0,           label: "0°",                         color: "#9cb3d1" },
-      { v: 9.5,           label: "9.5° Buf",                   color: "#ffd60a" },
-      { v: curStallAlpha, label: `${curStallAlpha.toFixed(1)}° Stl`, color: "#ff6961" }
+      { v: 0.0,            label: "0°",                         color: "#9cb3d1" },
+      { v: curBuffetAlpha, label: `${curBuffetAlpha}° Buf`,     color: "#ffd60a" },
+      { v: curStallAlpha,  label: `${curStallAlpha}° Stl`,      color: "#ff6961" }
     ],
     footerText: aoaMarginDeg < 2.5
       ? `▲ ${aoaMarginDeg.toFixed(1)}° to Stall • Nose Down`
-      : `✔ +${aoaMarginDeg.toFixed(1)}° Stall · L/D ${curLd.toFixed(1)}`
+      : `✔ +${aoaMarginDeg.toFixed(1)}° to ${curStallAlpha}° · L/D ${curLd.toFixed(1)}`
   });
 
-  // 4. TURBINE EGT (°C) & THRUST (N) THERMAL ENVELOPE (200..840 °C)
-  const egtMarginC = 740.0 - curEgtC;
-  const egtLevel = curEgtC > 740.0
+  // 4. TURBINE EGT (°C) & THRUST (N) THERMAL ENVELOPE (200..840 °C — Dynamic Density Derate)
+  const egtMarginC = egtDashMaxC - curEgtC;
+  const egtLevel = curEgtC > egtDashMaxC
     ? "DANGER"
-    : (curEgtC > 690.0 ? "WARN" : (curEgtC < 380.0 ? "INFO" : "SAFE"));
-  const egtBadge = curEgtC > 740.0
+    : (curEgtC > egtContMaxC ? "WARN" : (curEgtC < 380.0 ? "INFO" : "SAFE"));
+  const egtBadge = curEgtC > egtDashMaxC
     ? "OVERTEMP!"
-    : (curEgtC > 690.0 ? "MAX THR" : (curEgtC < 380.0 ? "E-PROP" : "NOMINAL"));
+    : (curEgtC > egtContMaxC ? "MAX THR" : (curEgtC < 380.0 ? "E-PROP" : "NOMINAL"));
   drawEnvelopeGauge("gaugeEgt", "gsubEgt", {
     title: "TURBINE EGT",
     badge: egtBadge,
@@ -5143,30 +5251,30 @@ function updateUIForSample(idx) {
     minV: 200,
     maxV: 840,
     bands: [
-      { from: 200, to: 420, color: "#38bdf8" }, // Cold / Electric Loiter
-      { from: 420, to: 690, color: "#30d158" }, // Safe Continuous Turbine Band
-      { from: 690, to: 740, color: "#ff9f0a" }, // 5-Min Max Dash Band
-      { from: 740, to: 840, color: "#ff453a" }  // Overtemp FADEC Derate Limit
+      { from: 200,         to: 420,         color: "#38bdf8" }, // Cold / Electric Loiter
+      { from: 420,         to: egtContMaxC, color: "#30d158" }, // Dynamic Continuous Turbine Band
+      { from: egtContMaxC, to: egtDashMaxC, color: "#ff9f0a" }, // Dynamic 5-Min Max Dash Band
+      { from: egtDashMaxC, to: 840,         color: "#ff453a" }  // Dynamic Overtemp FADEC Limit
     ],
     ticks: [
-      { v: 420, label: "420°",     color: "#38bdf8" },
-      { v: 690, label: "690° Cnt", color: "#30d158" },
-      { v: 740, label: "740° Max", color: "#ff6961" }
+      { v: 420,         label: "420°",              color: "#38bdf8" },
+      { v: egtContMaxC, label: `${egtContMaxC}° Cnt`, color: "#30d158" },
+      { v: egtDashMaxC, label: `${egtDashMaxC}° Max`, color: "#ff6961" }
     ],
     footerText: curEgtC < 380.0
       ? `⚡ Silent E-Prop (${curThrust.toFixed(0)} N)`
-      : `✔ ${curRpmK.toFixed(0)}k RPM · +${egtMarginC.toFixed(0)}°C Margin`
+      : `✔ ${curRpmK.toFixed(0)}k RPM · +${egtMarginC.toFixed(0)}°C below ${egtDashMaxC}°`
   });
 
-  // 5. KEROSENE FUEL (% / kg) & MISSION ENDURANCE ENVELOPE (0..100%)
-  const fuelLevel = (fuelPct < 18.0 || curUatPct < 90.0)
+  // 5. KEROSENE FUEL (% / kg) & MISSION ENDURANCE ENVELOPE (0..100% — Dynamic Headwind & Mass Bingo)
+  const fuelLevel = (fuelPct < bingoFuelPct || curUatPct < 90.0)
     ? "DANGER"
-    : (fuelPct < 35.0 ? "WARN" : "SAFE");
+    : (fuelPct < rtbFuelPct ? "WARN" : "SAFE");
   const fuelBadge = curUatPct < 90.0
     ? "UAT AIR!"
-    : (fuelPct < 18.0 ? "BINGO!" : (fuelPct < 35.0 ? "RTB RSRV" : "RESERVE OK"));
-  const estJetMin = Math.max(0, (curFuelKg / 0.145));
-  const estJetKm  = Math.max(0, estJetMin * 4.1);
+    : (fuelPct < bingoFuelPct ? "BINGO!" : (fuelPct < rtbFuelPct ? "RTB RSRV" : "RESERVE OK"));
+  const estJetMin = Math.max(0, (curFuelKg / (0.145 * (1.0 + windMps * 0.012))));
+  const estJetKm  = Math.max(0, estJetMin * (4.1 - windMps * 0.06));
   drawEnvelopeGauge("gaugeFuel", "gsubFuel", {
     title: "JET FUEL (A-1)",
     badge: fuelBadge,
@@ -5177,26 +5285,26 @@ function updateUIForSample(idx) {
     minV: 0,
     maxV: 100,
     bands: [
-      { from: 0,  to: 18,  color: "#ff453a" }, // Bingo Emergency Reserve
-      { from: 18, to: 35,  color: "#ff9f0a" }, // RTB Reserve Caution
-      { from: 35, to: 100, color: "#30d158" }  // Safe Mission Fuel Envelope
+      { from: 0,            to: bingoFuelPct, color: "#ff453a" }, // Dynamic Bingo Emergency Reserve
+      { from: bingoFuelPct, to: rtbFuelPct,   color: "#ff9f0a" }, // Dynamic RTB Headwind Reserve
+      { from: rtbFuelPct,   to: 100,          color: "#30d158" }  // Safe Mission Fuel Envelope
     ],
     ticks: [
-      { v: 18,  label: "18% Min", color: "#ff6961" },
-      { v: 35,  label: "35% RTB", color: "#ffd60a" },
-      { v: 100, label: "Full",    color: "#30d158" }
+      { v: bingoFuelPct, label: `${bingoFuelPct}% Bng`, color: "#ff6961" },
+      { v: rtbFuelPct,   label: `${rtbFuelPct}% RTB`,   color: "#ffd60a" },
+      { v: 100,          label: "Full",                 color: "#30d158" }
     ],
-    footerText: `✔ ~${estJetMin.toFixed(0)}m / ${estJetKm.toFixed(0)}km · UAT ${curUatPct.toFixed(0)}%`
+    footerText: `✔ ~${estJetMin.toFixed(0)}m / ${estJetKm.toFixed(0)}km · Bingo ${bingoFuelPct}% (${windMps.toFixed(0)}m/s Wnd)`
   });
 
-  // 6. 6S LI-ION AVIONICS & E-PROP BUS (V / % SOC) & HEATED BAY ENVELOPE (0..100%)
-  const battLevel = (curBattSoc < 20.0 || curBusV < 20.4 || curBayC < 0.0)
+  // 6. 6S LI-ION AVIONICS & E-PROP BUS (V / % SOC) & HEATED BAY ENVELOPE (0..100% — Dynamic Cold R_int Sag)
+  const battLevel = (curBattSoc < battRedPct || curBusV < 20.4 || effBayC < 0.0)
     ? "DANGER"
-    : ((curBattSoc < 40.0 || curBusV < 21.8 || curBayC < 5.0) ? "WARN" : "SAFE");
+    : ((curBattSoc < battWarnPct || curBusV < 21.8 || effBayC < 5.0) ? "WARN" : "SAFE");
   const battBadge = curBusV < 20.4
     ? "LOW VOLT!"
-    : (curBattSoc < 20.0 ? "CRITICAL" : (battLevel === "WARN" ? "RESERVE" : "HEALTHY"));
-  const estELoiterMin = Math.round((curBattSoc / 100.0) * 32.0);
+    : (curBattSoc < battRedPct ? "CRITICAL" : (battLevel === "WARN" ? "RESERVE" : "HEALTHY"));
+  const estELoiterMin = Math.round((curBattSoc / 100.0) * (effBayC < 5.0 ? 25.0 : 32.0));
   drawEnvelopeGauge("gaugeBatt", "gsubBatt", {
     title: "6S LI-ION BUS",
     badge: battBadge,
@@ -5207,16 +5315,16 @@ function updateUIForSample(idx) {
     minV: 0,
     maxV: 100,
     bands: [
-      { from: 0,  to: 20,  color: "#ff453a" }, // Brownout / Load-Shed Floor (<20.4V)
-      { from: 20, to: 40,  color: "#ff9f0a" }, // Low E-Loiter Reserve
-      { from: 40, to: 100, color: "#30d158" }  // Healthy 6S2P Bus (21.8-25.2V)
+      { from: 0,           to: battRedPct,  color: "#ff453a" }, // Dynamic Brownout / Sag Floor
+      { from: battRedPct,  to: battWarnPct, color: "#ff9f0a" }, // Dynamic E-Loiter Reserve
+      { from: battWarnPct, to: 100,         color: "#30d158" }  // Healthy 6S2P Bus (21.8-25.2V)
     ],
     ticks: [
-      { v: 20,  label: "20.4V",   color: "#ff6961" },
-      { v: 40,  label: "40% Rsv", color: "#ffd60a" },
-      { v: 100, label: "25.2V",   color: "#30d158" }
+      { v: battRedPct,  label: `${battRedPct}% Min`,  color: "#ff6961" },
+      { v: battWarnPct, label: `${battWarnPct}% Rsv`, color: "#ffd60a" },
+      { v: 100,         label: "25.2V",               color: "#30d158" }
     ],
-    footerText: `✔ ~${estELoiterMin}m E-Prop · Bay +${curBayC.toFixed(0)}°C`
+    footerText: `✔ ~${estELoiterMin}m E-Prop · Bay ${effBayC >= 0 ? "+" : ""}${effBayC.toFixed(0)}°C (Min ${battRedPct}%)`
   });
 
   // Update Modal Stability readouts
@@ -7677,8 +7785,10 @@ function drawGlassCockpitInstrumentDisplay(ctx, x0, y0, w, h, sample, flow, cfg,
     ? (fpvSim.lastThrust_N || (fpvSim.engineLit ? 200 * Math.pow(fpvSim.spoolFrac, 2.1) : 0))
     : (sample.f_jet !== undefined ? sample.f_jet : 125.0);
   const sm_pct    = fpvSim.active ? (12.4 - (3.5 - fpvSim.fuel_kg) * 0.45) : (sample.sm_pct !== undefined ? sample.sm_pct : 11.8);
-  const vs_kmh    = (fpvSim.active && fpvSim.flapsDeployed) ? 94.0 : ((sample.v_stall || 29.2) * 3.6);
-  const vne_kmh   = 396.0;
+  const dynEnvPfd = window.lastDynamicEnvelope || {};
+  const vs_kmh    = dynEnvPfd.curStallKmh || ((fpvSim.active && fpvSim.flapsDeployed) ? 94.0 : ((sample.v_stall || 29.2) * 3.6));
+  const vno_kmh   = dynEnvPfd.vnoKmh || 330.0;
+  const vne_kmh   = dynEnvPfd.vneKmh || 396.0;
 
   // Helper to draw a standard Garmin G1000 / Airbus Artificial Horizon (ADI) with Blue Sky & Sienna Earth
   function renderArtificialHorizonADI(ax, ay, aw, ah, compact) {
@@ -7915,23 +8025,23 @@ function drawGlassCockpitInstrumentDisplay(ctx, x0, y0, w, h, sample, flow, cfg,
     // Draw Color Speed Arcs along right inner edge of IAS tape
     function yForSpd(v) { return tcy + (ias_kmh - v) * pxPerKmh; }
 
-    // 1. Green Normal Operating Arc (Vs1 = 105 km/h to Vno = 330 km/h)
-    const yGTop = Math.max(ty, yForSpd(330));
-    const yGBot = Math.min(ty + th, yForSpd(105));
+    // 1. Green Normal Operating Arc (Dynamic Vs to Dynamic Vno)
+    const yGTop = Math.max(ty, yForSpd(vno_kmh));
+    const yGBot = Math.min(ty + th, yForSpd(vs_kmh));
     if (yGBot > yGTop) {
       ctx.fillStyle = "#18e07f";
       ctx.fillRect(bandX, yGTop, bandW, yGBot - yGTop);
     }
-    // 2. White Flap Operating Arc (Vso = 94 km/h to Vfe = 185 km/h)
+    // 2. White Flap Operating Arc (Vso to Vfe = 185 km/h)
     const yWTop = Math.max(ty, yForSpd(185));
-    const yWBot = Math.min(ty + th, yForSpd(94));
+    const yWBot = Math.min(ty + th, yForSpd(Math.max(78, vs_kmh - 10)));
     if (yWBot > yWTop) {
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(bandX - 2.5, yWTop, 2.5, yWBot - yWTop);
     }
-    // 3. Yellow Caution Range (330 km/h to Vne = 396 km/h)
+    // 3. Yellow Caution Range (Dynamic Vno to Dynamic Vne)
     const yYTop = Math.max(ty, yForSpd(vne_kmh));
-    const yYBot = Math.min(ty + th, yForSpd(330));
+    const yYBot = Math.min(ty + th, yForSpd(vno_kmh));
     if (yYBot > yYTop) {
       ctx.fillStyle = "#ffbe2e";
       ctx.fillRect(bandX, yYTop, bandW, yYBot - yYTop);

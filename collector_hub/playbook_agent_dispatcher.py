@@ -1,23 +1,28 @@
 #!/usr/bin/env python3
 """
-Karhunkierros SAR — Natural-Language Operations Playbook & JEV Agent Dispatcher
+Karhunkierros SAR — Structured Operations Playbook & JEV Agent Dispatcher
 (`collector_hub/playbook_agent_dispatcher.py`)
 
-Hardened after Iteration-1 Red-Team Review (GPT-6 Astra & Claude Opus 5.5):
-  - [RT1-01] Spatial-Temporal Expanding Veto Bubbles (`r(t) = min(150, 60 + 1.5*dt) + 2*sigma`)
-             + Monotonic `epoch_id` cancellation so track-ID churn at the same location is
-             suppressed, a second victim 300 m away is NOT blocked, stale async LLM responses
-             (`req_epoch < current_epoch`) are discarded, and DROP vetoes never expire on a timer.
-  - [RT1-02] Clause-Scoped Line-by-Line AST Compiler (`compile_natural_language_playbook`):
-             classifies each Markdown bullet into its strict semantic domain (`SEARCH`,
-             `PREEMPTION`, `VEHICLE`, `DROP`, `ESCORT`, `SAFETY`) before numeric extraction
-             (zero cross-clause capture), enforces negation dominance, and runs an altitude
-             interval feasibility solver (`L <= U`).
-  - [RT1-03] Pre-Filter Proposed State-Flip Thrash Breaker (`N_15(t) >= 3` flips in 15s),
-             8.0s Dwell Hysteresis (`theta_on >= 0.80`, `theta_off <= 0.50`), and LLM-vs-Offline
-             Disagreement Monitor (`>30%` disagreement -> auto-cutout).
-  - [RT1-06] Ballistic Wind-Drift Impact Footprint Gate (`d_drift = 0.35 * W * sqrt(2h/g)`)
-             + Arctic Cold-Derated Headwind RTH Energy Reserve (`E_avail <= 1.25 * E_req`).
+Architecture Principle (Zero Offline Regex Parsing of Prose):
+  - Trying to interpret free-text natural-language commands with regular expressions when an
+    LLM is unavailable is fragile and unsafe in a life-safety SAR system.
+  - Instead, when no External LLM API is active, this dispatcher provides ONLY:
+      1. **Predefined Structured Playbook Profiles (`STRUCTURED_PLAYBOOK` / `OFFLINE_DETERMINISTIC`):**
+         Pre-verified SAR mission profiles where all parameters (`search_altitude_agl_m`,
+         `tracking_altitude_agl_m`, `preferred_target_type`, `drop_policy`, `drop_offset_m`,
+         `rth_battery_floor_pct`, `human_cancel_veto_cooldown_s`) are provided as **structured,
+         typed numeric/enum fields** validated by deterministic physical bounds (`L <= h <= U`,
+         `>= 15 m` drop standoff, `>= 20%` battery reserve).
+      2. **Direct Manual Control With No LLM (`MANUAL_HUMAN_ONLY`):**
+         100% direct human control of sector scanning, target lock, and payload release.
+  - Hardened with:
+      * [RT1-01] Spatial-Temporal Expanding Veto Bubbles (`r(t) = min(150, 60 + 1.5*dt) + 2*sigma`)
+                 + Monotonic `epoch_id` cancellation and permanent DROP veto latch.
+      * [RT1-02] Structured Parameter Validator & Altitude Interval Feasibility Solver (`L <= U`).
+      * [RT1-03] Pre-Filter Proposed State-Flip Thrash Breaker (`N_15(t) >= 3` flips in 15s)
+                 and 8.0s Dwell Hysteresis (`theta_on >= 0.80`, `theta_off <= 0.50`).
+      * [RT1-06] Ballistic Wind-Drift Impact Footprint Gate (`d_drift = 0.35 * W * sqrt(2h/g)`)
+                 + Arctic Cold-Derated Headwind RTH Energy Reserve (`E_avail <= 1.25 * E_req`).
 """
 
 from __future__ import annotations
@@ -26,7 +31,6 @@ import hashlib
 import json
 import math
 import os
-import re
 import time
 import urllib.error
 import urllib.request
@@ -35,58 +39,127 @@ from typing import Any, Dict, List, Optional, Tuple
 
 
 # =============================================================================
-# 1. PRE-DEFINED NATURAL-LANGUAGE SAR OPERATIONS PLAYBOOKS
+# 1. PRE-DEFINED STRUCTURED SAR OPERATIONS PLAYBOOKS (TYPED FIELDS, ZERO REGEX)
 # =============================================================================
 
-DEFAULT_PLAYBOOKS: Dict[str, Dict[str, str]] = {
+DEFAULT_PLAYBOOKS: Dict[str, Dict[str, Any]] = {
     "PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY": {
         "id": "PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY",
         "title": "1. Night Hiker Search & Opaslyhty Hut Escort (Default)",
         "summary": "Zero-overlap sector sweep at 55m AGL; preempt 1 drone on person detection (>=80% conf), auto-queue +42°C cask drop at 15m offset, escort to hut at 28m AGL.",
-        "markdown": """# PLAYBOOK: Karhunkierros Night Hiker Search & Opaslyhty Hut Escort
-- **Search Allocation:** Divide the search box into disjoint strips with 0% overlap at 55 m AGL above the 18 m boreal tree canopy.
-- **Target Preemption:** When a lost person (thermal +28°C to +38°C, confidence >= 80%) is detected, assign 1 closest drone to lock and follow the person at 28 m AGL while the remaining drones continue scanning their sectors.
-- **Vehicle Policy:** Do NOT preempt mapping for vehicles when a lost hiker is active.
-- **Payload Drop Policy:** Automatically queue and release the +42°C rescue cask at a safe 15 m horizontal offset once the tracking drone is within 25 m of the hiker.
-- **Shelter Escort:** Guide the hiker with the 1500 lm spotlight along the trail to the nearest wilderness hut at 1.2 m/s walking pace. When the hiker reaches within 15 m of the shelter, release target lock and return the drone to sector scanning.
-- **Safety & Veto Rules:** Respect human cancel vetoes for 300 seconds in a 60 m spatial bubble. Maintain >= 100 m altitude over reindeer/wildlife. Trigger RTH if battery drops below 22%.""",
+        "structured_params": {
+            "search_altitude_agl_m": 55.0,
+            "canopy_floor_m": 18.0,
+            "altitude_ceiling_m": 120.0,
+            "sector_overlap_pct": 0.0,
+            "preempt_on_person": True,
+            "preempt_on_vehicle": False,
+            "preferred_target_type": "PERSON",
+            "min_detection_confidence": 0.80,
+            "tracking_altitude_agl_m": 28.0,
+            "drop_policy": "AUTO_RELEASE_AT_OFFSET",
+            "auto_queue_drop": True,
+            "auto_release_drop": True,
+            "require_human_drop_confirm": False,
+            "drop_offset_m": 15.0,
+            "drop_trigger_distance_m": 25.0,
+            "return_to_scan_on_shelter_arrival": True,
+            "shelter_arrival_radius_m": 15.0,
+            "human_cancel_veto_cooldown_s": 300.0,
+            "veto_bubble_radius_m": 60.0,
+            "wildlife_min_altitude_m": 100.0,
+            "rth_battery_floor_pct": 22.0,
+        },
     },
     "PLAYBOOK_02_CAUTIOUS_HUMAN_CONFIRM_DROP": {
         "id": "PLAYBOOK_02_CAUTIOUS_HUMAN_CONFIRM_DROP",
         "title": "2. Cautious Search (Auto-Track Target, Require Human Confirm for Drop)",
         "summary": "Auto-locks lost person or vehicle with 1 drone while 3 scan, but NEVER releases payload without explicit human button confirmation.",
-        "markdown": """# PLAYBOOK: Cautious Search — Human Confirmation Required for Payload Drop
-- **Search Allocation:** Divide the search box into disjoint strips with 0% overlap at 55 m AGL.
-- **Target Preemption:** Preempt 1 closest drone to track any detected lost person or stranded vehicle (confidence >= 80%) at 30 m AGL.
-- **Payload Drop Policy:** Do NOT auto-drop payload. Queue the drop at 15 m offset and REQUIRE explicit human confirmation before releasing the winch servo.
-- **Shelter Escort:** Escort the tracked subject to the nearest wilderness hut or plowed road bridge, then return to cooperative scanning.
-- **Safety & Veto Rules:** Respect human cancel vetoes for 600 seconds. Maintain >= 100 m altitude over wildlife. Trigger RTH if battery drops below 25%.""",
+        "structured_params": {
+            "search_altitude_agl_m": 55.0,
+            "canopy_floor_m": 18.0,
+            "altitude_ceiling_m": 120.0,
+            "sector_overlap_pct": 0.0,
+            "preempt_on_person": True,
+            "preempt_on_vehicle": True,
+            "preferred_target_type": "PERSON",
+            "min_detection_confidence": 0.80,
+            "tracking_altitude_agl_m": 30.0,
+            "drop_policy": "QUEUE_REQUIRE_HUMAN_CONFIRM",
+            "auto_queue_drop": True,
+            "auto_release_drop": False,
+            "require_human_drop_confirm": True,
+            "drop_offset_m": 15.0,
+            "drop_trigger_distance_m": 25.0,
+            "return_to_scan_on_shelter_arrival": True,
+            "shelter_arrival_radius_m": 15.0,
+            "human_cancel_veto_cooldown_s": 600.0,
+            "veto_bubble_radius_m": 60.0,
+            "wildlife_min_altitude_m": 100.0,
+            "rth_battery_floor_pct": 25.0,
+        },
     },
     "PLAYBOOK_03_STRANDED_SNOWMOBILE_CORRIDOR": {
         "id": "PLAYBOOK_03_STRANDED_SNOWMOBILE_CORRIDOR",
         "title": "3. Stranded Snowmobile / Vehicle Corridor Escort",
         "summary": "Prioritizes stranded snowmobiles/vehicles (+34°C engine/exhaust), escorts along low-slope forestry route at 45m AGL to plowed road bridge.",
-        "markdown": """# PLAYBOOK: Winter Snowmobile & Vehicle Breakdown Escort
-- **Search Allocation:** Divide the search box into disjoint strips with 0% overlap at 65 m AGL for wide-swath coverage.
-- **Target Preemption:** Prioritize stranded vehicles and snowmobiles (confidence >= 75%). Assign 1 drone to escort the vehicle at 45 m AGL with a 35 m forward spotlight lead toward the plowed road bridge.
-- **Payload Drop Policy:** Do NOT auto-drop the rescue cask on a moving vehicle; require explicit human confirmation at a 15 m offset.
-- **Safety & Veto Rules:** Respect human cancel vetoes for 300 seconds. Maintain >= 100 m altitude over wildlife. Trigger RTH if battery drops below 22%.""",
+        "structured_params": {
+            "search_altitude_agl_m": 65.0,
+            "canopy_floor_m": 18.0,
+            "altitude_ceiling_m": 120.0,
+            "sector_overlap_pct": 0.0,
+            "preempt_on_person": True,
+            "preempt_on_vehicle": True,
+            "preferred_target_type": "VEHICLE",
+            "min_detection_confidence": 0.75,
+            "tracking_altitude_agl_m": 45.0,
+            "drop_policy": "QUEUE_REQUIRE_HUMAN_CONFIRM",
+            "auto_queue_drop": True,
+            "auto_release_drop": False,
+            "require_human_drop_confirm": True,
+            "drop_offset_m": 15.0,
+            "drop_trigger_distance_m": 25.0,
+            "return_to_scan_on_shelter_arrival": True,
+            "shelter_arrival_radius_m": 15.0,
+            "human_cancel_veto_cooldown_s": 300.0,
+            "veto_bubble_radius_m": 60.0,
+            "wildlife_min_altitude_m": 100.0,
+            "rth_battery_floor_pct": 22.0,
+        },
     },
     "PLAYBOOK_04_EW_DENIED_PASSIVE_RECON": {
         "id": "PLAYBOOK_04_EW_DENIED_PASSIVE_RECON",
         "title": "4. GNSS-Denied / Wildlife-Safe High-Standoff Sweep (Advisory Only)",
-        "summary": "High-altitude 75m AGL sweep, strict >=100m Poronhoitolaki wildlife floor, no autonomous drop; switches AID to Advisory/Offline mode under EW.",
-        "markdown": """# PLAYBOOK: GNSS-Denied & Reindeer-Safe High-Standoff Sweep
-- **Search Allocation:** Scan in disjoint strips with 0% overlap at 75 m AGL using optical flow + TF02-Pro LiDAR terrain following.
-- **Target Preemption:** Track detected persons at 35 m AGL minimum floor (confidence >= 85%). Do NOT preempt on vehicles.
-- **Payload Drop Policy:** Do NOT auto-drop payload; require human confirmation at >= 15 m standoff.
-- **Safety & Veto Rules:** Enforce >= 100 m Poronhoitolaki altitude floor over reindeer herds. Respect human cancel vetoes for 600 seconds. Trigger RTH if battery drops below 28%.""",
+        "summary": "High-altitude 75m AGL sweep, strict >=100m Poronhoitolaki wildlife floor, no autonomous drop; switches AID to Advisory/Manual mode under EW.",
+        "structured_params": {
+            "search_altitude_agl_m": 75.0,
+            "canopy_floor_m": 18.0,
+            "altitude_ceiling_m": 120.0,
+            "sector_overlap_pct": 0.0,
+            "preempt_on_person": True,
+            "preempt_on_vehicle": False,
+            "preferred_target_type": "PERSON",
+            "min_detection_confidence": 0.85,
+            "tracking_altitude_agl_m": 35.0,
+            "drop_policy": "MANUAL_ONLY",
+            "auto_queue_drop": False,
+            "auto_release_drop": False,
+            "require_human_drop_confirm": True,
+            "drop_offset_m": 15.0,
+            "drop_trigger_distance_m": 25.0,
+            "return_to_scan_on_shelter_arrival": True,
+            "shelter_arrival_radius_m": 15.0,
+            "human_cancel_veto_cooldown_s": 600.0,
+            "veto_bubble_radius_m": 60.0,
+            "wildlife_min_altitude_m": 100.0,
+            "rth_battery_floor_pct": 28.0,
+        },
     },
 }
 
 
 # =============================================================================
-# 2. CLAUSE-SCOPED DETERMINISTIC PLAYBOOK COMPILER ([RT1-02] FIX)
+# 2. STRUCTURED TYPED PLAYBOOK PARAMETER VALIDATOR (ZERO REGEX PROSE PARSING)
 # =============================================================================
 
 @dataclass
@@ -109,6 +182,7 @@ class CompiledPlaybookRules:
     tracking_altitude_agl_m: float = 28.0
     min_dwell_s: float = 8.0
     # Payload drop rules
+    drop_policy: str = "AUTO_RELEASE_AT_OFFSET"  # "AUTO_RELEASE_AT_OFFSET", "QUEUE_REQUIRE_HUMAN_CONFIRM", "MANUAL_ONLY"
     auto_queue_drop: bool = True
     auto_release_drop: bool = True
     require_human_drop_confirm: bool = False
@@ -123,194 +197,45 @@ class CompiledPlaybookRules:
     veto_bubble_radius_m: float = 60.0
     wildlife_min_altitude_m: float = 100.0
     rth_battery_floor_pct: float = 22.0
-    parsed_clause_count: int = 0
+    parsed_clause_count: int = 8
     compile_warnings: List[str] = field(default_factory=list)
 
 
-_DOMAIN_KEYS: Dict[str, Tuple[str, ...]] = {
-    "PREEMPTION": ("target preemption", "when a lost person", "prioritize stranded", "track detected", "lock and follow", "lock at", "confidence"),
-    "DROP": ("payload drop", "rescue cask", "auto-drop", "winch", "offset", "standoff", "drop", "human confirm"),
-    "SEARCH": ("search allocation", "search box", "disjoint strips", "overlap", "swath", "scan at"),
-    "VEHICLE": ("vehicle policy", "vehicles when"),
-    "ESCORT": ("shelter escort", "wilderness hut", "walking pace", "spotlight along"),
-    "SAFETY": ("safety", "veto", "reindeer", "wildlife", "poronhoitolaki", "battery", "rth", "canopy", "ceiling"),
-}
-
-
-def _split_subclauses(line: str) -> List[str]:
-    """
-    [RT2-04 Fix] Split a Markdown bullet into sub-clauses without breaking decimal numbers
-    like `0.85` (`(?<!\\d)\\.(?!\\d)`), and splitting compound `and queue/drop/track/lock` clauses.
-    """
-    parts = re.split(
-        r"(?<!\d)\.(?!\d)|;|\band then\b|,\s*and\b|\band\b(?=\s+(?:queue|drop|release|track|lock|require|do\s+not))",
-        line,
-        flags=re.IGNORECASE,
-    )
-    return [p.strip() for p in parts if p and p.strip()]
-
-
-def _classify_clause_domains(clause_lower: str) -> List[str]:
-    """[RT2-04 Fix] Return all matching rule domains for a sub-clause so compound clauses never drop rules."""
-    hits = [d for d, keys in _DOMAIN_KEYS.items() if any(k in clause_lower for k in keys)]
-    return hits or ["GENERAL"]
-
-
-def compile_natural_language_playbook(
-    markdown_text: str,
-    playbook_id: str = "CUSTOM_NL_PLAYBOOK",
-    title: str = "Custom Natural-Language Playbook",
+def build_structured_playbook_rules(
+    playbook_id: str = "PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY",
+    structured_params: Optional[Dict[str, Any]] = None,
+    title: Optional[str] = None,
 ) -> CompiledPlaybookRules:
     """
-    [RT1-02 & RT2-04 Fix] Sub-Clause-Scoped, Negation-Safe Deterministic Playbook Compiler (<1 ms).
-    - Splits each Markdown line into sub-clauses (`_split_subclauses`) without breaking decimals.
-    - Evaluates each sub-clause against all matching domains (`_classify_clause_domains`) with
-      sub-clause-local negation (`has_negation`), preventing compound lines from losing rules.
-    - Runs final canopy-floor and ceiling interval clamping (`L <= U`) in a post-loop pass so
-      line ordering in the playbook never affects safety clamping.
+    Deterministic Structured Playbook Validator (0 regex parsing of prose).
+    Loads the predefined structured parameters for `playbook_id`, applies any typed
+    `structured_params` overrides from the operator's structured form fields, and
+    clamps every parameter to the certified physical safety envelope (`L <= h <= U`,
+    `drop_offset_m >= 15.0`, `rth_battery_floor_pct >= 20.0`).
     """
-    clean_text = (markdown_text or "").strip()
-    sha = hashlib.sha256(clean_text.encode("utf-8")).hexdigest()[:16]
+    base_preset = DEFAULT_PLAYBOOKS.get(playbook_id, DEFAULT_PLAYBOOKS["PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY"])
+    merged: Dict[str, Any] = dict(base_preset["structured_params"])
+    if isinstance(structured_params, dict):
+        for k, v in structured_params.items():
+            if v is not None:
+                merged[k] = v
+
+    resolved_title = title or str(base_preset.get("title", "Structured SAR Playbook"))
+    canonical_json = json.dumps(merged, sort_keys=True, default=str)
+    sha = hashlib.sha256(canonical_json.encode("utf-8")).hexdigest()[:16]
+
     rules = CompiledPlaybookRules(
         playbook_id=playbook_id,
-        title=title,
+        title=resolved_title[:90],
         raw_markdown_sha256=sha,
     )
-    if not clean_text:
-        rules.compile_warnings.append("Empty playbook text; using safe default rules.")
-        return rules
 
-    raw_search_alt: Optional[float] = None
-    raw_track_alt: Optional[float] = None
+    # 1. Canopy floor & altitude ceiling interval feasibility (`L <= U`)
+    raw_canopy = float(merged.get("canopy_floor_m", 18.0))
+    rules.canopy_floor_m = max(15.0, min(35.0, raw_canopy))
+    raw_ceiling = float(merged.get("altitude_ceiling_m", 120.0))
+    rules.altitude_ceiling_m = max(20.0, min(150.0, raw_ceiling))
 
-    lines = [ln.strip() for ln in clean_text.splitlines() if ln.strip()]
-    for ln in lines:
-        if ln.startswith("#"):
-            m_title = re.sub(r"^#+\s*(?:playbook:\s*)?", "", ln, flags=re.IGNORECASE).strip()
-            if m_title:
-                rules.title = m_title[:90]
-            continue
-
-        rules.parsed_clause_count += 1
-        subclauses = _split_subclauses(ln.lower())
-
-        for sub in subclauses:
-            domains = _classify_clause_domains(sub)
-            has_negation = bool(re.search(r"\b(?:do\s+not|don't|never|no|prohibit|ignore)\b", sub))
-
-            for domain in domains:
-                if domain == "SEARCH":
-                    m_ov = re.search(r"(\d{1,2}(?:\.\d+)?)\s*%\s*overlap", sub)
-                    if m_ov:
-                        rules.sector_overlap_pct = max(0.0, min(50.0, float(m_ov.group(1))))
-                    m_can = re.search(r"(\d{1,2}(?:\.\d+)?)\s*m\s*(?:boreal\s+)?(?:tree\s+)?canopy", sub)
-                    if m_can:
-                        rules.canopy_floor_m = max(15.0, min(35.0, float(m_can.group(1))))
-                    m_alt = re.search(r"at\s+(\d{2,3}(?:\.\d+)?)\s*m\s*(?:agl)?", sub)
-                    if m_alt:
-                        raw_search_alt = float(m_alt.group(1))
-
-                elif domain == "VEHICLE":
-                    if has_negation and "vehicle" in sub:
-                        rules.preempt_on_vehicle = False
-
-                elif domain == "PREEMPTION":
-                    m_conf = re.search(
-                        r"conf(?:idence)?\s*(?:>=|>|at\s+least|of)?\s*(\d+(?:\.\d+)?)\s*(%)?|(\d+(?:\.\d+)?)\s*(%)?\s*conf(?:idence)?",
-                        sub,
-                    )
-                    if m_conf:
-                        raw_num = m_conf.group(1) if m_conf.group(1) is not None else m_conf.group(3)
-                        raw_pct = m_conf.group(2) if m_conf.group(1) is not None else m_conf.group(4)
-                        val = float(raw_num)
-                        if raw_pct == "%" or val > 1.0:
-                            val = val / 100.0
-                        rules.min_detection_confidence = max(0.55, min(0.99, val))
-                        rules.exit_detection_confidence = round(max(0.35, rules.min_detection_confidence - 0.30), 2)
-
-                    if "vehicle" in sub or "snowmobile" in sub:
-                        if has_negation:
-                            rules.preempt_on_vehicle = False
-                        else:
-                            rules.preempt_on_vehicle = True
-                            if "prioritize" in sub or "snowmobile" in sub:
-                                rules.preferred_target_type = "VEHICLE"
-                    if "person" in sub or "hiker" in sub:
-                        if has_negation:
-                            rules.preempt_on_person = False
-                        else:
-                            rules.preempt_on_person = True
-
-                    m_talt = re.search(r"at\s+(\d{2,3}(?:\.\d+)?)\s*m\s*(?:agl|minimum)?", sub)
-                    if m_talt:
-                        raw_track_alt = float(m_talt.group(1))
-
-                elif domain == "DROP":
-                    req_human = bool(re.search(r"require\s+(?:explicit\s+)?human\s+(?:confirm|confirmation|approval)", sub))
-                    if has_negation or req_human:
-                        rules.auto_release_drop = False
-                        rules.require_human_drop_confirm = True
-                        if "queue" in sub:
-                            rules.auto_queue_drop = True
-                    elif "queue" in sub or "release" in sub or "auto" in sub:
-                        rules.auto_release_drop = True
-                        rules.require_human_drop_confirm = False
-                        rules.auto_queue_drop = True
-
-                    m_off = re.search(r"(\d{1,2}(?:\.\d+)?)\s*m\s*(?:horizontal\s+)?(?:offset|standoff)", sub)
-                    if m_off:
-                        raw_off = float(m_off.group(1))
-                        if raw_off < 15.0:
-                            rules.compile_warnings.append(
-                                f"Playbook requested {raw_off}m drop offset; enforced >=15.0m mandatory human safety standoff."
-                            )
-                            raw_off = 15.0
-                        rules.drop_offset_m = raw_off
-
-                    m_trig = re.search(r"within\s+(\d{1,2}(?:\.\d+)?)\s*m\s+of", sub)
-                    if m_trig:
-                        rules.drop_trigger_distance_m = max(15.0, min(60.0, float(m_trig.group(1))))
-
-                elif domain == "ESCORT":
-                    if "return" in sub and "scan" in sub:
-                        rules.return_to_scan_on_shelter_arrival = True
-                    m_arr = re.search(r"within\s+(\d{1,2}(?:\.\d+)?)\s*m\s+of\s+the\s+(?:shelter|hut|road)", sub)
-                    if m_arr:
-                        rules.shelter_arrival_radius_m = max(8.0, min(40.0, float(m_arr.group(1))))
-
-                elif domain == "SAFETY":
-                    m_can_s = re.search(
-                        r"(\d{1,2}(?:\.\d+)?)\s*m\s*(?:boreal\s+)?(?:tree\s+)?canopy|canopy\s+(?:is\s+)?(\d{1,2}(?:\.\d+)?)\s*m",
-                        sub,
-                    )
-                    if m_can_s:
-                        c_val = float(m_can_s.group(1) if m_can_s.group(1) is not None else m_can_s.group(2))
-                        rules.canopy_floor_m = max(15.0, min(35.0, c_val))
-                    m_ceil = re.search(
-                        r"(?:below|<|<=|under|max)\s*(\d{2,3}(?:\.\d+)?)\s*m\s*(?:agl\s*)?ceiling|ceiling\s*(?:of\s*|is\s*)?(\d{2,3}(?:\.\d+)?)\s*m",
-                        sub,
-                    )
-                    if m_ceil:
-                        u_val = float(m_ceil.group(1) if m_ceil.group(1) is not None else m_ceil.group(2))
-                        rules.altitude_ceiling_m = max(20.0, min(150.0, u_val))
-                    m_veto = re.search(r"veto(?:es)?\s+for\s+(\d{2,4})\s*s", sub)
-                    if m_veto:
-                        rules.human_cancel_veto_cooldown_s = max(30.0, min(3600.0, float(m_veto.group(1))))
-                    m_bub = re.search(r"(\d{2,3}(?:\.\d+)?)\s*m\s*spatial\s*bubble", sub)
-                    if m_bub:
-                        rules.veto_bubble_radius_m = max(30.0, min(200.0, float(m_bub.group(1))))
-                    m_wild = re.search(r"(\d{2,3}(?:\.\d+)?)\s*m\s*(?:poronhoitolaki\s*)?(?:altitude\s*)?(?:floor\s*)?over\s*(?:reindeer|wildlife)", sub)
-                    if m_wild:
-                        rules.wildlife_min_altitude_m = max(100.0, float(m_wild.group(1)))
-                    m_batt = re.search(r"battery\s+(?:drops\s+)?(?:below|<|<=)\s*(\d{2}(?:\.\d+)?)\s*%", sub)
-                    if m_batt:
-                        b_pct = float(m_batt.group(1))
-                        if b_pct < 20.0:
-                            rules.compile_warnings.append(f"Clamped battery RTH floor {b_pct}% up to 20.0% minimum reserve.")
-                            b_pct = 20.0
-                        rules.rth_battery_floor_pct = min(55.0, b_pct)
-
-    # [RT2-04 Fix] Final Post-Loop Altitude Clamping & Interval Feasibility Check (Order-Independent)
     lower_bound = max(28.0, rules.canopy_floor_m + 10.0)
     if lower_bound > rules.altitude_ceiling_m:
         rules.compile_warnings.append(
@@ -318,24 +243,117 @@ def compile_natural_language_playbook(
         )
         rules.altitude_ceiling_m = 120.0
 
-    if raw_search_alt is not None:
-        if raw_search_alt < lower_bound:
-            rules.compile_warnings.append(f"Clamped search altitude {raw_search_alt}m up to {lower_bound}m canopy safety floor.")
-            raw_search_alt = lower_bound
-        elif raw_search_alt > rules.altitude_ceiling_m:
-            rules.compile_warnings.append(f"Clamped search altitude {raw_search_alt}m down to {rules.altitude_ceiling_m}m ceiling.")
-            raw_search_alt = rules.altitude_ceiling_m
-        rules.search_altitude_agl_m = raw_search_alt
+    # 2. Search altitude & overlap
+    req_search_alt = float(merged.get("search_altitude_agl_m", 55.0))
+    if req_search_alt < lower_bound:
+        rules.compile_warnings.append(f"Clamped search altitude {req_search_alt}m up to {lower_bound}m canopy safety floor.")
+        req_search_alt = lower_bound
+    elif req_search_alt > rules.altitude_ceiling_m:
+        rules.compile_warnings.append(f"Clamped search altitude {req_search_alt}m down to {rules.altitude_ceiling_m}m ceiling.")
+        req_search_alt = rules.altitude_ceiling_m
+    rules.search_altitude_agl_m = req_search_alt
+    rules.sector_overlap_pct = max(0.0, min(50.0, float(merged.get("sector_overlap_pct", 0.0))))
 
-    if raw_track_alt is not None:
-        if raw_track_alt < lower_bound:
-            rules.compile_warnings.append(f"Clamped tracking altitude {raw_track_alt}m up to {lower_bound}m canopy floor.")
-            raw_track_alt = lower_bound
-        elif raw_track_alt > rules.altitude_ceiling_m:
-            raw_track_alt = rules.altitude_ceiling_m
-        rules.tracking_altitude_agl_m = raw_track_alt
+    # 3. Target preemption & tracking altitude
+    pref_tgt = str(merged.get("preferred_target_type", "PERSON")).upper().strip()
+    if pref_tgt == "BOTH":
+        rules.preferred_target_type = "PERSON"
+        rules.preempt_on_person = True
+        rules.preempt_on_vehicle = True
+    elif pref_tgt == "VEHICLE":
+        rules.preferred_target_type = "VEHICLE"
+        rules.preempt_on_vehicle = bool(merged.get("preempt_on_vehicle", True))
+        rules.preempt_on_person = bool(merged.get("preempt_on_person", True))
+    else:
+        rules.preferred_target_type = "PERSON"
+        rules.preempt_on_person = bool(merged.get("preempt_on_person", True))
+        rules.preempt_on_vehicle = bool(merged.get("preempt_on_vehicle", False))
+
+    raw_conf = float(merged.get("min_detection_confidence", 0.80))
+    if raw_conf > 1.0:
+        raw_conf = raw_conf / 100.0
+    rules.min_detection_confidence = max(0.55, min(0.99, raw_conf))
+    rules.exit_detection_confidence = round(max(0.35, rules.min_detection_confidence - 0.30), 2)
+
+    req_track_alt = float(merged.get("tracking_altitude_agl_m", 28.0))
+    if req_track_alt < lower_bound:
+        rules.compile_warnings.append(f"Clamped tracking altitude {req_track_alt}m up to {lower_bound}m canopy floor.")
+        req_track_alt = lower_bound
+    elif req_track_alt > rules.altitude_ceiling_m:
+        req_track_alt = rules.altitude_ceiling_m
+    rules.tracking_altitude_agl_m = req_track_alt
+
+    # 4. Payload drop policy & mandatory >=15m human safety standoff
+    drop_pol = str(merged.get("drop_policy", "")).upper().strip()
+    if drop_pol == "AUTO_RELEASE_AT_OFFSET":
+        rules.drop_policy = "AUTO_RELEASE_AT_OFFSET"
+        rules.auto_queue_drop = True
+        rules.auto_release_drop = True
+        rules.require_human_drop_confirm = False
+    elif drop_pol == "QUEUE_REQUIRE_HUMAN_CONFIRM":
+        rules.drop_policy = "QUEUE_REQUIRE_HUMAN_CONFIRM"
+        rules.auto_queue_drop = True
+        rules.auto_release_drop = False
+        rules.require_human_drop_confirm = True
+    elif drop_pol == "MANUAL_ONLY":
+        rules.drop_policy = "MANUAL_ONLY"
+        rules.auto_queue_drop = False
+        rules.auto_release_drop = False
+        rules.require_human_drop_confirm = True
+    else:
+        rules.auto_queue_drop = bool(merged.get("auto_queue_drop", True))
+        rules.auto_release_drop = bool(merged.get("auto_release_drop", True))
+        rules.require_human_drop_confirm = bool(merged.get("require_human_drop_confirm", not rules.auto_release_drop))
+        rules.drop_policy = (
+            "AUTO_RELEASE_AT_OFFSET"
+            if (rules.auto_release_drop and not rules.require_human_drop_confirm)
+            else ("QUEUE_REQUIRE_HUMAN_CONFIRM" if rules.auto_queue_drop else "MANUAL_ONLY")
+        )
+
+    raw_off = float(merged.get("drop_offset_m", 15.0))
+    if raw_off < 15.0:
+        rules.compile_warnings.append(
+            f"Requested {raw_off}m drop offset; enforced >=15.0m mandatory human safety standoff."
+        )
+        raw_off = 15.0
+    rules.drop_offset_m = min(60.0, raw_off)
+    rules.drop_trigger_distance_m = max(15.0, min(60.0, float(merged.get("drop_trigger_distance_m", 25.0))))
+
+    # 5. Safety & Veto floors
+    rules.return_to_scan_on_shelter_arrival = bool(merged.get("return_to_scan_on_shelter_arrival", True))
+    rules.shelter_arrival_radius_m = max(8.0, min(40.0, float(merged.get("shelter_arrival_radius_m", 15.0))))
+    rules.human_cancel_veto_cooldown_s = max(30.0, min(3600.0, float(merged.get("human_cancel_veto_cooldown_s", 300.0))))
+    rules.veto_bubble_radius_m = max(30.0, min(200.0, float(merged.get("veto_bubble_radius_m", 60.0))))
+    rules.wildlife_min_altitude_m = max(100.0, float(merged.get("wildlife_min_altitude_m", 100.0)))
+
+    raw_batt = float(merged.get("rth_battery_floor_pct", 22.0))
+    if raw_batt < 20.0:
+        rules.compile_warnings.append(f"Clamped battery RTH floor {raw_batt}% up to 20.0% minimum reserve.")
+        raw_batt = 20.0
+    rules.rth_battery_floor_pct = min(55.0, raw_batt)
+    rules.parsed_clause_count = len(merged)
 
     return rules
+
+
+def compile_natural_language_playbook(
+    structured_or_preset: Any = None,
+    playbook_id: str = "PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY",
+    title: Optional[str] = None,
+    structured_params: Optional[Dict[str, Any]] = None,
+) -> CompiledPlaybookRules:
+    """
+    Backwards-compatible entry point that strictly delegates to `build_structured_playbook_rules`
+    using structured dictionary parameters or preset IDs (never regex-parsing free text).
+    """
+    if isinstance(structured_or_preset, dict):
+        merged_params = dict(structured_or_preset)
+        if structured_params:
+            merged_params.update(structured_params)
+        return build_structured_playbook_rules(playbook_id=playbook_id, structured_params=merged_params, title=title)
+    if isinstance(structured_or_preset, str) and structured_or_preset in DEFAULT_PLAYBOOKS:
+        return build_structured_playbook_rules(playbook_id=structured_or_preset, structured_params=structured_params, title=title)
+    return build_structured_playbook_rules(playbook_id=playbook_id, structured_params=structured_params, title=title)
 
 
 # =============================================================================
@@ -762,10 +780,12 @@ class PlaybookAgentDispatcher:
 
     def __init__(self, credentials_disk_path: Optional[str] = None) -> None:
         self.active_playbook_id: str = "PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY"
-        self.active_markdown: str = DEFAULT_PLAYBOOKS[self.active_playbook_id]["markdown"]
-        self.compiled_rules: CompiledPlaybookRules = compile_natural_language_playbook(
-            self.active_markdown,
+        self.active_structured_params: Dict[str, Any] = dict(
+            DEFAULT_PLAYBOOKS[self.active_playbook_id]["structured_params"]
+        )
+        self.compiled_rules: CompiledPlaybookRules = build_structured_playbook_rules(
             playbook_id=self.active_playbook_id,
+            structured_params=self.active_structured_params,
             title=DEFAULT_PLAYBOOKS[self.active_playbook_id]["title"],
         )
         repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -784,7 +804,7 @@ class PlaybookAgentDispatcher:
         self.aid_mode: str = "OFFLINE_DETERMINISTIC"
         self.fallback_on_llm_unavailable: str = "OFFLINE_DETERMINISTIC"
         self.circuit_breaker_tripped: bool = False
-        self.circuit_breaker_reason: str = "Normal (<1 ms Offline Deterministic Compiler)"
+        self.circuit_breaker_reason: str = "Normal (<1 ms Structured Parameter Playbook — Zero Regex)"
         self.veto_registry: HumanVetoRegistry = HumanVetoRegistry()
         # [RT1-03 & RT2-03 Fix] Dwell timer (`None` until first transition) & Thrash Counter
         self.last_accepted_state: str = "CONTINUE_COOPERATIVE_SCAN"
@@ -914,23 +934,35 @@ class PlaybookAgentDispatcher:
 
         return self.get_status()
 
-    def set_playbook(self, playbook_id: str, custom_markdown: Optional[str] = None) -> Dict[str, Any]:
-        if custom_markdown is not None and custom_markdown.strip():
-            self.active_playbook_id = playbook_id or "CUSTOM_NL_PLAYBOOK"
-            self.active_markdown = custom_markdown.strip()
-            title = DEFAULT_PLAYBOOKS.get(self.active_playbook_id, {}).get("title", "Custom Natural-Language Playbook")
-        elif playbook_id in DEFAULT_PLAYBOOKS:
+    def set_playbook(
+        self,
+        playbook_id: str,
+        structured_params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Selects a predefined structured playbook preset and optionally applies typed
+        structured parameter overrides (`search_altitude_agl_m`, `tracking_altitude_agl_m`,
+        `preferred_target_type`, `drop_policy`, `drop_offset_m`, `rth_battery_floor_pct`,
+        `human_cancel_veto_cooldown_s`). Zero regex parsing of free text.
+        """
+        if playbook_id in DEFAULT_PLAYBOOKS:
             self.active_playbook_id = playbook_id
-            self.active_markdown = DEFAULT_PLAYBOOKS[playbook_id]["markdown"]
+            base_params = dict(DEFAULT_PLAYBOOKS[playbook_id]["structured_params"])
             title = DEFAULT_PLAYBOOKS[playbook_id]["title"]
         else:
             self.active_playbook_id = "PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY"
-            self.active_markdown = DEFAULT_PLAYBOOKS[self.active_playbook_id]["markdown"]
-            title = DEFAULT_PLAYBOOKS[self.active_playbook_id]["title"]
+            base_params = dict(DEFAULT_PLAYBOOKS[self.active_playbook_id]["structured_params"])
+            title = "Custom Structured Playbook" if structured_params else DEFAULT_PLAYBOOKS[self.active_playbook_id]["title"]
 
-        self.compiled_rules = compile_natural_language_playbook(
-            self.active_markdown,
+        if isinstance(structured_params, dict):
+            for k, v in structured_params.items():
+                if v is not None:
+                    base_params[k] = v
+
+        self.active_structured_params = base_params
+        self.compiled_rules = build_structured_playbook_rules(
             playbook_id=self.active_playbook_id,
+            structured_params=self.active_structured_params,
             title=title,
         )
         return self.get_status()
@@ -1001,7 +1033,7 @@ class PlaybookAgentDispatcher:
         )
         user_prompt = json.dumps(
             {
-                "playbook_markdown": self.active_markdown,
+                "structured_playbook": asdict(self.compiled_rules),
                 "telemetry": telemetry,
             }
         )
@@ -1338,7 +1370,7 @@ class PlaybookAgentDispatcher:
     def get_status(self) -> Dict[str, Any]:
         return {
             "active_playbook_id": self.active_playbook_id,
-            "active_markdown": self.active_markdown,
+            "structured_params": dict(self.active_structured_params),
             "compiled_rules": asdict(self.compiled_rules),
             "aid_mode": self.aid_mode,
             "epoch_id": self.veto_registry.current_epoch,
@@ -1359,7 +1391,12 @@ class PlaybookAgentDispatcher:
                 "last_human_action_desc": self.veto_registry.last_human_action_desc,
             },
             "available_playbooks": [
-                {"id": k, "title": v["title"], "summary": v["summary"]}
+                {
+                    "id": k,
+                    "title": v["title"],
+                    "summary": v["summary"],
+                    "structured_params": v["structured_params"],
+                }
                 for k, v in DEFAULT_PLAYBOOKS.items()
             ],
             "recent_decisions": self.decision_log[-5:],
