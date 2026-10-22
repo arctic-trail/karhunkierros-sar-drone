@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="2200mm" height="1100mm" viewBox="0 0 2200 1100">
+  <rect x="0" y="0" width="2200" height="1100" fill="#0d1520"/>
+  <text x="40" y="55" fill="#58a6ff" font-family="monospace" font-size="24" font-weight="bold">FIN-LAB-06A (Prototype P8) 1:1 mm CNC Demihull Bulkheads, Bridge Deck &amp; Carbon Cut Sheet (SSOT)</text>
+  <polyline points="80.0,140.0 199.7,140.0 178.2,309.0 139.8,400.0 101.5,309.0 80.0,140.0" fill="none" stroke="#3fb950" stroke-width="2.5"/>
+  <text x="80.0" y="125" fill="#e6edf3" font-family="monospace" font-size="16">STA X=200mm (B=120x260mm)</text>
+  <polyline points="400.0,140.0 608.6,140.0 571.1,309.0 504.3,400.0 437.5,309.0 400.0,140.0" fill="none" stroke="#3fb950" stroke-width="2.5"/>
+  <text x="400.0" y="125" fill="#e6edf3" font-family="monospace" font-size="16">STA X=480mm (B=209x260mm)</text>
+  <polyline points="720.0,140.0 930.0,140.0 892.2,309.0 825.0,400.0 757.8,309.0 720.0,140.0" fill="none" stroke="#3fb950" stroke-width="2.5"/>
+  <text x="720.0" y="125" fill="#e6edf3" font-family="monospace" font-size="16">STA X=925mm (B=210x260mm)</text>
+  <polyline points="1040.0,140.0 1250.0,140.0 1212.2,309.0 1145.0,400.0 1077.8,309.0 1040.0,140.0" fill="none" stroke="#3fb950" stroke-width="2.5"/>
+  <text x="1040.0" y="125" fill="#e6edf3" font-family="monospace" font-size="16">STA X=1420mm (B=210x260mm)</text>
+  <polyline points="1360.0,140.0 1570.0,140.0 1532.2,309.0 1465.0,400.0 1397.8,309.0 1360.0,140.0" fill="none" stroke="#3fb950" stroke-width="2.5"/>
+  <text x="1360.0" y="125" fill="#e6edf3" font-family="monospace" font-size="16">STA X=1750mm (B=210x260mm)</text>
+  <rect x="80.0" y="470.0" width="1080.0" height="560.0" fill="none" stroke="#f0883e" stroke-width="2.5"/>
+  <text x="100.0" y="510.0" fill="#f0883e" font-family="monospace" font-size="18">CENTRAL BRIDGE DECK &amp; 180Wp SOLAR TRAY (1080.0 x 560.0 mm, 6mm Marine Ply / Carbon Skin)</text>
+</svg>

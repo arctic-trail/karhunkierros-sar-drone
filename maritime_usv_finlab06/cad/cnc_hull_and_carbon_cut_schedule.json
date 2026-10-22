@@ -1,0 +1,48 @@
+{
+  "project": "FIN-LAB-06A (Prototype P8 1.85 m Coastal Cable Survey Catamaran)",
+  "total_hull_structure_mass_kg": 9.2,
+  "carbon_tubes": [
+    {
+      "part": "Fore Crossbeam Tube",
+      "outer_dia_mm": 40.0,
+      "wall_mm": 2.0,
+      "length_mm": 880.0,
+      "station_x_mm": 480.0
+    },
+    {
+      "part": "Aft Crossbeam Tube",
+      "outer_dia_mm": 40.0,
+      "wall_mm": 2.0,
+      "length_mm": 880.0,
+      "station_x_mm": 1420.0
+    },
+    {
+      "part": "Non-Magnetic Aft RM3100 Boom",
+      "outer_dia_mm": 20.0,
+      "wall_mm": 1.5,
+      "length_mm": 1000.0,
+      "station_x_mm": 2000.0
+    },
+    {
+      "part": "Folding Navigation & AIS Mast",
+      "outer_dia_mm": 32.0,
+      "wall_mm": 1.5,
+      "length_mm": 850.0,
+      "station_x_mm": 620.0
+    }
+  ],
+  "xps_foam_demihull_blocks": [
+    {
+      "part": "Port Demihull XPS Core (2x 925mm segments)",
+      "length_mm": 1850.0,
+      "beam_mm": 210.0,
+      "depth_mm": 260.0
+    },
+    {
+      "part": "Starboard Demihull XPS Core (2x 925mm segments)",
+      "length_mm": 1850.0,
+      "beam_mm": 210.0,
+      "depth_mm": 260.0
+    }
+  ]
+}
