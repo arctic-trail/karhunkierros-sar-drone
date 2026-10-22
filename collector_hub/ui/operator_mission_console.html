@@ -977,10 +977,11 @@
                 </div>
                 <div style="display:flex;gap:5px;align-items:center;">
                   <select id="selLlmProviderModel" class="select-input" style="flex:1;padding:3px 5px;font-size:10.5px;">
-                    <option value="openai|gpt-5.4-mini" selected>OpenAI • gpt-5.4-mini (&le;450ms JEV)</option>
-                    <option value="openai|gpt-5.4">OpenAI • gpt-5.4 (Deep JEV)</option>
+                    <option value="openai|gpt-5.4-mini" selected>OpenAI • gpt-5.4-mini (&le;650ms JEV)</option>
+                    <option value="openai|gpt-4.1-mini">OpenAI • gpt-4.1-mini (&le;550ms JEV)</option>
+                    <option value="gemini|gemini-2.5-flash">Google Gemini • gemini-2.5-flash (&le;750ms JEV)</option>
+                    <option value="anthropic|claude-haiku-4-5-20251001">Anthropic • claude-haiku-4-5 (&le;500ms JEV)</option>
                     <option value="anthropic|claude-sonnet-4-6">Anthropic • claude-sonnet-4-6</option>
-                    <option value="anthropic|claude-opus-4-7">Anthropic • claude-opus-4-7</option>
                   </select>
                 </div>
                 <div style="display:flex;gap:4px;align-items:center;">
@@ -1057,6 +1058,9 @@
               </div>
               <div style="font-family:var(--font-mono);font-size:10.5px;color:#4ade80;background:rgba(0,0,0,0.32);padding:4px 6px;border-radius:5px;" id="lblJevDecision">
                 JEV VERIFIED: Lock Lost Hiker (28m AGL) &bull; 3 Drones Scan Sectors
+              </div>
+              <div style="font-family:var(--font-mono);font-size:9.5px;color:#93c5fd;background:rgba(15,23,42,0.65);padding:3px 6px;border-radius:4px;line-height:1.28;" id="lblJevRationaleTrace">
+                Judge: Thermal lock (94%) &bull; Verify: PASS Epoch #1, Standoff 15m, RTH &ge; 22%
               </div>
               <div id="lblVetoBanner" style="display:none;justify-content:space-between;align-items:center;color:#fca5a5;font-size:10.5px;padding-top:2px;">
                 <span id="lblVetoText">🛑 Human Veto Bubble Active (60m, 300s)</span>
@@ -2700,6 +2704,65 @@
             if (fcEl) { fcEl.textContent = `HIL Standby (TX #${fst.tx_packet_count || 1} • No Physical FC RX)`; fcEl.style.color = '#fbbf24'; }
           }
         }).catch(() => {});
+
+        // Live Backend JEV Step Loop (Executes CLOUD_LLM_JEV or OFFLINE_DETERMINISTIC over live mission state)
+        if (aidState.mode !== 'MANUAL_HUMAN_ONLY' && typeof drones !== 'undefined' && drones.length > 0) {
+          const d0 = drones[0];
+          const subj = guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson;
+          const distToTarget = Math.hypot((subj?.x || 0) - d0.x, (subj?.y || 0) - d0.y);
+          const dropSt = payloadState.status === 'DROPPED_COMPLETE' ? 'DROPPED'
+            : (payloadState.status === 'EN_ROUTE_PENDING' ? 'PENDING' : 'READY');
+          fetch('/api/playbook/step', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              target_lock_active: !!targetLockActive,
+              guided_target_type: guidedTargetType,
+              drone1_dist_to_target_m: Math.round(distToTarget * 10) / 10,
+              drop_status: dropSt,
+              battery_pct: Math.round((d0.batteryPct || 84) * 10) / 10,
+              person_confidence: 0.94,
+              vehicle_confidence: 0.89,
+              person_x_m: Math.round((lostPerson?.x || 40) * 10) / 10,
+              person_y_m: Math.round((lostPerson?.y || -45) * 10) / 10,
+              vehicle_x_m: Math.round((lostVehicle?.x || -165) * 10) / 10,
+              vehicle_y_m: Math.round((lostVehicle?.y || -92) * 10) / 10,
+              person_at_shelter: !!(lostPerson && lostPerson.arrived),
+              vehicle_at_road: !!(lostVehicle && lostVehicle.arrived),
+              helo_inbound_active: !!window.heliCeilingLocked,
+              wind_speed_ms: 5.5,
+              temp_c: -15.0,
+              dist_home_m: Math.round(Math.hypot(d0.x, d0.y))
+            })
+          }).then(r => r.json()).then(jev => {
+            if (!jev || !jev.action) return;
+            if (typeof jev.epoch_id === 'number') aidState.epochId = jev.epoch_id;
+            const traceEl = document.getElementById('lblJevRationaleTrace');
+            const checks = (jev.verify_gate && Array.isArray(jev.verify_gate.invariant_checks))
+              ? jev.verify_gate.invariant_checks.slice(0, 3).join(' • ')
+              : 'PASS';
+            const modeTag = jev.llm_live_invoked ? `☁️ LIVE LLM (${jev.latency_ms}ms)` : `⚡ DET (${jev.latency_ms}ms)`;
+            if (traceEl) {
+              traceEl.textContent = `${modeTag} | Judge: ${jev.judge_assessment || ''} | Verify: ${checks}`;
+            }
+            const decEl = document.getElementById('lblJevDecision');
+            if (decEl) {
+              decEl.textContent = `JEV [${jev.action}]: ${jev.evaluate_clause || ''}`;
+            }
+            if (jev.executed && aidState.mode !== 'ADVISORY_ONLY') {
+              if (jev.action === 'LOCK_TARGET' && !targetLockActive) {
+                const tType = (jev.params && jev.params.target_type) || guidedTargetType;
+                reassignTargetLock(tType, false);
+              } else if (jev.action === 'QUEUE_DROP' && payloadState.status === 'READY_ABOARD') {
+                queueDropNearActiveTarget(false);
+              } else if (jev.action === 'EXECUTE_DROP' && payloadState.status === 'EN_ROUTE_PENDING') {
+                executeImmediateDrop(false);
+              } else if (jev.action === 'RELEASE_SAFE_TARGET_RETURN_TO_SCAN' && targetLockActive) {
+                cancelTargetAssignment(false);
+              }
+            }
+          }).catch(() => {});
+        }
       };
       setInterval(pollEcoAndBridge, 1800);
       setTimeout(pollEcoAndBridge, 300);
@@ -2964,7 +3027,7 @@
         });
         updateAidBannerUI(`🛑 VETO E#${aidState.epochId}: Human canceled target lock (60m bubble suppressed for ${aidState.compiled.vetoCooldownS}s)`);
         if (window.location.protocol.startsWith('http')) {
-          fetch(`/api/playbook/veto?action=cancel_target&type=${guidedTargetType}`).catch(() => {});
+          fetch(`/api/playbook/veto?action=cancel_target&type=${guidedTargetType}&x_m=${subj.x.toFixed(1)}&y_m=${subj.y.toFixed(1)}`).catch(() => {});
         }
       }
       recomputeAutoMission(false);

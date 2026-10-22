@@ -2048,6 +2048,65 @@ class TestAerialObserverModule(unittest.TestCase):
         self.assertEqual(aid_thrash.aid_mode, "MANUAL_HUMAN_ONLY")
         self.assertEqual(step_res["action"], "AID_THRASH_SHUTOFF")
 
+        # 5b. Realistic Multi-Tick Forward Rescue Lifecycle (Zero False Thrash / Zero False Dwell Block),
+        #     Multi-Target Veto Failover, Helo 35m Ceiling & Hard Battery RTH Preemption:
+        aid_mission = PlaybookAgentDispatcher()
+        aid_mission.set_playbook("PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY", {"drop_policy": "AUTO_QUEUE_AND_AUTO_RELEASE"})
+        mission_timeline = [
+            (300.0, "CONTINUE_COOPERATIVE_SCAN", {"target_lock_active": False, "person_confidence": 0.12, "battery_pct": 88.0}),
+            (302.0, "LOCK_TARGET", {"target_lock_active": False, "person_confidence": 0.94, "person_x_m": 120.0, "person_y_m": -85.0, "battery_pct": 87.0}),
+            (304.0, "QUEUE_DROP", {"target_lock_active": True, "guided_target_type": "PERSON", "drone1_dist_to_target_m": 18.0, "drop_status": "READY", "battery_pct": 86.0}),
+            (306.0, "EXECUTE_DROP", {"target_lock_active": True, "guided_target_type": "PERSON", "drone1_dist_to_target_m": 15.0, "drop_status": "PENDING", "battery_pct": 85.0}),
+            (308.0, "RELEASE_SAFE_TARGET_RETURN_TO_SCAN", {"target_lock_active": True, "guided_target_type": "PERSON", "responder_ack": "VICTIM_CONTACTED_SAFE", "battery_pct": 83.0}),
+            (310.0, "CONTINUE_COOPERATIVE_SCAN", {"target_lock_active": False, "person_confidence": 0.10, "battery_pct": 82.0}),
+        ]
+        for ts_m, exp_act, m_telem in mission_timeline:
+            m_res = aid_mission.evaluate_jev_step(m_telem, now_ts=ts_m)
+            self.assertEqual(m_res["action"], exp_act)
+            self.assertFalse(aid_mission.circuit_breaker_tripped)
+
+        # Multi-target spatial veto failover (primary person at (50,50) vetoed -> fails over to second hiker at (-240,190)):
+        aid_mission.veto_registry.record_human_target_cancel("PERSON", cooldown_s=300.0, x_m=50.0, y_m=50.0, now_ts=320.0)
+        failover_res = aid_mission.evaluate_jev_step(
+            {
+                "target_lock_active": False,
+                "person_confidence": 0.93,
+                "person_x_m": 55.0,
+                "person_y_m": 52.0,
+                "secondary_person_confidence": 0.91,
+                "secondary_person_x_m": -240.0,
+                "secondary_person_y_m": 190.0,
+                "battery_pct": 80.0,
+            },
+            now_ts=325.0,
+        )
+        self.assertEqual(failover_res["action"], "LOCK_TARGET")
+        self.assertAlmostEqual(failover_res["params"]["target_x_m"], -240.0)
+        self.assertAlmostEqual(failover_res["params"]["target_y_m"], 190.0)
+
+        # Manned Helicopter 35m U-Space ceiling + adversarial low-battery RTH preemption:
+        helo_res = aid_mission.evaluate_jev_step(
+            {"target_lock_active": False, "person_confidence": 0.10, "helo_inbound_active": True, "wildlife_detected": True, "battery_pct": 80.0},
+            now_ts=335.0,
+        )
+        self.assertLessEqual(helo_res["target_altitude_agl_m"], 35.0)
+        preempt_res = aid_mission.evaluate_jev_step(
+            {
+                "forced_llm_proposed_action": "EXECUTE_DROP",
+                "target_lock_active": True,
+                "guided_target_type": "PERSON",
+                "drone1_dist_to_target_m": 15.0,
+                "drop_status": "PENDING",
+                "battery_pct": 24.0,
+                "temp_c": -28.0,
+                "wind_speed_ms": 14.0,
+                "dist_home_m": 1800.0,
+            },
+            now_ts=345.0,
+        )
+        self.assertEqual(preempt_res["action"], "RTB_LOW_BATTERY")
+        self.assertTrue(preempt_res["verify_gate"]["approved"])
+
         # 6. [RT1-04], [RT1-05], [RT2-02], [RT2-05] MAVLink v2 Field Bridge Red-Team Invariants:
         bridge = MAVLinkFieldBridge(udp_host="127.0.0.1", udp_port=14559)
         # [RT1-04] Transactional mission upload emits HEARTBEAT (#0), MISSION_COUNT (#44), and MISSION_ITEM_INT (#73)

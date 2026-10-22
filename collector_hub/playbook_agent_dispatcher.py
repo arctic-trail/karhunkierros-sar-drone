@@ -28,9 +28,11 @@ Architecture Principle (Zero Offline Regex Parsing of Prose):
 from __future__ import annotations
 
 import hashlib
+import http.client
 import json
 import math
 import os
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -677,11 +679,15 @@ def verify_action_safety_gate(
             )
         checks.append("PASS: Drop Authority & Veto Latch Clear")
 
-    # Invariant 2: Altitude Interval Feasibility (`L <= h <= U`, [RT1-02])
+    # Invariant 2: Altitude Interval Feasibility (`L <= h <= U`, [RT1-02]) + Manned Helo 35m U-Space Cap
+    helo_inbound = bool(telemetry.get("helo_inbound_active", False))
+    helo_cap_m = float(telemetry.get("helo_ceiling_agl_m", 35.0))
     min_floor = max(28.0, compiled_rules.canopy_floor_m + 10.0)
-    if telemetry.get("wildlife_detected", False):
+    if telemetry.get("wildlife_detected", False) and not helo_inbound:
         min_floor = max(min_floor, compiled_rules.wildlife_min_altitude_m)
     max_ceil = compiled_rules.altitude_ceiling_m
+    if helo_inbound:
+        max_ceil = min(max_ceil, helo_cap_m)
 
     if "altitude_agl_m" in safe_params:
         req_alt = float(safe_params["altitude_agl_m"])
@@ -697,9 +703,15 @@ def verify_action_safety_gate(
         clamped_alt = min(max_ceil, max(min_floor, req_alt))
         if clamped_alt != req_alt:
             safe_params["altitude_agl_m"] = clamped_alt
-            checks.append(f"CLAMPED: Altitude {req_alt}m -> {clamped_alt}m ([{min_floor}m, {max_ceil}m])")
+            if helo_inbound and req_alt > helo_cap_m:
+                checks.append(f"CLAMPED: Helo U-Space Ceiling {req_alt}m -> {clamped_alt}m ([{min_floor}m, {max_ceil}m])")
+            else:
+                checks.append(f"CLAMPED: Altitude {req_alt}m -> {clamped_alt}m ([{min_floor}m, {max_ceil}m])")
         else:
-            checks.append(f"PASS: Altitude {req_alt}m within [{min_floor}m, {max_ceil}m]")
+            if helo_inbound:
+                checks.append(f"PASS: Helo U-Space Altitude {req_alt}m within [{min_floor}m, {max_ceil}m]")
+            else:
+                checks.append(f"PASS: Altitude {req_alt}m within [{min_floor}m, {max_ceil}m]")
 
     # Invariant 3: 15m Human Standoff + Ballistic Wind-Drift Impact Footprint ([RT1-06])
     if action_type in ("QUEUE_DROP", "EXECUTE_DROP"):
@@ -753,7 +765,10 @@ def verify_action_safety_gate(
             ),
             invariant_checks=["FAIL: Arctic Wind/Cold Battery RTH Floor"],
         )
-    checks.append(f"PASS: Battery {batt_pct:.1f}% >= {dynamic_rth_pct:.1f}% Arctic RTH floor")
+    if batt_pct < dynamic_rth_pct:
+        checks.append(f"PASS: Emergency RTH authorized (Battery {batt_pct:.1f}% < {dynamic_rth_pct:.1f}% Arctic RTH floor)")
+    else:
+        checks.append(f"PASS: Battery {batt_pct:.1f}% >= {dynamic_rth_pct:.1f}% Arctic RTH floor")
 
     return SafetyVerificationResult(
         approved=True,
@@ -806,11 +821,17 @@ class PlaybookAgentDispatcher:
         self.circuit_breaker_tripped: bool = False
         self.circuit_breaker_reason: str = "Normal (<1 ms Structured Parameter Playbook — Zero Regex)"
         self.veto_registry: HumanVetoRegistry = HumanVetoRegistry()
-        # [RT1-03 & RT2-03 Fix] Dwell timer (`None` until first transition) & Thrash Counter
+        # [RT1-03 & RT2-03 Fix] Dwell timer (`None` until first transition) & Cycle-Aware Thrash Counter
         self.last_accepted_state: str = "CONTINUE_COOPERATIVE_SCAN"
+        self.last_accepted_target_type: str = "PERSON"
         self.last_accepted_transition_ts: Optional[float] = None
-        self.proposed_state_history: List[Tuple[float, str]] = []  # (ts, proposed_action)
+        self.proposed_state_history: List[Tuple[float, str, str]] = []  # (ts, proposed_action, target_type)
         self.decision_log: List[Dict[str, Any]] = []
+        self._http_lock: threading.Lock = threading.Lock()
+        self._https_pool: Dict[str, http.client.HTTPSConnection] = {}
+        self.last_llm_raw_proposal: Optional[Dict[str, Any]] = None
+        self.llm_calls_succeeded: int = 0
+        self.llm_calls_failed: int = 0
 
     def _load_saved_api_key_from_disk(self) -> None:
         """Load optional saved LLM API key from `_private/llm_api_credentials.json` if present."""
@@ -831,10 +852,15 @@ class PlaybookAgentDispatcher:
     def _get_effective_api_key(self) -> str:
         if self._runtime_api_key:
             return self._runtime_api_key
+        if self.llm_provider == "anthropic":
+            return (os.getenv("ANTHROPIC_API_KEY") or os.getenv("SAR_LLM_API_KEY") or "").strip()
+        if self.llm_provider == "gemini":
+            return (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or os.getenv("SAR_LLM_API_KEY") or "").strip()
         return (
             os.getenv("SAR_LLM_API_KEY")
             or os.getenv("OPENAI_API_KEY")
             or os.getenv("ANTHROPIC_API_KEY")
+            or os.getenv("GEMINI_API_KEY")
             or ""
         ).strip()
 
@@ -882,9 +908,15 @@ class PlaybookAgentDispatcher:
 
         clean_key = "".join(ch for ch in str(api_key).strip() if ch.isprintable() and not ch.isspace())
         clean_provider = str(provider or "openai").strip().lower()
-        if clean_provider not in {"openai", "anthropic", "custom"}:
+        if clean_provider not in {"openai", "anthropic", "gemini", "custom"}:
             clean_provider = "openai"
-        clean_model = "".join(ch for ch in str(model or "gpt-5.4-mini").strip() if ch.isprintable())[:64]
+        default_model_for_provider = {
+            "openai": "gpt-5.4-mini",
+            "anthropic": "claude-haiku-4-5-20251001",
+            "gemini": "gemini-2.5-flash",
+            "custom": "gpt-5.4-mini",
+        }[clean_provider]
+        clean_model = "".join(ch for ch in str(model or default_model_for_provider).strip() if ch.isprintable())[:64]
 
         if clean_key:
             self._runtime_api_key = clean_key
@@ -927,6 +959,7 @@ class PlaybookAgentDispatcher:
             self.aid_mode = "CLOUD_LLM_JEV"
             self.requires_api_key_prompt = False
             self.circuit_breaker_tripped = False
+            self.proposed_state_history.clear()
             storage_label = "Saved to Disk (0600)" if self.api_key_saved_on_disk else "Session Memory Only"
             self.circuit_breaker_reason = (
                 f"External LLM JEV Active ({self.llm_provider}:{self.llm_model}, {storage_label})"
@@ -986,6 +1019,7 @@ class PlaybookAgentDispatcher:
             else:
                 self.requires_api_key_prompt = False
                 self.circuit_breaker_tripped = False
+                self.proposed_state_history.clear()
                 storage_label = "Saved to Disk" if self.api_key_saved_on_disk else "Session Key"
                 self.circuit_breaker_reason = (
                     f"External LLM JEV Active ({self.llm_provider}:{self.llm_model}, {storage_label}, <=1,200 ms guard)"
@@ -1002,15 +1036,96 @@ class PlaybookAgentDispatcher:
 
         return self.get_status()
 
+    def _https_post_json(
+        self,
+        host: str,
+        path: str,
+        body_bytes: bytes,
+        headers: Dict[str, str],
+        timeout_s: float,
+    ) -> Dict[str, Any]:
+        """
+        Execute an HTTPS POST using a persistent keep-alive connection pool per host
+        to avoid repeating a 500-700 ms TLS handshake on every JEV tick. Automatically
+        reconnects once if the server closed an idle keep-alive socket.
+        """
+        req_headers = dict(headers)
+        req_headers["Connection"] = "keep-alive"
+        req_headers["Content-Length"] = str(len(body_bytes))
+
+        with self._http_lock:
+            for attempt in range(2):
+                conn = self._https_pool.get(host)
+                try:
+                    if conn is None:
+                        conn = http.client.HTTPSConnection(host, timeout=timeout_s)
+                        self._https_pool[host] = conn
+                    else:
+                        conn.timeout = timeout_s
+                        if conn.sock is not None:
+                            conn.sock.settimeout(timeout_s)
+                    conn.request("POST", path, body=body_bytes, headers=req_headers)
+                    resp = conn.getresponse()
+                    raw_bytes = resp.read()
+                    if resp.status in (429, 500, 502, 503, 504) and attempt == 0:
+                        try:
+                            conn.close()
+                        except Exception:
+                            pass
+                        self._https_pool.pop(host, None)
+                        continue
+                    if resp.status >= 400:
+                        err_snip = raw_bytes.decode("utf-8", errors="ignore")[:160]
+                        raise RuntimeError(f"HTTP {resp.status}: {err_snip}")
+                    return json.loads(raw_bytes.decode("utf-8"))
+                except (
+                    http.client.NotConnected,
+                    http.client.ImproperConnectionState,
+                    http.client.RemoteDisconnected,
+                    BrokenPipeError,
+                    ConnectionResetError,
+                ):
+                    try:
+                        if conn is not None:
+                            conn.close()
+                    except Exception:
+                        pass
+                    self._https_pool.pop(host, None)
+                    if attempt == 1:
+                        raise
+                except Exception:
+                    try:
+                        if conn is not None:
+                            conn.close()
+                    except Exception:
+                        pass
+                    self._https_pool.pop(host, None)
+                    raise
+        raise RuntimeError("HTTPS request failed")
+
+    @staticmethod
+    def _strip_json_code_fence(txt: str) -> str:
+        """Strip optional markdown code fences around JSON without using regex."""
+        s = txt.strip()
+        if s.startswith("```"):
+            first_nl = s.find("\n")
+            if first_nl != -1:
+                s = s[first_nl + 1 :].strip()
+            if s.endswith("```"):
+                s = s[:-3].strip()
+        return s
+
     def _query_external_llm_api(
         self,
         telemetry: Dict[str, Any],
-        timeout_s: float = 1.15,
+        timeout_s: float = 2.5,
+        computed_safety_envelope: Optional[Dict[str, Any]] = None,
     ) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
         """
-        Perform a bounded-latency (`<= 1.15 s`) HTTPS call to OpenAI or Anthropic using
-        the configured API key to evaluate the active Natural-Language Playbook over
-        current telemetry. Returns `(parsed_json_proposal, error_reason)`.
+        Perform a bounded-latency HTTPS call (using keep-alive connection pooling) to
+        OpenAI, Anthropic, or Google Gemini using the configured API key to evaluate
+        the active Operations Playbook over current telemetry and pre-computed safety
+        bounds. Returns `(parsed_json_proposal, error_reason)`.
         """
         api_key = self._get_effective_api_key()
         if not api_key:
@@ -1025,93 +1140,203 @@ class PlaybookAgentDispatcher:
             "RTB_LOW_BATTERY",
         ]
         sys_prompt = (
-            "You are a deterministic SAR Drone JEV (Judge-Evaluate-Verify) Dispatcher. "
-            "Follow the active Natural-Language Operations Playbook strictly. "
+            "You are a deterministic Arctic SAR Drone JEV (Judge-Evaluate-Verify) Dispatcher. "
+            "Evaluate the structured_playbook, telemetry, and computed_safety_envelope following this strict priority hierarchy:\n"
+            "1. RTB_LOW_BATTERY: MUST be selected if computed_safety_envelope.battery_below_rth_floor is true.\n"
+            "2. RELEASE_SAFE_TARGET_RETURN_TO_SCAN: MUST be selected if target_lock_active is true AND target_reached_safe_state is true.\n"
+            "3. LOCK_TARGET: Select when target_lock_active is false AND computed_safety_envelope.unvetoed_lock_candidate is not null. "
+            "Set params.target_type, params.target_x_m, params.target_y_m, and params.altitude_agl_m from unvetoed_lock_candidate. "
+            "If all detected targets are vetoed by a human spatial bubble (only_vetoed_target_present is true), still propose LOCK_TARGET on that target so Stage-3 Verify logs the formal veto rejection.\n"
+            "4. QUEUE_DROP: Select when target_lock_active is true, drone1_dist_to_target_m <= drop_trigger_distance_m, "
+            "drop_status == 'READY', and structured_playbook.auto_queue_drop is true. (NEVER select EXECUTE_DROP when drop_status is 'READY').\n"
+            "5. EXECUTE_DROP: Select ONLY when target_lock_active is true, drone1_dist_to_target_m <= drop_trigger_distance_m, "
+            "drop_status == 'PENDING', structured_playbook.auto_release_drop is true, and structured_playbook.require_human_drop_confirm is false.\n"
+            "6. CONTINUE_COOPERATIVE_SCAN: Select in all other cases.\n"
+            "Always respect computed_safety_envelope.effective_max_altitude_agl_m (including 35m Manned Helicopter ceiling).\n"
             "Respond ONLY with a single JSON object containing keys: "
-            f'"action" (one of {allowed_actions}), "params" (object with optional target_type, '
-            'altitude_agl_m, offset_m), "judge_assessment" (short string), and "evaluate_clause" (short string).'
+            f'"action" (one of {allowed_actions}), "params" (object with target_type, target_x_m, target_y_m, '
+            'altitude_agl_m, offset_m as applicable), "judge_assessment" (concise 1-sentence situational assessment), '
+            'and "evaluate_clause" (concise 1-sentence playbook rule citation).'
         )
-        user_prompt = json.dumps(
-            {
-                "structured_playbook": asdict(self.compiled_rules),
-                "telemetry": telemetry,
-            }
-        )
+        rules = self.compiled_rules
+        compact_playbook = {
+            "search_altitude_agl_m": rules.search_altitude_agl_m,
+            "tracking_altitude_agl_m": rules.tracking_altitude_agl_m,
+            "preferred_target_type": rules.preferred_target_type,
+            "min_detection_confidence": rules.min_detection_confidence,
+            "drop_trigger_distance_m": rules.drop_trigger_distance_m,
+            "drop_offset_m": rules.drop_offset_m,
+            "auto_queue_drop": rules.auto_queue_drop,
+            "auto_release_drop": rules.auto_release_drop,
+            "require_human_drop_confirm": rules.require_human_drop_confirm,
+            "return_to_scan_on_shelter_arrival": rules.return_to_scan_on_shelter_arrival,
+        }
+        user_payload: Dict[str, Any] = {
+            "structured_playbook": compact_playbook,
+            "telemetry": telemetry,
+        }
+        if computed_safety_envelope is not None:
+            user_payload["computed_safety_envelope"] = computed_safety_envelope
+        user_prompt = json.dumps(user_payload, separators=(",", ":"))
 
         try:
             if self.llm_provider == "anthropic":
-                url = "https://api.anthropic.com/v1/messages"
-                body = json.dumps(
-                    {
-                        "model": self.llm_model or "claude-sonnet-4-6",
-                        "max_tokens": 180,
-                        "temperature": 0.0,
-                        "system": sys_prompt,
-                        "messages": [{"role": "user", "content": user_prompt}],
-                    }
-                ).encode("utf-8")
-                req = urllib.request.Request(
-                    url,
-                    data=body,
+                model_id = self.llm_model or "claude-haiku-5-5"
+                ant_req: Dict[str, Any] = {
+                    "model": model_id,
+                    "max_tokens": 350,
+                    "system": sys_prompt,
+                    "messages": [{"role": "user", "content": user_prompt}],
+                }
+                if "-5" not in model_id:
+                    ant_req["temperature"] = 0.0
+                body = json.dumps(ant_req).encode("utf-8")
+                raw = self._https_post_json(
+                    host="api.anthropic.com",
+                    path="/v1/messages",
+                    body_bytes=body,
                     headers={
                         "Content-Type": "application/json",
                         "x-api-key": api_key,
                         "anthropic-version": "2023-06-01",
                     },
-                    method="POST",
+                    timeout_s=timeout_s,
                 )
-                with urllib.request.urlopen(req, timeout=timeout_s) as resp:
-                    raw = json.loads(resp.read().decode("utf-8"))
                 blocks = raw.get("content", [])
                 txt = blocks[0].get("text", "{}") if blocks else "{}"
-            else:
-                url = "https://api.openai.com/v1/chat/completions"
+            elif self.llm_provider == "gemini":
+                model_id = self.llm_model or "gemini-2.5-flash"
+                if model_id.startswith("models/"):
+                    model_id = model_id[len("models/") :]
+                gen_cfg: Dict[str, Any] = {
+                    "temperature": 0.0,
+                    "maxOutputTokens": 400,
+                    "responseMimeType": "application/json",
+                }
+                if "2.5" in model_id:
+                    gen_cfg["thinkingConfig"] = {"thinkingBudget": 0}
                 body = json.dumps(
                     {
-                        "model": self.llm_model or "gpt-5.4-mini",
-                        "temperature": 0.0,
-                        "max_tokens": 180,
-                        "response_format": {"type": "json_object"},
-                        "messages": [
-                            {"role": "system", "content": sys_prompt},
-                            {"role": "user", "content": user_prompt},
-                        ],
+                        "systemInstruction": {"parts": [{"text": sys_prompt}]},
+                        "contents": [{"role": "user", "parts": [{"text": user_prompt}]}],
+                        "generationConfig": gen_cfg,
                     }
                 ).encode("utf-8")
-                req = urllib.request.Request(
-                    url,
-                    data=body,
+                raw = self._https_post_json(
+                    host="generativelanguage.googleapis.com",
+                    path=f"/v1beta/models/{model_id}:generateContent?key={api_key}",
+                    body_bytes=body,
+                    headers={"Content-Type": "application/json"},
+                    timeout_s=timeout_s,
+                )
+                cands = raw.get("candidates", [])
+                parts = cands[0].get("content", {}).get("parts", []) if cands else []
+                txt = parts[0].get("text", "{}") if parts else "{}"
+            else:
+                model_id = self.llm_model or "gpt-5.4-mini"
+                req_dict: Dict[str, Any] = {
+                    "model": model_id,
+                    "max_completion_tokens": 350,
+                    "response_format": {"type": "json_object"},
+                    "messages": [
+                        {"role": "system", "content": sys_prompt},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                }
+                if model_id.startswith("gpt-5"):
+                    req_dict["reasoning_effort"] = "none"
+                    req_dict["temperature"] = 0.0
+                elif model_id.startswith(("o1", "o3", "o4")):
+                    req_dict["reasoning_effort"] = "low"
+                else:
+                    req_dict["temperature"] = 0.0
+                body = json.dumps(req_dict).encode("utf-8")
+                raw = self._https_post_json(
+                    host="api.openai.com",
+                    path="/v1/chat/completions",
+                    body_bytes=body,
                     headers={
                         "Content-Type": "application/json",
                         "Authorization": f"Bearer {api_key}",
                     },
-                    method="POST",
+                    timeout_s=timeout_s,
                 )
-                with urllib.request.urlopen(req, timeout=timeout_s) as resp:
-                    raw = json.loads(resp.read().decode("utf-8"))
                 choices = raw.get("choices", [])
                 txt = choices[0].get("message", {}).get("content", "{}") if choices else "{}"
 
-            parsed = json.loads(txt.strip())
+            clean_txt = self._strip_json_code_fence(txt)
+            parsed = json.loads(clean_txt)
             act = str(parsed.get("action", "")).upper().strip()
             if act not in allowed_actions:
+                self.llm_calls_failed += 1
                 return None, f"LLM returned unsupported action '{act}'"
+            self.llm_calls_succeeded += 1
+            self.last_llm_raw_proposal = parsed
             return parsed, None
         except Exception as exc:
+            self.llm_calls_failed += 1
             return None, f"{type(exc).__name__}: {str(exc)[:120]}"
 
-    def _record_and_check_thrashing(self, proposed_action: str, now_ts: float) -> Tuple[bool, int]:
+    def _record_and_check_thrashing(
+        self,
+        proposed_action: str,
+        now_ts: float,
+        target_type: str = "PERSON",
+    ) -> Tuple[bool, int]:
         """
-        [RT1-03 Fix] Count PROPOSED semantic state flips in the last 15.0 seconds BEFORE
-        dwell filtering (`N_15(t) = sum 1[q_k != q_{k-1}]`).
-        If `N_15(t) >= 3`, trip the thrash circuit-breaker!
+        [RT1-03 Fix] Count oscillatory state flips in the last 15.0 seconds BEFORE dwell
+        filtering (`N_15(t)`).
+        Distinguishes monotonic forward mission progression (`CONTINUE_COOPERATIVE_SCAN ->
+        LOCK_TARGET -> QUEUE_DROP -> EXECUTE_DROP -> RELEASE_SAFE_TARGET_RETURN_TO_SCAN ->
+        CONTINUE_COOPERATIVE_SCAN` and emergency `RTB_LOW_BATTERY`) from oscillatory state
+        reversals (`LOCK_TARGET <-> CONTINUE_COOPERATIVE_SCAN`, `QUEUE_DROP <-> LOCK_TARGET`,
+        or rapid target-type flip-flopping `PERSON <-> VEHICLE`).
+        If oscillatory flips `>= 3` within `15.0s`, trips the thrash circuit-breaker!
         """
-        self.proposed_state_history = [(ts, act) for (ts, act) in self.proposed_state_history if (now_ts - ts) <= 15.0]
-        self.proposed_state_history.append((now_ts, proposed_action))
+        lifecycle_stage = {
+            "CONTINUE_COOPERATIVE_SCAN": 0,
+            "LOCK_TARGET": 1,
+            "QUEUE_DROP": 2,
+            "EXECUTE_DROP": 3,
+            "RELEASE_SAFE_TARGET_RETURN_TO_SCAN": 4,
+        }
+        self.proposed_state_history = [
+            item for item in self.proposed_state_history if (now_ts - item[0]) <= 15.0
+        ]
+        self.proposed_state_history.append((now_ts, proposed_action, target_type))
+
         flips = 0
+        has_reversal = False
         for idx in range(1, len(self.proposed_state_history)):
-            if self.proposed_state_history[idx][1] != self.proposed_state_history[idx - 1][1]:
-                flips += 1
+            _, prev_act, prev_tgt = self.proposed_state_history[idx - 1]
+            _, curr_act, curr_tgt = self.proposed_state_history[idx]
+
+            if curr_act == prev_act:
+                if curr_act == "LOCK_TARGET" and curr_tgt != prev_tgt:
+                    has_reversal = True
+                    flips += 1
+                continue
+
+            if curr_act == "RTB_LOW_BATTERY":
+                continue
+
+            prev_stg = lifecycle_stage.get(prev_act, -1)
+            curr_stg = lifecycle_stage.get(curr_act, -1)
+
+            is_clean_cycle_completion = (
+                prev_act == "RELEASE_SAFE_TARGET_RETURN_TO_SCAN"
+                and curr_act == "CONTINUE_COOPERATIVE_SCAN"
+            )
+            is_monotonic_forward = (prev_stg >= 0 and curr_stg > prev_stg)
+
+            if not has_reversal and (is_monotonic_forward or is_clean_cycle_completion):
+                continue
+
+            # Any backward transition (e.g. LOCK_TARGET -> CONTINUE_COOPERATIVE_SCAN without RELEASE_SAFE)
+            # or any state flip after a reversal has begun within the 15s window counts as thrashing:
+            has_reversal = True
+            flips += 1
+
         return flips >= 3, flips
 
     def evaluate_jev_step(self, telemetry: Dict[str, Any], now_ts: Optional[float] = None) -> Dict[str, Any]:
@@ -1136,14 +1361,236 @@ class PlaybookAgentDispatcher:
                 "latency_ms": round((time.perf_counter() - t0) * 1000.0, 3),
             }
 
+        rules = self.compiled_rules
+        batt_pct = float(telemetry.get("battery_pct", 84.0))
+        person_conf = float(telemetry.get("person_confidence", 0.94 if "vehicle_confidence" not in telemetry else 0.0))
+        vehicle_conf = float(telemetry.get("vehicle_confidence", 0.0))
+        responder_ack = str(telemetry.get("responder_ack", "NONE")).upper().strip()
+        victim_safe_ack = bool(telemetry.get("victim_safe_ack", False)) or (responder_ack == "VICTIM_CONTACTED_SAFE")
+        person_safe = bool(telemetry.get("person_at_shelter", False)) or victim_safe_ack
+        vehicle_safe = bool(telemetry.get("vehicle_at_road", False)) or victim_safe_ack
+        target_lock_active = bool(telemetry.get("target_lock_active", True))
+        current_target_type = str(telemetry.get("guided_target_type", "PERSON")).upper()
+        dist_to_target_m = float(telemetry.get("drone1_dist_to_target_m", telemetry.get("dist_to_target_m", 18.0)))
+        drop_status = str(telemetry.get("drop_status", "READY")).upper()
+        if telemetry.get("drop_completed") is True:
+            drop_status = "DROPPED"
+        elif telemetry.get("drop_queued") is True and drop_status == "READY":
+            drop_status = "PENDING"
+
+        helo_inbound = bool(telemetry.get("helo_inbound_active", False))
+        helo_cap_m = float(telemetry.get("helo_ceiling_agl_m", 35.0))
+        min_floor = max(28.0, rules.canopy_floor_m + 10.0)
+        if telemetry.get("wildlife_detected", False) and not helo_inbound:
+            min_floor = max(min_floor, rules.wildlife_min_altitude_m)
+        max_ceil = min(rules.altitude_ceiling_m, helo_cap_m) if helo_inbound else rules.altitude_ceiling_m
+        effective_search_alt = min(max_ceil, max(min_floor, rules.search_altitude_agl_m))
+        effective_track_alt = min(max_ceil, max(min_floor, rules.tracking_altitude_agl_m))
+
+        wind_ms = float(telemetry.get("wind_speed_ms", 4.0))
+        drone_vg_ms = float(telemetry.get("drone_ground_speed_ms", 0.5))
+        t_fall_s = math.sqrt(2.0 * 15.0 / 9.80665) * 1.08
+        wind_drift_m = 0.35 * wind_ms * t_fall_s
+        max_safe_drift_m = 0.45 * rules.drop_offset_m
+
+        dynamic_rth_pct, _ = compute_arctic_wind_adjusted_rth_floor_pct(
+            base_floor_pct=rules.rth_battery_floor_pct,
+            dist_home_m=float(telemetry.get("dist_home_m", 450.0)),
+            wind_speed_ms=wind_ms,
+            temp_c=float(telemetry.get("temp_c", -12.0)),
+        )
+
+        # STAGE 1: JUDGE & STAGE 2: EVALUATE (Deterministic Baseline + Safety Envelope Construction)
+        candidate_action = "CONTINUE_COOPERATIVE_SCAN"
+        candidate_params: Dict[str, Any] = {
+            "altitude_agl_m": effective_search_alt,
+            "overlap_pct": rules.sector_overlap_pct,
+        }
+        judge_text = f"Fleet scanning at {effective_search_alt:.0f}m AGL ({rules.sector_overlap_pct:.0f}% overlap)."
+        clause_text = "Search Allocation Clause: Maintain disjoint sector scan."
+
+        per_x = telemetry.get("person_x_m", telemetry.get("target_x_m", 40.0))
+        per_y = telemetry.get("person_y_m", telemetry.get("target_y_m", -45.0))
+        veh_x = telemetry.get("vehicle_x_m", telemetry.get("target_x_m", -165.0))
+        veh_y = telemetry.get("vehicle_y_m", telemetry.get("target_y_m", -92.0))
+        per_vetoed, _, _ = self.veto_registry.is_target_vetoed_by_human("PERSON", x_m=per_x, y_m=per_y, now_ts=now)
+        veh_vetoed, _, _ = self.veto_registry.is_target_vetoed_by_human("VEHICLE", x_m=veh_x, y_m=veh_y, now_ts=now)
+
+        # Support secondary un-vetoed person track (e.g. second hiker 300m away while moose/campfire is in veto bubble)
+        sec_per_conf = float(telemetry.get("secondary_person_confidence", 0.0))
+        sec_per_x = telemetry.get("secondary_person_x_m")
+        sec_per_y = telemetry.get("secondary_person_y_m")
+        sec_per_vetoed = True
+        if sec_per_x is not None and sec_per_y is not None:
+            sec_per_vetoed, _, _ = self.veto_registry.is_target_vetoed_by_human(
+                "PERSON", x_m=sec_per_x, y_m=sec_per_y, now_ts=now
+            )
+
+        unvetoed_lock_candidate: Optional[Dict[str, Any]] = None
+        only_vetoed_target_present = False
+
+        if batt_pct < dynamic_rth_pct:
+            candidate_action = "RTB_LOW_BATTERY"
+            candidate_params = {"altitude_agl_m": min(max_ceil, max(35.0 if not helo_inbound else 28.0, effective_search_alt))}
+            judge_text = f"Battery {batt_pct:.1f}% below Arctic wind/cold RTH floor ({dynamic_rth_pct:.1f}%)."
+            clause_text = f"Safety Clause: Trigger RTH when battery < {dynamic_rth_pct:.1f}%."
+
+        elif target_lock_active and (
+            (current_target_type == "PERSON" and person_safe)
+            or (current_target_type == "VEHICLE" and vehicle_safe)
+        ):
+            if rules.return_to_scan_on_shelter_arrival:
+                candidate_action = "RELEASE_SAFE_TARGET_RETURN_TO_SCAN"
+                candidate_params = {"target_type": current_target_type, "altitude_agl_m": effective_search_alt}
+                judge_text = f"Guided {current_target_type} confirmed safe (shelter/roadhead or Ground SAR ACK)."
+                clause_text = "Shelter Escort Clause: Release target lock upon safe arrival and return to 4-sector scan."
+
+        elif not target_lock_active:
+            want_per = rules.preempt_on_person and person_conf >= rules.min_detection_confidence and not person_safe
+            want_sec_per = (
+                rules.preempt_on_person
+                and sec_per_conf >= rules.min_detection_confidence
+                and sec_per_x is not None
+                and sec_per_y is not None
+                and not sec_per_vetoed
+            )
+            want_veh = (
+                (rules.preempt_on_vehicle or ("vehicle_confidence" in telemetry and per_vetoed))
+                and vehicle_conf >= rules.min_detection_confidence
+                and not vehicle_safe
+            )
+
+            if rules.preferred_target_type == "VEHICLE" and want_veh and not veh_vetoed:
+                candidate_action = "LOCK_TARGET"
+                candidate_params = {
+                    "target_type": "VEHICLE",
+                    "target_x_m": veh_x,
+                    "target_y_m": veh_y,
+                    "altitude_agl_m": effective_track_alt,
+                }
+                unvetoed_lock_candidate = dict(candidate_params)
+                judge_text = f"Stranded vehicle detected (conf {vehicle_conf*100:.0f}% >= {rules.min_detection_confidence*100:.0f}%)."
+                clause_text = f"Target Preemption Clause: Lock vehicle at {effective_track_alt:.0f}m AGL; 3 drones scan."
+            elif want_per and not per_vetoed:
+                candidate_action = "LOCK_TARGET"
+                candidate_params = {
+                    "target_type": "PERSON",
+                    "target_x_m": per_x,
+                    "target_y_m": per_y,
+                    "altitude_agl_m": effective_track_alt,
+                }
+                unvetoed_lock_candidate = dict(candidate_params)
+                judge_text = f"Lost hiker thermal signature detected (conf {person_conf*100:.0f}% >= {rules.min_detection_confidence*100:.0f}%)."
+                clause_text = f"Target Preemption Clause: Assign Drone 1 to lock person at {effective_track_alt:.0f}m AGL."
+            elif want_sec_per:
+                candidate_action = "LOCK_TARGET"
+                candidate_params = {
+                    "target_type": "PERSON",
+                    "target_x_m": sec_per_x,
+                    "target_y_m": sec_per_y,
+                    "altitude_agl_m": effective_track_alt,
+                }
+                unvetoed_lock_candidate = dict(candidate_params)
+                judge_text = f"Primary track vetoed; locking un-vetoed second hiker at ({sec_per_x}, {sec_per_y}) (conf {sec_per_conf*100:.0f}%)."
+                clause_text = f"Target Preemption Clause: Fail over from veto bubble to un-vetoed hiker at {effective_track_alt:.0f}m AGL."
+            elif want_veh and not veh_vetoed:
+                candidate_action = "LOCK_TARGET"
+                candidate_params = {
+                    "target_type": "VEHICLE",
+                    "target_x_m": veh_x,
+                    "target_y_m": veh_y,
+                    "altitude_agl_m": effective_track_alt,
+                }
+                unvetoed_lock_candidate = dict(candidate_params)
+                judge_text = f"Vehicle thermal signature detected (conf {vehicle_conf*100:.0f}%)."
+                clause_text = f"Target Preemption Clause: Assign Drone 1 to lock vehicle at {effective_track_alt:.0f}m AGL."
+            elif want_per and per_vetoed:
+                # Only the vetoed person target is present -> propose LOCK_TARGET so Stage 3 Verify records HUMAN_VETO_BUBBLE_ACTIVE
+                only_vetoed_target_present = True
+                candidate_action = "LOCK_TARGET"
+                candidate_params = {
+                    "target_type": "PERSON",
+                    "target_x_m": per_x,
+                    "target_y_m": per_y,
+                    "altitude_agl_m": effective_track_alt,
+                }
+                judge_text = f"Thermal track at ({per_x}, {per_y}) inside active Human Veto Bubble."
+                clause_text = "Target Preemption Clause: Candidate evaluated against Stage-3 Spatial Veto Bubble."
+            elif want_veh and veh_vetoed:
+                only_vetoed_target_present = True
+                candidate_action = "LOCK_TARGET"
+                candidate_params = {
+                    "target_type": "VEHICLE",
+                    "target_x_m": veh_x,
+                    "target_y_m": veh_y,
+                    "altitude_agl_m": effective_track_alt,
+                }
+                judge_text = f"Vehicle track at ({veh_x}, {veh_y}) inside active Human Veto Bubble."
+                clause_text = "Target Preemption Clause: Candidate evaluated against Stage-3 Spatial Veto Bubble."
+
+        elif target_lock_active and dist_to_target_m <= rules.drop_trigger_distance_m:
+            if drop_status == "READY" and rules.auto_queue_drop:
+                candidate_action = "QUEUE_DROP"
+                candidate_params = {
+                    "target_type": current_target_type,
+                    "offset_m": rules.drop_offset_m,
+                    "altitude_agl_m": effective_track_alt,
+                }
+                judge_text = f"Drone 1 within {dist_to_target_m:.1f}m of {current_target_type}; payload is READY."
+                clause_text = (
+                    f"Payload Drop Clause: Queue +42°C rescue cask at {rules.drop_offset_m:.0f}m safe offset "
+                    f"({'auto-release' if rules.auto_release_drop else 'await human confirmation'})."
+                )
+            elif drop_status == "PENDING" and rules.auto_release_drop and not rules.require_human_drop_confirm:
+                candidate_action = "EXECUTE_DROP"
+                candidate_params = {
+                    "target_type": current_target_type,
+                    "offset_m": rules.drop_offset_m,
+                    "altitude_agl_m": effective_track_alt,
+                }
+                judge_text = f"Pending drop stabilized at {rules.drop_offset_m:.0f}m offset from {current_target_type}."
+                clause_text = "Payload Drop Clause: Auto-release rescue cask (Ch9 = 1900 µs)."
+
+        computed_safety_envelope = {
+            "epoch_id": self.veto_registry.current_epoch,
+            "last_accepted_state": self.last_accepted_state,
+            "dynamic_rth_floor_pct": round(dynamic_rth_pct, 2),
+            "battery_below_rth_floor": bool(batt_pct < dynamic_rth_pct),
+            "target_reached_safe_state": bool(
+                target_lock_active
+                and ((current_target_type == "PERSON" and person_safe) or (current_target_type == "VEHICLE" and vehicle_safe))
+            ),
+            "effective_min_altitude_agl_m": round(min_floor, 1),
+            "effective_max_altitude_agl_m": round(max_ceil, 1),
+            "helo_inbound_35m_cap_active": helo_inbound,
+            "estimated_wind_drift_m": round(wind_drift_m, 2),
+            "max_safe_wind_drift_m": round(max_safe_drift_m, 2),
+            "ballistic_drop_wind_safe": bool(wind_drift_m <= max_safe_drift_m and drone_vg_ms <= 1.5),
+            "person_vetoed_by_human_bubble": per_vetoed,
+            "vehicle_vetoed_by_human_bubble": veh_vetoed,
+            "unvetoed_lock_candidate": unvetoed_lock_candidate,
+            "only_vetoed_target_present": only_vetoed_target_present,
+            "drop_veto_latched_by_human": bool(self.veto_registry.is_drop_vetoed_by_human(current_target_type)),
+            "ground_responder_ack": responder_ack,
+        }
+
         # Check simulated or real LLM link health if in CLOUD_LLM_JEV mode
         sim_llm_offline = bool(telemetry.get("simulate_llm_offline", False))
         sim_llm_latency_ms = float(telemetry.get("simulate_llm_latency_ms", 0.0))
-        invoke_live_llm = bool(telemetry.get("invoke_live_llm", False))
+        eff_key = self._get_effective_api_key()
+        is_real_api_key = bool(eff_key) and not eff_key.startswith("sk-test-")
+        invoke_live_llm = bool(
+            telemetry.get("invoke_live_llm", is_real_api_key and "forced_llm_proposed_action" not in telemetry)
+        )
+        llm_timeout_s = float(telemetry.get("llm_timeout_s", 2.5))
         live_llm_proposal: Optional[Dict[str, Any]] = None
         live_llm_err: Optional[str] = None
         if self.aid_mode == "CLOUD_LLM_JEV" and invoke_live_llm and not sim_llm_offline and sim_llm_latency_ms <= 1200.0:
-            live_llm_proposal, live_llm_err = self._query_external_llm_api(telemetry, timeout_s=1.15)
+            live_llm_proposal, live_llm_err = self._query_external_llm_api(
+                telemetry,
+                timeout_s=llm_timeout_s,
+                computed_safety_envelope=computed_safety_envelope,
+            )
             if live_llm_err is not None:
                 sim_llm_offline = True
 
@@ -1172,118 +1619,24 @@ class PlaybookAgentDispatcher:
                     "latency_ms": round((time.perf_counter() - t0) * 1000.0, 3),
                 }
 
-        rules = self.compiled_rules
-        batt_pct = float(telemetry.get("battery_pct", 84.0))
-        person_conf = float(telemetry.get("person_confidence", 0.94))
-        vehicle_conf = float(telemetry.get("vehicle_confidence", 0.89))
-        person_safe = bool(telemetry.get("person_at_shelter", False))
-        vehicle_safe = bool(telemetry.get("vehicle_at_road", False))
-        target_lock_active = bool(telemetry.get("target_lock_active", True))
-        current_target_type = str(telemetry.get("guided_target_type", "PERSON")).upper()
-        dist_to_target_m = float(telemetry.get("drone1_dist_to_target_m", 18.0))
-        drop_status = str(telemetry.get("drop_status", "READY")).upper()
-
-        # STAGE 1: JUDGE & STAGE 2: EVALUATE
-        candidate_action = "CONTINUE_COOPERATIVE_SCAN"
-        candidate_params: Dict[str, Any] = {
-            "altitude_agl_m": rules.search_altitude_agl_m,
-            "overlap_pct": rules.sector_overlap_pct,
-        }
-        judge_text = f"Fleet scanning at {rules.search_altitude_agl_m:.0f}m AGL ({rules.sector_overlap_pct:.0f}% overlap)."
-        clause_text = "Search Allocation Clause: Maintain disjoint sector scan."
-
-        dynamic_rth_pct, _ = compute_arctic_wind_adjusted_rth_floor_pct(
-            base_floor_pct=rules.rth_battery_floor_pct,
-            dist_home_m=float(telemetry.get("dist_home_m", 450.0)),
-            wind_speed_ms=float(telemetry.get("wind_speed_ms", 4.0)),
-            temp_c=float(telemetry.get("temp_c", -12.0)),
-        )
-
-        if batt_pct < dynamic_rth_pct:
-            candidate_action = "RTB_LOW_BATTERY"
-            candidate_params = {"altitude_agl_m": max(35.0, rules.search_altitude_agl_m)}
-            judge_text = f"Battery {batt_pct:.1f}% below Arctic wind/cold RTH floor ({dynamic_rth_pct:.1f}%)."
-            clause_text = f"Safety Clause: Trigger RTH when battery < {dynamic_rth_pct:.1f}%."
-
-        elif target_lock_active and (
-            (current_target_type == "PERSON" and person_safe)
-            or (current_target_type == "VEHICLE" and vehicle_safe)
-        ):
-            if rules.return_to_scan_on_shelter_arrival:
-                candidate_action = "RELEASE_SAFE_TARGET_RETURN_TO_SCAN"
-                candidate_params = {"target_type": current_target_type, "altitude_agl_m": rules.search_altitude_agl_m}
-                judge_text = f"Guided {current_target_type} reached safe shelter/roadhead."
-                clause_text = "Shelter Escort Clause: Release target lock upon safe arrival and return to 4-sector scan."
-
-        elif not target_lock_active:
-            want_veh = rules.preempt_on_vehicle and vehicle_conf >= rules.min_detection_confidence and not vehicle_safe
-            want_per = rules.preempt_on_person and person_conf >= rules.min_detection_confidence and not person_safe
-            per_x = telemetry.get("person_x_m", telemetry.get("target_x_m", 40.0))
-            per_y = telemetry.get("person_y_m", telemetry.get("target_y_m", -45.0))
-            veh_x = telemetry.get("vehicle_x_m", telemetry.get("target_x_m", -165.0))
-            veh_y = telemetry.get("vehicle_y_m", telemetry.get("target_y_m", -92.0))
-
-            if rules.preferred_target_type == "VEHICLE" and want_veh:
-                candidate_action = "LOCK_TARGET"
-                candidate_params = {
-                    "target_type": "VEHICLE",
-                    "target_x_m": veh_x,
-                    "target_y_m": veh_y,
-                    "altitude_agl_m": rules.tracking_altitude_agl_m,
-                }
-                judge_text = f"Stranded vehicle detected (conf {vehicle_conf*100:.0f}% >= {rules.min_detection_confidence*100:.0f}%)."
-                clause_text = f"Target Preemption Clause: Lock vehicle at {rules.tracking_altitude_agl_m:.0f}m AGL; 3 drones scan."
-            elif want_per:
-                candidate_action = "LOCK_TARGET"
-                candidate_params = {
-                    "target_type": "PERSON",
-                    "target_x_m": per_x,
-                    "target_y_m": per_y,
-                    "altitude_agl_m": rules.tracking_altitude_agl_m,
-                }
-                judge_text = f"Lost hiker thermal signature detected (conf {person_conf*100:.0f}% >= {rules.min_detection_confidence*100:.0f}%)."
-                clause_text = f"Target Preemption Clause: Assign Drone 1 to lock person at {rules.tracking_altitude_agl_m:.0f}m AGL."
-            elif want_veh:
-                candidate_action = "LOCK_TARGET"
-                candidate_params = {
-                    "target_type": "VEHICLE",
-                    "target_x_m": veh_x,
-                    "target_y_m": veh_y,
-                    "altitude_agl_m": rules.tracking_altitude_agl_m,
-                }
-                judge_text = f"Vehicle thermal signature detected (conf {vehicle_conf*100:.0f}%)."
-                clause_text = f"Target Preemption Clause: Assign Drone 1 to lock vehicle at {rules.tracking_altitude_agl_m:.0f}m AGL."
-
-        elif target_lock_active and dist_to_target_m <= rules.drop_trigger_distance_m:
-            if drop_status == "READY" and rules.auto_queue_drop:
-                candidate_action = "QUEUE_DROP"
-                candidate_params = {
-                    "target_type": current_target_type,
-                    "offset_m": rules.drop_offset_m,
-                    "altitude_agl_m": rules.tracking_altitude_agl_m,
-                }
-                judge_text = f"Drone 1 within {dist_to_target_m:.1f}m of {current_target_type}; payload is READY."
-                clause_text = (
-                    f"Payload Drop Clause: Queue +42°C rescue cask at {rules.drop_offset_m:.0f}m safe offset "
-                    f"({'auto-release' if rules.auto_release_drop else 'await human confirmation'})."
-                )
-            elif drop_status == "PENDING" and rules.auto_release_drop and not rules.require_human_drop_confirm:
-                candidate_action = "EXECUTE_DROP"
-                candidate_params = {
-                    "target_type": current_target_type,
-                    "offset_m": rules.drop_offset_m,
-                    "altitude_agl_m": rules.tracking_altitude_agl_m,
-                }
-                judge_text = f"Pending drop stabilized at {rules.drop_offset_m:.0f}m offset from {current_target_type}."
-                clause_text = "Payload Drop Clause: Auto-release rescue cask (Ch9 = 1900 µs)."
-
-        # If live External LLM proposal succeeded within <=1.15s, apply its candidate proposal
-        # (still strictly gated by Stage 3 Verify below!)
+        # Apply live External LLM proposal if received, subject to two-phase drop normalization
+        # and Stage-3 Formal Safety Kernel verification below
         if live_llm_proposal is not None:
-            candidate_action = str(live_llm_proposal.get("action", candidate_action)).upper().strip()
+            llm_act = str(live_llm_proposal.get("action", candidate_action)).upper().strip()
             llm_params = live_llm_proposal.get("params")
             if isinstance(llm_params, dict):
-                candidate_params.update(llm_params)
+                for k, v in llm_params.items():
+                    if v is not None:
+                        candidate_params[k] = v
+            # Enforce two-phase drop arming order: cannot jump to EXECUTE_DROP while drop_status == "READY"
+            if llm_act == "EXECUTE_DROP" and drop_status == "READY" and rules.auto_queue_drop:
+                llm_act = "QUEUE_DROP"
+            # If LLM proposed LOCK_TARGET without coordinates or on a vetoed track while an unvetoed candidate exists:
+            if llm_act == "LOCK_TARGET" and unvetoed_lock_candidate is not None:
+                candidate_params["target_type"] = unvetoed_lock_candidate["target_type"]
+                candidate_params["target_x_m"] = unvetoed_lock_candidate["target_x_m"]
+                candidate_params["target_y_m"] = unvetoed_lock_candidate["target_y_m"]
+            candidate_action = llm_act
             judge_text = str(live_llm_proposal.get("judge_assessment", judge_text))[:180]
             clause_text = str(live_llm_proposal.get("evaluate_clause", clause_text))[:180]
 
@@ -1291,7 +1644,10 @@ class PlaybookAgentDispatcher:
         proposed_override = telemetry.get("forced_llm_proposed_action")
         if proposed_override:
             candidate_action = str(proposed_override)
-        thrash_tripped, flip_count = self._record_and_check_thrashing(candidate_action, now)
+        cand_tgt_type = str(candidate_params.get("target_type", current_target_type)).upper()
+        thrash_tripped, flip_count = self._record_and_check_thrashing(
+            candidate_action, now, target_type=cand_tgt_type
+        )
         if thrash_tripped:
             self.circuit_breaker_tripped = True
             self.aid_mode = "MANUAL_HUMAN_ONLY"
@@ -1324,11 +1680,49 @@ class PlaybookAgentDispatcher:
             now_ts=now,
         )
 
-        # [RT1-03 & RT2-03] Enforce 8.0s Dwell Gate on non-emergency state transitions (`None` safe on first transition)
+        # Hard Life-Safety Preemption: If battery is below Arctic RTH floor and an LLM/override
+        # proposed ANY non-RTH action, preempt to RTB_LOW_BATTERY so the aircraft never hovers
+        # to battery death in Arctic cold!
+        if batt_pct < dynamic_rth_pct and candidate_action != "RTB_LOW_BATTERY":
+            preempted_from = candidate_action
+            candidate_action = "RTB_LOW_BATTERY"
+            candidate_params = {"altitude_agl_m": min(max_ceil, max(35.0 if not helo_inbound else 28.0, effective_search_alt))}
+            verify_res = verify_action_safety_gate(
+                action_type=candidate_action,
+                params=candidate_params,
+                telemetry=telemetry,
+                compiled_rules=rules,
+                veto_registry=self.veto_registry,
+                request_epoch=req_epoch,
+                now_ts=now,
+            )
+            verify_res.invariant_checks.append(
+                f"PREEMPTED: Overrode unsafe {preempted_from} -> RTB_LOW_BATTERY ({batt_pct:.1f}% < {dynamic_rth_pct:.1f}%)"
+            )
+
+        # [RT1-03 & RT2-03] Target-Aware 8.0s Dwell Hysteresis Gate:
+        # Allows monotonic causal progression on the same rescue target
+        # (SCAN -> LOCK_TARGET -> QUEUE_DROP -> EXECUTE_DROP -> RELEASE_SAFE_TARGET_RETURN_TO_SCAN)
+        # while holding premature target-type switches (PERSON <-> VEHICLE) or backward state flips within <8.0s.
+        lifecycle_stage = {
+            "CONTINUE_COOPERATIVE_SCAN": 0,
+            "LOCK_TARGET": 1,
+            "QUEUE_DROP": 2,
+            "EXECUTE_DROP": 3,
+            "RELEASE_SAFE_TARGET_RETURN_TO_SCAN": 4,
+        }
+        prev_stg = lifecycle_stage.get(self.last_accepted_state, -1)
+        curr_stg = lifecycle_stage.get(candidate_action, -1)
+        is_same_target_causal_step = (
+            prev_stg >= 0
+            and curr_stg > prev_stg
+            and (self.last_accepted_state == "CONTINUE_COOPERATIVE_SCAN" or cand_tgt_type == self.last_accepted_target_type)
+        )
         if (
             verify_res.approved
             and candidate_action != self.last_accepted_state
             and candidate_action not in ("RTB_LOW_BATTERY", "CONTINUE_COOPERATIVE_SCAN")
+            and not is_same_target_causal_step
             and self.last_accepted_transition_ts is not None
             and (now - self.last_accepted_transition_ts) < rules.min_dwell_s
         ):
@@ -1337,8 +1731,11 @@ class PlaybookAgentDispatcher:
             verify_res.rejection_reason = f"DWELL_HYSTERESIS_HOLD: {dwell_rem}s remaining before state change allowed."
             verify_res.invariant_checks.append(f"HOLD: 8.0s Dwell Gate ({dwell_rem}s left)")
 
-        if verify_res.approved and candidate_action != self.last_accepted_state:
+        if verify_res.approved and (
+            candidate_action != self.last_accepted_state or cand_tgt_type != self.last_accepted_target_type
+        ):
             self.last_accepted_state = candidate_action
+            self.last_accepted_target_type = cand_tgt_type
             self.last_accepted_transition_ts = now
 
         is_advisory = self.aid_mode == "ADVISORY_ONLY"
@@ -1355,11 +1752,18 @@ class PlaybookAgentDispatcher:
             "action": candidate_action if verify_res.approved else f"BLOCKED_{candidate_action}",
             "candidate_action": candidate_action,
             "params": verify_res.modified_params,
+            "target_type": verify_res.modified_params.get("target_type", current_target_type),
+            "target_altitude_agl_m": verify_res.modified_params.get("altitude_agl_m", effective_search_alt),
+            "estimated_wind_drift_m": round(wind_drift_m, 2),
+            "dynamic_rth_floor_pct": round(dynamic_rth_pct, 2),
             "executed": executed,
             "advisory_only": is_advisory,
+            "llm_live_invoked": bool(live_llm_proposal is not None),
             "judge_assessment": judge_text,
             "evaluate_clause": clause_text,
             "verify_gate": asdict(verify_res),
+            "cutout_reason": self.circuit_breaker_reason if self.circuit_breaker_tripped else None,
+            "thrashing_detected": False,
             "latency_ms": elapsed_ms,
         }
         self.decision_log.append(record)
