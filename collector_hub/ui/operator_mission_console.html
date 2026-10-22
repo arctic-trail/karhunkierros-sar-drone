@@ -705,13 +705,18 @@
       </div>
 
       <div class="top-controls">
-        <!-- Quick Jump to Any Region on Google Earth -->
-        <select id="selGeoRegion" class="select-input" onchange="jumpToGoogleEarthRegion(this.value)" title="Jump anywhere on Google Earth and drag a Search Area">
+        <!-- Quick Jump to Any Region on Google Earth + Arbitrary 112 SOS Coordinate Input -->
+        <select id="selGeoRegion" class="select-input" onchange="jumpToGoogleEarthRegion(this.value)" title="Jump anywhere on Google Earth and drag or stretch a Search Area">
           <option value="OULANKA" selected>📍 Oulanka Canyon / Kiutaköngäs (66.3695°N, 29.3155°E)</option>
           <option value="RUKA">📍 Ruka Fell &amp; Ski Village (66.1658°N, 29.1520°E)</option>
           <option value="JUUMA">📍 Juuma / Pieni Karhunkierros (66.2625°N, 29.3765°E)</option>
           <option value="KUUSAMO">📍 Kuusamo Town &amp; Lakes (65.9645°N, 29.1830°E)</option>
         </select>
+        <div style="display:flex;align-items:center;gap:4px;background:#1c1c23;border:1px solid var(--border-strong);border-radius:7px;padding:2px 5px;" title="Enter any real 112 emergency GPS coordinates (Lat, Lon) to jump the SAR mission there">
+          <span style="font-size:10.5px;color:#fbbf24;font-weight:700;">112 SOS:</span>
+          <input type="text" id="txtCustomSosCoords" placeholder="66.3695, 29.3155" onkeydown="if(event.key==='Enter')jumpToCustomSosCoords()" style="width:118px;background:transparent;border:none;color:#f5f5f7;font-family:var(--font-mono);font-size:11px;outline:none;" />
+          <button class="win-btn" onclick="jumpToCustomSosCoords()" style="padding:2px 6px;font-size:10.5px;color:#64d2ff;border-color:rgba(10,132,255,0.45);">🎯 Go</button>
+        </div>
 
         <!-- Show / Hide Any View Pills -->
         <div class="pane-toggle-group" title="Show, hide, or restore any view panel">
@@ -752,10 +757,12 @@
           <!-- Floating Map Toolbar -->
           <div class="map-toolbar">
             <div class="toolbar-cluster">
-              <button class="btn primary" id="toolDrawBox" onclick="setMapTool('DRAW_BOX')" title="Drag a box anywhere on Google Earth to assign a new Search Area">📐 Drag Search Area</button>
-              <button class="btn" id="toolPanMap" onclick="setMapTool('PAN_MAP')" title="Drag to pan anywhere across Google Earth">✋ Pan Earth</button>
+              <button class="btn primary" id="toolPanMap" onclick="setMapTool('PAN_MAP')" title="Default Mode: Drag any Drone to a position/target, drag any Search Box handle (◻) to stretch it, or drag map to pan">✋ Pan / Drag Drone / Stretch Box</button>
+              <button class="btn" id="toolGotoPoint" onclick="toggleMapSubTool('GOTO_POINT')" title="Click anywhere on Map or Drone Video to command the selected Drone to fly there from its current position">📍 Send Drone to Point</button>
+              <button class="btn" id="toolTrackObject" onclick="toggleMapSubTool('TRACK_OBJECT')" title="Click any object or point on Map or Drone Video to lock &amp; track it with the selected Drone">🎯 Mark Object to Track</button>
+              <button class="btn" id="toolDrawBox" onclick="toggleDrawNewBoxTool()" title="Enable Drawing Tool to redraw a brand-new Search Area from scratch (Drones will fly from their current positions!)">📐 Draw New Box: OFF</button>
               <button class="btn warning" id="toolDropMode" onclick="toggleDropMarkerMode()" title="Switch ON to click anywhere on Map or Video to mark a Payload Drop">🪂 Mark Drop: OFF</button>
-              <button class="btn" onclick="restartCooperativeSearch()" title="Reset shroud and watch drones scan their sectors cleanly from 0%">↺ Restart Scan</button>
+              <button class="btn" onclick="restartCooperativeSearch()" title="Reset simulation to initial launch positions and 0% shroud">↺ Restart Scan</button>
             </div>
 
             <div class="toolbar-cluster">
@@ -770,8 +777,16 @@
               <button class="btn" onclick="zoomOutWideRegion()" title="Zoom out wide to pick a new search area anywhere in Finland">🗺️ Zoom Out 15 km</button>
             </div>
 
-            <!-- Floating Active Target Assignment & Pending Drop Banners (With 1-Click Cancel!) -->
+            <!-- Floating Active Target Assignment, Draw Tool Armed & Pending Drop Banners (With 1-Click Cancel!) -->
             <div class="map-action-banner">
+              <div class="floating-status-card" id="mapDrawBoxBanner" style="display:none;border-color:#0a84ff;background:rgba(10,132,255,0.18);">
+                <div>
+                  <span style="color:#64d2ff;font-weight:700;">📐 Draw New Search Box Mode ON:</span>
+                  <span>Drag on the map to draw a new Search Area from scratch — <strong>Drones will fly from their current positions</strong>.</span>
+                </div>
+                <button class="btn" onclick="setMapTool('PAN_MAP')" style="padding:3px 9px;font-size:11.5px;">✕ Cancel Draw</button>
+              </div>
+
               <div class="floating-status-card" id="mapTargetBanner">
                 <div>
                   <span style="color:#fbbf24;font-weight:700;">🎯 Target Assignment:</span>
@@ -794,8 +809,8 @@
           </div>
 
           <!-- Bottom-Left Hint -->
-          <div class="map-hint-pill">
-            💡 <strong>Click any Drone</strong> on the map to watch its live Google Earth camera in <strong>View 2</strong>  •  <strong>Scroll out</strong> to pan anywhere on Earth &amp; drag a new Search Box!
+          <div class="map-hint-pill" id="mapHintPill">
+            💡 <strong>Drag any edge or corner handle (◻)</strong> to stretch/resize the Search Area (drones fly continuously)  •  Click <strong>📐 Draw New Box</strong> to redraw from scratch!
           </div>
 
           <!-- Bottom-Right Legend -->
@@ -868,10 +883,11 @@
           </button>
         </div>
 
-        <!-- Camera Zoom & Sensor Controls Subbar -->
+        <!-- Camera Zoom, Sensor & 1:1 Trackpad Stick Steering Subbar -->
         <div class="osd-subbar">
-          <span id="videoSubbarHint">Live Google Earth z=18..19 feed under selected drone (hover to see crosshair on Map)</span>
+          <span id="videoSubbarHint">Live Google Earth z=18..19 feed • Drag Drone on Map or use Trackpad Stick to steer</span>
           <div style="display:flex;gap:4px;align-items:center;">
+            <button class="btn" id="btnVideoTrackpadSteer" onclick="toggleVideoTrackpadSteerMode()" style="padding:2px 8px;border-color:rgba(56,189,248,0.5);color:#38bdf8;" title="Move your finger on the trackpad inside the Drone Video (or use the 2D Trackpad Box on the right) to steer the selected drone 1:1">🕹️ Trackpad Steer: OFF</button>
             <button class="btn" onclick="adjustOsdZoom(-0.8)" style="padding:2px 7px;">−</button>
             <button class="btn success" id="btnOsdZoomPill" onclick="adjustOsdZoom(0)" style="padding:2px 7px;">3.0x</button>
             <button class="btn" onclick="adjustOsdZoom(0.8)" style="padding:2px 7px;">+</button>
@@ -993,6 +1009,25 @@
             </div>
           </div>
 
+          <!-- CARD 0B: 1:1 TRACKPAD / STICK STEERING WITH X & Y AXIS VS BOUNDS -->
+          <div class="step-card" style="border-color:rgba(56,189,248,0.55);background:linear-gradient(180deg,rgba(56,189,248,0.08),rgba(20,22,30,0.96));padding:9px 11px;">
+            <div class="step-header">
+              <span class="step-title">🕹️ Trackpad &amp; Stick Steering (X/Y Bounds)</span>
+              <span class="step-badge" id="badgeStickState" style="background:rgba(56,189,248,0.16);color:#38bdf8;">1:1 Finger Follow</span>
+            </div>
+            <div style="font-size:10.5px;color:var(--text-secondary);line-height:1.3;">
+              Move finger over the <strong>2D Bounds Box</strong> below (or enable <strong>🕹️ Trackpad Steer</strong> in View 2 / <strong>WASD</strong>). Shows live <strong>X &amp; Y axis position vs. &pm;100% bounds</strong>.
+            </div>
+            <canvas id="trackpadSteerCanvas" width="280" height="156" style="width:100%;height:142px;background:#090b10;border:1px solid rgba(56,189,248,0.45);border-radius:7px;cursor:crosshair;display:block;touch-action:none;"></canvas>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;font-family:var(--font-mono);font-size:10px;">
+              <span id="lblStickAxisReadout" style="color:#64d2ff;">X: +0% [-100..+100] &bull; Y: +0% [-100..+100]</span>
+              <div style="display:flex;gap:4px;">
+                <button class="win-btn" onclick="centerManualStick(true)" style="font-size:9.5px;padding:2px 5px;">🛑 Center</button>
+                <button class="win-btn" onclick="resumeSelectedDroneAutoScan()" style="font-size:9.5px;padding:2px 5px;color:#4ade80;">↺ Auto Scan</button>
+              </div>
+            </div>
+          </div>
+
           <!-- CARD 1: COOPERATIVE SECTOR SCAN -->
           <div class="step-card">
             <div class="step-header">
@@ -1000,7 +1035,7 @@
               <span class="step-badge" id="badgeScanStatus">Scanning • 0% Overlap</span>
             </div>
             <p class="step-desc">
-              Drag a Search Box anywhere on Google Earth. The box is divided into <strong>separate color-coded strips (1 strip per mapping drone)</strong>. Each drone scans its strip once and <strong>holds station when done</strong>.
+              Drag any edge/corner handle (<code>□</code>) to stretch the Search Box, or enable <strong>📐 Draw New Box</strong> to draw from scratch. Drones fly continuously from their previous positions.
             </p>
             <div class="form-grid">
               <div class="field-box">
@@ -1061,11 +1096,15 @@
               </div>
               <div style="display:flex;gap:6px;margin-top:3px;">
                 <button class="btn danger" id="btnSidebarCancelTarget" onclick="cancelTargetAssignment()" style="flex:1;">
-                  ✕ Cancel Target Assignment (Return to Scan)
+                  ✕ Cancel Target Lock (Return to Scan)
                 </button>
                 <button class="btn success" id="btnSidebarReassignTarget" onclick="reassignTargetLock()" style="flex:1;display:none;">
                   🎯 Assign Drone 1 to Target
                 </button>
+              </div>
+              <div style="display:flex;gap:5px;margin-top:3px;">
+                <button class="btn" onclick="toggleMapSubTool('GOTO_POINT')" style="flex:1;padding:4px 6px;font-size:11px;" title="Click anywhere on Map or Video to fly selected drone there">📍 Click Map to Send Drone</button>
+                <button class="btn" onclick="toggleMapSubTool('TRACK_OBJECT')" style="flex:1;padding:4px 6px;font-size:11px;" title="Click any object on Map or Video to lock &amp; track it">🎯 Click Object to Track</button>
               </div>
             </div>
           </div>
@@ -1372,10 +1411,36 @@
       const r = regions[regionKey] || regions.OULANKA;
       ORIGIN_LAT = r.lat;
       ORIGIN_LON = r.lon;
+      const sosInp = document.getElementById('txtCustomSosCoords');
+      if (sosInp) sosInp.value = `${ORIGIN_LAT.toFixed(4)}, ${ORIGIN_LON.toFixed(4)}`;
       mapCenter = { x: 0.0, y: -10.0 };
       mapZoom = 0.88;
       searchBox = { xMin: -230, yMin: -155, xMax: 230, yMax: 135 };
       restartCooperativeSearch();
+    }
+
+    function jumpToCustomSosCoords() {
+      const inp = document.getElementById('txtCustomSosCoords');
+      if (!inp || !inp.value.trim()) return;
+      const nums = inp.value.trim().match(/-?\d+(?:\.\d+)?/g);
+      if (!nums || nums.length < 2) {
+        updateAidBannerUI('⚠️ Invalid 112 SOS Coordinates — Enter Lat, Lon (e.g. 66.3695, 29.3155)');
+        return;
+      }
+      const lat = parseFloat(nums[0]);
+      const lon = parseFloat(nums[1]);
+      if (isNaN(lat) || isNaN(lon) || lat < -85 || lat > 85 || lon < -180 || lon > 180) {
+        updateAidBannerUI('⚠️ Coordinates out of valid WGS84 range (-85..85°N, -180..180°E)');
+        return;
+      }
+      ORIGIN_LAT = lat;
+      ORIGIN_LON = lon;
+      mapCenter = { x: 0.0, y: -10.0 };
+      mapZoom = 0.88;
+      searchBox = { xMin: -230, yMin: -155, xMax: 230, yMax: 135 };
+      restartCooperativeSearch();
+      updateAidBannerUI(`🎯 112 SOS Coordinates Locked: ${lat.toFixed(5)}°N, ${lon.toFixed(5)}°E • 4-Drone Search Deployed`);
+      logAndDispatchMavlinkV2(`MISSION_COUNT (#44) • 112 SOS Jump (${lat.toFixed(4)}N, ${lon.toFixed(4)}E)`, 44, 'FD 05 00 00 08 FF BE 2C 00 00', `/api/field/upload_mission?lat=${lat}&lon=${lon}`);
     }
 
     const mapCanvas = document.getElementById('cncMapCanvas');
@@ -1560,7 +1625,11 @@
 
     let searchBox = { xMin: -230, yMin: -155, xMax: 230, yMax: 135 };
     let missionPattern = 'DISJOINT_SECTORS';
-    let activeMapTool = 'DRAW_BOX';
+    // Default tool is PAN_MAP ("Pan & Stretch Box") so operators can stretch edges/corners anytime,
+    // and must explicitly enable "Draw New Box" to redraw from scratch!
+    let activeMapTool = 'PAN_MAP';
+    let hoveredResizeHandle = null;
+    let activeBoxDraftPreview = null;
 
     let targetLockActive = true;
     let guidedTargetType = 'PERSON';
@@ -1579,6 +1648,25 @@
     let osdSensorMode = 'EO+LWIR';
     let simRunning = true;
     let simSpeed = 1.0;
+
+    // 1:1 Trackpad / Virtual Stick State & Direct Drone Waypoint / Custom Tracked Object State
+    let stickState = {
+      x: 0.0,              // [-1.00 .. +1.00] West (-) to East (+)
+      y: 0.0,              // [-1.00 .. +1.00] South (-) to North (+)
+      fingerInsidePad: false,
+      videoSteerMode: false,
+      keysDown: {}
+    };
+    let draggingDroneState = null; // { droneIdx, targetWx, targetWy, hoverSubject }
+    let customTrackedObject = {
+      active: false,
+      id: 'TGT-CUSTOM-03',
+      label: 'Marked Target',
+      x: -20,
+      y: 25,
+      tempC: '+29.8°C',
+      arrived: false
+    };
 
     const lostPerson = {
       id: 'TGT-HIKER-01',
@@ -1606,14 +1694,12 @@
 
     let activeSectors = [];
 
-    function markCircleExplored(wx, wy, radM) {
-      exploredStampList.push({ x: wx, y: wy, r: radM });
-      if (exploredStampList.length > 5000) exploredStampList.splice(0, 500);
-
+    function projectStampOntoBoxGrid(wx, wy, radM) {
       const bw = Math.max(10, searchBox.xMax - searchBox.xMin);
       const bh = Math.max(10, searchBox.yMax - searchBox.yMin);
       const u0 = (wx - searchBox.xMin) / bw;
       const v0 = (wy - searchBox.yMin) / bh;
+      if (u0 < -0.25 || u0 > 1.25 || v0 < -0.25 || v0 > 1.25) return;
       const rx = (radM / bw) * BOX_GRID_NX;
       const ry = (radM / bh) * BOX_GRID_NY;
       const gx0 = u0 * BOX_GRID_NX;
@@ -1633,10 +1719,44 @@
       }
     }
 
-    function recomputeAutoMission(repositionDrones = false) {
+    function recomputeBoxExploredGridFromStamps() {
+      boxExploredGrid.fill(0);
+      for (let i = 0; i < exploredStampList.length; i++) {
+        const st = exploredStampList[i];
+        projectStampOntoBoxGrid(st.x, st.y, st.r);
+      }
+    }
+
+    function markCircleExplored(wx, wy, radM) {
+      exploredStampList.push({ x: wx, y: wy, r: radM });
+      if (exploredStampList.length > 5000) exploredStampList.splice(0, 500);
+      projectStampOntoBoxGrid(wx, wy, radM);
+    }
+
+    function recomputeAutoMission(repositionDrones = false, isNewBoxFromScratch = false) {
       const agl = parseFloat(document.getElementById('selAglClearance')?.value || '55');
       const bw = Math.max(80, searchBox.xMax - searchBox.xMin);
       const bh = Math.max(80, searchBox.yMax - searchBox.yMin);
+
+      // If operator drew a brand-new box from scratch in a new location where the simulated thermal subject
+      // was outside the box, place the target thermal signature inside the new box while keeping ALL 4 drones
+      // at their previous airborne positions so they visibly fly across the map to the new box!
+      if (isNewBoxFromScratch && !repositionDrones) {
+        const cx = (searchBox.xMin + searchBox.xMax) * 0.5;
+        const cy = (searchBox.yMin + searchBox.yMax) * 0.5;
+        const pInside = (lostPerson.x >= searchBox.xMin && lostPerson.x <= searchBox.xMax && lostPerson.y >= searchBox.yMin && lostPerson.y <= searchBox.yMax);
+        if (!pInside) {
+          lostPerson.x = cx + bw * 0.11;
+          lostPerson.y = cy + bh * 0.18;
+          lostPerson.arrived = false;
+        }
+        const vInside = (lostVehicle.x >= searchBox.xMin && lostVehicle.x <= searchBox.xMax && lostVehicle.y >= searchBox.yMin && lostVehicle.y <= searchBox.yMax);
+        if (!vInside) {
+          lostVehicle.x = cx - bw * 0.28;
+          lostVehicle.y = cy + bh * 0.25;
+          lostVehicle.arrived = false;
+        }
+      }
 
       const mapperIndices = [];
       drones.forEach((d, idx) => {
@@ -1652,14 +1772,14 @@
       const splitHorizontal = bw >= bh;
       const sectorSpan = (splitHorizontal ? bw : bh) / M;
 
-      // Scale cone radius proportionally if user draws a huge multi-kilometer search box on Google Earth!
-      const baseRadius = Math.max(24, Math.min(bw * 0.14, Math.max(agl * 0.78, sectorSpan * 0.24)));
-      const maxNonOverlappingRadius = sectorSpan * 0.46;
+      // Scale cone radius proportionally while keeping lawnmower passes clean (3..7 lanes per sector)
+      const baseRadius = Math.max(24, Math.min(bw * 0.11, Math.max(agl * 0.78, sectorSpan * 0.22)));
+      const maxNonOverlappingRadius = sectorSpan * 0.44;
       const coneRadius = Math.max(18, Math.min(baseRadius, maxNonOverlappingRadius));
-      const tangentSwath = coneRadius * 1.95;
+      const tangentSwath = Math.max(coneRadius * 1.95, sectorSpan / 5.0);
 
       drones.forEach((d, idx) => {
-        d.altAgl = (idx === 0 && targetLockActive) ? 28 : agl;
+        d.altAgl = (idx === 0 && targetLockActive) ? (aidState.compiled?.trackAltM || 28) : agl;
         d.radius = (idx === 0 && targetLockActive) ? Math.min(coneRadius, Math.max(38, coneRadius * 0.8)) : coneRadius;
       });
 
@@ -1688,17 +1808,17 @@
 
         activeSectors.push({
           xMin: sxMin, xMax: sxMax, yMin: syMin, yMax: syMax,
-          label: `${d.shortName} • ${sName}`, color: d.color, droneIdx: dIdx
+          label: sName, color: d.color, droneIdx: dIdx
         });
 
         const wSec = sxMax - sxMin;
         const hSec = syMax - syMin;
-        const insetX = Math.min(wSec * 0.45, coneRadius * 0.92);
-        const insetY = Math.min(hSec * 0.42, coneRadius * 0.88);
+        const insetX = Math.min(wSec * 0.42, coneRadius * 0.85);
+        const insetY = Math.min(hSec * 0.40, coneRadius * 0.82);
         const innerW = Math.max(4, wSec - 2 * insetX);
-        const numLanes = Math.max(1, Math.round(innerW / tangentSwath) + 1);
+        const numLanes = Math.max(1, Math.min(8, Math.round(innerW / tangentSwath) + 1));
 
-        const wps = [];
+        let wps = [];
         for (let i = 0; i < numLanes; i++) {
           const u = numLanes === 1 ? 0.5 : (i / (numLanes - 1));
           const lx = sxMin + insetX + u * innerW;
@@ -1709,14 +1829,37 @@
             wps.push({ seq: wps.length + 1, x: lx, y: ly, demAsl: sampleDemAsl(lx, ly), agl });
           });
         }
-        d.waypoints = wps;
 
         if (repositionDrones && wps.length >= 2) {
+          // ONLY used on initial load or explicit "Restart Scan" button!
           d.x = wps[0].x;
           d.y = wps[0].y + (wps[1].y - wps[0].y) * 0.28;
           d.wpIdx = 1;
           d.trail = [{ x: wps[0].x, y: wps[0].y }, { x: d.x, y: d.y }];
+        } else if (wps.length >= 2) {
+          // NEVER teleport the drone! Fly continuously from its current (d.x, d.y) position!
+          const distFirst = Math.hypot(wps[0].x - d.x, wps[0].y - d.y);
+          const distLast = Math.hypot(wps[wps.length - 1].x - d.x, wps[wps.length - 1].y - d.y);
+          const isOutsideNewSector = (d.x < sxMin - wSec * 0.5 || d.x > sxMax + wSec * 0.5 || d.y < syMin - hSec * 0.5 || d.y > syMax + hSec * 0.5);
+          if (isNewBoxFromScratch || isOutsideNewSector || !d.waypoints || d.waypoints.length === 0) {
+            if (distLast + 15 < distFirst) {
+              wps = wps.slice().reverse().map((w, idx) => ({ ...w, seq: idx + 1 }));
+            }
+            d.wpIdx = 0;
+          } else {
+            d.wpIdx = Math.min(Math.max(0, d.wpIdx || 0), wps.length - 1);
+          }
+          if (!d.trail || d.trail.length === 0) {
+            d.trail = [{ x: d.x, y: d.y }];
+          } else {
+            const lastPt = d.trail[d.trail.length - 1];
+            if (Math.hypot(d.x - lastPt.x, d.y - lastPt.y) > 2.0) {
+              d.trail.push({ x: d.x, y: d.y });
+            }
+            if (d.trail.length > 45) d.trail = d.trail.slice(-45);
+          }
         }
+        d.waypoints = wps;
       });
 
       if (targetLockActive) {
@@ -1726,7 +1869,15 @@
           drones[0].x = subj.x - 14;
           drones[0].y = subj.y - 6;
           drones[0].trail = [{ x: drones[0].x, y: drones[0].y }];
+        } else {
+          if (!drones[0].trail || drones[0].trail.length === 0) {
+            drones[0].trail = [{ x: drones[0].x, y: drones[0].y }];
+          }
         }
+      }
+
+      if (!repositionDrones) {
+        recomputeBoxExploredGridFromStamps();
       }
 
       const elArea = document.getElementById('valAreaSwath');
@@ -2344,7 +2495,7 @@
           fetch(`/api/playbook/veto?action=cancel_target&type=${guidedTargetType}`).catch(() => {});
         }
       }
-      recomputeAutoMission(true);
+      recomputeAutoMission(false);
       logAndDispatchMavlinkV2(`COMMAND_INT (#75) • Cancel Target Lock (Epoch #${aidState.epochId})`, 75, 'FD 23 00 00 02 FF BE 4B 00 00', '/api/field/target?active=0');
     }
 
@@ -2589,17 +2740,217 @@
 
     function updateMissionPattern(pat) {
       missionPattern = pat;
-      restartCooperativeSearch();
+      recomputeAutoMission(false);
+    }
+
+    function getActiveSelectedDroneIndex() {
+      if (selectedCameraSource && selectedCameraSource.startsWith('DRONE_')) {
+        return Math.max(0, Math.min(3, parseInt(selectedCameraSource.replace('DRONE_', ''), 10) || 0));
+      }
+      return 0;
+    }
+
+    function toggleDrawNewBoxTool() {
+      if (activeMapTool === 'DRAW_BOX') {
+        setMapTool('PAN_MAP');
+      } else {
+        setMapTool('DRAW_BOX');
+      }
+    }
+
+    function toggleMapSubTool(toolName) {
+      if (activeMapTool === toolName) {
+        setMapTool('PAN_MAP');
+      } else {
+        setMapTool(toolName);
+      }
     }
 
     function setMapTool(tool) {
       activeMapTool = tool;
-      ['toolDrawBox', 'toolPanMap'].forEach(id => {
-        document.getElementById(id)?.classList.remove('primary');
-      });
-      if (tool === 'DRAW_BOX') document.getElementById('toolDrawBox')?.classList.add('primary');
-      if (tool === 'PAN_MAP') document.getElementById('toolPanMap')?.classList.add('primary');
+      const btnDraw = document.getElementById('toolDrawBox');
+      const btnPan = document.getElementById('toolPanMap');
+      const btnGoto = document.getElementById('toolGotoPoint');
+      const btnTrack = document.getElementById('toolTrackObject');
+      const drawBanner = document.getElementById('mapDrawBoxBanner');
+      const hintPill = document.getElementById('mapHintPill');
+
+      if (btnDraw) {
+        btnDraw.classList.toggle('primary', tool === 'DRAW_BOX');
+        btnDraw.textContent = tool === 'DRAW_BOX' ? '📐 Draw New Box: ON (Drag Map)' : '📐 Draw New Box: OFF';
+      }
+      if (btnPan) btnPan.classList.toggle('primary', tool === 'PAN_MAP');
+      if (btnGoto) btnGoto.classList.toggle('primary', tool === 'GOTO_POINT');
+      if (btnTrack) btnTrack.classList.toggle('primary', tool === 'TRACK_OBJECT');
+
+      if (drawBanner) {
+        drawBanner.style.display = tool === 'DRAW_BOX' ? 'flex' : 'none';
+      }
+      const selDrone = drones[getActiveSelectedDroneIndex()] || drones[0];
+      if (hintPill) {
+        if (tool === 'DRAW_BOX') {
+          hintPill.innerHTML = '📐 <strong>Draw New Search Box Mode ON:</strong> Drag on the map to define a new Search Area from scratch (or press <strong>Esc</strong> to cancel). Drones will fly from their current positions!';
+        } else if (tool === 'GOTO_POINT') {
+          hintPill.innerHTML = `📍 <strong>Send ${selDrone.shortName} to Point:</strong> Click anywhere on the <strong>Map</strong> or <strong>Drone Video</strong> (or drag any Drone on the map) to fly it there from its current position!`;
+        } else if (tool === 'TRACK_OBJECT') {
+          hintPill.innerHTML = `🎯 <strong>Mark Object to Track:</strong> Click any person, vehicle, or terrain object on the <strong>Map</strong> or <strong>Drone Video</strong> to lock &amp; track it!`;
+        } else {
+          hintPill.innerHTML = '💡 <strong>Drag any Drone</strong> to fly it to a spot or onto a target  •  <strong>Drag Box handles (◻)</strong> to stretch Search Area  •  Use <strong>🕹️ Trackpad Stick</strong> to steer 1:1!';
+        }
+      }
       mapCanvas.style.cursor = tool === 'PAN_MAP' ? 'grab' : 'crosshair';
+    }
+
+    function sendDroneToWorldPoint(droneIdx, wx, wy, sourceDesc = 'Operator Waypoint') {
+      const d = drones[droneIdx] || drones[0];
+      selectCameraSource(`DRONE_${droneIdx}`);
+      d.customGoal = { x: wx, y: wy, label: sourceDesc };
+      d.sectorDone = false;
+      d.sectorName = `📍 Fly -> (${Math.round(wx)}m, ${Math.round(wy)}m)`;
+      if (droneIdx === 0 && targetLockActive) {
+        targetLockActive = false;
+        const chk = document.getElementById('chkPreemptMapping');
+        if (chk) chk.checked = false;
+      }
+      updateTargetAndDropUI();
+      updateCameraSwitcherLabels();
+      const [lat, lon] = worldToLatLon(wx, wy);
+      updateAidBannerUI(`📍 ${d.shortName} Commanded to (${Math.round(wx)}m, ${Math.round(wy)}m / ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E) — Flying From Previous Position!`);
+      logAndDispatchMavlinkV2(`SET_POSITION_TARGET_GLOBAL_INT (#86) • ${d.shortName} GoTo (${lat.toFixed(4)}N, ${lon.toFixed(4)}E)`, 86, 'FD 35 00 00 0B FF BE 56 00 00', `/api/field/target?active=1&type=GOTO`);
+    }
+
+    function findSubjectNearWorldPoint(wx, wy, maxRadiusM = 36) {
+      const candidates = [
+        { key: 'PERSON', subj: lostPerson },
+        { key: 'VEHICLE', subj: lostVehicle }
+      ];
+      if (customTrackedObject.active) {
+        candidates.push({ key: 'CUSTOM', subj: customTrackedObject });
+      }
+      let best = null, bestD = maxRadiusM;
+      for (const c of candidates) {
+        const d = Math.hypot(wx - c.subj.x, wy - c.subj.y);
+        if (d <= bestD) {
+          bestD = d;
+          best = c;
+        }
+      }
+      return best;
+    }
+
+    function markOrLockObjectAtWorld(wx, wy, droneIdx = 0) {
+      const hit = findSubjectNearWorldPoint(wx, wy, 42);
+      if (hit && (hit.key === 'PERSON' || hit.key === 'VEHICLE')) {
+        drones[0].customGoal = null;
+        reassignTargetLock(hit.key, true);
+        selectCameraSource('DRONE_0');
+        updateAidBannerUI(`🎯 Locked onto ${hit.subj.label} (${hit.subj.tempC}) • Drone 1 Flying to Track & Escort`);
+        return;
+      }
+      // Create or move Custom Marked Object at (wx, wy) and assign the selected drone (or Drone 1) to track it!
+      customTrackedObject.active = true;
+      customTrackedObject.x = wx;
+      customTrackedObject.y = wy;
+      customTrackedObject.arrived = false;
+      const d = drones[droneIdx] || drones[0];
+      d.customGoal = { x: wx - 12, y: wy - 5, label: '🎯 Tracking Marked Object', isTrackingCustom: true };
+      d.sectorDone = false;
+      d.sectorName = '🎯 Tracking Marked Object';
+      selectCameraSource(`DRONE_${droneIdx}`);
+      updateCameraSwitcherLabels();
+      const [lat, lon] = worldToLatLon(wx, wy);
+      updateAidBannerUI(`🎯 Marked Object at (${Math.round(wx)}m, ${Math.round(wy)}m / ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E) • ${d.shortName} Flying to Track!`);
+      logAndDispatchMavlinkV2(`SET_POSITION_TARGET_GLOBAL_INT (#86) • Lock Marked Object (${lat.toFixed(4)}N, ${lon.toFixed(4)}E)`, 86, 'FD 35 00 00 0C FF BE 56 00 00', `/api/field/target?active=1&type=CUSTOM`);
+    }
+
+    function resumeSelectedDroneAutoScan() {
+      const idx = getActiveSelectedDroneIndex();
+      drones.forEach(d => { d.customGoal = null; });
+      centerManualStick(false);
+      recomputeAutoMission(false, false);
+      updateAidBannerUI(`↺ ${drones[idx].shortName} Resumed Cooperative Sector Scan from Current Position`);
+    }
+
+    function toggleVideoTrackpadSteerMode() {
+      stickState.videoSteerMode = !stickState.videoSteerMode;
+      const btn = document.getElementById('btnVideoTrackpadSteer');
+      if (btn) {
+        btn.textContent = stickState.videoSteerMode ? '🕹️ Trackpad Steer: ON (Move Finger in Video)' : '🕹️ Trackpad Steer: OFF';
+        btn.classList.toggle('primary', stickState.videoSteerMode);
+      }
+      if (!stickState.videoSteerMode) {
+        centerManualStick(false);
+      }
+    }
+
+    function centerManualStick(updateBanner = false) {
+      stickState.x = 0.0;
+      stickState.y = 0.0;
+      stickState.fingerInsidePad = false;
+      updateStickReadoutUI();
+      if (updateBanner) {
+        updateAidBannerUI(`🛑 Manual Stick Centered (X: 0%, Y: 0%) • Drone Holding Current Position`);
+      }
+    }
+
+    function updateStickReadoutUI() {
+      const xPct = Math.round(stickState.x * 100);
+      const yPct = Math.round(stickState.y * 100);
+      const xSign = xPct >= 0 ? `+${xPct}%` : `${xPct}%`;
+      const ySign = yPct >= 0 ? `+${yPct}%` : `${yPct}%`;
+      const badge = document.getElementById('badgeStickState');
+      const lbl = document.getElementById('lblStickAxisReadout');
+      const active = Math.abs(stickState.x) > 0.02 || Math.abs(stickState.y) > 0.02;
+      const d = drones[getActiveSelectedDroneIndex()] || drones[0];
+      if (badge) {
+        badge.textContent = active ? `Steering ${d.shortName} (${xSign}, ${ySign})` : 'Centered (0%, 0%)';
+        badge.style.background = active ? 'rgba(48, 209, 88, 0.22)' : 'rgba(56, 189, 248, 0.16)';
+        badge.style.color = active ? '#4ade80' : '#38bdf8';
+      }
+      if (lbl) {
+        lbl.innerHTML = `X: <strong>${xSign}</strong> [-100..+100] &bull; Y: <strong>${ySign}</strong> [-100..+100]`;
+      }
+    }
+
+    window.addEventListener('keydown', e => {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')) return;
+      if (e.key === 'Escape') {
+        if (activeMapTool !== 'PAN_MAP') setMapTool('PAN_MAP');
+        if (dropMarkerMode) setDropMarkerMode(false);
+        centerManualStick(false);
+        return;
+      }
+      if (e.key === ' ') {
+        e.preventDefault();
+        centerManualStick(true);
+        return;
+      }
+      const k = e.key.toLowerCase();
+      if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) {
+        e.preventDefault();
+        stickState.keysDown[k] = true;
+        recomputeKeyboardStickAxes();
+      }
+    });
+
+    window.addEventListener('keyup', e => {
+      const k = e.key.toLowerCase();
+      if (stickState.keysDown[k]) {
+        delete stickState.keysDown[k];
+        recomputeKeyboardStickAxes();
+      }
+    });
+
+    function recomputeKeyboardStickAxes() {
+      if (stickState.fingerInsidePad) return;
+      let kx = 0.0, ky = 0.0;
+      if (stickState.keysDown['a'] || stickState.keysDown['arrowleft']) kx -= 0.75;
+      if (stickState.keysDown['d'] || stickState.keysDown['arrowright']) kx += 0.75;
+      if (stickState.keysDown['w'] || stickState.keysDown['arrowup']) ky += 0.75;
+      if (stickState.keysDown['s'] || stickState.keysDown['arrowdown']) ky -= 0.75;
+      stickState.x = Math.max(-1.0, Math.min(1.0, kx));
+      stickState.y = Math.max(-1.0, Math.min(1.0, ky));
+      updateStickReadoutUI();
     }
 
     function adjustOsdZoom(delta) {
@@ -2703,10 +3054,50 @@
       return bestIdx;
     }
 
+    function findSearchBoxResizeHandle(cx, cy) {
+      const [bx0, by0] = worldToCanvas(searchBox.xMin, searchBox.yMin);
+      const [bx1, by1] = worldToCanvas(searchBox.xMax, searchBox.yMax);
+      const xLeft = Math.min(bx0, bx1), xRight = Math.max(bx0, bx1);
+      const yTop = Math.min(by0, by1), yBot = Math.max(by0, by1);
+      const xMid = (xLeft + xRight) * 0.5;
+      const yMid = (yTop + yBot) * 0.5;
+
+      const cornerTol = 13;
+      if (Math.hypot(cx - xLeft, cy - yTop) <= cornerTol) return 'NW';
+      if (Math.hypot(cx - xRight, cy - yTop) <= cornerTol) return 'NE';
+      if (Math.hypot(cx - xLeft, cy - yBot) <= cornerTol) return 'SW';
+      if (Math.hypot(cx - xRight, cy - yBot) <= cornerTol) return 'SE';
+
+      const edgeGripTol = 14;
+      if (Math.hypot(cx - xMid, cy - yTop) <= edgeGripTol) return 'N';
+      if (Math.hypot(cx - xMid, cy - yBot) <= edgeGripTol) return 'S';
+      if (Math.hypot(cx - xLeft, cy - yMid) <= edgeGripTol) return 'W';
+      if (Math.hypot(cx - xRight, cy - yMid) <= edgeGripTol) return 'E';
+
+      const edgeLineTol = 9;
+      const inX = (cx >= xLeft - edgeLineTol && cx <= xRight + edgeLineTol);
+      const inY = (cy >= yTop - edgeLineTol && cy <= yBot + edgeLineTol);
+      if (inX && Math.abs(cy - yTop) <= edgeLineTol) return 'N';
+      if (inX && Math.abs(cy - yBot) <= edgeLineTol) return 'S';
+      if (inY && Math.abs(cx - xLeft) <= edgeLineTol) return 'W';
+      if (inY && Math.abs(cx - xRight) <= edgeLineTol) return 'E';
+
+      return null;
+    }
+
+    function getCursorForResizeHandle(handle) {
+      if (handle === 'NW' || handle === 'SE') return 'nwse-resize';
+      if (handle === 'NE' || handle === 'SW') return 'nesw-resize';
+      if (handle === 'N' || handle === 'S') return 'ns-resize';
+      if (handle === 'W' || handle === 'E') return 'ew-resize';
+      return 'grab';
+    }
+
     (function initMapAndVideoEvents() {
       let pointerDownInfo = null;
       let isPanning = false;
       let isBoxDragging = false;
+      let activeResizeHandle = null;
       let draftBox = null;
 
       mapCanvas.addEventListener('contextmenu', e => e.preventDefault());
@@ -2722,15 +3113,74 @@
           return;
         }
 
-        if (e.button === 2 || e.button === 1 || e.shiftKey || activeMapTool === 'PAN_MAP') {
-          isPanning = true;
-          pointerDownInfo = { cx, cy, startCx: cx, startCy: cy, mapStartX: mapCenter.x, mapStartY: mapCenter.y };
-          mapCanvas.style.cursor = 'grabbing';
+        // 0A. If operator enabled 'GOTO_POINT' ("📍 Send Drone to Point"), clicking map sends selected drone there!
+        if (e.button === 0 && activeMapTool === 'GOTO_POINT') {
+          sendDroneToWorldPoint(getActiveSelectedDroneIndex(), wx, wy, 'Operator Map Pin');
+          setMapTool('PAN_MAP');
           return;
         }
 
-        pointerDownInfo = { cx, cy, startCx: cx, startCy: cy, wx, wy };
-        isBoxDragging = false;
+        // 0B. If operator enabled 'TRACK_OBJECT' ("🎯 Mark Object to Track"), clicking map marks/locks that object!
+        if (e.button === 0 && activeMapTool === 'TRACK_OBJECT') {
+          markOrLockObjectAtWorld(wx, wy, getActiveSelectedDroneIndex());
+          setMapTool('PAN_MAP');
+          return;
+        }
+
+        // 0C. Direct Drone Dragging on Map: Grab any Drone (1..4) and drag it to a target position or onto an object to track!
+        if (e.button === 0 && activeMapTool === 'PAN_MAP') {
+          const hitDroneIdx = findDroneAtCanvasPoint(cx, cy);
+          if (hitDroneIdx >= 0) {
+            selectCameraSource(`DRONE_${hitDroneIdx}`);
+            draggingDroneState = {
+              droneIdx: hitDroneIdx,
+              startCx: cx,
+              startCy: cy,
+              targetWx: wx,
+              targetWy: wy,
+              moved: false,
+              hoverSubject: null
+            };
+            pointerDownInfo = { cx, cy, startCx: cx, startCy: cy, wx, wy };
+            mapCanvas.style.cursor = 'grabbing';
+            return;
+          }
+          // Clicking directly on Lost Hiker, Snowmobile, or Marked Object switches target tracking to it!
+          const hitSubj = findSubjectNearWorldPoint(wx, wy, 28 / Math.max(0.15, getMapGeometry().scale));
+          if (hitSubj && (hitSubj.key === 'PERSON' || hitSubj.key === 'VEHICLE')) {
+            reassignTargetLock(hitSubj.key, true);
+            return;
+          }
+        }
+
+        // 1. Check if operator grabbed any edge or corner handle of the Search Box to stretch/resize it!
+        if (e.button === 0 && activeMapTool !== 'DRAW_BOX') {
+          const handle = findSearchBoxResizeHandle(cx, cy);
+          if (handle) {
+            activeResizeHandle = handle;
+            hoveredResizeHandle = handle;
+            pointerDownInfo = {
+              cx, cy, startCx: cx, startCy: cy, wx, wy,
+              origBox: { ...searchBox }
+            };
+            mapCanvas.style.cursor = getCursorForResizeHandle(handle);
+            return;
+          }
+        }
+
+        // 2. If explicitly in 'DRAW_BOX' mode, left-drag draws a brand-new box from scratch
+        if (e.button === 0 && activeMapTool === 'DRAW_BOX') {
+          pointerDownInfo = { cx, cy, startCx: cx, startCy: cy, wx, wy };
+          isBoxDragging = false;
+          draftBox = null;
+          activeBoxDraftPreview = null;
+          return;
+        }
+
+        // 3. Otherwise, left-drag (in default PAN_MAP mode) or right/middle-drag pans the Google Earth map
+        isPanning = true;
+        pointerDownInfo = { cx, cy, startCx: cx, startCy: cy, mapStartX: mapCenter.x, mapStartY: mapCenter.y };
+        mapCanvas.style.cursor = 'grabbing';
       });
 
       window.addEventListener('mousemove', e => {
@@ -2747,18 +3197,56 @@
 
           if (!pointerDownInfo) {
             if (dropMarkerMode) {
+              hoveredResizeHandle = null;
+              mapCanvas.style.cursor = 'crosshair';
+            } else if (activeMapTool === 'DRAW_BOX') {
+              hoveredResizeHandle = null;
               mapCanvas.style.cursor = 'crosshair';
             } else {
-              const hitDrone = findDroneAtCanvasPoint(cx, cy);
-              mapCanvas.style.cursor = hitDrone >= 0 ? 'pointer' : (activeMapTool === 'PAN_MAP' ? 'grab' : 'crosshair');
+              const handle = findSearchBoxResizeHandle(cx, cy);
+              hoveredResizeHandle = handle;
+              if (handle) {
+                mapCanvas.style.cursor = getCursorForResizeHandle(handle);
+              } else {
+                const hitDrone = findDroneAtCanvasPoint(cx, cy);
+                mapCanvas.style.cursor = hitDrone >= 0 ? 'pointer' : 'grab';
+              }
             }
           }
+        } else if (!pointerDownInfo) {
+          hoveredResizeHandle = null;
         }
 
         if (!pointerDownInfo) return;
         const cx = (e.clientX - rect.left) * (mapCanvas.width / rect.width);
         const cy = (e.clientY - rect.top) * (mapCanvas.height / rect.height);
         const [wx, wy] = canvasToWorld(cx, cy);
+
+        // Live dragging of a Drone to a new destination point or onto a target object!
+        if (draggingDroneState) {
+          const dragDistPx = Math.hypot(cx - draggingDroneState.startCx, cy - draggingDroneState.startCy);
+          if (dragDistPx > 6) {
+            draggingDroneState.moved = true;
+            draggingDroneState.targetWx = wx;
+            draggingDroneState.targetWy = wy;
+            draggingDroneState.hoverSubject = findSubjectNearWorldPoint(wx, wy, 36 / Math.max(0.15, getMapGeometry().scale));
+          }
+          return;
+        }
+
+        // Live stretching of existing Search Box edge or corner (Drones continue flying from their current positions!)
+        if (activeResizeHandle) {
+          const ob = pointerDownInfo.origBox;
+          const minSpan = 60.0;
+          let xMin = ob.xMin, xMax = ob.xMax, yMin = ob.yMin, yMax = ob.yMax;
+          if (activeResizeHandle.includes('W')) xMin = Math.min(wx, xMax - minSpan);
+          if (activeResizeHandle.includes('E')) xMax = Math.max(wx, xMin + minSpan);
+          if (activeResizeHandle.includes('N')) yMin = Math.min(wy, yMax - minSpan);
+          if (activeResizeHandle.includes('S')) yMax = Math.max(wy, yMin + minSpan);
+          searchBox = { xMin, xMax, yMin, yMax };
+          recomputeAutoMission(false, false);
+          return;
+        }
 
         if (isPanning) {
           const g = getMapGeometry();
@@ -2776,10 +3264,7 @@
             yMin: Math.min(pointerDownInfo.wy, wy),
             yMax: Math.max(pointerDownInfo.wy, wy)
           };
-          if (draftBox.xMax - draftBox.xMin > 60 && draftBox.yMax - draftBox.yMin > 60) {
-            searchBox = { ...draftBox };
-            recomputeAutoMission(false);
-          }
+          activeBoxDraftPreview = { ...draftBox };
         }
       });
 
@@ -2790,16 +3275,58 @@
         const cy = (e.clientY - rect.top) * (mapCanvas.height / rect.height);
         const dragPx = Math.hypot(cx - pointerDownInfo.startCx, cy - pointerDownInfo.startCy);
 
+        if (draggingDroneState) {
+          const ds = draggingDroneState;
+          draggingDroneState = null;
+          pointerDownInfo = null;
+          mapCanvas.style.cursor = 'grab';
+          if (ds.moved) {
+            if (ds.hoverSubject) {
+              markOrLockObjectAtWorld(ds.hoverSubject.subj.x, ds.hoverSubject.subj.y, ds.droneIdx);
+            } else {
+              sendDroneToWorldPoint(ds.droneIdx, ds.targetWx, ds.targetWy, 'Dragged Drone Pin');
+            }
+          }
+          return;
+        }
+
+        if (activeResizeHandle) {
+          const stretchedHandle = activeResizeHandle;
+          activeResizeHandle = null;
+          pointerDownInfo = null;
+          recomputeAutoMission(false, false);
+          const bw = Math.round(searchBox.xMax - searchBox.xMin);
+          const bh = Math.round(searchBox.yMax - searchBox.yMin);
+          updateAidBannerUI(`↔ Search Box Stretched (${stretchedHandle} -> ${bw}m × ${bh}m) • Drones Flying Continuously to Updated Sectors`);
+          logAndDispatchMavlinkV2(`MISSION_COUNT (#44) • Stretch Search Box (${bw}x${bh}m)`, 44, 'FD 05 00 00 09 FF BE 2C 00 00', `/api/field/upload_mission?xMin=${searchBox.xMin.toFixed(0)}&yMin=${searchBox.yMin.toFixed(0)}&xMax=${searchBox.xMax.toFixed(0)}&yMax=${searchBox.yMax.toFixed(0)}`);
+          return;
+        }
+
         if (isPanning) {
           isPanning = false;
           pointerDownInfo = null;
+          if (dragPx <= 7) {
+            const hitDroneIdx = findDroneAtCanvasPoint(cx, cy);
+            if (hitDroneIdx >= 0) {
+              selectCameraSource(`DRONE_${hitDroneIdx}`);
+            }
+          }
           mapCanvas.style.cursor = activeMapTool === 'PAN_MAP' ? 'grab' : 'crosshair';
           return;
         }
 
-        if (isBoxDragging && draftBox && (draftBox.xMax - draftBox.xMin > 60) && (draftBox.yMax - draftBox.yMin > 60)) {
+        if (isBoxDragging && draftBox && (draftBox.xMax - draftBox.xMin > 50) && (draftBox.yMax - draftBox.yMin > 50)) {
           searchBox = { ...draftBox };
-          restartCooperativeSearch();
+          activeBoxDraftPreview = null;
+          // CRITICAL: Re-task drones from their PREVIOUS airborne positions (repositionDrones = false)!
+          // Do NOT call restartCooperativeSearch() (which teleported drones)!
+          recomputeAutoMission(false, true);
+          // Automatically return to Pan & Stretch mode after drawing a new box from scratch
+          setMapTool('PAN_MAP');
+          const bw = Math.round(searchBox.xMax - searchBox.xMin);
+          const bh = Math.round(searchBox.yMax - searchBox.yMin);
+          updateAidBannerUI(`✈️ New Search Box Assigned (${bw}m × ${bh}m) • All Drones Flying From Previous Positions to New Sectors!`);
+          logAndDispatchMavlinkV2(`MISSION_COUNT (#44) • New Search Box (${bw}x${bh}m, Continuous Transit)`, 44, 'FD 05 00 00 0A FF BE 2C 00 00', `/api/field/upload_mission?xMin=${searchBox.xMin.toFixed(0)}&yMin=${searchBox.yMin.toFixed(0)}&xMax=${searchBox.xMax.toFixed(0)}&yMax=${searchBox.yMax.toFixed(0)}`);
         } else if (dragPx <= 9) {
           const hitDroneIdx = findDroneAtCanvasPoint(cx, cy);
           if (hitDroneIdx >= 0) {
@@ -2809,6 +3336,7 @@
 
         isBoxDragging = false;
         draftBox = null;
+        activeBoxDraftPreview = null;
         pointerDownInfo = null;
       });
 
@@ -2825,6 +3353,14 @@
           const rect = osdCanvas.getBoundingClientRect();
           const ux = (e.clientX - rect.left) / rect.width;
           const uy = (e.clientY - rect.top) / rect.height;
+
+          // If 1:1 Trackpad Steering is enabled on Drone Video, follow finger 1:1 immediately!
+          if (stickState.videoSteerMode) {
+            stickState.x = Math.max(-1.0, Math.min(1.0, (ux - 0.5) * 2.12));
+            stickState.y = Math.max(-1.0, Math.min(1.0, (0.5 - uy) * 2.12));
+            stickState.fingerInsidePad = true;
+          }
+
           if (selectedCameraSource === 'QUAD_4UP') {
             videoHoverWorldPt = null;
             return;
@@ -2840,6 +3376,11 @@
 
         osdCanvas.addEventListener('mouseleave', () => {
           videoHoverWorldPt = null;
+          if (stickState.videoSteerMode && !stickState.holdLatched) {
+            stickState.x = 0.0;
+            stickState.y = 0.0;
+            stickState.fingerInsidePad = false;
+          }
         });
 
         osdCanvas.addEventListener('mousedown', e => {
@@ -2860,6 +3401,12 @@
 
           if (dropMarkerMode) {
             assignDropTargetAtWorld(clickWx, clickWy);
+          } else if (activeMapTool === 'GOTO_POINT') {
+            sendDroneToWorldPoint(dIdx, clickWx, clickWy, 'Video Click Go-To Pin');
+            setMapTool('PAN_MAP');
+          } else if (activeMapTool === 'TRACK_OBJECT') {
+            markOrLockObjectAtWorld(clickWx, clickWy, dIdx);
+            setMapTool('PAN_MAP');
           }
         });
 
@@ -2868,7 +3415,215 @@
           adjustOsdZoom(e.deltaY < 0 ? 0.4 : -0.4);
         }, { passive: false });
       }
+
+      // 1:1 Direct Finger-Follow Trackpad Steering Pad & Keyboard Listeners
+      const padCanvas = document.getElementById('trackpadSteerCanvas');
+      if (padCanvas) {
+        const updateStickFromPadEvent = (clientX, clientY) => {
+          const rect = padCanvas.getBoundingClientRect();
+          // Plot region inside the 280x164 canvas:
+          // Left 2D Stick Box: x=[10..226], y=[10..130] (Bottom bar at y=[136..154], Right Y bar at x=[234..254])
+          const cx = (clientX - rect.left) * (padCanvas.width / Math.max(1, rect.width));
+          const cy = (clientY - rect.top) * (padCanvas.height / Math.max(1, rect.height));
+          const boxX0 = 12, boxX1 = 224, boxY0 = 10, boxY1 = 128;
+          const normX = ((cx - (boxX0 + boxX1) * 0.5) / ((boxX1 - boxX0) * 0.5));
+          const normY = (((boxY0 + boxY1) * 0.5 - cy) / ((boxY1 - boxY0) * 0.5));
+          stickState.x = Math.max(-1.0, Math.min(1.0, normX));
+          stickState.y = Math.max(-1.0, Math.min(1.0, normY));
+          stickState.fingerInsidePad = true;
+        };
+
+        padCanvas.addEventListener('mousemove', e => {
+          updateStickFromPadEvent(e.clientX, e.clientY);
+        });
+        padCanvas.addEventListener('mousedown', e => {
+          e.preventDefault();
+          stickState.holdLatched = !stickState.holdLatched;
+          updateStickFromPadEvent(e.clientX, e.clientY);
+        });
+        padCanvas.addEventListener('mouseleave', () => {
+          if (!stickState.holdLatched) {
+            stickState.x = 0.0;
+            stickState.y = 0.0;
+            stickState.fingerInsidePad = false;
+          }
+        });
+        padCanvas.addEventListener('touchmove', e => {
+          if (e.touches && e.touches.length > 0) {
+            e.preventDefault();
+            updateStickFromPadEvent(e.touches[0].clientX, e.touches[0].clientY);
+          }
+        }, { passive: false });
+        padCanvas.addEventListener('touchend', () => {
+          if (!stickState.holdLatched) {
+            stickState.x = 0.0;
+            stickState.y = 0.0;
+            stickState.fingerInsidePad = false;
+          }
+        });
+      }
+
+      window.addEventListener('keydown', e => {
+        const tag = (e.target && e.target.tagName) ? e.target.tagName.toUpperCase() : '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) {
+          stickState.keysDown[e.code] = true;
+        }
+      });
+      window.addEventListener('keyup', e => {
+        delete stickState.keysDown[e.code];
+      });
     })();
+
+    function renderTrackpadSteerBoundsCanvas() {
+      const padCanvas = document.getElementById('trackpadSteerCanvas');
+      if (!padCanvas) return;
+      const ctx = padCanvas.getContext('2d');
+      const W = padCanvas.width, H = padCanvas.height;
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = '#090b10';
+      ctx.fillRect(0, 0, W, H);
+
+      // 2D Bounds Box: x=[12..224], y=[10..128]
+      const bx0 = 12, bx1 = 224, by0 = 10, by1 = 128;
+      const bw = bx1 - bx0, bh = by1 - by0;
+      const bcx = (bx0 + bx1) * 0.5, bcy = (by0 + by1) * 0.5;
+
+      // Subtle grid + 50% and 100% bounds rings
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(bx0 + bw * 0.25, by0 + bh * 0.25, bw * 0.5, bh * 0.5);
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+      ctx.beginPath();
+      ctx.moveTo(bx0, bcy); ctx.lineTo(bx1, bcy);
+      ctx.moveTo(bcx, by0); ctx.lineTo(bcx, by1);
+      ctx.stroke();
+
+      const sx = bcx + stickState.x * (bw * 0.5);
+      const sy = bcy - stickState.y * (bh * 0.5);
+      const isDeflected = Math.hypot(stickState.x, stickState.y) > 0.025;
+
+      // Outer 100% Bounds Frame
+      ctx.strokeStyle = isDeflected ? '#38bdf8' : 'rgba(255, 255, 255, 0.32)';
+      ctx.lineWidth = 1.6;
+      ctx.strokeRect(bx0, by0, bw, bh);
+
+      // Corner Bound Labels inside 2D box
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.48)';
+      ctx.font = '600 8.5px -apple-system, BlinkMacSystemFont, "SF Mono", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText('BOUND -100% X / +100% Y (NW)', bx0 + 4, by0 + 10);
+      ctx.textAlign = 'right';
+      ctx.fillText('+100% X / -100% Y (SE)', bx1 - 4, by1 - 4);
+
+      // Horizontal X-Axis vs. Bounds Bar at bottom: x=[12..224], y=[136..152]
+      const xBarY = 136, xBarH = 15;
+      ctx.fillStyle = '#131722';
+      ctx.fillRect(bx0, xBarY, bw, xBarH);
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.55)';
+      ctx.lineWidth = 1.2;
+      ctx.strokeRect(bx0, xBarY, bw, xBarH);
+
+      // Fill X-Axis bar from center (bcx) to sx
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.42)';
+      ctx.fillRect(Math.min(bcx, sx), xBarY + 1, Math.abs(sx - bcx), xBarH - 2);
+      // X-Axis center tick & stick marker
+      ctx.strokeStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(bcx, xBarY); ctx.lineTo(bcx, xBarY + xBarH);
+      ctx.stroke();
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(sx - 2.5, xBarY - 1, 5, xBarH + 2);
+
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = '700 8.5px "SF Mono", Menlo, monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText('-100%', bx0 + 3, xBarY + 10.5);
+      ctx.textAlign = 'center';
+      ctx.fillText(`X AXIS: ${stickState.x >= 0 ? '+' : ''}${Math.round(stickState.x * 100)}%`, bcx, xBarY + 10.5);
+      ctx.textAlign = 'right';
+      ctx.fillText('+100%', bx1 - 3, xBarY + 10.5);
+
+      // Vertical Y-Axis vs. Bounds Bar on right: x=[234..268], y=[10..128]
+      const yBarX = 234, yBarW = 34;
+      ctx.fillStyle = '#131722';
+      ctx.fillRect(yBarX, by0, yBarW, bh);
+      ctx.strokeStyle = 'rgba(48, 209, 88, 0.55)';
+      ctx.lineWidth = 1.2;
+      ctx.strokeRect(yBarX, by0, yBarW, bh);
+
+      // Fill Y-Axis bar from center (bcy) to sy
+      ctx.fillStyle = 'rgba(48, 209, 88, 0.38)';
+      ctx.fillRect(yBarX + 1, Math.min(bcy, sy), yBarW - 2, Math.abs(sy - bcy));
+      ctx.strokeStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(yBarX, bcy); ctx.lineTo(yBarX + yBarW, bcy);
+      ctx.stroke();
+      ctx.fillStyle = '#30d158';
+      ctx.fillRect(yBarX - 1, sy - 2.5, yBarW + 2, 5);
+
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = '700 8px "SF Mono", Menlo, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('+100%', yBarX + yBarW * 0.5, by0 + 9);
+      ctx.fillText(`Y:${stickState.y >= 0 ? '+' : ''}${Math.round(stickState.y * 100)}%`, yBarX + yBarW * 0.5, bcy + 3);
+      ctx.fillText('-100%', yBarX + yBarW * 0.5, by1 - 3);
+
+      // Dashed X & Y Projection Lines from Stick Dot to the X-Axis and Y-Axis Bounds Bars!
+      ctx.save();
+      ctx.setLineDash([3, 3]);
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 1.3;
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(sx, xBarY);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#30d158';
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(yBarX, sy);
+      ctx.stroke();
+      ctx.restore();
+
+      // Vector line from center (0,0) to Stick Dot (sx, sy)
+      ctx.strokeStyle = isDeflected ? '#ffd60a' : 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(bcx, bcy);
+      ctx.lineTo(sx, sy);
+      ctx.stroke();
+
+      // Stick Thumb Dot
+      ctx.fillStyle = isDeflected ? '#ffd60a' : '#38bdf8';
+      ctx.beginPath();
+      ctx.arc(sx, sy, 7.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2.0;
+      ctx.stroke();
+
+      const lblReadout = document.getElementById('lblStickAxisReadout');
+      if (lblReadout) {
+        const xp = Math.round(stickState.x * 100);
+        const yp = Math.round(stickState.y * 100);
+        lblReadout.textContent = `X: ${xp >= 0 ? '+' : ''}${xp}% [-100..+100]  •  Y: ${yp >= 0 ? '+' : ''}${yp}% [-100..+100]`;
+      }
+      const badge = document.getElementById('badgeStickState');
+      if (badge) {
+        const activeDIdx = selectedCameraSource === 'QUAD_4UP' ? 0 : (parseInt(selectedCameraSource.replace('DRONE_', ''), 10) || 0);
+        if (isDeflected) {
+          badge.textContent = `🕹️ Steering D${activeDIdx + 1} (${stickState.holdLatched ? 'Hold Locked' : '1:1 Live'})`;
+          badge.style.background = 'rgba(48, 209, 88, 0.22)';
+          badge.style.color = '#4ade80';
+        } else {
+          badge.textContent = `1:1 Finger Follow (${ drones[activeDIdx].shortName })`;
+          badge.style.background = 'rgba(10, 132, 255, 0.18)';
+          badge.style.color = '#70b7ff';
+        }
+      }
+    }
 
     restartCooperativeSearch();
 
@@ -2879,42 +3634,104 @@
       requestAnimationFrame(renderLoop);
       resizeCanvases();
       const dtScale = simRunning ? simSpeed : 0.0;
+      const gCur = getMapGeometry();
+      const viewAdaptiveStepM = Math.max(0.75, 1.45 / Math.max(0.002, gCur.scale)) * dtScale;
+
+      // Keyboard WASD / Arrow Keys update stickState if finger is not currently inside the pad
+      const k = stickState.keysDown;
+      const keyX = ((k.ArrowRight || k.KeyD) ? 1 : 0) - ((k.ArrowLeft || k.KeyA) ? 1 : 0);
+      const keyY = ((k.ArrowUp || k.KeyW) ? 1 : 0) - ((k.ArrowDown || k.KeyS) ? 1 : 0);
+      if (keyX !== 0 || keyY !== 0) {
+        stickState.x = keyX;
+        stickState.y = keyY;
+      } else if (!stickState.fingerInsidePad && !stickState.holdLatched) {
+        stickState.x = 0.0;
+        stickState.y = 0.0;
+      }
+      renderTrackpadSteerBoundsCanvas();
+
+      // Apply 1:1 Direct Trackpad Stick Steering to the currently selected drone!
+      const steeredDroneIdx = selectedCameraSource === 'QUAD_4UP' ? 0 : (parseInt(selectedCameraSource.replace('DRONE_', ''), 10) || 0);
+      if (Math.hypot(stickState.x, stickState.y) > 0.03) {
+        const sd = drones[steeredDroneIdx] || drones[0];
+        const manualStep = Math.max(1.1, 2.2 / Math.max(0.002, gCur.scale)) * Math.max(0.5, dtScale || 1.0);
+        sd.x += stickState.x * manualStep;
+        sd.y -= stickState.y * manualStep; // +Y stick is North (Up = -Y in world)
+        sd.customGoal = null;
+        if (Math.hypot(sd.x - (sd.trail[sd.trail.length - 1]?.x || sd.x), sd.y - (sd.trail[sd.trail.length - 1]?.y || sd.y)) > 8.0) {
+          sd.trail.push({ x: sd.x, y: sd.y });
+          if (sd.trail.length > 50) sd.trail.shift();
+        }
+      }
 
       if (targetLockActive && dtScale > 0) {
-        const subj = guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson;
+        const subj = guidedTargetType === 'CUSTOM_OBJECT' && customTrackedObject
+          ? customTrackedObject
+          : (guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson);
         const dest = guidedTargetType === 'VEHICLE' ? PLOWED_ROADHEAD : AUTIOTUPA_HUT;
         const dx = dest.x - subj.x;
         const dy = dest.y - subj.y;
         const dist = Math.hypot(dx, dy);
-        if (dist > 10.0) {
+        if (dist > 10.0 && guidedTargetType !== 'CUSTOM_OBJECT') {
           const spd = guidedTargetType === 'VEHICLE' ? 0.16 : 0.08;
           subj.x += (dx / dist) * spd * dtScale;
           subj.y += (dy / dist) * spd * dtScale;
-        } else {
+        } else if (dist <= 10.0 && guidedTargetType !== 'CUSTOM_OBJECT') {
           subj.arrived = true;
+          // Playbook Rule: When escorted subject reaches shelter/roadhead, release target lock and return to 4-sector scan!
+          if (aidState.mode === 'OFFLINE_DETERMINISTIC' || aidState.mode === 'CLOUD_LLM_JEV') {
+            cancelTargetAssignment(false);
+            updateAidBannerUI(`✓ JEV SHELTER ARRIVAL: ${subj.label} Safe at ${dest.name} -> All 4 Drones Scanning Sectors`);
+          }
         }
       }
 
-      const activeSubj = guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson;
+      const activeSubj = (guidedTargetType === 'CUSTOM_OBJECT' && customTrackedObject)
+        ? customTrackedObject
+        : (guidedTargetType === 'VEHICLE' ? lostVehicle : lostPerson);
       const activeDest = guidedTargetType === 'VEHICLE' ? PLOWED_ROADHEAD : AUTIOTUPA_HUT;
 
       let allSectorsDone = true;
       drones.forEach((d, idx) => {
-        if (dtScale > 0) {
-          if (idx === 0 && payloadState.status === 'EN_ROUTE_PENDING') {
+        const isBeingManuallySteered = (idx === steeredDroneIdx && Math.hypot(stickState.x, stickState.y) > 0.03);
+        if (dtScale > 0 && !isBeingManuallySteered) {
+          if (d.role === 'CUSTOM_GOTO' && d.customGoal) {
+            const dx = d.customGoal.x - d.x;
+            const dy = d.customGoal.y - d.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist > 3.0) {
+              const step = Math.min(dist, viewAdaptiveStepM * 1.25);
+              d.x += (dx / dist) * step;
+              d.y += (dy / dist) * step;
+            } else {
+              d.x = d.customGoal.x;
+              d.y = d.customGoal.y;
+              d.sectorName = 'Holding at Pin';
+            }
+          } else if (idx === 0 && payloadState.status === 'EN_ROUTE_PENDING') {
             const dx = payloadState.targetX - d.x;
             const dy = payloadState.targetY - d.y;
             const dist = Math.hypot(dx, dy);
             if (dist > 5.0) {
-              d.x += (dx / dist) * 0.75 * dtScale;
-              d.y += (dy / dist) * 0.75 * dtScale;
+              const step = Math.min(dist, viewAdaptiveStepM * 1.15);
+              d.x += (dx / dist) * step;
+              d.y += (dy / dist) * step;
+            } else if ((aidState.mode === 'OFFLINE_DETERMINISTIC' || aidState.mode === 'CLOUD_LLM_JEV') && aidState.compiled.autoReleaseDrop && !aidState.compiled.requireHumanDropConfirm && !aidState.dropVetoLatched) {
+              executeImmediateDrop(false);
             }
             updateTargetAndDropUI();
           } else if (d.role === 'PRIORITY_FOLLOW') {
             const gx = activeSubj.x - 14;
             const gy = activeSubj.y - 6;
-            d.x += (gx - d.x) * Math.min(0.25, 0.06 * dtScale);
-            d.y += (gy - d.y) * Math.min(0.25, 0.06 * dtScale);
+            const dx = gx - d.x;
+            const dy = gy - d.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist > 1.5) {
+              // Fly at realistic bounded speed from previous position (NEVER teleport/snap!)
+              const step = Math.min(dist, viewAdaptiveStepM * 1.15);
+              d.x += (dx / dist) * step;
+              d.y += (dy / dist) * step;
+            }
           } else if (d.role === 'SHROUD_MAPPER' && d.waypoints && d.waypoints.length > 0) {
             if (!d.sectorDone) {
               allSectorsDone = false;
@@ -2922,8 +3739,12 @@
               const dx = wp.x - d.x;
               const dy = wp.y - d.y;
               const dist = Math.hypot(dx, dy);
-              if (dist < 3.5) {
+              const arriveTol = Math.max(3.5, viewAdaptiveStepM * 1.15);
+              if (dist <= arriveTol) {
+                d.x = wp.x;
+                d.y = wp.y;
                 d.trail.push({ x: wp.x, y: wp.y });
+                if (d.trail.length > 50) d.trail.shift();
                 if (d.wpIdx + 1 < d.waypoints.length) {
                   d.wpIdx++;
                 } else {
@@ -2931,14 +3752,15 @@
                   updateCameraSwitcherLabels();
                 }
               } else {
-                d.x += (dx / dist) * 0.68 * dtScale;
-                d.y += (dy / dist) * 0.68 * dtScale;
+                const step = Math.min(dist, viewAdaptiveStepM);
+                d.x += (dx / dist) * step;
+                d.y += (dy / dist) * step;
               }
             }
           }
         }
 
-        if (Math.hypot(d.x - d.lastStampX, d.y - d.lastStampY) >= 4.0) {
+        if (Math.hypot(d.x - d.lastStampX, d.y - d.lastStampY) >= Math.max(4.0, d.radius * 0.12)) {
           d.lastStampX = d.x;
           d.lastStampY = d.y;
           markCircleExplored(d.x, d.y, d.radius);
@@ -3004,40 +3826,104 @@
           mapCtx.setLineDash([]);
           mapCtx.restore();
 
-          if (sw > 70) {
+          if (sw > 64) {
             const d = drones[sec.droneIdx];
-            const statusStr = d.sectorDone ? `${sec.label} ✓ Done` : `${sec.label}`;
+            const statusStr = d.sectorDone ? `${sec.label} ✓` : `${sec.label}`;
             mapCtx.save();
-            mapCtx.font = '600 11px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
-            const tw = Math.min(sw - 6, Math.ceil(mapCtx.measureText(statusStr).width) + 14);
+            mapCtx.font = '600 10.5px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+            const tw = Math.min(sw - 6, Math.ceil(mapCtx.measureText(statusStr).width) + 12);
             const tx = sx0 + (sw - tw) * 0.5;
             const ty = sy0 + 6;
             mapCtx.fillStyle = 'rgba(15, 16, 22, 0.88)';
             mapCtx.beginPath();
-            mapCtx.roundRect(tx, ty, tw, 19, 5);
+            mapCtx.roundRect(tx, ty, tw, 18, 5);
             mapCtx.fill();
             mapCtx.strokeStyle = sec.color;
             mapCtx.lineWidth = 1.2;
             mapCtx.stroke();
             mapCtx.fillStyle = '#ffffff';
             mapCtx.textAlign = 'center';
-            mapCtx.fillText(statusStr, sx0 + sw * 0.5, ty + 13.5);
+            mapCtx.fillText(statusStr, sx0 + sw * 0.5, ty + 13);
             mapCtx.restore();
           }
         });
 
+        // Draw Search Box Outer Border + 8 Interactive Stretch/Resize Handles (4 Corners + 4 Edges)
         mapCtx.save();
-        mapCtx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
-        mapCtx.lineWidth = 2;
+        mapCtx.strokeStyle = hoveredResizeHandle ? '#38bdf8' : 'rgba(255, 255, 255, 0.72)';
+        mapCtx.lineWidth = hoveredResizeHandle ? 2.6 : 2.0;
         mapCtx.strokeRect(bx0, by0, bx1 - bx0, by1 - by0);
+
+        const xL = Math.min(bx0, bx1), xR = Math.max(bx0, bx1);
+        const yT = Math.min(by0, by1), yB = Math.max(by0, by1);
+        const xM = (xL + xR) * 0.5, yM = (yT + yB) * 0.5;
+
+        const handleSpecs = [
+          { id: 'NW', x: xL, y: yT, w: 9,  h: 9  },
+          { id: 'NE', x: xR, y: yT, w: 9,  h: 9  },
+          { id: 'SW', x: xL, y: yB, w: 9,  h: 9  },
+          { id: 'SE', x: xR, y: yB, w: 9,  h: 9  },
+          { id: 'N',  x: xM, y: yT, w: 18, h: 6  },
+          { id: 'S',  x: xM, y: yB, w: 18, h: 6  },
+          { id: 'W',  x: xL, y: yM, w: 6,  h: 18 },
+          { id: 'E',  x: xR, y: yM, w: 6,  h: 18 }
+        ];
+        handleSpecs.forEach(h => {
+          const isHov = (hoveredResizeHandle === h.id);
+          mapCtx.fillStyle = isHov ? '#38bdf8' : '#ffffff';
+          mapCtx.strokeStyle = isHov ? '#ffffff' : '#0a84ff';
+          mapCtx.lineWidth = 1.6;
+          mapCtx.beginPath();
+          mapCtx.roundRect(h.x - h.w * 0.5, h.y - h.h * 0.5, h.w, h.h, 2.5);
+          mapCtx.fill();
+          mapCtx.stroke();
+        });
+
+        // If operator is currently dragging a brand-new box from scratch (in 'DRAW_BOX' mode), render live draft preview!
+        if (activeBoxDraftPreview) {
+          const [dx0, dy0] = worldToCanvas(activeBoxDraftPreview.xMin, activeBoxDraftPreview.yMin);
+          const [dx1, dy1] = worldToCanvas(activeBoxDraftPreview.xMax, activeBoxDraftPreview.yMax);
+          mapCtx.strokeStyle = '#38bdf8';
+          mapCtx.fillStyle = 'rgba(56, 189, 248, 0.14)';
+          mapCtx.lineWidth = 2.2;
+          mapCtx.setLineDash([6, 4]);
+          mapCtx.fillRect(dx0, dy0, dx1 - dx0, dy1 - dy0);
+          mapCtx.strokeRect(dx0, dy0, dx1 - dx0, dy1 - dy0);
+          mapCtx.setLineDash([]);
+          const dwM = Math.round(activeBoxDraftPreview.xMax - activeBoxDraftPreview.xMin);
+          const dhM = Math.round(activeBoxDraftPreview.yMax - activeBoxDraftPreview.yMin);
+          const dTxt = `📐 New Search Area: ${dwM} m × ${dhM} m (Drones will fly here from current positions)`;
+          mapCtx.font = '600 11px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+          const dtw = Math.ceil(mapCtx.measureText(dTxt).width) + 14;
+          mapCtx.fillStyle = 'rgba(10, 132, 255, 0.94)';
+          mapCtx.beginPath();
+          mapCtx.roundRect((dx0 + dx1 - dtw) * 0.5, Math.min(dy0, dy1) - 24, dtw, 19, 5);
+          mapCtx.fill();
+          mapCtx.fillStyle = '#ffffff';
+          mapCtx.textAlign = 'center';
+          mapCtx.fillText(dTxt, (dx0 + dx1) * 0.5, Math.min(dy0, dy1) - 11);
+        }
         mapCtx.restore();
 
-        // Draw Each Mapping Drone's Completed Path (Solid) & Upcoming Path (Dashed)
+        // Draw Each Drone's Completed Path (Solid), Upcoming Sector Path (Dashed), and Transit Vector from Previous Position!
         drones.forEach(d => {
-          if (d.role === 'SHROUD_MAPPER' && d.waypoints && d.waypoints.length > 1) {
-            mapCtx.save();
+          mapCtx.save();
+          if (d.trail && d.trail.length > 0) {
             mapCtx.strokeStyle = d.color;
-            mapCtx.globalAlpha = 0.45;
+            mapCtx.globalAlpha = 0.85;
+            mapCtx.lineWidth = 2.2;
+            mapCtx.beginPath();
+            d.trail.forEach((pt, i) => {
+              const [tx, ty] = worldToCanvas(pt.x, pt.y);
+              if (i === 0) mapCtx.moveTo(tx, ty); else mapCtx.lineTo(tx, ty);
+            });
+            mapCtx.lineTo(...worldToCanvas(d.x, d.y));
+            mapCtx.stroke();
+          }
+
+          if (d.role === 'SHROUD_MAPPER' && d.waypoints && d.waypoints.length > 0) {
+            mapCtx.strokeStyle = d.color;
+            mapCtx.globalAlpha = 0.52;
             mapCtx.lineWidth = 1.8;
             mapCtx.setLineDash([5, 5]);
             mapCtx.beginPath();
@@ -3047,27 +3933,102 @@
             }
             mapCtx.stroke();
             mapCtx.setLineDash([]);
-
-            if (d.trail && d.trail.length > 0) {
-              mapCtx.globalAlpha = 0.85;
-              mapCtx.lineWidth = 2.2;
+          } else if (d.role === 'PRIORITY_FOLLOW') {
+            const gx = activeSubj.x - 14, gy = activeSubj.y - 6;
+            if (Math.hypot(gx - d.x, gy - d.y) > 22) {
+              mapCtx.strokeStyle = d.color;
+              mapCtx.globalAlpha = 0.78;
+              mapCtx.lineWidth = 2.0;
+              mapCtx.setLineDash([6, 4]);
               mapCtx.beginPath();
-              d.trail.forEach((pt, i) => {
-                const [tx, ty] = worldToCanvas(pt.x, pt.y);
-                if (i === 0) mapCtx.moveTo(tx, ty); else mapCtx.lineTo(tx, ty);
-              });
-              mapCtx.lineTo(...worldToCanvas(d.x, d.y));
+              mapCtx.moveTo(...worldToCanvas(d.x, d.y));
+              mapCtx.lineTo(...worldToCanvas(gx, gy));
               mapCtx.stroke();
+              mapCtx.setLineDash([]);
             }
+          } else if (d.role === 'CUSTOM_GOTO' && d.customGoal) {
+            const [gx, gy] = worldToCanvas(d.customGoal.x, d.customGoal.y);
+            mapCtx.strokeStyle = d.color;
+            mapCtx.globalAlpha = 0.88;
+            mapCtx.lineWidth = 2.2;
+            mapCtx.setLineDash([6, 4]);
+            mapCtx.beginPath();
+            mapCtx.moveTo(...worldToCanvas(d.x, d.y));
+            mapCtx.lineTo(gx, gy);
+            mapCtx.stroke();
+            mapCtx.setLineDash([]);
+
+            mapCtx.fillStyle = d.color;
+            mapCtx.beginPath();
+            mapCtx.arc(gx, gy, 6.5, 0, Math.PI * 2);
+            mapCtx.fill();
+            mapCtx.strokeStyle = '#ffffff';
+            mapCtx.lineWidth = 1.8;
+            mapCtx.stroke();
+
+            const pinLbl = `📍 ${d.shortName} Goal`;
+            mapCtx.font = '600 10.5px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+            const ptw = Math.ceil(mapCtx.measureText(pinLbl).width) + 12;
+            mapCtx.fillStyle = 'rgba(18, 18, 24, 0.92)';
+            mapCtx.beginPath();
+            mapCtx.roundRect(gx - ptw * 0.5, gy - 25, ptw, 18, 5);
+            mapCtx.fill();
+            mapCtx.strokeStyle = d.color;
+            mapCtx.stroke();
+            mapCtx.fillStyle = '#ffffff';
+            mapCtx.textAlign = 'center';
+            mapCtx.fillText(pinLbl, gx, gy - 12);
+          }
+          mapCtx.restore();
+        });
+
+        // Live Rubber-Band Vector While Operator is Dragging a Drone to a Point or Object!
+        if (draggingDroneState && draggingDroneState.moved) {
+          const dd = drones[draggingDroneState.droneIdx];
+          if (dd) {
+            const [sx, sy] = worldToCanvas(dd.x, dd.y);
+            const [tx, ty] = worldToCanvas(draggingDroneState.targetWx, draggingDroneState.targetWy);
+            const distM = Math.round(Math.hypot(draggingDroneState.targetWx - dd.x, draggingDroneState.targetWy - dd.y));
+            const isObj = !!draggingDroneState.hoverSubject;
+            mapCtx.save();
+            mapCtx.strokeStyle = isObj ? '#ffd60a' : '#38bdf8';
+            mapCtx.lineWidth = 2.6;
+            mapCtx.setLineDash([6, 4]);
+            mapCtx.beginPath();
+            mapCtx.moveTo(sx, sy);
+            mapCtx.lineTo(tx, ty);
+            mapCtx.stroke();
+            mapCtx.setLineDash([]);
+
+            mapCtx.fillStyle = isObj ? '#ffd60a' : '#38bdf8';
+            mapCtx.beginPath();
+            mapCtx.arc(tx, ty, 8, 0, Math.PI * 2);
+            mapCtx.fill();
+            mapCtx.strokeStyle = '#ffffff';
+            mapCtx.lineWidth = 2;
+            mapCtx.stroke();
+
+            const dragTxt = isObj
+              ? `🎯 Release to Track ${draggingDroneState.hoverSubject.subj.label} with ${dd.shortName}`
+              : `📍 Release to Fly ${dd.shortName} Here (${distM} m)`;
+            mapCtx.font = '600 11px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+            const dtw = Math.ceil(mapCtx.measureText(dragTxt).width) + 14;
+            mapCtx.fillStyle = 'rgba(10, 132, 255, 0.94)';
+            mapCtx.beginPath();
+            mapCtx.roundRect(tx - dtw * 0.5, ty - 28, dtw, 19, 5);
+            mapCtx.fill();
+            mapCtx.fillStyle = '#ffffff';
+            mapCtx.textAlign = 'center';
+            mapCtx.fillText(dragTxt, tx, ty - 14.5);
             mapCtx.restore();
           }
-        });
+        }
 
         // Draw Live 100% Brightness Camera Cones + Exact Video Footprint Box for Selected Drone
         drones.forEach((d, idx) => {
           const isSelected = (selectedCameraSource === `DRONE_${idx}`) || (selectedCameraSource === 'QUAD_4UP');
           const [px, py] = worldToCanvas(d.x, d.y);
-          const rPx = Math.max(14, d.radius * g.scale);
+          const rPx = Math.max(14, Math.min(44, d.radius * g.scale));
 
           mapCtx.save();
           mapCtx.beginPath();
@@ -3094,15 +4055,20 @@
             const fp = getDroneVideoFootprintWorldRect(idx, osdCanvas.width, osdCanvas.height);
             const [fx0, fy0] = worldToCanvas(fp.xMin, fp.yMin);
             const [fx1, fy1] = worldToCanvas(fp.xMax, fp.yMax);
-            mapCtx.strokeStyle = '#ffffff';
-            mapCtx.lineWidth = 1.6;
-            mapCtx.setLineDash([4, 3]);
-            mapCtx.strokeRect(fx0, fy0, fx1 - fx0, fy1 - fy0);
-            mapCtx.setLineDash([]);
+            const fwPx = Math.abs(fx1 - fx0), fhPx = Math.abs(fy1 - fy0);
+            if (fwPx >= 18 && fwPx <= W * 0.9) {
+              mapCtx.strokeStyle = '#ffffff';
+              mapCtx.lineWidth = 1.6;
+              mapCtx.setLineDash([4, 3]);
+              mapCtx.strokeRect(fx0, fy0, fx1 - fx0, fy1 - fy0);
+              mapCtx.setLineDash([]);
 
-            mapCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-            mapCtx.font = '700 9.5px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
-            mapCtx.fillText('🎥 VIEW 2 FRAME', fx0 + 4, fy0 - 4);
+              if (fwPx >= 64) {
+                mapCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                mapCtx.font = '700 9.5px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+                mapCtx.fillText('🎥 VIEW 2 FRAME', fx0 + 4, fy0 + fhPx + 11);
+              }
+            }
           }
 
           mapCtx.fillStyle = d.color;
@@ -3113,13 +4079,25 @@
           mapCtx.lineWidth = 1.6;
           mapCtx.stroke();
 
-          const taskTxt = d.sectorDone ? '✓ Done (Holding)' : d.sectorName;
+          // Check if drone is currently flying in transit from its previous position to its new sector/target
+          let inTransitDist = 0;
+          if (d.role === 'SHROUD_MAPPER' && d.waypoints && d.waypoints.length > 0 && d.wpIdx === 0) {
+            const d0 = Math.hypot(d.waypoints[0].x - d.x, d.waypoints[0].y - d.y);
+            if (d0 > d.radius * 1.15) inTransitDist = Math.round(d0);
+          } else if (d.role === 'PRIORITY_FOLLOW') {
+            const d0 = Math.hypot((activeSubj.x - 14) - d.x, (activeSubj.y - 6) - d.y);
+            if (d0 > d.radius * 1.15) inTransitDist = Math.round(d0);
+          }
+
+          const taskTxt = d.sectorDone
+            ? '✓ Done'
+            : (inTransitDist > 0 ? `✈️ En Route (${inTransitDist}m)` : d.sectorName.replace('Sector ', 'S'));
           const lbl = isSelected ? `🎥 ${d.shortName} • ${taskTxt}` : `${d.shortName} • ${taskTxt}`;
-          mapCtx.font = '600 11px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
-          const pillW = Math.ceil(mapCtx.measureText(lbl).width) + 16;
-          const pillH = 20;
+          mapCtx.font = '600 10.5px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+          const pillW = Math.ceil(mapCtx.measureText(lbl).width) + 14;
+          const pillH = 19;
           const pillX = px - pillW * 0.5;
-          const pillY = py - rPx - 24;
+          const pillY = py - rPx - 23;
 
           mapCtx.fillStyle = isSelected ? '#0a84ff' : 'rgba(18, 18, 24, 0.92)';
           mapCtx.beginPath();
@@ -3130,7 +4108,7 @@
           mapCtx.stroke();
           mapCtx.fillStyle = '#ffffff';
           mapCtx.textAlign = 'center';
-          mapCtx.fillText(lbl, px, pillY + 14);
+          mapCtx.fillText(lbl, px, pillY + 13.5);
           mapCtx.restore();
         });
 
@@ -3147,30 +4125,33 @@
           mapCtx.restore();
         }
 
-        const drawLandmark = (lm, color) => {
-          const [lx, ly] = worldToCanvas(lm.x, lm.y);
-          mapCtx.save();
-          mapCtx.font = '600 11px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
-          const tw = Math.ceil(mapCtx.measureText(lm.name).width) + 14;
-          mapCtx.fillStyle = 'rgba(18, 18, 24, 0.92)';
-          mapCtx.beginPath();
-          mapCtx.roundRect(lx - tw * 0.5, ly - 25, tw, 19, 5);
-          mapCtx.fill();
-          mapCtx.strokeStyle = color;
-          mapCtx.lineWidth = 1.3;
-          mapCtx.stroke();
-          mapCtx.fillStyle = '#ffffff';
-          mapCtx.textAlign = 'center';
-          mapCtx.fillText(lm.name, lx, ly - 12);
+        // Only draw local canyon landmark pills when zoomed in enough (g.scale >= 0.16) so they never crowd regional z=9 views
+        if (g.scale >= 0.16) {
+          const drawLandmark = (lm, color) => {
+            const [lx, ly] = worldToCanvas(lm.x, lm.y);
+            mapCtx.save();
+            mapCtx.font = '600 10.5px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+            const tw = Math.ceil(mapCtx.measureText(lm.name).width) + 14;
+            mapCtx.fillStyle = 'rgba(18, 18, 24, 0.92)';
+            mapCtx.beginPath();
+            mapCtx.roundRect(lx - tw * 0.5, ly - 24, tw, 18, 5);
+            mapCtx.fill();
+            mapCtx.strokeStyle = color;
+            mapCtx.lineWidth = 1.3;
+            mapCtx.stroke();
+            mapCtx.fillStyle = '#ffffff';
+            mapCtx.textAlign = 'center';
+            mapCtx.fillText(lm.name, lx, ly - 11.5);
 
-          mapCtx.fillStyle = color;
-          mapCtx.beginPath();
-          mapCtx.arc(lx, ly, 5, 0, Math.PI * 2);
-          mapCtx.fill();
-          mapCtx.restore();
-        };
-        drawLandmark(AUTIOTUPA_HUT, '#30d158');
-        drawLandmark(PLOWED_ROADHEAD, '#0a84ff');
+            mapCtx.fillStyle = color;
+            mapCtx.beginPath();
+            mapCtx.arc(lx, ly, 4.5, 0, Math.PI * 2);
+            mapCtx.fill();
+            mapCtx.restore();
+          };
+          drawLandmark(AUTIOTUPA_HUT, '#30d158');
+          drawLandmark(PLOWED_ROADHEAD, '#0a84ff');
+        }
 
         if (targetLockActive) {
           const [sx, sy] = worldToCanvas(activeSubj.x, activeSubj.y);
@@ -3246,6 +4227,9 @@
         };
         drawSubject(lostPerson, '#ff453a');
         drawSubject(lostVehicle, '#ff9f0a');
+        if (customTrackedObject && customTrackedObject.active) {
+          drawSubject(customTrackedObject, '#ffd60a');
+        }
       }
 
       // =====================================================================
@@ -3327,7 +4311,8 @@
         ((wy - fp.yMin) / fp.h) * H
       ];
 
-      [lostPerson, lostVehicle].forEach(subj => {
+      const subjectsInVideo = (customTrackedObject && customTrackedObject.active) ? [lostPerson, lostVehicle, customTrackedObject] : [lostPerson, lostVehicle];
+      subjectsInVideo.forEach(subj => {
         if (subj.x >= fp.xMin && subj.x <= fp.xMax && subj.y >= fp.yMin && subj.y <= fp.yMax) {
           const [vx, vy] = worldToVideoPx(subj.x, subj.y);
           const subjGrad = ctx.createRadialGradient(vx, vy, 2, vx, vy, 16);

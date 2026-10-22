@@ -37,6 +37,7 @@ def main() -> int:
     res = subprocess.run(
         [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests"],
         cwd=str(root),
+        env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
         capture_output=True,
         text=True,
     )
