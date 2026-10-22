@@ -1,0 +1,172 @@
+{
+  "schema_version": "1.0.0-finlab06-ssot",
+  "project_code": "FIN-LAB-06",
+  "project_name": "Arctic & Baltic Maritime Autonomy & Subsea Cable Watch Stack (arctic-maritime-usv)",
+  "civilian_classification": {
+    "intended_use": "100% Civilian Subsea Cable/Pipeline Route Survey, Environmental Monitoring, Harbor/Fairway Safety & Maritime Search-and-Rescue Support",
+    "boundary_split": "90% Open Civilian COTS Layer / 10% Cleared Sovereign Layer (Outside Repository)",
+    "kinetic_effectors_or_weapons": 0,
+    "chinese_bom_component_share_pct": 0.0,
+    "export_control_baseline": "EAR99 / EU Dual-Use 2021/821 Civil Survey USV (Cat 8A001/8A002 thresholds respected)"
+  },
+  "variants": {
+    "FIN_LAB_06_BENCH": {
+      "designation": "FIN-LAB-06-BENCH (Gate 1-2 Bench-Reusing Pontoon Surrogate)",
+      "role": "Immediate sheltered-water & pool validation (Steps 8.1-8.2) reusing existing in-house SAR/Trail-Cam electronics",
+      "length_oa_m": 1.20,
+      "beam_oa_m": 0.68,
+      "draft_m": 0.11,
+      "displacement_kg": 9.8,
+      "incremental_hull_cost_usd": 160.0,
+      "reused_bench_avionics": [
+        "ARK FPV / Pixhawk 6C Flight Controller (in stock)",
+        "Raspberry Pi 5 8GB + RP2350 Pico 2 (in stock)",
+        "8,000 mAh 4S2P Molicel P42A Li-Ion Pack (in stock)",
+        "FLIR Lepton 3.5 / TC001 LWIR + Sony IMX219/IMX462 Camera (in stock)",
+        "2x SF-T2 100BASE-FX 1310nm Optical Transceivers (in stock)"
+      ]
+    },
+    "FIN_LAB_06A": {
+      "designation": "FIN-LAB-06A / Prototype P8 (1.85 m Inshore & Archipelago Solar/LiFePO4 Cable-Survey Catamaran)",
+      "role": "36-hour unattended subsea cable-route & archipelago environmental survey (Gap K Prototype P8, Mission M4 Cable Watch)",
+      "length_oa_mm": 1850.0,
+      "beam_oa_mm": 920.0,
+      "demihull_beam_mm": 210.0,
+      "demihull_centerline_spacing_mm": 710.0,
+      "hull_depth_mm": 260.0,
+      "design_draft_mm": 115.0,
+      "bridge_deck_clearance_mm": 145.0,
+      "mast_height_above_deck_mm": 850.0,
+      "rm3100_aft_boom_extension_mm": 650.0,
+      "displacement_kg": 24.5,
+      "payload_capacity_kg": 6.5,
+      "max_sea_state_operational": 3,
+      "max_significant_wave_height_m": 1.25,
+      "static_heel_stability_pass_deg": 30.0,
+      "transverse_metacentric_height_gmt_m": 1.48,
+      "cruise_speed_m_s": 1.54,
+      "cruise_speed_knots": 3.0,
+      "max_dash_speed_m_s": 2.85,
+      "max_dash_speed_knots": 5.54,
+      "solar_array_wp": 180.0,
+      "battery_lifepo4_wh": 1280.0,
+      "hotel_and_sensor_load_w": 18.5,
+      "propulsion_power_at_3kn_w": 42.0,
+      "unattended_mission_endurance_h": 36.0,
+      "simulated_station_availability_pct": 84.1,
+      "cable_tracking_cep_m": 0.42,
+      "bom_cost_eur": 4650.0
+    },
+    "FIN_LAB_06B": {
+      "designation": "FIN-LAB-06B (3.60 m Offshore Self-Righting Wave-Piercing Monohull)",
+      "role": "Open Gulf of Finland & Baltic Sea persistent station-keeping in Sea State 5 & Polar Night (Charter 06 O1 >90% availability)",
+      "length_oa_mm": 3600.0,
+      "beam_oa_mm": 880.0,
+      "hull_depth_mm": 540.0,
+      "design_draft_mm": 420.0,
+      "keel_bulb_mass_kg": 58.0,
+      "displacement_kg": 145.0,
+      "max_sea_state_operational": 5,
+      "max_significant_wave_height_m": 3.20,
+      "angle_of_vanishing_stability_deg": 180.0,
+      "self_righting_roll_recovery_s": 3.2,
+      "cruise_speed_m_s": 2.06,
+      "cruise_speed_knots": 4.0,
+      "max_dash_speed_m_s": 4.12,
+      "max_dash_speed_knots": 8.0,
+      "solar_array_wp": 320.0,
+      "battery_lifepo4_wh": 2560.0,
+      "dmfc_efoy_pro_2800_continuous_w": 110.0,
+      "methanol_cartridge_m10_liters": 20.0,
+      "methanol_usable_energy_wh": 22200.0,
+      "polar_night_endurance_h": 148.9,
+      "single_hull_availability_pct": 91.4,
+      "fleet_6station_14hull_availability_pct": 96.2,
+      "cable_tracking_cep_m": 0.35,
+      "bom_cost_eur": 11850.0
+    },
+    "FIN_LAB_06C_SONDE": {
+      "designation": "FIN-LAB-06C / [P12-UUV-TETHER] (Winch-Deployed 100 m Fiber-Optic Seabed Profiling Sonde & Micro-ROV)",
+      "role": "Sub-halocline (40-80 m depth) close-proximity (1.5 m altitude) magnetic & optical/sonar cable trench inspection",
+      "body_length_mm": 520.0,
+      "body_diameter_mm": 110.0,
+      "mass_in_air_kg": 1.85,
+      "max_operating_depth_m": 100.0,
+      "tether_type": "250 um Corning SMF-28 Ultra G.657.A2 + 0.8 mm Dyneema micro-braid (100BASE-FX 1310 nm)",
+      "operating_altitude_above_cable_m": 1.5,
+      "magnetic_snr_gain_vs_40m_surface_db": 85.6,
+      "bom_cost_eur": 2150.0
+    },
+    "FIN_LAB_06D_ICESKIMMER": {
+      "designation": "FIN-LAB-06D (Amphibious Rospuutto & Fast-Ice Skimmer Sled)",
+      "role": "Winter ice-season (80-100 days/yr) archipelago transition across open leads, frazil slush, and fast ice",
+      "length_oa_mm": 1450.0,
+      "beam_oa_mm": 780.0,
+      "mass_kg": 11.5,
+      "hull_material": "CNC-routed 6 mm UHMW-PE low-friction ice runners over XPS closed-cell foam core",
+      "speed_on_ice_kmh": 48.0,
+      "speed_on_water_kmh": 14.0,
+      "bom_cost_eur": 1890.0
+    }
+  },
+  "shore_and_seabed_nodes": {
+    "P11_COAST": {
+      "designation": "[P11-COAST] Coastal Cable Landfall Watch Kit",
+      "incremental_cost_usd": 145.0,
+      "sensors": [
+        "dAISy / Dual-Channel VHF AIS Receiver (161.975 / 162.025 MHz)",
+        "Shore EO/LWIR Skerry Bearing Camera + Acconeer XM125 60 GHz Radar",
+        "100BASE-FX 1-Way Optical Diode Backhaul to Shore Fusion Hub"
+      ],
+      "dark_ship_mismatch_threshold_m": 150.0,
+      "alert_latency_s": 4.2
+    },
+    "P12_BALTIC_100": {
+      "designation": "[P12-BALTIC-100] Seabed Trench Acoustic Hydrophone Pod",
+      "incremental_cost_usd": 210.0,
+      "sensors": [
+        "Aquarian H2a-XLR / Cetacean Research CR1 Wideband Hydrophone (10 Hz - 48 kHz)",
+        "8-Harmonic 50 Hz / 100 Hz HVDC Interconnector Hum Notch Filter",
+        "PNI RM3100 3-Axis Seabed Magnetic Anomaly Trigger"
+      ],
+      "anchor_drag_detection_range_m": 3200.0,
+      "winter_100pct_fast_ice_operable": true
+    },
+    "P11_COAST_2KM": {
+      "designation": "[P11-COAST-2KM] Gimbal-Free Class-1 1550 nm Optical Strait Bridge",
+      "incremental_cost_usd": 220.0,
+      "wavelength_nm": 1550,
+      "laser_safety_class": "IEC 60825-1 Class 1 Eye-Safe (<10 mW)",
+      "beam_divergence_mrad": 18.0,
+      "range_km": 2.2,
+      "rf_sidelobe_emission_w": 0.0
+    }
+  },
+  "mass_breakdown_finlab06a_kg": {
+    "twin_demihulls_mouldless_xps_fiberglass": 6.40,
+    "crossbeams_carbon_40mm_and_bridge_deck": 2.80,
+    "lifepo4_battery_bank_1280wh_waterproof": 9.20,
+    "solar_array_180wp_marine_etfe_and_mppt": 2.10,
+    "twin_thrusters_and_esc_pod_mounts": 1.35,
+    "sonar_450khz_and_rm3100_carbon_boom": 1.15,
+    "nav_mast_gnss_ais_lte_sx1262_eo_lwir": 1.50
+  },
+  "allied_cots_bom_finlab06a_eur": {
+    "hull_xps_epoxy_glass_and_carbon_crossbeams": {"cost_eur": 620.0, "origin": "Finland / EU"},
+    "lifepo4_12v_100ah_heated_bms_pack": {"cost_eur": 480.0, "origin": "EU / Victron (NL)"},
+    "marine_etfe_solar_180wp_and_victron_mppt": {"cost_eur": 310.0, "origin": "Netherlands / EU"},
+    "twin_brushless_ip68_thrusters_and_escs": {"cost_eur": 540.0, "origin": "USA (Blue Robotics) / EU"},
+    "ark_fpv_flight_controller_and_raspberry_pi5": {"cost_eur": 460.0, "origin": "USA (ARK) / UK (Sony Pencoed)"},
+    "ublox_zed_f9p_gnss_and_pni_rm3100_mag_boom": {"cost_eur": 490.0, "origin": "Switzerland (u-blox) / USA (PNI)"},
+    "sidescan_sonar_450khz_and_transducer": {"cost_eur": 890.0, "origin": "USA / Norway / EU"},
+    "flir_lepton_lwir_sony_starvis_and_xm125_radar": {"cost_eur": 440.0, "origin": "USA (FLIR) / Japan (Sony) / Sweden (Acconeer)"},
+    "class_b_ais_transceiver_and_sx1262_lte_comms": {"cost_eur": 420.0, "origin": "UK / Switzerland / EU"}
+  },
+  "p8_sea_trial_ladder": [
+    {"step": "8.1", "name": "Pool float, trim & 30 deg heel check", "location": "Pool or test tank", "criterion": "Level trim; positive righting moment >= 30 deg heel"},
+    {"step": "8.2", "name": "Harbour handling & line-keeping", "location": "Sheltered harbour", "criterion": "Cross-track error <= 1.0 m; station-keeping within 2.0 m"},
+    {"step": "8.3", "name": "Sensor calibration over known cable", "location": "Sheltered bay", "criterion": "Magnetic + sonar cable position <= 0.50 m of as-laid chart"},
+    {"step": "8.4", "name": "8-hour coastal archipelago autonomy", "location": "Coastal archipelago", "criterion": "Completes lawnmower survey lines; auto-RTH on low battery"},
+    {"step": "8.5", "name": "36-hour Gulf of Finland cable-route trial (Mission M4)", "location": "Gulf of Finland cable corridor with safety boat", "criterion": ">75% availability (84.1% sim); 0.42 m CEP; 0 AIS/COLREGs conflicts"}
+  ]
+}
