@@ -643,12 +643,12 @@
     display: none;
   }
   .gauge-sub {
-    font-size: 9px;
+    font-size: 8.5px;
+    letter-spacing: -0.15px;
     color: #d0e2ff;
     font-family: "SF Mono", "SFMono-Regular", Consolas, monospace;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
     text-align: left;
     margin-top: 2px;
     padding-top: 2px;
@@ -4829,9 +4829,10 @@ function drawEnvelopeGauge(canvasId, subId, opts) {
   ctx.lineWidth = 1.0;
   ctx.strokeRect(barX, barY, barW, barH);
 
-  // Envelope Limit Tick Marks & Labels below bar
+  // Envelope Limit Tick Marks & Anti-Collision Labels below bar
   if (Array.isArray(opts.ticks)) {
     ctx.font = "600 7.5px 'SF Mono', SFMono-Regular, Consolas, monospace";
+    const placedLabels = [];
     opts.ticks.forEach(tk => {
       const tf = Math.max(0.0, Math.min(1.0, (tk.v - minV) / span));
       const tx = barX + tf * barW;
@@ -4842,10 +4843,38 @@ function drawEnvelopeGauge(canvasId, subId, opts) {
       ctx.lineTo(tx, barY + barH + 2);
       ctx.stroke();
       if (tk.label) {
-        ctx.fillStyle = tk.color || "#9cb3d1";
-        ctx.textAlign = tf < 0.16 ? "left" : (tf > 0.84 ? "right" : "center");
-        ctx.fillText(tk.label, tx, barY + barH + 10);
+        const lw = ctx.measureText(tk.label).width;
+        let lx = tx - lw * 0.5;
+        if (lx < barX) lx = barX;
+        if (lx + lw > barX + barW) lx = barX + barW - lw;
+        placedLabels.push({ label: tk.label, color: tk.color || "#9cb3d1", x: lx, w: lw });
       }
+    });
+    // Forward & backward de-confliction pass (guarantees >= 5px separation)
+    for (let k = 1; k < placedLabels.length; k++) {
+      const prev = placedLabels[k - 1];
+      const cur  = placedLabels[k];
+      if (cur.x < prev.x + prev.w + 5) {
+        cur.x = prev.x + prev.w + 5;
+      }
+    }
+    if (placedLabels.length > 0) {
+      const last = placedLabels[placedLabels.length - 1];
+      if (last.x + last.w > barX + barW) {
+        last.x = barX + barW - last.w;
+      }
+      for (let k = placedLabels.length - 2; k >= 0; k--) {
+        const next = placedLabels[k + 1];
+        const cur  = placedLabels[k];
+        if (cur.x + cur.w + 5 > next.x) {
+          cur.x = Math.max(barX, next.x - cur.w - 5);
+        }
+      }
+    }
+    ctx.textAlign = "left";
+    placedLabels.forEach(pl => {
+      ctx.fillStyle = pl.color;
+      ctx.fillText(pl.label, pl.x, barY + barH + 10);
     });
   }
 
@@ -5017,13 +5046,13 @@ function updateUIForSample(idx) {
       { from: 220, to: 280, color: "#38bdf8" }  // High Relay Band
     ],
     ticks: [
-      { v: 25,  label: "25m Floor", color: "#ff6961" },
-      { v: 65,  label: "65m Drop",  color: "#ffd60a" },
-      { v: 220, label: "220m",      color: "#30d158" }
+      { v: 25,  label: "25m Min",  color: "#ff6961" },
+      { v: 65,  label: "65m Drop", color: "#ffd60a" },
+      { v: 220, label: "220m",     color: "#30d158" }
     ],
     footerText: ttiSec !== null && ttiSec < 12.0
-      ? `⚠️ Impact in ${ttiSec.toFixed(1)}s • Pull Up Now!`
-      : (inTerminalPhase ? `Touchdown/Rollout Envelope (VSI ${curVsi.toFixed(1)} m/s)` : `Floor Margin ${altMarginM >= 0 ? "+" : ""}${altMarginM.toFixed(0)}m (Min 25m Trees)`)
+      ? `▲ PULL UP! Impact ${ttiSec.toFixed(1)}s`
+      : (inTerminalPhase ? `✔ Rollout (VSI ${curVsi.toFixed(1)} m/s)` : `✔ +${altMarginM.toFixed(0)}m Above 25m Floor`)
   });
 
   // 2. AIRSPEED (IAS/TAS) vs. STALL (Vs) & Vne OPERATING ENVELOPE (60..420 km/h)
@@ -5033,9 +5062,9 @@ function updateUIForSample(idx) {
   const spdLevel = (!inTerminalPhase && (curSpdKmh < curStallKmh + 4 || curSpdKmh > vneKmh))
     ? "DANGER"
     : ((!inTerminalPhase && (curSpdKmh < curStallKmh * 1.25 || curSpdKmh > vnoKmh)) ? "WARN" : "SAFE");
-  const spdBadge = (!inTerminalPhase && curSpdKmh < curStallKmh + 4)
-    ? "STALL!"
-    : (curSpdKmh > vneKmh ? "OVERSPEED!" : (spdLevel === "WARN" ? "CAUTION" : "SAFE ENV"));
+  const spdBadge = inTerminalPhase
+    ? "ROLLOUT"
+    : (curSpdKmh < curStallKmh + 4 ? "STALL!" : (curSpdKmh > vneKmh ? "OVERSPD!" : (spdLevel === "WARN" ? "CAUTION" : "SAFE ENV")));
   drawEnvelopeGauge("gaugeSpeed", "gsubSpeed", {
     title: "AIRSPEED TAS",
     badge: spdBadge,
@@ -5056,12 +5085,11 @@ function updateUIForSample(idx) {
     ticks: [
       { v: curStallKmh, label: `Vs ${curStallKmh.toFixed(0)}`, color: "#ff6961" },
       { v: 185,         label: "Va 185",                       color: "#ffffff" },
-      { v: 330,         label: "Vno 330",                      color: "#30d158" },
-      { v: 396,         label: "Vne",                          color: "#ff6961" }
+      { v: 396,         label: "Vne 396",                      color: "#ff6961" }
     ],
-    footerText: stallMarginKmh < 15 && !inTerminalPhase
-      ? `🚨 +${stallMarginKmh.toFixed(0)} km/h above Stall • Add Thrust!`
-      : `Stall Margin +${Math.max(0, stallMarginKmh).toFixed(0)} km/h (Vs ${curStallKmh.toFixed(0)} / Vne 396)`
+    footerText: inTerminalPhase
+      ? `✔ Chute / Skid Rollout`
+      : (stallMarginKmh < 15 ? `▲ +${stallMarginKmh.toFixed(0)} km/h Stall • Add Thr` : `✔ +${Math.max(0, stallMarginKmh).toFixed(0)} km/h Above Vs ${curStallKmh.toFixed(0)}`)
   });
 
   // 3. ANGLE OF ATTACK (α AoA) & STRUCTURAL G-LOAD ENVELOPE (-6° .. +18°)
@@ -5088,13 +5116,13 @@ function updateUIForSample(idx) {
       { from: curStallAlpha, to: 18.0,          color: "#ff453a" }  // Full Stall Departure
     ],
     ticks: [
-      { v: 0.0,           label: "0°",                           color: "#9cb3d1" },
-      { v: 9.5,           label: "Buffet 9.5°",                  color: "#ffd60a" },
-      { v: curStallAlpha, label: `Stall ${curStallAlpha.toFixed(1)}°`, color: "#ff6961" }
+      { v: 0.0,           label: "0°",                         color: "#9cb3d1" },
+      { v: 9.5,           label: "9.5° Buf",                   color: "#ffd60a" },
+      { v: curStallAlpha, label: `${curStallAlpha.toFixed(1)}° Stl`, color: "#ff6961" }
     ],
     footerText: aoaMarginDeg < 2.5
-      ? `🚨 ${aoaMarginDeg.toFixed(1)}° to Stall • Push Nose Down!`
-      : `+${aoaMarginDeg.toFixed(1)}° Margin to Stall • L/D ${curLd.toFixed(1)}`
+      ? `▲ ${aoaMarginDeg.toFixed(1)}° to Stall • Nose Down`
+      : `✔ +${aoaMarginDeg.toFixed(1)}° Stall · L/D ${curLd.toFixed(1)}`
   });
 
   // 4. TURBINE EGT (°C) & THRUST (N) THERMAL ENVELOPE (200..840 °C)
@@ -5121,13 +5149,13 @@ function updateUIForSample(idx) {
       { from: 740, to: 840, color: "#ff453a" }  // Overtemp FADEC Derate Limit
     ],
     ticks: [
-      { v: 420, label: "Idle",     color: "#38bdf8" },
-      { v: 690, label: "690° Cont", color: "#30d158" },
+      { v: 420, label: "420°",     color: "#38bdf8" },
+      { v: 690, label: "690° Cnt", color: "#30d158" },
       { v: 740, label: "740° Max", color: "#ff6961" }
     ],
     footerText: curEgtC < 380.0
-      ? `⚡ Silent Electric Prop Mode (${curThrust.toFixed(0)} N)`
-      : `${curRpmK.toFixed(0)}k RPM • ${egtMarginC >= 0 ? "+" : ""}${egtMarginC.toFixed(0)}°C Margin to 740°C`
+      ? `⚡ Silent E-Prop (${curThrust.toFixed(0)} N)`
+      : `✔ ${curRpmK.toFixed(0)}k RPM · +${egtMarginC.toFixed(0)}°C Margin`
   });
 
   // 5. KEROSENE FUEL (% / kg) & MISSION ENDURANCE ENVELOPE (0..100%)
@@ -5140,7 +5168,7 @@ function updateUIForSample(idx) {
   const estJetMin = Math.max(0, (curFuelKg / 0.145));
   const estJetKm  = Math.max(0, estJetMin * 4.1);
   drawEnvelopeGauge("gaugeFuel", "gsubFuel", {
-    title: "KEROSENE FUEL",
+    title: "JET FUEL (A-1)",
     badge: fuelBadge,
     level: fuelLevel,
     primaryText: `${fuelPct.toFixed(0)}%`,
@@ -5154,11 +5182,11 @@ function updateUIForSample(idx) {
       { from: 35, to: 100, color: "#30d158" }  // Safe Mission Fuel Envelope
     ],
     ticks: [
-      { v: 18,  label: "18% Bingo", color: "#ff6961" },
-      { v: 35,  label: "35% RTB",   color: "#ffd60a" },
-      { v: 100, label: "Full",      color: "#30d158" }
+      { v: 18,  label: "18% Min", color: "#ff6961" },
+      { v: 35,  label: "35% RTB", color: "#ffd60a" },
+      { v: 100, label: "Full",    color: "#30d158" }
     ],
-    footerText: `~${estJetMin.toFixed(0)} min / ${estJetKm.toFixed(0)} km Range • UAT ${curUatPct.toFixed(0)}%`
+    footerText: `✔ ~${estJetMin.toFixed(0)}m / ${estJetKm.toFixed(0)}km · UAT ${curUatPct.toFixed(0)}%`
   });
 
   // 6. 6S LI-ION AVIONICS & E-PROP BUS (V / % SOC) & HEATED BAY ENVELOPE (0..100%)
@@ -5184,11 +5212,11 @@ function updateUIForSample(idx) {
       { from: 40, to: 100, color: "#30d158" }  // Healthy 6S2P Bus (21.8-25.2V)
     ],
     ticks: [
-      { v: 20,  label: "20% (20.4V)", color: "#ff6961" },
-      { v: 40,  label: "40%",         color: "#ffd60a" },
-      { v: 100, label: "25.2V",       color: "#30d158" }
+      { v: 20,  label: "20.4V",   color: "#ff6961" },
+      { v: 40,  label: "40% Rsv", color: "#ffd60a" },
+      { v: 100, label: "25.2V",   color: "#30d158" }
     ],
-    footerText: `~${estELoiterMin} min E-Loiter • Bay ${curBayC >= 0 ? "+" : ""}${curBayC.toFixed(0)}°C (Heated)`
+    footerText: `✔ ~${estELoiterMin}m E-Prop · Bay +${curBayC.toFixed(0)}°C`
   });
 
   // Update Modal Stability readouts
@@ -9315,23 +9343,31 @@ document.getElementById("cfdBtnSnowIce").onclick = () => {
 
 window.addEventListener("resize", () => { if (currentSim) updateUIForSample(playIdx); });
 
-function animateLoop() {
+let lastAnimPerfNow = performance.now();
+function animateLoop(nowTs) {
   requestAnimationFrame(animateLoop);
   try {
+    const dtSec = Math.max(0.004, Math.min(0.05, ((nowTs || performance.now()) - lastAnimPerfNow) / 1000.0));
+    lastAnimPerfNow = nowTs || performance.now();
     cfdClock += 0.018;
     if (lightningFlashFrames > 0) lightningFlashFrames--;
     if (fpvSim.active) {
-      stepLiveFpvPhysics(1.0 / 60.0);
+      stepLiveFpvPhysics(dtSec);
       if (currentSim) updateUIForSample(playIdx);
       return;
     }
     if (currentSim && currentSim.telemetry.length > 0) {
       if (isPlaying) {
-        playIdx += 0.22 * playSpeed;
+        playIdx += (dtSec * 6.5) * playSpeed;
         if (playIdx >= currentSim.telemetry.length - 1) {
-          playIdx = currentSim.telemetry.length - 1;
-          isPlaying = false;
-          document.getElementById("btnPlayPause").textContent = "▶ PLAY";
+          const endSample = currentSim.telemetry[currentSim.telemetry.length - 1];
+          if (endSample && endSample.crashed) {
+            playIdx = currentSim.telemetry.length - 1;
+            isPlaying = false;
+            document.getElementById("btnPlayPause").textContent = "▶ PLAY";
+          } else {
+            playIdx = 0; // Smoothly loop continuous mission demonstration
+          }
         }
         updateUIForSample(playIdx);
       } else {
@@ -9347,7 +9383,7 @@ function animateLoop() {
 }
 
 try {
-  runSimulationFromUI("1_LAUNCH");
+  runSimulationFromUI("3_HIGH_SPEED_DASH");
 } catch (err) {
   console.error("Initial simulation error:", err);
 }
