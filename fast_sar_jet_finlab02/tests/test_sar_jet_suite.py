@@ -175,6 +175,16 @@ class TestArcticFastSarJetSuite(unittest.TestCase):
         self.assertLessEqual(prot["protected_roll_deg"], 25.0)
         self.assertLess(prot["protected_pitch_deg"], 16.0)
 
+        # 5. Quantitative 100,000-Flight (55,000 FH) FMEA & SORA Fault-Tree Verification
+        fmea_100k = autonomy.compute_expected_failures_per_100k_flights()
+        self.assertEqual(fmea_100k["basis_flights"], 100_000)
+        self.assertEqual(len(fmea_100k["subsystems"]), 10)
+        self.assertAlmostEqual(fmea_100k["total_primary_faults_per_100k_flights"], 362.79, delta=1.0)
+        self.assertAlmostEqual(fmea_100k["total_unmitigated_crashes_per_100k_flights"], 238.03, delta=1.0)
+        self.assertLessEqual(fmea_100k["total_residual_crashes_per_100k_flights"], 2.0)
+        self.assertGreaterEqual(fmea_100k["crash_reduction_pct"], 99.0)
+        self.assertLessEqual(fmea_100k["residual_crashes_per_flight_hour"], 3.0e-5)
+
     def test_04_northern_flank_red_gap_closure(self):
         """Verify all 5 Red/Amber gaps close within low-cost 100% Non-Chinese COTS scope."""
         # 1. Gap I: FIN-LAB-02 350-400 km/h airframe & head-on corridor rendezvous geometry

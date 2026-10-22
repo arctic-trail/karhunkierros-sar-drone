@@ -221,7 +221,7 @@ To determine how far the operational envelope of `FIN-LAB-02` can be pushed prac
 
 ---
 
-## 11. System-of-Systems Integration, Internal Sensor Physics, Pin-to-Pin Harness, Center-of-Gravity ($X_{\text{CG}}$) Envelope, FMEA Redundancy, Wing/Control Trade Study & Flight Envelope Protection Laws (`Plates 18–24`)
+## 11. System-of-Systems Integration, Internal Sensor Physics, Pin-to-Pin Harness, Center-of-Gravity ($X_{\text{CG}}$) Envelope, FMEA Redundancy, Wing/Control Trade Study, Flight Envelope Protection Laws & Expected Failures per `100,000` Flights (`Plates 18–25`)
 
 ### 11.1 End-to-End 3-Tier Arctic Civilian System-of-Systems Architecture (`Plate 18`)
 Links Tier-1 `[P11-AIR/RF]` acoustic + passive-RF nodes and `[P12-BELT]` non-RF rotorcraft corridor & substation belt (`Vesper VM3011` `9 µW` piezo wakeup $\rightarrow$ `Acconeer XM125` `60 GHz` pulsed coherent radar + `Lepton 3.5` LWIR) into the `FIN-LAB-01 v1.0` Open U-Space Fusion Engine (`2,500` intersections fused in `4.4 ms`, `14.2 m` CEP), dispatching either Tier-2 `[P12-HEATED]` nests + `[P12-CAPTURE]` cooperative rendezvous rotorcraft (`< 25 km`) or the Tier-3 `FIN-LAB-02` `350–400 km/h` Fast-SAR Jet (`> 25 km` or wind `> 18 m/s`).
@@ -266,6 +266,35 @@ Implements an Airbus-style **3-Law Flight Control & Envelope Protection Architec
   5. **High-Speed Overspeed ($V_{\text{MO}} = 102\text{ m/s}$ / $V_{\text{NE}} = 112\text{ m/s}$) Protection:** Automatically reduces turbine throttle and commands `+0.25 G` nose-up pitch recovery well below structural flutter speed (`135 m/s`).
 
 ![Blocked-Pitot Backup Laws (SYNTH_IAS & Pitch-Power) & Normal Law Envelope Protections](images/sar_design_24_pitot_backup_and_normal_law_envelope_protections_v1.jpg)
+
+### 11.8 Actuarial Failure Rates per `100,000` Flights (`55,000` Flight Hours) & EASA SORA SAIL III Fault-Tree Matrix (`Plate 25`)
+
+To provide a transparent, quantitative reliability baseline across both **per-sortie cyclic events** (capsule release latches, drop-drolley liftoff, cold-soak ignition) and **per-flight-hour continuous wear/environmental events** (turbine bearings, MEMS IMUs, servos, Pitot/wing icing, GNSS interference), [`compute_expected_failures_per_100k_flights()`](../sar_autonomy/pi_turbine_autonomy.py) models **`100,000` Arctic SAR sorties (`55,000` flight hours at a nominal `33 min = 0.55 h` `35 km` out-and-back mission duration, with an Arctic environmental stress factor $\pi_E = 1.8$ for `-30 °C` cold-soak + turbine vibration)**.
+
+Crucially, the fault tree separates **Primary Component / Environmental Faults** from **Safe In-Flight Absorption (`Continue Mission`)**, **Safe Controlled Aborts (`4.2 m/s` Parachute Descent or Electric Pusher RTB)**, and **Residual Catastrophic Loss-of-Control (`LOC-I` Uncontrolled Crash)**:
+
+| # | Subsystem / Failure Mode | Component MTBF / Environmental Basis ($\pi_E = 1.8$) | Primary Faults per `100k` Flights (`55k FH`) | Unmitigated Crashes per `100k` Flights (Single-String) | Redundancy / FDIR Mitigation Layer | Mitigated Mission Continues (`/100k`) | Mitigated Safe Chute / RTB Abort (`/100k`) | Residual Catastrophic Crash (`LOC-I /100k`) | Residual `LOC-I` per Flight Hour (`/FH`) |
+| :-: | :--- | :--- | :---: | :---: | :--- | :---: | :---: | :---: | :---: |
+| **1** | **GNSS Denial, Multi-Path or Active Spoofing (`u-blox ZED-F9P`)** | Environmental / interference event (`~1 per 800` Arctic corridor flights) | **`125.00`** | `88.00` | `200 ms` `EKF3` innovation gate $\to$ **Thermal-Inertial Odometry (`VIO` + `MS5611` Baro + `SRTM` DEM contour matching, `18.4 m` CEP)** | **`122.80`** | **`2.05`** | **`0.15`** | `2.73 × 10⁻⁶` |
+| **2** | **Companion Computer (`Pi 5`) Hang or RF Telemetry Blackout (`868 MHz` + `940 nm`)** | `1,100 FH` (`Pi 5` OS hang or RF link blackout) | **`50.00`** | `12.00` | **Domain-Separated `STM32H743` (`ARK FPV`)** flies full mission/RTH independently + hardware `SN74LVC1G08` `AND`-gate watchdog | **`48.90`** | **`1.05`** | **`0.05`** | `9.09 × 10⁻⁷` |
+| **3** | **Micro-Turbojet In-Flight Shutdown (`IFSD`: Flameout, `Bartels` Pump, `GRW` Bearing, Ice Slug)** | `1,150 FH` effective turbine MTBF (`8.70 × 10⁻⁴ /FH`) | **`47.80`** | `47.80` | `< 50 ms` `EGT` drop (`dT/dt < -85 °C/s`) closes `Bürkert 6011` solenoid + deploys dorsal `2.8 m²` chute (`4.2 m/s`) **or** Option B `2.2 kW` fold-out pusher RTB | **`38.20`** *(Option B)* / `0.00` *(Option A)* | **`8.98`** *(Option B)* / **`47.18`** *(Option A)* | **`0.62`** | `1.13 × 10⁻⁵` |
+| **4** | **Survival-Capsule Release Mechanism Fault (`X_CG = 595 mm` Ventral Bay)** | `1 per 2,500` drop cycles (`4.00 × 10⁻⁴ /sortie`) | **`40.00`** | `4.50` | **Series-Parallel Dual-Servo Pin (`KST X10` + `X08`, `99.98%` release)** + **`25 N` Electro-Permanent Magnetic Breakaway** if canopy snags | **`39.92`** | **`0.06`** | **`0.02`** | `3.64 × 10⁻⁷` |
+| **5** | **Pitot-Static Probe Blockage (`Mode A` Ram Icing or `Mode B` AF447 Pressure Trap)** | `1,450 FH` in severe icing (`35 W` heater fault or SLD overload) | **`37.90`** | `34.10` | 3-Vote Blockage Detector (`< 1.2 s` Baro-Static gate) $\to$ **`ALTERNATE_LAW_SYNTH_IAS`** (`±2.1 m/s`) $\to$ **`DIRECT_PITCH_POWER_LAW`** ($\theta / N_1\%$ table) | **`36.80`** | **`0.95`** | **`0.15`** | `2.73 × 10⁻⁶` |
+| **6** | **Airframe Wing / Tail Supercooled Glaze Icing (`> 4 mm` Ice Horn Accretion)** | `1,900 FH` in severe freezing drizzle (`2.89 × 10⁻⁴ /sortie`) | **`28.90`** | `21.50` | **`35 W` Carbon-Veil Leading-Edge Heater** + `-2.5°` automatic `Normal Law` $\alpha_{\text{prot}}/\alpha_{\text{floor}}$ shift (`+8.5° / +10.0°`) + `TOGA 100%` override | **`27.40`** | **`1.32`** | **`0.18`** | `3.27 × 10⁻⁶` |
+| **7** | **Control Surface Servo Jam or Open-Circuit (`6x KST X10` HV Brushless)** | `18,000 FH` per servo (`3,000 FH` combined 6-servo airframe MTBF) | **`18.30`** | `16.50` | **4-Servo Split `110°` $\Lambda$-Tail** (`68%` pitch / `62%` yaw retained with 1 jammed at `15°`) + `INA226` `> 4.2 A` current-spike isolation in `80 ms` | **`17.10`** | **`1.02`** | **`0.18`** | `3.27 × 10⁻⁶` |
+| **8** | **Fuel Feed, Air-Bubble Ingestion or Waxing Restriction (`Jet A-1` Saddle Tanks)** | `6,500 FH` (`1.54 × 10⁻⁴ /FH` in `-30 °C` cold-soak) | **`8.46`** | `7.20` | **Pressurized `150 mL` Spherical `UAT` Hopper (`X = 588 mm`, `0.0 mL` air to `-1.5 G`)** + `PRIST` anti-icing additive | **`7.40`** | **`0.94`** | **`0.12`** | `2.18 × 10⁻⁶` |
+| **9** | **Avionics Power Rail, BEC or Battery Cell Fault (`Bus A / Bus B / Bus C`)** | `14,000 FH` per power rail (`7.14 × 10⁻⁵ /FH`) | **`3.93`** | `3.93` | **3 Galvanically Isolated Battery Buses** + dual `LTC4359` ideal-diode `5.2 V / 8 A` OR-ing (`0 µs` switchover) | **`3.78`** | **`0.12`** | **`0.03`** | `5.45 × 10⁻⁷` |
+| **10** | **Primary MEMS IMU Drift, Saturation or SPI Fault (`TDK ICM-42688-P` `IMU1`)** | `22,000 FH` (`4.55 × 10⁻⁵ /FH` under turbine vibration) | **`2.50`** | `2.50` | Triple-redundant failover to isolated **`Bosch BMI088` (`IMU2`) + `ICM-42688-P` (`IMU3`)** with `32 kHz` turbine notch filter | **`2.46`** | **`0.03`** | **`0.01`** | `1.82 × 10⁻⁷` |
+| **—** | **TOTAL FLEET EXPECTATION PER `100,000` FLIGHTS (`55,000` FLIGHT HOURS)** | **Combined All-Cause Hardware + Environmental Faults** | **`362.79` faults** (`0.363%`) | **`238.03` crashes** (`4.33 × 10⁻³ /FH`) | **Full 3-Domain FDIR + `3-Law FCS` + Split Tail + `< 50 ms` Cutoff & Auto-Chute / Pusher** | **`344.76` (`95.0%` complete mission)** | **`16.52` (`0.0165%` safe abort)** | **`1.51` crashes per `100k` flights** (`99.9985%` survival) | **`2.75 × 10⁻⁵ /FH`** (**`-99.37%` crash reduction**) |
+
+#### Preventive Maintenance & Overhaul Intervals Required to Hold `< 1.6` Crashes per `100k` Flights
+Because single-spool micro-turbojets operate at `125,000–165,000 RPM` with total-loss kerosene/oil lubrication, achieving the **`1.51` per `100k` flights (`2.75 × 10⁻⁵ /FH`, EASA SORA SAIL III compliant `< 10⁻⁴ /FH`)** residual rate requires strict adherence to three preventive replacement gates:
+1. **Every `25 Flight Hours` (`~45` SAR Sorties):** Replace/overhaul `GRW` hybrid ceramic (`Si3N4`) turbine shaft bearings and inspect the glow/kerosene igniter element.
+2. **Every `50 Flight Hours` (`~90` SAR Sorties):** Replace the `Bartels` gear/diaphragm fuel pump, inline pleated fuel filter, and `Viton` fuel lines; execute a bench current-signature sweep on all `6x KST X10` servos (`INA226` baseline friction check).
+3. **Every `200 Flight Hours` (`~360` SAR Sorties):** Proactively replace all `6x KST X10` HV control servos, the `150 mL` spherical `UAT` membrane hopper, and the dorsal parachute pyrotechnic/spring gas cartridge.
+
+![Expected Failures per 100,000 Flights (55,000 FH) & EASA SORA SAIL III Fault-Tree Matrix](images/sar_design_25_failure_rates_per_100k_flights_and_sora_fault_tree_v1.jpg)
+
 
 
 
