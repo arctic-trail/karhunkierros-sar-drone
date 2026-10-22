@@ -428,6 +428,16 @@ def make_command_center_handler(alerts_dir, verbose=False):
                         mode = query_params.get("mode", "OFFLINE_DETERMINISTIC")
                         fallback = query_params.get("fallback", None)
                         res = disp.set_aid_mode(mode, fallback_policy=fallback)
+                    elif clean_path == "/api/playbook/api-key":
+                        clear_flag = query_params.get("clear", "0") in ("1", "true", "yes")
+                        save_flag = query_params.get("save_to_disk", "0") in ("1", "true", "yes")
+                        res = disp.configure_llm_api_key(
+                            api_key=query_params.get("api_key", ""),
+                            provider=query_params.get("provider", "openai"),
+                            model=query_params.get("model", "gpt-5.4-mini"),
+                            save_to_disk=save_flag,
+                            clear_key=clear_flag,
+                        )
                     elif clean_path == "/api/playbook/veto":
                         action = query_params.get("action", "cancel_target")
                         t_type = query_params.get("type", "PERSON")
@@ -516,6 +526,35 @@ def make_command_center_handler(alerts_dir, verbose=False):
 
             # 6. Fallback to SimpleHTTPRequestHandler serving UI_DIR
             return super().do_GET()
+
+        def do_POST(self):
+            parsed = urlparse(self.path)
+            clean_path = unquote(parsed.path)
+            if clean_path == "/api/playbook/api-key":
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                try:
+                    content_len = min(16384, max(0, int(self.headers.get("Content-Length", "0"))))
+                    raw_body = self.rfile.read(content_len).decode("utf-8") if content_len > 0 else "{}"
+                    payload = json.loads(raw_body) if raw_body.strip() else {}
+                    import playbook_agent_dispatcher
+                    disp = playbook_agent_dispatcher.GLOBAL_PLAYBOOK_DISPATCHER
+                    res = disp.configure_llm_api_key(
+                        api_key=str(payload.get("api_key", "")),
+                        provider=str(payload.get("provider", "openai")),
+                        model=str(payload.get("model", "gpt-5.4-mini")),
+                        save_to_disk=bool(payload.get("save_to_disk", False)),
+                        clear_key=bool(payload.get("clear_key", False)),
+                        activate_cloud_mode=bool(payload.get("activate_cloud_mode", True)),
+                    )
+                except Exception as e:
+                    res = {"playbook_online": False, "error": str(e)}
+                self.wfile.write(json.dumps(res).encode("utf-8"))
+                return
+            self.send_error(404, "POST endpoint not found")
 
         def list_directory(self, path):
             self.send_error(403, "Forbidden: directory listing is disabled")

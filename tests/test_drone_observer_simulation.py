@@ -1896,9 +1896,43 @@ class TestAerialObserverModule(unittest.TestCase):
         self.assertGreater(len(pb_contradict.compile_warnings), 0)
         self.assertGreaterEqual(pb_contradict.altitude_ceiling_m, pb_contradict.canopy_floor_m + 10.0)
 
-        # 2. [RT2-03] Initial Transition at t=0.0s & Offline Deterministic Mode when LLM API is unreachable:
-        aid = PlaybookAgentDispatcher()
-        aid.set_aid_mode("CLOUD_LLM_JEV", fallback_policy="OFFLINE_DETERMINISTIC")
+        # 2. [RT2-03] Initial Transition at t=0.0s, API Key Prompt & Save-to-Disk (0600), and Offline Deterministic Fallback:
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cred_path = os.path.join(tmpdir, "llm_api_credentials.json")
+            aid = PlaybookAgentDispatcher(credentials_disk_path=cred_path)
+            st_no_key = aid.set_aid_mode("CLOUD_LLM_JEV", fallback_policy="OFFLINE_DETERMINISTIC")
+            self.assertTrue(st_no_key["requires_api_key_prompt"])
+            self.assertFalse(st_no_key["llm_api_key_configured"])
+            self.assertEqual(aid.aid_mode, "OFFLINE_DETERMINISTIC")
+
+            # Save API key to disk with 0600 permissions and activate CLOUD_LLM_JEV:
+            st_saved = aid.configure_llm_api_key(
+                api_key="sk-test-arctic-9f4a",
+                provider="openai",
+                model="gpt-5.4-mini",
+                save_to_disk=True,
+                activate_cloud_mode=True,
+            )
+            self.assertTrue(st_saved["llm_api_key_configured"])
+            self.assertTrue(st_saved["llm_api_key_saved_on_disk"])
+            self.assertEqual(st_saved["llm_api_key_masked"], "sk-te...9f4a")
+            self.assertNotIn("sk-test-arctic-9f4a", json.dumps(st_saved))
+            self.assertEqual(aid.aid_mode, "CLOUD_LLM_JEV")
+            self.assertTrue(os.path.exists(cred_path))
+            self.assertEqual(os.stat(cred_path).st_mode & 0o777, 0o600)
+
+            # Verify a fresh dispatcher instance reloads the saved key from disk on startup:
+            aid_reloaded = PlaybookAgentDispatcher(credentials_disk_path=cred_path)
+            self.assertTrue(aid_reloaded.has_llm_api_key())
+            self.assertTrue(aid_reloaded.api_key_saved_on_disk)
+            self.assertEqual(aid_reloaded.get_masked_api_key(), "sk-te...9f4a")
+
+            # Clear saved key removes it from both RAM and disk:
+            st_cleared = aid_reloaded.configure_llm_api_key(clear_key=True)
+            self.assertFalse(st_cleared["llm_api_key_configured"])
+            self.assertFalse(os.path.exists(cred_path))
+
         t0_step = aid.evaluate_jev_step(
             {
                 "simulate_llm_offline": True,

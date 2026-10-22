@@ -927,9 +927,12 @@
               </div>
             </div>
             <div class="field-box" style="padding:5px 7px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;">
                 <span class="field-label">Natural-Language Operations Playbook</span>
-                <button class="win-btn" onclick="togglePlaybookEditor()" id="btnTogglePbEditor" style="font-size:10px;padding:1px 6px;">📝 Edit NL Rules</button>
+                <div style="display:flex;gap:4px;align-items:center;">
+                  <button class="win-btn" onclick="toggleLlmApiKeyPanel()" id="btnToggleApiKeyPanel" style="font-size:10px;padding:1px 6px;" title="Configure External LLM API Key (Session or Save to Disk)">🔑 API Key</button>
+                  <button class="win-btn" onclick="togglePlaybookEditor()" id="btnTogglePbEditor" style="font-size:10px;padding:1px 6px;">📝 Edit NL Rules</button>
+                </div>
               </div>
               <select id="selPlaybookPreset" class="select-input" onchange="selectPlaybookPreset(this.value)" style="width:100%;padding:3px 5px;font-size:11px;margin-top:2px;">
                 <option value="PLAYBOOK_01_LOST_HIKER_NIGHT_CANOPY" selected>1. Night Hiker Search &amp; Opaslyhty Hut Escort (Default)</option>
@@ -937,6 +940,36 @@
                 <option value="PLAYBOOK_03_STRANDED_SNOWMOBILE_CORRIDOR">3. Stranded Snowmobile / Vehicle Corridor Escort</option>
                 <option value="PLAYBOOK_04_EW_DENIED_PASSIVE_RECON">4. GNSS-Denied / Reindeer-Safe High Sweep (&ge;100m)</option>
               </select>
+
+              <!-- EXTERNAL LLM API KEY PROMPT & SAVE-TO-DISK DRAWER -->
+              <div id="llmApiKeyPanelWrap" style="display:none;flex-direction:column;gap:6px;margin-top:6px;padding:7px 8px;background:rgba(10,132,255,0.10);border:1px solid rgba(10,132,255,0.45);border-radius:6px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <strong style="font-size:11px;color:#64d2ff;">🔑 External LLM API Key Configuration</strong>
+                  <span id="lblApiKeyStatusBadge" style="font-size:10px;font-family:var(--font-mono);color:#fbbf24;">Not Configured</span>
+                </div>
+                <div style="display:flex;gap:5px;align-items:center;">
+                  <select id="selLlmProviderModel" class="select-input" style="flex:1;padding:3px 5px;font-size:10.5px;">
+                    <option value="openai|gpt-5.4-mini" selected>OpenAI • gpt-5.4-mini (&le;450ms JEV)</option>
+                    <option value="openai|gpt-5.4">OpenAI • gpt-5.4 (Deep JEV)</option>
+                    <option value="anthropic|claude-sonnet-4-6">Anthropic • claude-sonnet-4-6</option>
+                    <option value="anthropic|claude-opus-4-7">Anthropic • claude-opus-4-7</option>
+                  </select>
+                </div>
+                <div style="display:flex;gap:4px;align-items:center;">
+                  <input type="password" id="txtLlmApiKey" placeholder="Paste API Key (sk-... or sk-ant-...)" autocomplete="off" style="flex:1;background:#0e0e12;color:#f5f5f7;border:1px solid var(--border-strong);border-radius:5px;padding:4px 7px;font-family:var(--font-mono);font-size:11px;" />
+                  <button class="win-btn" onclick="toggleApiKeyVisibility()" id="btnShowHideApiKey" style="font-size:10px;padding:3px 6px;" title="Show/Hide API Key">👁️</button>
+                </div>
+                <label style="display:flex;align-items:flex-start;gap:6px;font-size:10.5px;color:var(--text-primary);cursor:pointer;line-height:1.3;">
+                  <input type="checkbox" id="chkSaveKeyToDisk" checked style="margin-top:2px;accent-color:var(--accent-blue);" />
+                  <span><strong>💾 Save API key to disk</strong> (<code style="font-size:9.5px;color:#64d2ff;">_private/llm_api_credentials.json</code>, <code>chmod 0600</code> gitignored). Uncheck for session-only RAM.</span>
+                </label>
+                <div style="display:flex;gap:5px;">
+                  <button class="btn success" onclick="saveAndActivateLlmApiKey()" style="flex:1;padding:4px 7px;font-size:11px;">✓ Save Key &amp; Activate LLM</button>
+                  <button class="btn danger" onclick="clearSavedLlmApiKey()" style="padding:4px 7px;font-size:10.5px;" title="Remove API key from RAM and delete from disk">🗑️ Clear</button>
+                  <button class="btn" onclick="cancelApiKeyPromptAndUseOffline()" style="padding:4px 7px;font-size:10.5px;">✕ Offline</button>
+                </div>
+              </div>
+
               <div id="playbookEditorWrap" style="display:none;flex-direction:column;gap:5px;margin-top:5px;">
                 <textarea id="txtPlaybookMarkdown" rows="5" style="width:100%;background:#0e0e12;color:#f5f5f7;border:1px solid var(--border-strong);border-radius:6px;padding:6px;font-family:var(--font-mono);font-size:10.5px;line-height:1.35;"></textarea>
                 <div style="display:flex;gap:5px;">
@@ -1800,6 +1833,11 @@
       epochId: 1,
       circuitBreakerTripped: false,
       circuitBreakerReason: 'Offline Compiled • <1ms',
+      llmApiKeyConfigured: false,
+      llmApiKeyMasked: 'Not Configured',
+      llmApiKeySavedOnDisk: false,
+      llmProvider: 'openai',
+      llmModel: 'gpt-5.4-mini',
       compiled: {
         searchAltM: 55,
         overlapPct: 0,
@@ -1902,12 +1940,37 @@
         } else if (aidState.mode === 'ADVISORY_ONLY') {
           badge.textContent = '💡 Advisory Only';
           badge.className = 'step-badge amber';
+        } else if (aidState.mode === 'CLOUD_LLM_JEV') {
+          badge.textContent = `☁️ LLM JEV • ${aidState.llmApiKeySavedOnDisk ? 'Disk' : 'RAM'}`;
+          badge.className = 'step-badge';
         } else if (aidState.circuitBreakerTripped) {
           badge.textContent = '⚡ Offline Fallback (<1ms)';
           badge.className = 'step-badge amber';
         } else {
           badge.textContent = 'Offline Compiled • <1ms';
           badge.className = 'step-badge';
+        }
+      }
+      const btnKey = document.getElementById('btnToggleApiKeyPanel');
+      const keyBadge = document.getElementById('lblApiKeyStatusBadge');
+      if (btnKey) {
+        if (aidState.llmApiKeyConfigured) {
+          btnKey.textContent = aidState.llmApiKeySavedOnDisk ? '🔑 Key Saved' : '🔑 Key (RAM)';
+          btnKey.style.color = '#4ade80';
+          btnKey.style.borderColor = 'rgba(74,222,128,0.45)';
+        } else {
+          btnKey.textContent = '🔑 API Key';
+          btnKey.style.color = '';
+          btnKey.style.borderColor = '';
+        }
+      }
+      if (keyBadge) {
+        if (aidState.llmApiKeyConfigured) {
+          keyBadge.textContent = `${aidState.llmApiKeyMasked} • ${aidState.llmApiKeySavedOnDisk ? 'Saved on Disk (0600)' : 'Session RAM'}`;
+          keyBadge.style.color = '#4ade80';
+        } else {
+          keyBadge.textContent = 'Not Configured';
+          keyBadge.style.color = '#fbbf24';
         }
       }
       if (decEl && decisionText) {
@@ -1986,14 +2049,152 @@
       updateAidBannerUI(`JEV COMPILED: Lock ${r.preferredTarget} (${r.trackAltM}m AGL) &bull; Drop ${r.autoReleaseDrop ? 'Auto' : 'Confirm'} @ ${r.dropOffsetM}m`);
     }
 
-    function updateAidMode(mode) {
-      aidState.mode = mode;
-      aidState.circuitBreakerTripped = false;
-      if (mode === 'CLOUD_LLM_JEV') {
-        // Verify external LLM API availability; if offline, auto-cutout immediately!
-        simulateLlmOutageTest();
+    function toggleLlmApiKeyPanel(forceShow = null) {
+      const wrap = document.getElementById('llmApiKeyPanelWrap');
+      const input = document.getElementById('txtLlmApiKey');
+      if (!wrap) return;
+      const shouldShow = forceShow !== null ? forceShow : (wrap.style.display === 'none');
+      wrap.style.display = shouldShow ? 'flex' : 'none';
+      if (shouldShow && input) {
+        setTimeout(() => input.focus(), 40);
+      }
+    }
+
+    function toggleApiKeyVisibility() {
+      const input = document.getElementById('txtLlmApiKey');
+      const btn = document.getElementById('btnShowHideApiKey');
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        if (btn) btn.textContent = '🙈';
+      } else {
+        input.type = 'password';
+        if (btn) btn.textContent = '👁️';
+      }
+    }
+
+    function maskApiKeyClient(k) {
+      const s = (k || '').trim();
+      if (!s) return 'Not Configured';
+      if (s.length <= 8) return `${s.slice(0, 2)}...${s.slice(-2)}`;
+      return `${s.slice(0, 5)}...${s.slice(-4)}`;
+    }
+
+    function saveAndActivateLlmApiKey() {
+      const input = document.getElementById('txtLlmApiKey');
+      const selPM = document.getElementById('selLlmProviderModel');
+      const chkDisk = document.getElementById('chkSaveKeyToDisk');
+      const rawKey = input ? input.value.trim() : '';
+      const pmParts = (selPM ? selPM.value : 'openai|gpt-5.4-mini').split('|');
+      const provider = pmParts[0] || 'openai';
+      const model = pmParts[1] || 'gpt-5.4-mini';
+      const saveToDisk = chkDisk ? !!chkDisk.checked : false;
+
+      if (!rawKey && !aidState.llmApiKeyConfigured) {
+        updateAidBannerUI('⚠️ Please paste a valid External LLM API Key (or click ✕ Offline to run without API).');
+        if (input) input.focus();
         return;
       }
+
+      if (rawKey) {
+        aidState.llmApiKeyConfigured = true;
+        aidState.llmApiKeyMasked = maskApiKeyClient(rawKey);
+      }
+      aidState.llmApiKeySavedOnDisk = saveToDisk;
+      aidState.llmProvider = provider;
+      aidState.llmModel = model;
+      aidState.mode = 'CLOUD_LLM_JEV';
+      aidState.circuitBreakerTripped = false;
+
+      const selMode = document.getElementById('selAidMode');
+      if (selMode) selMode.value = 'CLOUD_LLM_JEV';
+      if (input) input.value = '';
+      toggleLlmApiKeyPanel(false);
+
+      const storageNote = saveToDisk ? 'Saved to Disk (_private/llm_api_credentials.json, 0600)' : 'Session RAM Only';
+      updateAidBannerUI(`☁️ LLM JEV ACTIVE (${provider}:${model} • ${aidState.llmApiKeyMasked}) • ${storageNote}`);
+
+      if (window.location.protocol.startsWith('http')) {
+        fetch('/api/playbook/api-key', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            api_key: rawKey,
+            provider: provider,
+            model: model,
+            save_to_disk: saveToDisk,
+            clear_key: false,
+            activate_cloud_mode: true
+          })
+        }).then(r => r.json()).then(st => {
+          if (st && typeof st.llm_api_key_configured === 'boolean') {
+            aidState.llmApiKeyConfigured = st.llm_api_key_configured;
+            aidState.llmApiKeyMasked = st.llm_api_key_masked || aidState.llmApiKeyMasked;
+            aidState.llmApiKeySavedOnDisk = !!st.llm_api_key_saved_on_disk;
+            updateAidBannerUI();
+          }
+        }).catch(() => {});
+      }
+    }
+
+    function clearSavedLlmApiKey() {
+      aidState.llmApiKeyConfigured = false;
+      aidState.llmApiKeyMasked = 'Not Configured';
+      aidState.llmApiKeySavedOnDisk = false;
+      const input = document.getElementById('txtLlmApiKey');
+      if (input) input.value = '';
+      if (aidState.mode === 'CLOUD_LLM_JEV') {
+        aidState.mode = aidState.fallbackPolicy;
+        const selMode = document.getElementById('selAidMode');
+        if (selMode) selMode.value = aidState.mode;
+      }
+      toggleLlmApiKeyPanel(false);
+      updateAidBannerUI(`🗑️ Cleared LLM API Key from RAM & Disk -> Active Mode: ${aidState.mode}`);
+      if (window.location.protocol.startsWith('http')) {
+        fetch('/api/playbook/api-key', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clear_key: true })
+        }).catch(() => {});
+      }
+    }
+
+    function cancelApiKeyPromptAndUseOffline() {
+      toggleLlmApiKeyPanel(false);
+      aidState.mode = aidState.fallbackPolicy;
+      aidState.circuitBreakerTripped = false;
+      const selMode = document.getElementById('selAidMode');
+      if (selMode) selMode.value = aidState.mode;
+      updateAidBannerUI(`⚡ Using Offline Deterministic Playbook (<1ms, Zero External API Needed)`);
+    }
+
+    function updateAidMode(mode) {
+      if (mode === 'CLOUD_LLM_JEV') {
+        if (!aidState.llmApiKeyConfigured) {
+          // Prompt the operator for the API Key (with option to save to disk) while keeping safe fallback active
+          aidState.mode = aidState.fallbackPolicy;
+          toggleLlmApiKeyPanel(true);
+          updateAidBannerUI(
+            `🔑 External LLM API Key Required: Enter key above (optionally save to disk) • Safe fallback (${aidState.fallbackPolicy}) active`
+          );
+          if (window.location.protocol.startsWith('http')) {
+            fetch(`/api/playbook/mode?mode=CLOUD_LLM_JEV&fallback=${encodeURIComponent(aidState.fallbackPolicy)}`).catch(() => {});
+          }
+          return;
+        }
+        aidState.mode = 'CLOUD_LLM_JEV';
+        aidState.circuitBreakerTripped = false;
+        updateAidBannerUI(
+          `☁️ LLM JEV ACTIVE (${aidState.llmProvider}:${aidState.llmModel} • ${aidState.llmApiKeyMasked})`
+        );
+        if (window.location.protocol.startsWith('http')) {
+          fetch(`/api/playbook/mode?mode=CLOUD_LLM_JEV&fallback=${encodeURIComponent(aidState.fallbackPolicy)}`).catch(() => {});
+        }
+        return;
+      }
+      aidState.mode = mode;
+      aidState.circuitBreakerTripped = false;
+      toggleLlmApiKeyPanel(false);
       updateAidBannerUI(
         mode === 'MANUAL_HUMAN_ONLY'
           ? '🛑 AID OFF: 100% Manual Human Control (Agent Disabled)'
@@ -2004,6 +2205,23 @@
       if (window.location.protocol.startsWith('http')) {
         fetch(`/api/playbook/mode?mode=${encodeURIComponent(mode)}&fallback=${encodeURIComponent(aidState.fallbackPolicy)}`).catch(() => {});
       }
+    }
+
+    // Hydrate saved API key status from backend on load
+    if (window.location.protocol.startsWith('http')) {
+      fetch('/api/playbook/status').then(r => r.json()).then(st => {
+        if (st && typeof st.llm_api_key_configured === 'boolean') {
+          aidState.llmApiKeyConfigured = st.llm_api_key_configured;
+          aidState.llmApiKeyMasked = st.llm_api_key_masked || 'Not Configured';
+          aidState.llmApiKeySavedOnDisk = !!st.llm_api_key_saved_on_disk;
+          aidState.llmProvider = st.llm_provider || 'openai';
+          aidState.llmModel = st.llm_model || 'gpt-5.4-mini';
+          updateAidBannerUI();
+        }
+      }).catch(() => {});
+    }
+    if (window.location.search.includes('openApiKey=1')) {
+      setTimeout(() => toggleLlmApiKeyPanel(true), 80);
     }
 
     function updateAidFallbackPolicy(pol) {
