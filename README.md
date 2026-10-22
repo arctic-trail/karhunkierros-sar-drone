@@ -97,7 +97,7 @@ While `flight_simulator.html` provides the engineering 6-DOF aerodynamics/CFD wi
    - **Lost / Stranded Vehicle or Snowmobile (`P3`):** In **Auto Guide (`Vehicle Escort`)**, the drone flies `35 m` ahead at `45 m` AGL projecting a high-contrast `1,500 lm` ground corridor beam along a hazard-free forestry route (avoiding thin lake ice and steep gullies) back to the plowed main road (`1.40 km`).
    - **Manual Remote Control (`🕹️ Manual RC`) & Real MAVLink v2 Field-Test Bridge (`collector_hub/mavlink_field_bridge.py`):** At any instant, the operator can click any drone on the **Google Earth Multi-Zoom Satellite Map** (`z = 4..20`) to stream its live camera feed (`View 2`), toggle the **`🪂 Enable "Mark Payload Drop" Mode`** switch (`OFF/ON`) to queue or cancel (`[✕ Cancel Drop]`) a payload drop before release, cancel a target lock (`[✕ Cancel Target Lock]`) to return the drone to cooperative zero-overlap sector scanning, and transmit real binary **MAVLink v2 (`0xFD`, CRC-16/MCRF4XX)** `MISSION_ITEM_INT (#73)`, `GLOBAL_POSITION_INT (#33)`, and `COMMAND_LONG (#76)` (`MAV_CMD_DO_SET_SERVO` Ch9 `1100 µs`/`1900 µs` & `MAV_CMD_DO_MOUNT_CONTROL #205`) frames over UDP `:14550` / telemetry radio to `Pixhawk 6C` / `ARK FPV`.
 
-![Field Operator Command & Conquer (C&C) Mission, Terrain Auto-Mapping & Guidance UX](docs/images/sar_operator_cnc_mission_ux_v8.jpg)
+![Field Operator Command & Conquer (C&C) Mission, Terrain Auto-Mapping & Guidance UX](docs/images/sar_operator_cnc_mission_ux_v7.jpg)
 
 ## "Uber-for-SAR" Open-Alert Dispatch Marketplace & Automated Roofed Shelters (`SARDispatchMarketplaceCoordinator`)
 
