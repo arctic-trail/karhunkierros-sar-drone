@@ -130,10 +130,54 @@ Even though the system exists purely to save human lives in emergencies, every h
 | **Above-`40 m` Baro-DEM & Thermal/Visual Odometry (`FIN-LAB-01`)** | Yes | Modelled | Not yet flight-tested | No | No |
 | **Aerial Lantern (`28 m` AGL, `>= 15 m` Standoff) & `25 N` Drop** | Yes | Yes (`compute_elastic_pull_guidance_vector`) | Mechanical bench | No (local canopy survey required) | No |
 | **"Uber-for-SAR" Open Dispatch & `+10 °C` Roofed Nest** | Yes | Yes (`SARDispatchMarketplaceCoordinator`) | Dashboard & API verified | No (winter roof-actuator test open) | No (`Poliisi` / `RVL` / `ERC` MoU) |
+| **Tier-3 Fast-SAR Jet (`FIN-LAB-02`) & Marsupial Drop (`Cartridge B`)** | Yes (`3D CAD` + `CNC` cut sheets) | Yes (`30/30` tests + `ArduPlane 4.5+` `.param`) | Autonomy & CAD verified | No (live turbine & drop test open) | No (`Traficom Specific SORA` required) |
 
 ---
 
-## 5. Pro Bono Pilot & Phased Field Validation (Phases 1–3)
+## 5. Tier-3 Fast-SAR Jet-Hybrid (`FIN-LAB-02`) & "Marsupial" Dual-Drone Architecture (`35–45 km` Storm Rescue to `2,757 km` Patrol)
+
+### 5.1 Why a Standalone Multi-Rotor Hits a Hard Physics Wall at `4.59 km` in a `14 m/s` (`50 km/h`) Arctic Storm
+While the standalone `Karhunkierros` quadcopter (`Holybro X500 V2`, `18 m/s` cruise) excels within `0–14 km` of a roadhead or heated trail nest in calm-to-moderate weather, **multi-rotor aerodynamics hit a hard physical wall during severe Arctic fells storms (`14 m/s` / `50.4 km/h` headwind at `-25 °C`):**
+* Fighting a `14.0 m/s` headwind at `18.0 m/s` true airspeed yields a net ground speed of only **`4.0 m/s` (`14.4 km/h`)** while drawing `485 W` continuous electrical power.
+* Because cold-soaked `-25 °C` battery safety gates enforce a mandatory return-to-base abort at `50%` usable capacity (`47.4 Wh`), a standalone quadcopter is forced to turn back at **`4.59 km`** (`19.1 minutes` outbound) — leaving any hiker stranded **`15–45 km` deep in roadless back-canyons** unreachable until the storm subsides or a `€15,000/hr` manned turbine helicopter can fly.
+* Conversely, a pure fixed-wing jet can dash `35 km` in `11 minutes` at `259 km/h` (`72 m/s`), **but cannot fly below the spruce canopy, cannot hover `15 m` from a casualty to winch down a `+42 °C` glucose cask, and cannot lead a walking survivor at `1.2 m/s` (`4.3 km/h`) along a winding forest trail.**
+
+### 5.2 The "Marsupial" Breakthrough (`Cartridge B`): `259 km/h` Mothership Jet Carrying & Dropping the Folded `Karhunkierros` Quadcopter
+Implemented in [`fast_sar_jet_finlab02/`](../fast_sar_jet_finlab02/README.md) (and standalone repository [`arctic-trail/arctic-fast-sar-jet`](https://github.com/arctic-trail/arctic-fast-sar-jet)), **`FIN-LAB-02`** combines both aircraft into a single cooperative **Marsupial Dual-Drone System**:
+
+![Marsupial Dual-Drone Cutaway & 4-Stage Mid-Air Deployment](images/sar_marsupial_cutaway_and_4stage_drop_v3.jpg)
+
+![End-to-End 6-Stage Marsupial Dual-Drone Wilderness Rescue Storyboard](images/sar_marsupial_6stage_whole_mission_en_v2.jpg)
+
+1. **Captive Heated Belly-Bay Transit (`0–35 km` in `11.3 Minutes` at `259 km/h`):**
+   * The `2.20 m` wingspan twin-boom `110°` inverted $\Lambda$-tail **`FIN-LAB-02` Mothership Jet** carries the **folded `Karhunkierros` SAR quadcopter (`3.20 kg` dry + `1.0 kg` `+42 °C` glucose/blanket cask = `4.20 kg`)** inside its insulated ventral belly bay (`580 × 240 × 165 mm`, centered dead on `X_CG = 595.0 mm` for `0.0 mm` pitch-trim shift upon release).
+   * During the `11.3-minute` dash (`72 m/s` TAS / `58 m/s` net ground speed against a `14 m/s` storm headwind), a **`28 V` magnetic breakaway umbilical** and **`15 W` PTC heater + turbine bleed-air duct** keep the captive quadcopter's battery at **`+15.0 °C` and `100.0%` State of Charge (`118.4 Wh`)** — consuming **zero** quadcopter battery during the `35 km` storm transit!
+2. **4-Stage Mid-Air Drogue-Stabilized Deployment (`85 m` AGL, `t = 0.0 s` to `2.8 s`):**
+   * **Stage 1 (`t = 0.0–0.3 s` — Electric Slow-Down & Spring Ejection):** Over the target canyon (`85 m` AGL), the Mothership Jet throttles its dorsal `JetCat P100-RX` turbojet to idle, slows to **`22.0 m/s` (`79 km/h`)** on its `355 mm` nose electric propeller, opens its ventral clamshell doors, and fires dual `80 N` ejection springs (`2.8 m/s` downward exit velocity, clearing the twin tail booms by `1.85 m` in `0.28 s`).
+   * **Stage 2 (`t = 0.3–1.2 s` — Drogue Pitch-Up & Snap-Open Arms):** At `1.5 m` separation, a static line deploys a **`0.35 m²` cruciform ribbon drogue chute**, braking the quadcopter from `22 m/s` to `11 m/s` and pitching its nose upright while torsion springs snap all 4 carbon rotor arms outward into hardened steel detent pins (`hall-effect` lock verified in `0.45 s`).
+   * **Stage 3 (`t = 1.2–2.0 s` — Drogue Cutaway & Brushless Motor Spin-Up):** At `t = 1.2 s`, a micro-servo jettisons the drogue chute (`68 m` AGL) and all 4 brushless rotors spin up to full hover thrust by `t = 2.0 s`.
+   * **Stage 4 (`t = 2.0–2.8 s` — Hover Lock Above Canopy):** The `Karhunkierros` quadcopter arrests its descent at **`59.6 m` AGL** (`>30 m` above the spruce crowns, `19.6 m` safety margin above the `40 m` floor) with **`99.4%` battery remaining (`117.7 Wh`)** and warm `+14.8 °C` cells!
+3. **Cooperative Joint Mission (`320 m` Orbiting Jet Radio Relay + Under-Canopy Quad Rescue & Nest Recovery):**
+   * **Under-Canopy Quadcopter (`15 m` Cask Drop + `28 m` Lantern Walk):** The deployed quadcopter descends into the sheltered canyon floor (where wind beneath the spruce canopy drops from `14 m/s` to `3.5 m/s`), winches the `1.0 kg` `+42 °C` glucose/blanket cask onto open snow `15 m` from the survivor (`3.5 min`), and then guides the walking survivor for **`18 minutes` (`1.3 km`)** via the `28 m` above-canopy **`1,500 lm` (`10°`) aerial lantern beam** directly to the nearest **Metsähallitus** wilderness hut (*autiotupa*).
+   * **Overhead Mothership Relay (`320 m` AGL Electric Loiter):** Simultaneously, the `FIN-LAB-02` Mothership Jet climbs to **`320 m` AGL**, shuts down its turbojet (`0 g/s` fuel burn), and orbits quietly at `21 m/s` on only **`260 W` nose electric propeller power (`45 min` loiter)** — acting as a high-altitude **`868 MHz` ELRS & Wi-Fi airborne communications relay** (`+28.4 dB` link margin) bridging the deep granite canyon to the `35 km` base station!
+   * **Dual Recovery:** Once the survivor is inside the warm wilderness hut, the Mothership Jet glides back to base while the `Karhunkierros` quadcopter lands autonomously inside the nearest **`+10 °C` motorized roofed wilderness nest box (`34.2%` battery margin remaining)** to recharge for the next mission.
+
+### 5.3 Complete Range, Speed & Payload Comparison Across All Modular Configurations (`60-Second` Swap)
+Because the `FIN-LAB-02` airframe uses a modular **Belly Payload Cartridge (`580 × 240 × 165 mm` centered at `X_CG = 595 mm`)** and a quick-release **Aft Engine Sled (`4× M5` bolts)**, a single `$180` CNC foam/carbon airframe shell supports four mission profiles:
+
+![3D CAD Single Source of Truth & Marsupial Telemetry Verification](images/sar_design_26_marsupial_quad_drop_and_joint_mission_v2.jpg)
+
+| Platform & Modular Configuration | Cruise / Dash Airspeed | Max Range in `14 m/s` (`50 km/h`) Storm Headwind | Max Calm / Hybrid Range | Max Endurance | Primary Payload & Operational Capability | Unit Hardware BOM |
+| :--- | :---: | :---: | :---: | :---: | :--- | :---: |
+| **1. Standalone `Karhunkierros` SAR Quadcopter (`v1.6` / `v2.0`)** | `65 km/h` (`18 m/s`) | **`4.59 km`** *(aborts at 50% SOC due to `4.0 m/s` net groundspeed)* | **`14.0 km`** *(round-trip)* | `32 min` | `1.0 kg` `+42 °C` warm cask winch (`15 m` offset) + `28 m` above-canopy `1,500 lm` lantern walk to hut. | **`€1,189 – €1,329`** |
+| **2. `FIN-LAB-02` Jet + `Cartridge B` (*Marsupial Jet + Folded SAR Quad*)** | **`259 km/h`** (`72 m/s` dash) / `79 km/h` loiter | **`35 – 45 km` radius** (`11.3 min` transit; quad arrives at `100%` SOC!) | **`90 km`** *(total jet flight path)* | `45 min` jet relay + `28 min` quad hover | **Delivers full `Karhunkierros` Quad (`3.2 kg` + `1.0 kg` warm cask) into deep canyon** + `320 m` overhead jet radio relay (`+28.4 dB`). | **`~$5,150` Jet + `€1,189` Quad** |
+| **3. `FIN-LAB-02` Jet + `Cartridge A` (*Heavy `5.0 kg` Parachute Survival Pod*)** | **`259 km/h`** (`72 m/s` dash) | **`35 – 55 km` radius** (`11.3 min` to `35 km`) | **`95 km`** | `45 min` loiter + `22 min` turbine | Drops **`5.0 kg` heavy survival capsule** (`3.0 L` `+42 °C` drink + `RESTUBE 180` ice flotation + arctic bivvy + `PLB`, `<8.5 m` CEP) + `320 m` sky strobe. | **`~$5,150`** (`€4,750`) |
+| **4. `FIN-LAB-02` Jet + `Cartridge C` (*Extended-Range Hybrid Recon & Relay*)** | **`259 km/h`** dash / `76 km/h` electric | **`113 km`** *(pure turbine high-speed storm dash)* | **`295 km`** *(turbine + electric cruise)* | **`3.75 hours`** (`225 min`) | `+2.5 L` (`2.0 kg`) conformal belly fuel tank + `1.2 kg` micro survival drop pod + wide-area thermal/Starvis river/fell search. | **`~$5,220`** |
+| **5. `FIN-LAB-02` Airframe + `Sled C` (*`Saito FG-41TS` 4-Stroke Twin Ultra-Endurance*)** | `101 km/h` (`28 m/s` cruise) | **`1,124 km`** *(continuous `14 m/s` headwind)* | **`2,021 km`** *(calm)* / **`2,757 km`** *(tailwind)* | **`25.5 hours`** | `11.0 kg` gasoline/oil in belly + main tanks (`12.9 g/min` burn) for 24-hour Lapland border/wilderness search & airborne mesh relay. | **`~$4,100`** |
+
+---
+
+## 6. Pro Bono Pilot & Phased Field Validation (Phases 1–3)
 
 1. **Phases 1–2 (Private Forest Validation — "Lean-To / Cabin = Wilderness Hut"):** Validate first via mobile trunk/sled launch in dense coniferous forest (`€350` camera walk test $\rightarrow$ `€1,189–€1,329` full COTS drone pilot under a safety pilot's RC override).
 2. **Phase 3 (Northern Finland Pro Bono Pilot):** Offer the field-proven open-source reference package for joint evaluation with **Metsähallitus Parks & Wildlife Finland** (*Oulanka / Karhunkierros*, *Urho Kekkonen National Park*, *Pallas-Yllästunturi*), **Vapepa** (Voluntary Rescue Service), **Finnish Air Rescue Society (SLPS)**, **Poliisi**, **Rajavartiolaitos**, and regional **Rescue Departments**.

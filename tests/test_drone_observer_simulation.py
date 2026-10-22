@@ -1769,6 +1769,54 @@ class TestAerialObserverModule(unittest.TestCase):
         self.assertTrue(suite["p12_capture_cooperative_apn_soft_net"]["zero_firearms_zero_pyrotechnics"])
         self.assertGreaterEqual(suite["finlab06_coastal_cable_usv"]["fleet_availability_pct"], 80.0)
 
+    def test_30_cnc_overwatch_priority_preemption_and_terrain_auto_mission(self):
+        """Verify C&C Black Fog-of-War Camera-Feed Map, Priority Preemption Options, Auto/RC Guidance, and Terrain Auto-Mission."""
+        # 1. Default C&C Overwatch: Preempts Area Mapping to Follow Lost Hiker (P1) while Drones 2-4 map black shroud
+        res_person = dobs.execute_cnc_overwatch_and_guidance_action(
+            task_mode="AUTO_OBSERVE_AND_SEARCH",
+            preempt_mapping_on_detection=True,
+            detect_lost_people=True,
+            detect_lost_vehicles=True,
+            fleet_split_policy="SPLIT_1_FOLLOW_REST_MAP",
+            subject_type="LOST_PERSON",
+            guidance_mode="AUTONOMOUS_GUIDANCE",
+        )
+        self.assertTrue(res_person["dispatched"])
+        self.assertEqual(res_person["cnc_map_view_spec"]["unobserved_area_color_hex"], "#000000")
+        self.assertEqual(
+            res_person["cnc_map_view_spec"]["active_sensor_areas_rendered_as"],
+            "LIVE_PROJECTED_CAMERA_FEEDS_ON_MAP",
+        )
+        self.assertTrue(res_person["preemption_decision"]["preempted_area_mapping"])
+        self.assertEqual(res_person["preemption_decision"]["locked_target"]["target_id"], "TGT-LOST-HIKER-01")
+        self.assertEqual(res_person["fleet_assignments"][0]["role"], "PRIORITY_TARGET_FOLLOW_AND_GUIDE")
+        self.assertEqual(res_person["fleet_assignments"][1]["role"], "BOUSTROPHEDON_AREA_SHROUD_MAPPER")
+        self.assertEqual(res_person["guidance_execution"]["guidance_mode"], "AUTONOMOUS_GUIDANCE")
+        self.assertEqual(res_person["guidance_execution"]["drone_alt_agl_m"], 28.0)
+        self.assertTrue(res_person["guidance_execution"]["warm_cask_dropped_at_15m"])
+
+        # 2. Verify Terrain-Following Auto-Mission Compiler & QGC WPL 110 (MAV_FRAME_GLOBAL_TERRAIN_ALT = 10)
+        tm = res_person["terrain_following_auto_mission"]
+        self.assertIn("EPSG:3067", tm["geodetic_anchor"]["crs_primary"])
+        self.assertGreaterEqual(tm["waypoint_count"], 4)
+        self.assertIn("QGC WPL 110", tm["qgc_wpl_110_text"])
+        self.assertIn("\t10\t16\t", tm["qgc_wpl_110_text"])  # Frame 10 = MAV_FRAME_GLOBAL_TERRAIN_ALT
+
+        # 3. Verify Lost Vehicle (Snowmobile) Autonomous Convoy Route Corridor & Manual RC >=15m Safety Clamping
+        res_veh_rc = dobs.execute_cnc_overwatch_and_guidance_action(
+            subject_type="LOST_VEHICLE",
+            guidance_mode="MANUAL_REMOTE_CONTROL",
+            rc_delta_east_m=-14.0,
+            rc_delta_north_m=-11.0,
+            rc_delta_alt_m=-25.0,
+        )
+        g_rc = res_veh_rc["guidance_execution"]
+        self.assertEqual(g_rc["subject_type"], "LOST_VEHICLE")
+        self.assertEqual(g_rc["guidance_mode"], "MANUAL_REMOTE_CONTROL")
+        self.assertTrue(g_rc["safety_bubble_clamped"])
+        self.assertGreaterEqual(g_rc["horiz_standoff_m"], 15.0)
+        self.assertGreaterEqual(g_rc["drone_alt_agl_m"], 28.0)
+
 
 if __name__ == "__main__":
     print("=== Running Autonomous Aerial Observation & Guidance Module Test Suite ===")

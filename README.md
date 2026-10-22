@@ -46,7 +46,10 @@ An off-grid, GNSS-independent wilderness search-and-rescue (**Karhunkierros SAR 
 ## Quick Verification & CLI Commands
 
 ```bash
-# Run all 38 automated unit test suites across all 5 test files (27 SAR Drone tests + 8 Fast-SAR Jet tests + 3 shared arctic-trail-cam suites)
+# Run the One-Command External Evaluator & Verification Readiness Certificate (<15 seconds)
+python3 -B run_full_verification_and_readiness_audit.py
+
+# Run all 38+ automated unit test suites across all 5 test files (27 SAR Drone tests + 9 Fast-SAR Jet tests + 3 shared arctic-trail-cam suites)
 python3 -B -m unittest discover -s tests -v
 
 # Run the interactive Guided Bench Doctor (including Stage 5 SAR Drone Companion Bench Check)
@@ -69,7 +72,32 @@ python3 -B collector_hub/drone_observer.py --mode grid-search --num-drones 4
 
 # Run the FIN-LAB Conformance Suite (FIN-LAB-01/02/03/04/05 U-Space Surge Fusion, 105m GNSS-Free Nav, Monte Carlo & Allied BOM Audit)
 python3 -B collector_hub/drone_observer.py --mode finlab-suite
+
+# Open the Field Operator Command & Conquer (C&C) Mission, Terrain Auto-Mapping & Guidance Console
+open collector_hub/ui/operator_mission_console.html
 ```
+
+## Field Operator Command & Conquer (`C&C`) Mission, Auto-Terrain Mapping & Guidance UX (`collector_hub/ui/operator_mission_console.html`)
+
+While `flight_simulator.html` provides the engineering 6-DOF aerodynamics/CFD wind-tunnel workbench, **actual field SAR operators, Vapepa coordinators, and mobile patrol crews use the dedicated Command & Conquer (`C&C`) Tactical Overwatch & Guidance Console** ([`collector_hub/ui/operator_mission_console.html`](collector_hub/ui/operator_mission_console.html), also embedded as a live 3D terrain-draped `🕹️ C&C Overwatch` mode inside [`collector_hub/ui/index.html`](collector_hub/ui/index.html) and backed by `CommandAndConquerTacticalOverwatchController` in [`collector_hub/drone_observer.py`](collector_hub/drone_observer.py)):
+
+1. **Command & Conquer (`C&C`) Fog-of-War & Live Camera-Feed Map Projection:**
+   - **Pitch-Black Unobserved Shroud (`#000000`):** Unexplored wilderness areas outside sensor coverage render pitch black on the tactical map so operators immediately see what terrain has **not** yet been searched (`43.8%` unmapped vs. `56.2%` revealed).
+   - **Swept Terrain Memory (`Dimmed DEM`):** Areas previously swept by airborne drones retain a dimmed `32%` Maanmittauslaitos (`MML`) topographic contour memory trail.
+   - **Live Camera Feeds Drawn Directly Inside Sensor Footprints:** Wherever a ground trail camera (`NODE-NORTH-01`, `NODE-GORGE-02`) or airborne drone (`DRONE-ALPHA`, `DRONE-BRAVO`, `FIN-LAB-02 JET`) points its `TOPDON TC001 LWIR` / `IMX462 Starvis` sensor, its exact ground footprint trapezoid/sector is **drawn directly onto the map as a live projected camera feed** with thermal/night-vision imagery, scanlines, HUD crosshairs, sensor headers, and live AI bounding boxes (`PERSON 96% +31.4°C`, `VEHICLE 93% +18.2°C`).
+2. **How Auto-Missions Are Designed & Mapped to Actual Physical Terrain (`compile_terrain_following_auto_mission`):**
+   - **Step 1 — Draw on Real Coordinates (`WGS84` + `ETRS-TM35FIN EPSG:3067`):** The operator drags a rectangular **Boustrophedon (Lawnmower) Search Box** or clicks a **Trail / Road Corridor** on the map anchored to real Oulanka / Ruka coordinates (`66.2602°N, 29.4189°E`, `ETRS-TM35FIN N:7351420 E:608740`).
+   - **Step 2 — Automatic Sensor Swath & Lane Spacing:** From the selected AGL altitude ($h_{\text{AGL}} = 28\text{ m}$ quad or $65\text{ m}$ wide search), camera FOV ($56^\circ$ `TC001` LWIR or $90^\circ$ `IMX462` Starvis), and side-lap ($25\%$), the planner computes exact ground swath width $W_{\text{swath}} = 2 \cdot h_{\text{AGL}} \cdot \tan(\text{FOV}/2) \cdot (1 - \text{overlap})$ (`22.4 m` lane spacing) and generates parallel turnaround legs perpendicular to the wind vector.
+   - **Step 3 — 3-Layer Real-Terrain Elevation Draping (`MML 2m/10m LiDAR DEM + 18 m Canopy + 40 m TF02-Pro LiDAR`):** Every waypoint $(x_i, y_i)$ queries the offline **Maanmittauslaitos (`MML`) 2m/10m elevation grid** ($h_{\text{DEM}}$, e.g. `172 m` river gorge to `268 m` Kiutaköngäs ridge) plus the `18 m` boreal spruce canopy clearance floor, setting target altitude $Z_{\text{ASL}}(x_i,y_i) = h_{\text{DEM}}(x_i,y_i) + h_{\text{canopy}} + h_{\text{AGL}}$. Waypoints export in 1 click as a **`QGroundControl / ArduPilot WPL 110` (`.waypoints`)** file using **`MAV_FRAME_GLOBAL_TERRAIN_ALT` (`Frame = 10`)**, while in flight the onboard `Benewake TF02-Pro` (`40 m` IP65 LiDAR) + `BMP390` barometer + `MicoAir MTF-02P` optical flow maintain exact real-time height above the physical snow and tree crowns even under `100%` GNSS spoofing.
+3. **Priority Target Detection & Automatic Mission Preemption (`OPTIONS` Panel):**
+   - Operators configure real-time preemption toggles: **`[☑] Follow Lost People & Vehicles With Priority Over Mapping`**, **`[☑] Detect Lost People (Thermal + AI P1/P2)`**, **`[☑] Detect Lost Vehicles / Snowmobiles (Mag + Thermal P3)`**, **`[☑] Ignore Wildlife / ≥100 m Reindeer Floor (Poronhoitolaki)`**, and **Multi-Drone Split Policy** (`Closest Follows Target • Others Map Black Shroud` vs. `All Converge` vs. `Pin Beacon Only`).
+   - When `DRONE-ALPHA` detects a lost hiker or stranded snowmobile inside its live camera footprint, it **immediately pauses its lawnmower mapping leg**, saves its exact resume waypoint (`WP #2/6`), transitions to `TARGET_LOCK_FOLLOW`, and hands off the remaining black shroud to `DRONE-BRAVO`.
+4. **Autonomous OR Manual Remote-Control (`RC`) Guidance for Both Lost People & Vehicles:**
+   - **Lost Person (`P1/P2`):** In **Auto Guide (`Opaslyhty`)**, the drone drops the `+42 °C` warm berry-electrolyte cask at a safe `15 m` offset (`25 N` breakaway fuse) and leads the hiker at walking pace (`1.2 m/s`, pausing if they stop) via a `28 m` AGL above-canopy `1,500 lm` spotlight beam aimed `15 m` ahead on the snow trail to the nearest warm **Metsähallitus Autiotupa** wilderness hut (`580 m`).
+   - **Lost / Stranded Vehicle or Snowmobile (`P3`):** In **Auto Guide (`Vehicle Escort`)**, the drone flies `35 m` ahead at `45 m` AGL projecting a high-contrast `1,500 lm` ground corridor beam along a hazard-free forestry route (avoiding thin lake ice and steep gullies) back to the plowed main road (`1.40 km`).
+   - **Manual Remote Control (`🕹️ Manual RC`) & Real MAVLink v2 Field-Test Bridge (`collector_hub/mavlink_field_bridge.py`):** At any instant, the operator can click any drone on the **Google Earth Multi-Zoom Satellite Map** (`z = 4..20`) to stream its live camera feed (`View 2`), toggle the **`🪂 Enable "Mark Payload Drop" Mode`** switch (`OFF/ON`) to queue or cancel (`[✕ Cancel Drop]`) a payload drop before release, cancel a target lock (`[✕ Cancel Target Lock]`) to return the drone to cooperative zero-overlap sector scanning, and transmit real binary **MAVLink v2 (`0xFD`, CRC-16/MCRF4XX)** `MISSION_ITEM_INT (#73)`, `GLOBAL_POSITION_INT (#33)`, and `COMMAND_LONG (#76)` (`MAV_CMD_DO_SET_SERVO` Ch9 `1100 µs`/`1900 µs` & `MAV_CMD_DO_MOUNT_CONTROL #205`) frames over UDP `:14550` / telemetry radio to `Pixhawk 6C` / `ARK FPV`.
+
+![Field Operator Command & Conquer (C&C) Mission, Terrain Auto-Mapping & Guidance UX](docs/images/sar_operator_cnc_mission_ux_v7.jpg)
 
 ## "Uber-for-SAR" Open-Alert Dispatch Marketplace & Automated Roofed Shelters (`SARDispatchMarketplaceCoordinator`)
 
@@ -106,6 +134,26 @@ When a verified `112` / `inReach` / Trail-Post `SOS` alert is issued, the coordi
 
 ### 4. Above-Canopy (`28 m` AGL) Aerial Lantern & Standoff Geometry
 ![Above-Canopy Aerial Lantern & Standoff Geometry](docs/images/arctic_sar_opaslyhty_canopy_geometry_v1.jpg)
+
+### 5. Tier-3 Fast-SAR Jet-Hybrid (`FIN-LAB-02`) & "Marsupial" Dual-Drone Architecture (`35–45 km` Storm Rescue to `2,757 km` Patrol)
+
+When a `14 m/s` (`50 km/h`) freezing headwind strikes northern fells, a standalone multi-rotor (`18 m/s` airspeed $\rightarrow$ `4.0 m/s` net groundspeed) hits its `50%` cold-battery turnaround limit at **`4.59 km`**. Conversely, a fast fixed-wing jet can dash `35 km` in `11.3 minutes` at `259 km/h` (`72 m/s`), **but cannot hover beneath spruce trees to winch down a `+42 °C` drink cask or walk a survivor along a forest trail at `1.2 m/s`.**
+
+Implemented in [`fast_sar_jet_finlab02/`](fast_sar_jet_finlab02/README.md) (and standalone repo [`arctic-trail/arctic-fast-sar-jet`](https://github.com/arctic-trail/arctic-fast-sar-jet)), **`FIN-LAB-02` (`Cartridge B`)** solves both physics limits simultaneously via a **Marsupial Dual-Drone Architecture**:
+* **Captive `+15 °C` Belly-Bay Dash (`0–35 km` in `11.3 min` at `259 km/h`):** The `2.20 m` wingspan twin-boom `110°` inverted $\Lambda$-tail Mothership Jet carries the folded `Karhunkierros` SAR quadcopter (`3.20 kg` + `1.0 kg` warm cask) inside its insulated ventral belly bay (`580 × 240 × 165 mm` centered at `X_CG = 595.0 mm`), keeping the quadcopter's battery at **`+15.0 °C` and `100.0%` SOC (`118.4 Wh`)** via a `28 V` magnetic breakaway umbilical during the `35 km` storm transit.
+* **Mid-Air Drogue Drop (`85 m` AGL) + Joint Canyon Rescue & `320 m` Overhead Relay:** Over the canyon (`85 m` AGL), the Mothership Jet slows to `22 m/s` on its `355 mm` nose electric prop and ejects the folded quadcopter. A `0.35 m²` ribbon drogue chute brakes the quad while torsion springs snap its 4 carbon arms open into hover lock at `59.6 m` AGL (`>30 m` above the trees) in `2.8 seconds` with **`99.4%` battery remaining**. While the quad descends into the canyon to winch the `+42 °C` glucose/blanket cask (`15 m` standoff) and lead the survivor via the `28 m` aerial lantern walk to a warm wilderness hut (*Autiotupa*) before docking in a `+10 °C` roofed trail nest box (`34.2%` SOC remaining), the Mothership Jet climbs to **`320 m` AGL on `260 W` nose-electric power (`45 min` loiter)** to serve as an airborne `868 MHz` ELRS & Wi-Fi relay over the canyon ridges (`+28.4 dB` link margin)!
+
+![Marsupial Dual-Drone Cutaway & 4-Stage Mid-Air Deployment](docs/images/sar_marsupial_cutaway_and_4stage_drop_v3.jpg)
+
+![End-to-End 6-Stage Marsupial Dual-Drone Wilderness Rescue Storyboard](docs/images/sar_marsupial_6stage_whole_mission_en_v2.jpg)
+
+| Platform & Modular Configuration | Cruise / Dash Airspeed | Max Range in `14 m/s` (`50 km/h`) Storm Headwind | Max Calm / Hybrid Range | Max Endurance | Primary Payload & Operational Capability | Unit Hardware BOM |
+| :--- | :---: | :---: | :---: | :---: | :--- | :---: |
+| **1. Standalone `Karhunkierros` SAR Quadcopter (`v1.6` / `v2.0`)** | `65 km/h` (`18 m/s`) | **`4.59 km`** *(aborts at 50% SOC due to `4.0 m/s` net groundspeed)* | **`14.0 km`** *(round-trip)* | `32 min` | `1.0 kg` `+42 °C` warm cask winch (`15 m` offset) + `28 m` above-canopy `1,500 lm` lantern walk to hut. | **`€1,189 – €1,329`** |
+| **2. `FIN-LAB-02` Jet + `Cartridge B` (*Marsupial Jet + Folded SAR Quad*)** | **`259 km/h`** (`72 m/s` dash) / `79 km/h` loiter | **`35 – 45 km` radius** (`11.3 min` transit; quad arrives at `100%` SOC!) | **`90 km`** *(total jet flight path)* | `45 min` jet relay + `28 min` quad hover | **Delivers full `Karhunkierros` Quad (`3.2 kg` + `1.0 kg` warm cask) into deep canyon** + `320 m` overhead jet radio relay (`+28.4 dB`). | **`~$5,150` Jet + `€1,189` Quad** |
+| **3. `FIN-LAB-02` Jet + `Cartridge A` (*Heavy `5.0 kg` Parachute Survival Pod*)** | **`259 km/h`** (`72 m/s` dash) | **`35 – 55 km` radius** (`11.3 min` to `35 km`) | **`95 km`** | `45 min` loiter + `22 min` turbine | Drops **`5.0 kg` heavy survival capsule** (`3.0 L` `+42 °C` drink + `RESTUBE 180` ice flotation + arctic bivvy + `PLB`, `<8.5 m` CEP) + `320 m` sky strobe. | **`~$5,150`** (`€4,750`) |
+| **4. `FIN-LAB-02` Jet + `Cartridge C` (*Extended-Range Hybrid Recon & Relay*)** | **`259 km/h`** dash / `76 km/h` electric | **`113 km`** *(pure turbine high-speed storm dash)* | **`295 km`** *(turbine + electric cruise)* | **`3.75 hours`** (`225 min`) | `+2.5 L` (`2.0 kg`) conformal belly fuel tank + `1.2 kg` micro survival drop pod + wide-area thermal/Starvis river/fell search. | **`~$5,220`** |
+| **5. `FIN-LAB-02` Airframe + `Sled C` (*`Saito FG-41TS` 4-Stroke Twin Ultra-Endurance*)** | `101 km/h` (`28 m/s` cruise) | **`1,124 km`** *(continuous `14 m/s` headwind)* | **`2,021 km`** *(calm)* / **`2,757 km`** *(tailwind)* | **`25.5 hours`** | `11.0 kg` gasoline/oil in belly + main tanks (`12.9 g/min` burn) for 24-hour Lapland border/wilderness search & airborne mesh relay. | **`~$4,100`** |
 
 ## Readiness & Verification Matrix (Design vs. Simulation vs. Field Validation)
 
