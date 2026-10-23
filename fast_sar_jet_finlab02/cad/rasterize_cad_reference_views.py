@@ -25,8 +25,8 @@ CAD_DIR = os.path.dirname(os.path.abspath(__file__))
 STL_PATH = os.path.join(CAD_DIR, "arctic_fast_sar_jet_iter1_fixed16deg.stl")
 OUT_DOCS_JPG = os.path.join(os.path.dirname(CAD_DIR), "docs", "images", "cad_ssot_4angle_reference_raster_v3.jpg")
 
-FONT_PATH = "/System/Library/Fonts/Supplemental/Arial.ttf"
-FONT_BOLD_PATH = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
+FONT_PATH = "DejaVuSans.ttf"
+FONT_BOLD_PATH = "DejaVuSans-Bold.ttf"
 
 
 def load_stl_with_clear_lambda_apex(path: str):

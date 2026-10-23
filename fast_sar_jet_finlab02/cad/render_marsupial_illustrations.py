@@ -17,24 +17,15 @@ QUAD_SUB_IMG_DIR = JET_IMG_DIR
 
 def get_font(size: int, bold: bool = False):
     candidates = (
-        [
-            "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
-            "/System/Library/Fonts/Helvetica.ttc",
-            "/Library/Fonts/Arial Bold.ttf",
-        ]
+        ["DejaVuSans-Bold.ttf", "Arial Bold.ttf", "Helvetica.ttc"]
         if bold
-        else [
-            "/System/Library/Fonts/Supplemental/Arial.ttf",
-            "/System/Library/Fonts/Helvetica.ttc",
-            "/Library/Fonts/Arial.ttf",
-        ]
+        else ["DejaVuSans.ttf", "Arial.ttf", "Helvetica.ttc"]
     )
     for path in candidates:
-        if os.path.exists(path):
-            try:
-                return ImageFont.truetype(path, size)
-            except Exception:
-                pass
+        try:
+            return ImageFont.truetype(path, size)
+        except Exception:
+            pass
     return ImageFont.load_default()
 
 

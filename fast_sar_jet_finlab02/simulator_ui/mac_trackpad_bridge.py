@@ -16,14 +16,15 @@ Serves:
 """
 
 import ctypes
+import ctypes.util
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
 import threading
 import time
 
-CF_PATH = "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation"
-MT_PATH = "/System/Library/PrivateFrameworks/MultitouchSupport.framework/MultitouchSupport"
+CF_PATH = ctypes.util.find_library("CoreFoundation") or "CoreFoundation"
+MT_PATH = ctypes.util.find_library("MultitouchSupport") or "MultitouchSupport"
 
 
 class MTPoint(ctypes.Structure):

@@ -18,14 +18,16 @@ from rasterize_cad_reference_views import load_stl_with_clear_lambda_apex, rende
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT_JPG = REPO_ROOT / "docs" / "images" / "sar_design_29_dorsal_surge_and_20_arctic_protections_v3.jpg"
 
-FONT_REG = "/System/Library/Fonts/Supplemental/Arial.ttf"
-FONT_BOLD = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
+FONT_REG = "DejaVuSans.ttf"
+FONT_BOLD = "DejaVuSans-Bold.ttf"
 
 
 def fnt(size: int, bold: bool = False):
-    path = FONT_BOLD if bold else FONT_REG
-    if os.path.exists(path):
-        return ImageFont.truetype(path, size)
+    for name in ([FONT_BOLD, "Arial Bold.ttf"] if bold else [FONT_REG, "Arial.ttf"]):
+        try:
+            return ImageFont.truetype(name, size)
+        except Exception:
+            pass
     return ImageFont.load_default()
 
 
