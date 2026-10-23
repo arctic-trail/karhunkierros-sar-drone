@@ -1789,6 +1789,58 @@ class TestAerialObserverModule(unittest.TestCase):
         self.assertEqual(charter_6["civilian_ceiling_pts"], 85)
         self.assertGreaterEqual(charter_6["cost_performance_summary"]["cost_reduction_factor_vs_charter_min"], 8000.0)
 
+        # 9. Verify Option B Karhunkierros-X8 Coaxial Heavy-Sprint Upgrade, X8-H1..H5 Hardening Laws & 1,000-Sim Campaign
+        endurance_x8 = dobs.evaluate_finnish_winter_flight_endurance(ambient_temp_c=-20.0, wind_speed_mps=6.5, payload_mass_kg=3.0)
+        self.assertIn("Option B: Karhunkierros-X8 Coaxial OctaQuad", endurance_x8["airframe_propulsion_architecture"])
+        self.assertEqual(endurance_x8["nominal_payload_capacity_kg"], 3.0)
+        self.assertEqual(endurance_x8["max_overload_payload_kg"], 4.2)
+        self.assertEqual(endurance_x8["mtow_with_payload_kg"], 6.15)
+        self.assertEqual(endurance_x8["max_coaxial_static_thrust_kg"], 14.80)
+        self.assertEqual(endurance_x8["installed_continuous_thrust_kg"], 13.62)
+        self.assertEqual(endurance_x8["optimal_cruise_speed_kmh"], 90.0)
+        self.assertEqual(endurance_x8["max_sprint_dash_speed_kmh"], 138.6)
+        self.assertEqual(endurance_x8["calm_air_round_trip_radius_km"], 22.5)
+        self.assertEqual(endurance_x8["storm_14mps_headwind_radius_km"], 14.8)
+        self.assertTrue(endurance_x8["single_motor_or_prop_loss_survivable"])
+
+        self.assertEqual(allied_prof["parameters"]["FRAME_CLASS"], 3)    # OctaQuad Coaxial X8
+        self.assertEqual(allied_prof["parameters"]["BATT_CAPACITY"], 13500)
+        self.assertEqual(allied_prof["parameters"]["WPNAV_SPEED"], 2500)
+        self.assertEqual(sup["cost_compliance_audit"]["option_b_coaxial_x8_bom_eur"], 1639.0)
+        self.assertEqual(sup["cost_compliance_audit"]["option_b_upgrade_delta_eur"], 310.0)
+
+        x8_mc = suite["finlab_x8_1000_coaxial_envelope_campaign"]
+        self.assertEqual(x8_mc["campaign_code"], "FIN-LAB-X8-1000")
+        self.assertEqual(x8_mc["total_simulations_run"], 1000)
+        self.assertEqual(x8_mc["legacy_x4_4s_runs"], 500)
+        self.assertEqual(x8_mc["option_b_coaxial_x8_runs"], 500)
+        self.assertGreaterEqual(x8_mc["option_b_coaxial_x8_overall_pass_rate_pct"], 99.5)
+        self.assertEqual(x8_mc["option_b_coaxial_x8_overall_survival_rate_pct"], 100.0)
+        self.assertGreater(
+            x8_mc["option_b_coaxial_x8_overall_pass_rate_pct"] - x8_mc["legacy_x4_4s_overall_pass_rate_pct"],
+            75.0,
+        )
+        self.assertTrue(x8_mc["hardening_laws_verification"]["all_5_x8_hardening_laws_passed"])
+        self.assertEqual(
+            x8_mc["regime_breakdown"]["X8_R03_SINGLE_MOTOR_OR_PROP_STRIKE_WITH_3KG_LOAD"]["option_b_coaxial_x8_survival_rate_pct"],
+            100.0,
+        )
+        self.assertEqual(
+            x8_mc["regime_breakdown"]["X8_R03_SINGLE_MOTOR_OR_PROP_STRIKE_WITH_3KG_LOAD"]["legacy_x4_4s_survival_rate_pct"],
+            0.0,
+        )
+
+        # 10. Verify Defensive Counter-Signature & Optical Tether Glint Detector + <300 km EU Compliance
+        def_det = suite["defensive_counter_signature_and_tether_detector"]
+        self.assertGreaterEqual(def_det["acoustic_counter_muffler"]["upgraded_multiband_detection_radius_m"], 1400.0)
+        self.assertGreaterEqual(def_det["acoustic_counter_muffler"]["classification_accuracy_pct"], 96.0)
+        self.assertGreaterEqual(def_det["optical_tether_and_lens_hazard_detector"]["polarimetric_glint_snr_db"], 18.0)
+        self.assertTrue(def_det["optical_tether_and_lens_hazard_detector"]["corridor_avoidance_triggered"])
+
+        pareto_summary = dobs.compute_pareto_optimal_4tier_portfolio_summary()
+        for tier in pareto_summary["tiers"]:
+            self.assertLess(tier["calm_radius_km"], 300.0)
+
     def test_30_cnc_overwatch_priority_preemption_and_terrain_auto_mission(self):
         """Verify C&C Black Fog-of-War Camera-Feed Map, Priority Preemption Options, Auto/RC Guidance, and Terrain Auto-Mission."""
         # 1. Default C&C Overwatch: Preempts Area Mapping to Follow Lost Hiker (P1) while Drones 2-4 map black shroud
