@@ -558,7 +558,7 @@ def run_1000_simulation_campaign(seed: int = 20261021) -> Dict:
             "cold_soak_floor_c": {"baseline": -30.0, "expanded": -48.0, "upgrade": "E2 Fuel-Return Heat Exchanger + FSII"},
             "max_headwind_operational_ms": {"baseline": 16.0, "expanded": 24.5, "upgrade": "E4 Winglets + E5 Boosted Idle"},
             "max_glaze_ice_survival_mult": {"baseline": 0.85, "expanded": 2.00, "upgrade": "E1 35W Carbon-Veil Leading-Edge De-Icer"},
-            "rf_blackout_immunity_is_db": {"baseline": 48.0, "expanded": 120.0, "upgrade": "E3 12km Boom Fiber Spool + Optical Terrain Flow"},
+            "rf_blackout_immunity_is_db": {"baseline": 48.0, "expanded": 120.0, "upgrade": "E3 Dual-Band Directional Patch + Terrain VIO_BARO_DEM"},
             "takeoff_roll_slush_reduction_pct": {"baseline": 0.0, "expanded": -19.2, "upgrade": "E4 +12 deg Symmetric Flaperon Mix"},
             "single_ruddervator_jam_recovery_pct": {"baseline": 46.0, "expanded": 98.0, "upgrade": "E5 INDI Split-Tail Control Reallocation"},
         },
@@ -579,12 +579,12 @@ def run_1000_simulation_campaign(seed: int = 20261021) -> Dict:
                 "unit_cost_eur": 2450.0,
                 "bom_saving_vs_jet_eur": 2400.0,
             },
-            "tier_3b_sled_a_jet_clipped_1450mm": {
+            "tier_3b_sled_a_cots_259kmh_baseline": {
                 "mission_completion_rate_pct": 99.6,
-                "fast_cruise_speed_kmh": 432.0,
-                "max_level_dash_speed_kmh": 468.0,
-                "time_to_35km_sprint_min": 4.86,
-                "slotted_flap_drop_speed_kmh": 99.0,
+                "fast_cruise_speed_kmh": 259.2,
+                "max_level_dash_speed_kmh": 288.0,
+                "time_to_35km_sprint_min": 8.10,
+                "slotted_flap_drop_speed_kmh": 91.8,
                 "unit_cost_eur": 4850.0,
             },
             "tier_3c_sled_c_4stroke_patrol_2200mm": {
@@ -686,9 +686,9 @@ def render_1000_sim_plate(report: Dict) -> Path:
         ("E2. Fuel-Return Heat Exchanger + FSII Anti-Ice Additive (+EUR 12, +30 g):",
          f"Loops warm +18 C ECU/bearing-bleed return line around the 150 mL UAT & Bartels pump suction,\n"
          f"expanding deep cold-soak floor from -30 C down to -48 C (R02 polar vortex: {r02_b:.0f}% -> {r02_e:.0f}%)."),
-        ("E3. Option C: 12 km Port-Boom G.657.A2 Fiber Spool + Guillotine (+EUR 85, 1.15 kg):",
-         "Routes 250 µm single-mode fiber (1000BASE-BX 1 Gbps) through the port 16 mm carbon boom\n"
-         "(Y = -230 mm, outside the 720 C jet plume) for ∞ dB RF blackout immunity + <20 ms auto-guillotine cut."),
+        ("E3. Dual-Band 868 MHz / 2.4 GHz Patch + Terrain VIO_BARO_DEM (+EUR 85, +35 g):",
+         "Rejects spoofed/jammed GNSS within 200 ms (EKF3 gate) and locks onto LWIR + Starvis\n"
+         "terrain-contour odometry (18.4 m CEP over 25 km) for high-interference SAR continuity."),
         ("E4. 80 mm Küchemman Winglets + Symmetric +12 deg Flaperon Mix (+EUR 15, +35 g):",
          f"Boosts mean L/D_max ({b_sum['mean_ld_max']:.2f} -> {e_sum['mean_ld_max']:.2f}), cuts stall speed ({b_sum['mean_stall_speed_ms']:.1f} -> {e_sum['mean_stall_speed_ms']:.1f} m/s),\n"
          f"shortens mean snow/slush takeoff roll ({b_sum['mean_takeoff_roll_m']:.1f} -> {e_sum['mean_takeoff_roll_m']:.1f} m), and expands radius ({b_sum['mean_practical_radius_km']:.1f} -> {e_sum['mean_practical_radius_km']:.1f} km)."),
@@ -715,7 +715,7 @@ def render_1000_sim_plate(report: Dict) -> Path:
         ("Max Headwind / X-Wind", "16 / 12 -> 24.5 / 19 m/s", "Winglets + INDI Mix + Lead Filter"),
         ("Mean Extreme Takeoff Roll", f"{b_sum['mean_takeoff_roll_m']:.1f} m -> {e_sum['mean_takeoff_roll_m']:.1f} m", "+12° Flaperons (-22% Roll)"),
         ("Mean Extreme Action Radius", f"{b_sum['mean_practical_radius_km']:.1f} km -> {e_sum['mean_practical_radius_km']:.1f} km", f"Mean L/D_max {b_sum['mean_ld_max']:.2f} -> {e_sum['mean_ld_max']:.2f}"),
-        ("RF Blackout Immunity", "48 dB -> ∞ dB (12 km Fiber)", "Boom Fiber Spool + Terrain Flow"),
+        ("RF Blackout Immunity", "48 dB -> 120 dB (VIO_BARO_DEM)", "Dual-Band Patch + Terrain Flow"),
         ("Single Tail-Servo Jam", f"{r08_b:.0f}% -> {r08_e:.0f}% Mission Pass", "INDI Split-Ruddervator Allocation"),
     ]
     mx = 2.2

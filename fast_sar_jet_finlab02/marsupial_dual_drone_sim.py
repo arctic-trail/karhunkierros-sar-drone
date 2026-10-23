@@ -826,13 +826,12 @@ def simulate_full_marsupial_mission(
 
 def compare_marsupial_sled_b_prop_vs_sled_a_jet() -> Dict[str, object]:
     """
-    Compares the two Pareto-optimal mothership propulsion/wing architectures for
-    delivering the Cartridge B Marsupial SAR Quadcopter vs. the superseded 259 km/h
-    jet-on-large-wing baseline:
+    Compares the two 2.20 m straight-wing mothership propulsion architectures for
+    delivering the Cartridge B Marsupial SAR Quadcopter in the simplified public release:
       1. Tier 3A `Sled B-Prop` (2.20 m High-Lift Wing + 12S De-Iced Pusher Prop, ~EUR 2,450 / $2,650):
-         Pareto-optimal <300 km/h Marsupial carrier (275 km/h dash, 0.08 s go-around torque, 3.5x efficiency).
-      2. Tier 3B `Sled A-Jet` (1.45 m Clipped 28-deg Swept Wing + 135 N Micro-Turbojet + Slotted Flaps, ~EUR 4,850):
-         Pareto-optimal >400 km/h emergency sprint responder (432-468 km/h dash, 4.86 min to 35 km, 99 km/h flap drop).
+         Recommended <300 km/h Marsupial carrier (275 km/h dash, 0.08 s go-around torque, 3.5x efficiency).
+      2. Tier 3B `Sled A` (2.20 m High-Lift Wing + 100 N Turnkey COTS Hobby RC Turbine, ~EUR 4,850):
+         Baseline 259 km/h COTS hobby-turbine Marsupial carrier (V_NE <= 300 km/h).
     """
     import sar_sizing_calculator as sizing
 
@@ -840,13 +839,12 @@ def compare_marsupial_sled_b_prop_vs_sled_a_jet() -> Dict[str, object]:
     sled_a = sizing.compute_sled_a_jet_clipped_wing_450kmh_sprint()
     return {
         "recommended_marsupial_carrier_tier_3a": sled_b,
-        "ultra_fast_sprint_responder_tier_3b": sled_a,
+        "cots_hobby_turbine_baseline_tier_3b": sled_a,
         "why_refactored": (
-            "At 259-290 km/h (M_tip = 0.73 < 0.85), Sled B-Prop on the 2.20 m wing matches or beats the old "
-            "259 km/h jet transit time (9.35 min calm / 11.2 min in 14 m/s headwind to 35 km) while saving "
-            "EUR 2,400 per unit, eliminating 650 C dorsal exhaust heat, and providing 0.08 s instant go-around "
-            "torque; meanwhile Sled A-Jet pairs the 135 N turbine with the 1.45 m clipped swept wing (C_D0 = 0.018) "
-            "to unlock true 432-468 km/h jet sprint speed (35 km in 4.86 min)."
+            "At 259-275 km/h (M_tip = 0.73 < 0.85) on the 2.20 m straight high-lift wing, Sled B-Prop matches "
+            "or beats the 259 km/h COTS hobby turbine transit time (9.35 min calm / 11.2 min in 14 m/s headwind "
+            "to 35 km) while saving EUR 2,400 per unit, eliminating dorsal exhaust heat, and providing 0.08 s "
+            "instant go-around torque."
         ),
     }
 

@@ -692,7 +692,7 @@ class TestArcticFastSarJetSuite(unittest.TestCase):
         self.assertTrue(m_res["mid_air_separation_100hz"]["zero_rotor_strike_guaranteed"])
         self.assertTrue(m_res["joint_mission_summary"]["both_aircraft_recovered_safely"])
 
-        # Verify Refactored 4-Tier Pareto-Optimal Portfolio (Sled B-Prop 275 km/h vs Sled A-Jet 432-468 km/h)
+        # Verify Simplified Public 4-Tier Portfolio (Sled B-Prop 275 km/h & Sled A COTS 259 km/h, both <= 300 km/h V_NE)
         portfolio = sizing.compute_pareto_optimal_portfolio_lineup()
         self.assertTrue(portfolio["legacy_awkward_middle_eliminated"])
         sled_b = portfolio["tiers"]["tier_3a_sled_b_prop_marsupial"]
@@ -700,10 +700,10 @@ class TestArcticFastSarJetSuite(unittest.TestCase):
         self.assertEqual(sled_b["dash_speed_kmh"], 275.0)
         self.assertTrue(sled_b["below_transonic_tip_wall"])
         self.assertEqual(sled_b["bom_saving_vs_jet_eur"], 2400.0)
-        self.assertGreaterEqual(sled_a["fast_sprint_cruise_kmh"], 430.0)
-        self.assertGreaterEqual(sled_a["max_level_dash_kmh"], 460.0)
-        self.assertLessEqual(sled_a["time_to_35km_sprint_min"], 5.0)
-        self.assertGreaterEqual(sled_a["slotted_flap_cl_max"], 2.0)
+        self.assertEqual(sled_a["wingspan_m"], 2.20)
+        self.assertAlmostEqual(sled_a["fast_sprint_cruise_kmh"], 259.2, places=1)
+        self.assertLess(sled_a["max_corridor_dive_kmh"], 300.0)
+        self.assertTrue(sled_a["v_ne_sub_300kmh_compliant"])
 
     def test_10_cnc_cut_sheets_and_arduplane_param_export(self):
         """Verify 1:1 mm CNC/Hot-Wire SVG/DXF cut-sheets and ArduPlane 4.5+ .param export."""

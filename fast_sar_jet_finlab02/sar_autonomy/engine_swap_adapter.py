@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Modular Propulsion Sled CG Solver & Unified ECU Hardware Abstraction Layer (HAL)
-for swapping between a Turnkey Xicoy X45 / JetCat (Prototype Phase) and a
-Tier 1B 54mm MW54 + STM32G4 OpenTurbine-EU Engine (Cost-Reduced Production Phase).
+for swapping between Sled B-Prop (12S Brushless Pusher Outrunner + ESC) and a
+Turnkey European Hobby RC Micro-Turbine (Xicoy X95 / JetCat P100-RX-BL) with 0.0 mm CG shift.
 """
 
 from dataclasses import dataclass
@@ -63,8 +63,8 @@ def compute_zero_ballast_cg_swap(
 class UnifiedTurbineHAL:
     """
     Hardware Abstraction Layer allowing the Raspberry Pi autonomy stack to switch
-    between a Turnkey Xicoy/JetCat ECU and the open-source European
-    STM32G4 OpenTurbine-EU FADEC without changing a single line of guidance/control code.
+    between a Turnkey Xicoy/JetCat ECU and an All-Electric 12S Brushless ESC (Sled B-Prop)
+    without changing a single line of guidance/control code.
     """
 
     @staticmethod
@@ -81,22 +81,21 @@ class UnifiedTurbineHAL:
         )
 
     @staticmethod
-    def parse_stm32g4_openturbine_frame(frame: dict) -> TurbineTelemetry:
-        # Normalizes Tier 1B MW54 STM32G4 OpenTurbine-EU (165,000 RPM max, 25.2-163 g/min)
-        pump_pct = float(frame.get("pwm", 0.0))
-        fuel_flow_g_s = (25.2 + 137.8 * (pump_pct / 100.0)) / 60.0
+    def parse_sled_b_electric_esc_frame(frame: dict) -> TurbineTelemetry:
+        # Normalizes Sled B-Prop 12S Brushless Pusher ESC telemetry into unified HAL format
+        throttle_pct = float(frame.get("pwm", 0.0))
         return TurbineTelemetry(
             rpm=float(frame["shaft_rpm"]),
-            egt_c=float(frame["tc_celsius"]),
-            pump_pwm_pct=pump_pct,
-            fuel_flow_g_s=round(fuel_flow_g_s, 3),
+            egt_c=float(frame.get("tc_celsius", 38.0)),
+            pump_pwm_pct=throttle_pct,
+            fuel_flow_g_s=0.0,
             state=frame.get("fsm_state", "RUNNING"),
         )
 
 
 def main():
     kt_k45 = EnginePackageSpec(
-        name="KingTech K45G4+",
+        name="KingTech K45G4+ / Xicoy X45 Turnkey Hobby ECU",
         outer_diameter_mm=62.9,
         length_mm=158.0,
         bare_engine_mass_g=450.0,
@@ -107,37 +106,37 @@ def main():
         full_burn_g_min=150.0,
         spool_tau_s=0.95,
     )
-    tier1b_mw54 = EnginePackageSpec(
-        name="Tier 1B 54mm MW54 COTS-Core",
+    sled_b_motor = EnginePackageSpec(
+        name="Sled B-Prop 12S Brushless Pusher Outrunner + ESC",
         outer_diameter_mm=68.0,
         length_mm=172.0,
         bare_engine_mass_g=570.0,
         ancillary_mass_g=250.0,
-        max_rpm=165000,
-        max_thrust_n=48.0,
-        idle_burn_g_min=25.2,
-        full_burn_g_min=163.0,
-        spool_tau_s=1.35,
+        max_rpm=11200,
+        max_thrust_n=68.0,
+        idle_burn_g_min=0.0,
+        full_burn_g_min=0.0,
+        spool_tau_s=0.08,
     )
 
-    cg_res = compute_zero_ballast_cg_swap(kt_k45, tier1b_mw54)
+    cg_res = compute_zero_ballast_cg_swap(kt_k45, sled_b_motor)
     print("=" * 85)
-    print("MODULAR ENGINE SLED SWAP ANALYSIS: KINGTECH K45G4+ -> TIER 1B 54MM MW54")
+    print("MODULAR ENGINE SLED SWAP ANALYSIS: TURNKEY RC TURBINE <-> SLED B-PROP ELECTRIC")
     print("=" * 85)
-    print(f"  KingTech K45G4+ Aft Mass : {cg_res['kingtech_aft_mass_g']:.0f} g @ +{cg_res['default_aft_arm_mm']:.1f} mm aft of CG")
-    print(f"  Tier 1B MW54 Aft Mass    : {cg_res['tier1b_aft_mass_g']:.0f} g @ +{cg_res['tier1b_aft_arm_mm']:.1f} mm aft of CG")
-    print(f"  Required Sled Rail Slide : {cg_res['rail_slide_forward_mm']:.1f} mm FORWARD (0 g ballast required)")
-    print(f"  Clamp Collar Adapter     : 68.0 mm base cradle + 2.55 mm radial silicone/aluminum reducer shim for 62.9 mm K45G4+")
+    print(f"  Turnkey RC Turbine Aft Mass : {cg_res['kingtech_aft_mass_g']:.0f} g @ +{cg_res['default_aft_arm_mm']:.1f} mm aft of CG")
+    print(f"  Sled B-Prop Motor Aft Mass  : {cg_res['tier1b_aft_mass_g']:.0f} g @ +{cg_res['tier1b_aft_arm_mm']:.1f} mm aft of CG")
+    print(f"  Required Sled Rail Slide    : {cg_res['rail_slide_forward_mm']:.1f} mm FORWARD (0 g ballast required)")
+    print(f"  Clamp Collar Adapter        : 68.0 mm base cradle + 2.55 mm radial silicone/aluminum reducer shim")
 
     kt_telem = UnifiedTurbineHAL.parse_turnkey_ecu_frame(
         {"rpm": 145000, "egt_c": 590, "pump_pw_pct": 52.0, "status": "RUNNING"}
     )
-    t1b_telem = UnifiedTurbineHAL.parse_stm32g4_openturbine_frame(
-        {"shaft_rpm": 112000, "tc_celsius": 615, "pwm": 52.0, "fsm_state": "RUNNING"}
+    eb_telem = UnifiedTurbineHAL.parse_sled_b_electric_esc_frame(
+        {"shaft_rpm": 8850, "tc_celsius": 38, "pwm": 52.0, "fsm_state": "RUNNING"}
     )
     print("\n  [Unified HAL Telemetry Check]")
     print(f"  Turnkey Xicoy/JetCat Frame -> {kt_telem}")
-    print(f"  Tier 1B STM32G4 OpenTurbine-EU Frame -> {t1b_telem}")
+    print(f"  Sled B-Prop 12S ESC Frame  -> {eb_telem}")
 
 
 if __name__ == "__main__":

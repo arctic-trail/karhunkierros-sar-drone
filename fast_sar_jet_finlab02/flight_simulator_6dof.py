@@ -486,7 +486,7 @@ class InterferenceAndFaultConfig:
       - Domain 2 (400 Hz Flight Control): US ARK FPV STM32H743 + TDK ICM-42688-P (IMU1)
         + Bosch BMI088 (IMU2) + Bosch BMP390 (Baro) + PNI RM3100 (Mag) + TE MS4525DO (Pitot)
         + Swiss u-blox ZED-F9P / M10 (Multi-Band GNSS)
-      - Domain 3 (200 Hz Engine FADEC): JetCat V6 / Xicoy / OpenTurbine-EU STM32G474
+      - Domain 3 (200 Hz Turnkey Engine ECU / 12S ESC): Factory JetCat V6 / Xicoy ECU or Sled B-Prop 12S ESC
         + Optical RPM + MAX31855 K-type EGT + Bartels pump + Burkert 12V shutoff solenoid
     """
     preset_id: str = "NOMINAL_CLEAN"

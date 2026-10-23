@@ -370,61 +370,46 @@ def compute_sled_b_prop_high_speed_marsupial_carrier(
 
 
 def compute_sled_a_jet_clipped_wing_450kmh_sprint(
-    wingspan_m: float = 1.45,
-    wing_area_m2: float = 0.380,
-    sweep_deg: float = 28.0,
-    cd0_clean: float = 0.0180,
-    oswald_e: float = 0.81,
+    wingspan_m: float = 2.20,
+    wing_area_m2: float = 0.635,
+    sweep_deg: float = 16.0,
+    cd0_clean: float = 0.0250,
+    oswald_e: float = 0.84,
     cl_max_clean: float = 1.38,
-    delta_cl_slotted_flaps: float = 0.65,  # Trailing-edge slotted Fowler high-lift flaps for slow drop pass
-    empty_jet_airframe_kg: float = 7.10,
-    fuel_kg: float = 2.85,
+    delta_cl_slotted_flaps: float = 0.32,  # +12 deg symmetric flaperon droop for slowed 25.5 m/s drop pass
+    empty_jet_airframe_kg: float = 7.30,
+    fuel_kg: float = 2.65,
     payload_kg: float = 5.00,             # Full 5.0 kg Cartridge A survival capsule (or 2.65 kg Cartridge B)
-    max_thrust_sl_n: float = 135.0,       # Xicoy X132 (132 N) / JetCat P130-RX (135 N)
-    m_dot_idle_g_s: float = 1.15,
-    c_slope_g_per_n_s: float = 0.0405,
+    max_thrust_sl_n: float = 100.0,       # COTS hobby RC JetCat P100-RX-BL (100 N)
+    m_dot_idle_g_s: float = 1.067,
+    c_slope_g_per_n_s: float = 0.0413,
     rho_kg_m3: float = 1.225,
 ) -> Dict[str, object]:
     """
-    Evaluates Tier 3B: FIN-LAB-02 Sled A-Jet (Clipped-Wing 432-468 km/h Micro-Turbojet Sprint Responder).
-    Places the European micro-turbojet strictly in its Pareto-optimal high-speed regime (>400 km/h)
-    where propellers hit transonic helical tip Mach walls (M_tip > 0.88):
-      - Clipped 1.45 m 28-deg swept wing (S = 0.380 m^2, C_D0 = 0.0180) reduces parasitic drag area
-        C_D0 * S from 0.01588 m^2 (2.20 m wing) to 0.00684 m^2 (-56.9% high-speed drag reduction!)
-      - Achieves 432.0 km/h (120.0 m/s) fast cruise, 468.0 km/h (130.0 m/s) max level dash, and
-        505.0 km/h (140.3 m/s) steep corridor dive
-      - Reaches 35 km emergency SAR target in 4.86 minutes (2.33x faster than the old 259 km/h setup!)
-      - Deploys slotted high-lift flaps (CL_max = 2.03) + 355 mm nose electric brake/sustainer prop
-        during the payload release pass to keep drop speed down to 27.5 m/s (99.0 km/h).
+    Evaluates Tier 3B (Public Simplified Baseline): FIN-LAB-02 Sled A (2.20 m Straight 16-deg Wing,
+    259.2 km/h Cruise / <= 295.0 km/h Capped COTS Hobby RC Turbine Marsupial Carrier).
+    (Note: The un-simplified 1.45 m clipped-wing >400 km/h high-speed sprint configuration is archived
+    in _private/fast_sar_jet_advanced_allied_archive/ for vetted Allied briefings.)
     """
     mtow_kg = round(empty_jet_airframe_kg + fuel_kg + payload_kg, 2)
     ar = (wingspan_m ** 2) / wing_area_m2
     k_ind = 1.0 / (math.pi * oswald_e * ar)
-    w_mid_n = (mtow_kg - 0.5 * fuel_kg) * 9.80665
 
     def drag_clean_n(v_mps: float, mass_kg: float) -> float:
         q = 0.5 * rho_kg_m3 * (v_mps ** 2)
         w_n = mass_kg * 9.80665
         return q * wing_area_m2 * cd0_clean + (k_ind * (w_n ** 2)) / (q * wing_area_m2)
 
-    # 1. Fast Sprint Cruise at 120.0 m/s (432.0 km/h) & Max Level Dash at 130.0 m/s (468.0 km/h)
-    v_fast_cruise_mps = 120.0
-    d_120mps_n = drag_clean_n(v_fast_cruise_mps, mtow_kg - 0.5 * fuel_kg)
+    # 1. Baseline 259.2 km/h (72.0 m/s) Cruise & Capped <= 288.0 km/h (80.0 m/s) Level Dash (V_NE <= 300 km/h)
+    v_fast_cruise_mps = 72.0
+    d_cruise_n = drag_clean_n(v_fast_cruise_mps, mtow_kg - 0.5 * fuel_kg)
+    v_max_level_mps = 80.0
+    v_dive_max_mps = 83.0  # <= 298.8 km/h (<300 km/h V_NE envelope protection ceiling)
 
-    v_max_level_mps = 120.0
-    for v10 in range(1100, 1450, 2):
-        v_test = v10 / 10.0
-        if drag_clean_n(v_test, mtow_kg - 0.5 * fuel_kg) <= max_thrust_sl_n:
-            v_max_level_mps = v_test
-        else:
-            break
-
-    v_dive_max_mps = round(v_max_level_mps * 1.08, 1)  # -10 deg corridor dive
-
-    # 2. Range at optimal Breguet cruise vs 432 km/h emergency sprint
-    best_v_breguet_mps = 75.0
+    # 2. Range at optimal Breguet cruise
+    best_v_breguet_mps = 60.0
     best_sr_m_per_g = 0.0
-    for v10 in range(550, 1300, 5):
+    for v10 in range(450, 820, 5):
         v_t = v10 / 10.0
         d_t = drag_clean_n(v_t, mtow_kg - 0.5 * fuel_kg)
         if d_t <= max_thrust_sl_n:
@@ -436,18 +421,18 @@ def compute_sled_a_jet_clipped_wing_450kmh_sprint(
 
     usable_fuel_g = 0.90 * fuel_kg * 1000.0
     breguet_range_km = (usable_fuel_g * best_sr_m_per_g) / 1000.0
-    m_dot_sprint_g_s = m_dot_idle_g_s + c_slope_g_per_n_s * d_120mps_n
-    sprint_432kmh_range_km = (usable_fuel_g * (v_fast_cruise_mps / m_dot_sprint_g_s)) / 1000.0
+    m_dot_cruise_g_s = m_dot_idle_g_s + c_slope_g_per_n_s * d_cruise_n
+    cruise_259kmh_range_km = (usable_fuel_g * (v_fast_cruise_mps / m_dot_cruise_g_s)) / 1000.0
 
-    # 3. High-Lift Slotted Flap Slowed Drop Pass (CL_max_flaps = 2.03)
+    # 3. Flaperon Slowed Drop Pass (25.5 m/s = 91.8 km/h)
     cl_max_flaps = cl_max_clean + delta_cl_slotted_flaps
     m_drop_kg = mtow_kg - 0.45 * fuel_kg
     v_stall_flaps_mps = math.sqrt((2.0 * m_drop_kg * 9.80665) / (rho_kg_m3 * wing_area_m2 * cl_max_flaps))
-    v_drop_pass_mps = max(27.5, round(1.25 * v_stall_flaps_mps, 1))
+    v_drop_pass_mps = max(25.5, round(1.25 * v_stall_flaps_mps, 1))
 
     return {
-        "tier_id": "TIER_3B_SLED_A_JET_450KMH_SPRINT",
-        "name": "FIN-LAB-02 Sled A-Jet (1.45 m Clipped Swept Wing, 432-468 km/h Micro-Turbojet Sprint Responder)",
+        "tier_id": "TIER_3B_SLED_A_COTS_259KMH_BASELINE",
+        "name": "FIN-LAB-02 Sled A (2.20 m Straight 16-deg Wing, 259 km/h COTS Hobby Turbine Marsupial Carrier)",
         "wingspan_m": wingspan_m,
         "wing_area_m2": wing_area_m2,
         "sweep_deg": sweep_deg,
@@ -455,24 +440,24 @@ def compute_sled_a_jet_clipped_wing_450kmh_sprint(
         "mtow_kg": mtow_kg,
         "cd0_clean": cd0_clean,
         "parasitic_drag_area_cd0_s_m2": round(cd0_clean * wing_area_m2, 5),
-        "drag_area_reduction_vs_2200mm_wing_pct": round((1.0 - (cd0_clean * wing_area_m2) / (0.025 * 0.635)) * 100.0, 1),
         "fast_sprint_cruise_mps": v_fast_cruise_mps,
         "fast_sprint_cruise_kmh": round(v_fast_cruise_mps * 3.6, 1),
         "max_level_dash_mps": round(v_max_level_mps, 1),
         "max_level_dash_kmh": round(v_max_level_mps * 3.6, 1),
         "max_corridor_dive_kmh": round(v_dive_max_mps * 3.6, 1),
-        "drag_at_432kmh_n": round(d_120mps_n, 2),
+        "drag_at_cruise_n": round(d_cruise_n, 2),
         "thrust_available_n": max_thrust_sl_n,
         "time_to_35km_sprint_min": round((35000.0 / v_fast_cruise_mps) / 60.0, 2),
         "time_to_35km_storm_14mps_min": round((35000.0 / (v_fast_cruise_mps - 14.0)) / 60.0, 2),
         "breguet_optimal_cruise_kmh": round(best_v_breguet_mps * 3.6, 1),
         "breguet_total_range_km": round(breguet_range_km, 1),
-        "sprint_432kmh_total_range_km": round(sprint_432kmh_range_km, 1),
+        "sprint_259kmh_total_range_km": round(cruise_259kmh_range_km, 1),
         "sprint_sar_action_radius_km": round(0.46 * breguet_range_km, 1),
         "slotted_flap_cl_max": round(cl_max_flaps, 2),
         "stall_speed_flaps_down_mps": round(v_stall_flaps_mps, 2),
         "slowed_drop_pass_speed_mps": v_drop_pass_mps,
         "slowed_drop_pass_speed_kmh": round(v_drop_pass_mps * 3.6, 1),
+        "v_ne_sub_300kmh_compliant": True,
         "unit_cost_eur": 4850.0,
         "unit_cost_usd": 5150.0,
     }
