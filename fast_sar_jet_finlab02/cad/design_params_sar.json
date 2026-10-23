@@ -81,6 +81,34 @@
           "le_sweep_deg": 72.0,
           "total_wingspan_mm": 680.0,
           "description": "Ground-only manual rig-pin fold along twin tail booms for 700mm sled/vehicle transport box"
+        },
+        "sled_b_prop_marsupial_2200mm": {
+          "le_sweep_deg": 16.0,
+          "total_wingspan_mm": 2200.0,
+          "planform_area_m2": 0.635,
+          "aspect_ratio": 7.62,
+          "cd0_clean": 0.024,
+          "dash_speed_kmh": 275.0,
+          "loiter_drop_speed_m_s": 25.5,
+          "helical_tip_mach": 0.733,
+          "propulsion_sled": "12S Brushless Pusher (14x12 Folding Carbon Prop w/ 15W Electro-Thermal De-Icer) + 355mm Nose Prop",
+          "unit_cost_eur": 2450.0,
+          "neutral_point_x_mm": 636.0
+        },
+        "sled_a_jet_clipped_28deg_450kmh": {
+          "le_sweep_deg": 28.0,
+          "total_wingspan_mm": 1450.0,
+          "planform_area_m2": 0.380,
+          "aspect_ratio": 5.53,
+          "cd0_clean": 0.018,
+          "fast_sprint_cruise_kmh": 432.0,
+          "max_level_dash_kmh": 468.0,
+          "max_corridor_dive_kmh": 505.1,
+          "slotted_flap_cl_max": 2.03,
+          "slowed_drop_pass_speed_m_s": 27.5,
+          "propulsion_sled": "Turnkey 135N European Micro-Turbojet (Xicoy X132 / JetCat P130-RX) + 355mm Nose Electric Brake/Loiter Prop",
+          "unit_cost_eur": 4850.0,
+          "neutral_point_x_mm": 636.0
         }
       },
       "main_spar_od_mm": 20.0,

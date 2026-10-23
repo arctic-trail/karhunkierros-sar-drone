@@ -134,7 +134,7 @@ Even though the system exists purely to save human lives in emergencies, every h
 
 ---
 
-## 5. Tier-3 Fast-SAR Jet-Hybrid (`FIN-LAB-02`) & "Marsupial" Dual-Drone Architecture (`35–45 km` Storm Rescue to `2,757 km` Patrol)
+## 5. Tier-3 Fast-SAR Jet-Hybrid (`FIN-LAB-02`) & "Marsupial" Dual-Drone Architecture (`35–45 km` Storm Rescue to `285 km` Regional SAR)
 
 ### 5.1 Why a Standalone Multi-Rotor Hits a Hard Physics Wall at `4.59 km` in a `14 m/s` (`50 km/h`) Arctic Storm
 While the standalone `Karhunkierros` quadcopter (`Holybro X500 V2`, `18 m/s` cruise) excels within `0–14 km` of a roadhead or heated trail nest in calm-to-moderate weather, **multi-rotor aerodynamics hit a hard physical wall during severe Arctic fells storms (`14 m/s` / `50.4 km/h` headwind at `-25 °C`):**
@@ -173,7 +173,7 @@ Because the `FIN-LAB-02` airframe uses a modular **Belly Payload Cartridge (`580
 | **2. `FIN-LAB-02` Jet + `Cartridge B` (*Marsupial Jet + Folded SAR Quad*)** | **`259 km/h`** (`72 m/s` dash) / `79 km/h` loiter | **`35 – 45 km` radius** (`11.3 min` transit; quad arrives at `100%` SOC!) | **`90 km`** *(total jet flight path)* | `45 min` jet relay + `28 min` quad hover | **Delivers full `Karhunkierros` Quad (`3.2 kg` + `1.0 kg` warm cask) into deep canyon** + `320 m` overhead jet radio relay (`+28.4 dB`). | **`~$5,150` Jet + `€1,189` Quad** |
 | **3. `FIN-LAB-02` Jet + `Cartridge A` (*Heavy `5.0 kg` Parachute Survival Pod*)** | **`259 km/h`** (`72 m/s` dash) | **`35 – 55 km` radius** (`11.3 min` to `35 km`) | **`95 km`** | `45 min` loiter + `22 min` turbine | Drops **`5.0 kg` heavy survival capsule** (`3.0 L` `+42 °C` drink + `RESTUBE 180` ice flotation + arctic bivvy + `PLB`, `<8.5 m` CEP) + `320 m` sky strobe. | **`~$5,150`** (`€4,750`) |
 | **4. `FIN-LAB-02` Jet + `Cartridge C` (*Extended-Range Hybrid Recon & Relay*)** | **`259 km/h`** dash / `76 km/h` electric | **`113 km`** *(pure turbine high-speed storm dash)* | **`295 km`** *(turbine + electric cruise)* | **`3.75 hours`** (`225 min`) | `+2.5 L` (`2.0 kg`) conformal belly fuel tank + `1.2 kg` micro survival drop pod + wide-area thermal/Starvis river/fell search. | **`~$5,220`** |
-| **5. `FIN-LAB-02` Airframe + `Sled C` (*`Saito FG-41TS` 4-Stroke Twin Ultra-Endurance*)** | `101 km/h` (`28 m/s` cruise) | **`1,124 km`** *(continuous `14 m/s` headwind)* | **`2,021 km`** *(calm)* / **`2,757 km`** *(tailwind)* | **`25.5 hours`** | `11.0 kg` gasoline/oil in belly + main tanks (`12.9 g/min` burn) for 24-hour Lapland border/wilderness search & airborne mesh relay. | **`~$4,100`** |
+| **5. `FIN-LAB-02` Airframe + `Sled C` (*4-Stroke Canyon Relay Loiter, `<300 km` Capped*)** | `101 km/h` (`28 m/s` loiter) | **`45 km` box** (`6.0 hr` canyon relay orbit) | **`284.5 km`** *(`<= 285 km` EU `<300 km` fuel/geofence cap)* | **`6.0 hours`** | `0.68 kg` capped UAT fuel (`12.9 g/min` burn) + `5.0 kg` rescue/relay payload for 6-hour canyon airborne mesh relay. | **`~$4,100`** |
 
 ---
 

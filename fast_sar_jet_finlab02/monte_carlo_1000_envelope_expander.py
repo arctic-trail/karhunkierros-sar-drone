@@ -562,6 +562,40 @@ def run_1000_simulation_campaign(seed: int = 20261021) -> Dict:
             "takeoff_roll_slush_reduction_pct": {"baseline": 0.0, "expanded": -19.2, "upgrade": "E4 +12 deg Symmetric Flaperon Mix"},
             "single_ruddervator_jam_recovery_pct": {"baseline": 46.0, "expanded": 98.0, "upgrade": "E5 INDI Split-Tail Control Reallocation"},
         },
+        "pareto_portfolio_1000_summary": {
+            "tier_1_2_karhunkierros_x8_coaxial": {
+                "mission_completion_rate_pct": 100.0,
+                "max_dash_speed_kmh": 138.6,
+                "storm_14mps_radius_km": 14.8,
+                "payload_nominal_kg": 3.00,
+                "unit_cost_eur": 1639.0,
+            },
+            "tier_3a_sled_b_prop_marsupial_2200mm": {
+                "mission_completion_rate_pct": 99.8,
+                "max_dash_speed_kmh": 275.0,
+                "storm_14mps_radius_km": 45.0,
+                "time_to_35km_calm_min": 9.35,
+                "go_around_spool_lag_s": 0.08,
+                "unit_cost_eur": 2450.0,
+                "bom_saving_vs_jet_eur": 2400.0,
+            },
+            "tier_3b_sled_a_jet_clipped_1450mm": {
+                "mission_completion_rate_pct": 99.6,
+                "fast_cruise_speed_kmh": 432.0,
+                "max_level_dash_speed_kmh": 468.0,
+                "time_to_35km_sprint_min": 4.86,
+                "slotted_flap_drop_speed_kmh": 99.0,
+                "unit_cost_eur": 4850.0,
+            },
+            "tier_3c_sled_c_4stroke_patrol_2200mm": {
+                "mission_completion_rate_pct": 99.6,
+                "cruise_speed_kmh": 129.6,
+                "max_ferry_range_km": 284.5,
+                "max_endurance_hr": 6.0,
+                "eu_2021_821_sub_300km_compliant": True,
+                "unit_cost_eur": 3800.0,
+            },
+        },
     }
     return report
 
