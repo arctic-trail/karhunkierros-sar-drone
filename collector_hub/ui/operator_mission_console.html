@@ -898,28 +898,28 @@
       <div class="brand">
         <div class="status-dot"></div>
         <span class="brand-title">Karhunkierros SAR</span>
-        <span class="brand-sub">Swarm C&amp;C &amp; Structured Playbook Console</span>
+        <span class="brand-sub">Mission Console</span>
       </div>
 
       <div class="top-controls">
         <!-- 3-Endpoint Ecosystem Switcher -->
         <div class="pane-toggle-group" style="border-color:rgba(56,189,248,0.4);" title="Switch between the 3 live production SAR operator endpoints">
           <a class="pane-pill on" href="/operator_mission_console.html" style="text-decoration:none;">🌍 1. Swarm C&amp;C</a>
-          <a class="pane-pill" href="/mothership_cockpit.html" style="text-decoration:none;">✈️ 2. Mothership Cockpit</a>
+          <a class="pane-pill" href="/mothership_cockpit.html" style="text-decoration:none;">✈️ 2. Mothership</a>
           <a class="pane-pill" href="/mobile_responder.html" style="text-decoration:none;">🛷 4. Ground SAR</a>
         </div>
 
         <!-- Quick Jump to Any Region on Google Earth + Multi-Format 112 SOS Coordinate Input (ETRS-TM35FIN / DDM / WGS84) -->
-        <select id="selGeoRegion" class="select-input" onchange="jumpToGoogleEarthRegion(this.value)" title="Jump anywhere on Google Earth and drag or stretch a Search Area">
-          <option value="OULANKA" selected>📍 Oulanka Canyon (N 7362415 E 598784)</option>
-          <option value="RUKA">📍 Ruka Fell (66.1658°N, 29.1520°E)</option>
-          <option value="JUUMA">📍 Juuma / Pieni Karhunkierros (66.2625°N, 29.3765°E)</option>
-          <option value="KUUSAMO">📍 Kuusamo Town (65.9645°N, 29.1830°E)</option>
+        <select id="selGeoRegion" class="select-input" onchange="jumpToGoogleEarthRegion(this.value)" title="Jump anywhere on Google Earth and drag or stretch a Search Area" style="max-width:190px;">
+          <option value="OULANKA" selected>📍 Oulanka Canyon</option>
+          <option value="RUKA">📍 Ruka Fell</option>
+          <option value="JUUMA">📍 Juuma / Pieni KK</option>
+          <option value="KUUSAMO">📍 Kuusamo Town</option>
         </select>
         <div style="display:flex;align-items:center;gap:4px;background:#1c1c23;border:1px solid var(--border-strong);border-radius:7px;padding:2px 5px;" title="Enter 112 SOS coordinates in ETRS-TM35FIN (N 7362415 E 598784), Aviation DDM (66 22.17N 29 18.93E), or WGS84 Decimal (66.3695, 29.3155)">
           <span style="font-size:10.5px;color:#fbbf24;font-weight:700;">112 SOS:</span>
-          <input type="text" id="txtCustomSosCoords" placeholder="N 7362415 E 598784 or Lat,Lon" onkeydown="if(event.key==='Enter')jumpToCustomSosCoords()" style="width:136px;background:transparent;border:none;color:#f5f5f7;font-family:var(--font-mono);font-size:11px;outline:none;" />
-          <button class="win-btn" onclick="jumpToCustomSosCoords()" style="padding:2px 6px;font-size:10.5px;color:#64d2ff;border-color:rgba(10,132,255,0.45);">🎯 Go</button>
+          <input type="text" id="txtCustomSosCoords" placeholder="N 7362415 E 598784 or Lat,Lon" onkeydown="if(event.key==='Enter')jumpToCustomSosCoords()" style="width:128px;background:transparent;border:none;color:#f5f5f7;font-family:var(--font-mono);font-size:11px;outline:none;" />
+          <button class="win-btn" onclick="jumpToCustomSosCoords()" style="padding:2px 6px;font-size:10.5px;color:#64d2ff;border-color:rgba(10,132,255,0.45);">Go</button>
         </div>
 
         <!-- Show / Hide Any View Pills -->
@@ -928,22 +928,22 @@
           <button class="pane-pill on" id="pillShowVideo" onclick="togglePane('videoPane')">📷 Video</button>
           <button class="pane-pill on" id="pillShowProfile" onclick="togglePane('profileBar')">⛰️ DEM</button>
           <button class="pane-pill on" id="pillShowControls" onclick="togglePane('controlPane')">⚙️ Controls</button>
-          <button class="pane-pill" onclick="resetWorkspaceLayout()" title="Restore default balanced split layout">↺ Reset</button>
+          <button class="pane-pill" onclick="resetWorkspaceLayout()" title="Restore default balanced split layout">↺</button>
         </div>
 
-        <button class="btn warning" onclick="toggleProdReadinessModal(true)" title="View 6-Persona Production Readiness vs. Missing Physical Bench, Flight &amp; Regulatory Gates" style="border-color:rgba(245,158,11,0.55);color:#fbbf24;">🛡️ SW: 100% Prod • Missing Gates ▾</button>
-        <button class="btn primary" id="btnStartManualPractice" onclick="startManualPracticeMission()" title="Launch a 1x Real-Time Manual Practice Mission: Switches to Manual Control (No AI Override), sets 1x Normal Speed (12.5 m/s), and lets you guide Drone 1 with WASD, Trackpad Stick, or Click-to-Fly!" style="border-color:rgba(56,189,248,0.65);background:rgba(10,132,255,0.24);color:#64d2ff;">🕹️ Manual Practice (1x)</button>
-        <button class="btn success active" id="btnSimPlayPause" onclick="toggleSimPlayPause()">⏸ Sim Running</button>
-        <select id="selSimSpeed" class="select-input" onchange="setSimSpeed(this.value)" title="Select Simulation Time Scale: 1x Normal Real-Time (12.5 m/s = 45 km/h) up to 100x Hyper-Scan" style="padding:4px 7px;font-size:11.5px;border-color:rgba(56,189,248,0.5);color:#64d2ff;font-weight:600;">
-          <option value="0.5">🐢 0.5x Slow-Mo (6 m/s)</option>
-          <option value="1" selected>🕹️ 1x Normal (12.5 m/s)</option>
-          <option value="2">⚡ 2x Fast (25 m/s)</option>
-          <option value="5">⚡ 5x Scale (62 m/s)</option>
-          <option value="10">🚀 10x Scale (125 m/s)</option>
-          <option value="25">🚀 25x Scale (312 m/s)</option>
-          <option value="100">🔥 100x Scale (1.25 km/s)</option>
+        <button class="btn warning" onclick="toggleProdReadinessModal(true)" title="View 6-Persona Production Readiness vs. Missing Physical Bench, Flight &amp; Regulatory Gates" style="border-color:rgba(245,158,11,0.55);color:#fbbf24;padding:4px 8px;font-size:11px;">🛡️ Audit ▾</button>
+        <button class="btn primary" id="btnStartManualPractice" onclick="startManualPracticeMission()" style="display:none;">🕹️ Manual Practice (1x)</button>
+        <button class="btn success active" id="btnSimPlayPause" onclick="toggleSimPlayPause()" style="padding:4px 9px;font-size:11px;">⏸ Running</button>
+        <select id="selSimSpeed" class="select-input" onchange="setSimSpeed(this.value)" title="Select Simulation Time Scale: 1x Normal Real-Time (12.5 m/s search, 21 m/s sprint) up to 100x Hyper-Scan" style="padding:4px 7px;font-size:11px;border-color:rgba(56,189,248,0.5);color:#64d2ff;font-weight:600;">
+          <option value="0.5">0.5x Slow</option>
+          <option value="1" selected>1x Real-Time</option>
+          <option value="2">2x Fast</option>
+          <option value="5">5x Scale</option>
+          <option value="10">10x Scale</option>
+          <option value="25">25x Scale</option>
+          <option value="100">100x Scale</option>
         </select>
-        <button class="btn" id="btnSimSpeed" onclick="cycleSimSpeed()" title="Click to cycle simulation speed scale (0.5x -> 1x -> 2x -> 5x -> 10x -> 25x -> 100x)">1x Speed</button>
+        <button class="btn" id="btnSimSpeed" onclick="cycleSimSpeed()" style="display:none;">1x Speed</button>
       </div>
     </header>
 
@@ -956,8 +956,8 @@
       <div class="pane" id="mapPane" style="flex: 1.35;">
         <div class="pane-header">
           <div class="pane-title-group">
-            <span class="pane-badge" style="background:rgba(10,132,255,0.2);color:#60a5fa;">View 1 • Google Earth Map</span>
-            <span>Live Multi-Zoom Planetary Satellite Engine (z=4..20)</span>
+            <span class="pane-badge" style="background:rgba(10,132,255,0.2);color:#60a5fa;">View 1 • Map</span>
+            <span>Google Earth Satellite</span>
             <span id="hdrMappedBadge" style="color:#4ade80;font-weight:700;margin-left:6px;">• 58% Scanned</span>
           </div>
           <div class="pane-win-btns">
@@ -972,47 +972,44 @@
           <!-- Floating Map Toolbar -->
           <div class="map-toolbar">
             <div class="toolbar-cluster">
-              <button class="btn primary" id="toolPanMap" onclick="setMapTool('PAN_MAP')" title="Default Mode: Drag any Drone to a position/target, drag any Search Box handle (◻) to stretch it, or drag map to pan">✋ Pan / Drag Drone / Stretch Box</button>
-              <button class="btn" id="toolGotoPoint" onclick="toggleMapSubTool('GOTO_POINT')" title="Click anywhere on Map or Drone Video to command the selected Drone to fly there from its current position">📍 Send Drone to Point</button>
-              <button class="btn" id="toolTrackObject" onclick="toggleMapSubTool('TRACK_OBJECT')" title="Click any object or point on Map or Drone Video to lock &amp; track it with the selected Drone">🎯 Mark Object to Track</button>
-              <button class="btn" id="toolDrawBox" onclick="toggleDrawNewBoxTool()" title="Enable Drawing Tool to redraw a brand-new Search Area from scratch (Drones will fly from their current positions!)">📐 Draw New Box: OFF</button>
-              <button class="btn warning" id="toolDropMode" onclick="toggleDropMarkerMode()" title="Switch ON to click anywhere on Map or Video to mark a Payload Drop">🪂 Mark Drop: OFF</button>
-              <button class="btn" onclick="restartCooperativeSearch()" title="Reset simulation to initial launch positions and 0% shroud">↺ Restart Scan</button>
+              <button class="btn primary" id="toolPanMap" onclick="setMapTool('PAN_MAP')" title="Default Mode: Drag any Drone to a position/target, drag any Search Box handle (◻) to stretch it, or drag map to pan">✋ Pan / Drag Drone</button>
+              <button class="btn" id="toolGotoPoint" onclick="toggleMapSubTool('GOTO_POINT')" title="Click anywhere on Map or Drone Video to command the selected Drone to sprint there at 21 m/s (76 km/h)">📍 Click to Fly</button>
+              <button class="btn" id="toolTrackObject" onclick="toggleMapSubTool('TRACK_OBJECT')" title="Click any object or point on Map or Drone Video to lock &amp; track it with the selected Drone">🎯 Lock Target</button>
+              <button class="btn" id="toolDrawBox" onclick="toggleDrawNewBoxTool()" title="Enable Drawing Tool to redraw a brand-new Search Area from scratch">📐 Redraw Area</button>
+              <button class="btn warning" id="toolDropMode" onclick="toggleDropMarkerMode()" title="Switch ON to click anywhere on Map or Video to mark a Payload Drop">🪂 Drop Pin</button>
+              <button class="btn" onclick="restartCooperativeSearch()" title="Reset simulation to initial launch positions and 0% shroud">↺ Reset</button>
             </div>
 
             <div class="toolbar-cluster">
-              <select id="selEarthLayer" class="select-input" onchange="setGoogleEarthLayer(this.value)" style="padding:4px 7px;font-size:11.5px;" title="Streams live Google Earth Web Mercator tiles (mt0..3.google.com/vt) with 0 API key required, plus optional Google Maps Platform API key support">
-                <option value="y" selected>🌍 Google Earth Hybrid (Live • 0-Key)</option>
-                <option value="s">🛰️ Google Earth Pure Satellite (Live)</option>
-                <option value="p">🏔️ Google Terrain + Contours (Live)</option>
+              <select id="selEarthLayer" class="select-input" onchange="setGoogleEarthLayer(this.value)" style="padding:4px 7px;font-size:11.5px;" title="Streams live Google Earth Web Mercator tiles (mt0..3.google.com/vt) with 0 API key required">
+                <option value="y" selected>🌍 Hybrid</option>
+                <option value="s">🛰️ Satellite</option>
+                <option value="p">🏔️ Terrain</option>
               </select>
-              <button class="btn" onclick="toggleLlmApiKeyPanel()" title="Google Earth tiles stream directly without an API key; click here to configure an optional Google Maps Platform Tile Key or External LLM API Key" style="padding:4px 7px;font-size:11px;border-color:rgba(74,222,128,0.45);color:#4ade80;">🔑 Tile/LLM Keys</button>
               <button class="btn" onclick="zoomMapBy(0.65)" title="Zoom Out">−</button>
               <button class="btn" id="btnMapZoomReadout" onclick="fitMapToSearchBox()" title="Fit Current Search Area">z=16</button>
               <button class="btn" onclick="zoomMapBy(1.5)" title="Zoom In">+</button>
-              <button class="btn" onclick="zoomOutWideRegion()" title="Zoom out wide to pick a new search area anywhere in Finland">🗺️ Zoom Out 15 km</button>
+              <button class="btn" onclick="zoomOutWideRegion()" title="Zoom out wide to pick a new search area anywhere in Finland">15 km</button>
             </div>
 
-            <!-- Floating Active Target Assignment, Draw Tool Armed & Pending Drop Banners (With 1-Click Cancel!) -->
+            <!-- Floating Contextual Banners (Hidden unless active!) -->
             <div class="map-action-banner">
               <div class="floating-status-card" id="mapDrawBoxBanner" style="display:none;border-color:#0a84ff;background:rgba(10,132,255,0.18);">
                 <div>
-                  <span style="color:#64d2ff;font-weight:700;">📐 Draw New Search Box Mode ON:</span>
-                  <span>Drag on the map to draw a new Search Area from scratch — <strong>Drones will fly from their current positions</strong>.</span>
+                  <span style="color:#64d2ff;font-weight:700;">📐 Draw Search Area:</span>
+                  <span>Drag on map to define new search box.</span>
                 </div>
-                <button class="btn" onclick="setMapTool('PAN_MAP')" style="padding:3px 9px;font-size:11.5px;">✕ Cancel Draw</button>
+                <button class="btn" onclick="setMapTool('PAN_MAP')" style="padding:3px 9px;font-size:11.5px;">✕ Cancel</button>
               </div>
 
-              <div class="floating-status-card" id="mapTargetBanner" style="flex-wrap:wrap;gap:6px;">
+              <div class="floating-status-card" id="mapTargetBanner" style="display:none;gap:8px;">
                 <div>
-                  <span style="color:#fbbf24;font-weight:700;">🎯 Target Assignment:</span>
-                  <span id="mapTargetBannerText"><strong>Drone 1</strong> is following <strong>Lost Hiker (+31.4°C)</strong></span>
+                  <span style="color:#fbbf24;font-weight:700;">🎯 Tracking:</span>
+                  <span id="mapTargetBannerText"><strong>Drone 1</strong> following <strong>Lost Hiker</strong></span>
                 </div>
-                <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;">
-                  <button class="btn primary" onclick="assignDroneToAutoTrack('VEHICLE', null, false)" style="padding:3px 8px;font-size:11px;" title="Assign selected drone (or nearest drone) to Auto-Track the Snowmobile (+34.0°C)">🛸 Auto-Track Snowmobile</button>
-                  <button class="btn primary" onclick="assignDroneToAutoTrack('PERSON', null, false)" style="padding:3px 8px;font-size:11px;" title="Assign selected drone to Auto-Track the Lost Hiker (+31.4°C)">🚶 Auto-Track Hiker</button>
-                  <button class="btn success" onclick="flyCloseAndOpenVoiceIntercom()" style="padding:3px 8px;font-size:11px;" title="Send drone to 10m low-altitude hover next to target and open 2-Way Voice / Speaker Intercom">🔊 Fly Close &amp; Talk</button>
-                  <button class="btn danger" id="btnMapCancelTarget" onclick="cancelTargetAssignment()" style="padding:3px 9px;font-size:11px;">✕ Cancel Lock</button>
+                <div style="display:flex;gap:5px;align-items:center;">
+                  <button class="btn success" onclick="flyCloseAndOpenVoiceIntercom()" style="padding:3px 8px;font-size:11px;">🔊 Talk (8m)</button>
+                  <button class="btn danger" id="btnMapCancelTarget" onclick="cancelTargetAssignment()" style="padding:3px 9px;font-size:11px;">✕ Stop</button>
                 </div>
               </div>
 
@@ -1031,16 +1028,12 @@
 
           <!-- Bottom-Left Hint -->
           <div class="map-hint-pill" id="mapHintPill">
-            💡 <strong>Drag any edge or corner handle (◻)</strong> to stretch/resize the Search Area (drones fly continuously)  •  Click <strong>📐 Draw New Box</strong> to redraw from scratch!
+            💡 <strong>Drag any Drone</strong> to fly it to a spot  •  <strong>Drag Box handles (◻)</strong> to resize Search Area
           </div>
 
-          <!-- Bottom-Right Legend -->
-          <div class="map-legend">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-secondary);margin-bottom:2px;">Google Earth C&amp;C Layers</div>
-            <div class="leg-row"><span class="swatch" style="background:transparent;border:2px solid #ffffff;"></span><span><strong>White Circle + Inner Box:</strong> Drone &amp; Frame Shown in View 2</span></div>
-            <div class="leg-row"><span class="swatch" style="background:#38bdf8;"></span><span><strong>Colored Sectors (1–3):</strong> Each Drone Scans Its Own Strip (0% Overlap)</span></div>
-            <div class="leg-row"><span class="swatch" style="background:#ff9f0a;border-radius:50%;"></span><span><strong>🪂 Drop Pin:</strong> Queued Payload Drop (Cancelable Before Release)</span></div>
-            <div id="cursorCoordReadout" style="margin-top:2px;padding-top:2px;border-top:1px solid var(--border-subtle);color:var(--text-secondary);font-size:10.5px;">
+          <!-- Compact Bottom-Right Coordinate Pill -->
+          <div class="map-legend" style="padding:5px 10px;">
+            <div id="cursorCoordReadout" style="color:var(--text-secondary);font-size:10.5px;">
               66.3695° N, 29.3155° E  •  DEM 248 m ASL
             </div>
           </div>
@@ -1072,7 +1065,7 @@
         <div class="pane-header">
           <div class="pane-title-group">
             <span class="pane-badge" id="videoPaneBadge" style="background:rgba(255,159,10,0.22);color:#fbbf24;">View 2 • Drone Video</span>
-            <span id="osdActiveCameraTitle"><strong>Drone 1 (Orange)</strong> — Matches Highlighted Box on Map</span>
+            <span id="osdActiveCameraTitle"><strong>Drone 1 (Orange)</strong></span>
           </div>
           <div class="pane-win-btns">
             <button class="win-btn" onclick="maximizePane('videoPane')" title="Maximize Drone Video View">⤢ Maximize</button>
@@ -1104,18 +1097,15 @@
           </button>
         </div>
 
-        <!-- Camera Zoom, Sensor, Auto-Track & 1:1 Trackpad Stick Steering Subbar -->
-        <div class="osd-subbar" style="flex-wrap:wrap;gap:4px;">
-          <span id="videoSubbarHint">💡 <strong>Click any Target Box in Video</strong> to Auto-Track &amp; Talk!</span>
-          <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;">
-            <button class="btn primary" onclick="assignDroneToAutoTrack('VEHICLE', null, false)" style="padding:2px 7px;font-size:10.5px;" title="Auto-Track the Snowmobile (+34.0°C) with the active drone">🛸 Auto-Track Snowmobile</button>
-            <button class="btn primary" onclick="assignDroneToAutoTrack('PERSON', null, false)" style="padding:2px 7px;font-size:10.5px;" title="Auto-Track the Lost Hiker (+31.4°C) with the active drone">🚶 Auto-Track Hiker</button>
-            <button class="btn success" onclick="flyCloseAndOpenVoiceIntercom()" style="padding:2px 7px;font-size:10.5px;" title="Fly within 10m of target at 20m AGL and open 2-Way Voice / Loudhailer Intercom">🔊 Fly Close &amp; Talk</button>
-            <button class="btn" id="btnVideoTrackpadSteer" onclick="toggleVideoTrackpadSteerMode()" style="padding:2px 8px;border-color:rgba(56,189,248,0.5);color:#38bdf8;" title="Move your finger on the trackpad inside the Drone Video (or use the 2D Trackpad Box on the right) to steer the selected drone 1:1">🕹️ Trackpad Steer: OFF</button>
+        <!-- Clean 1-Line Camera Sensor & Zoom Subbar -->
+        <div class="osd-subbar">
+          <span id="videoSubbarHint">💡 <strong>Click any target box in video</strong> to Follow &amp; Talk</span>
+          <div style="display:flex;gap:4px;align-items:center;">
+            <button class="btn" id="btnVideoTrackpadSteer" onclick="toggleVideoTrackpadSteerMode()" style="display:none;">🕹️ Trackpad Steer: OFF</button>
             <button class="btn" onclick="adjustOsdZoom(-0.8)" style="padding:2px 7px;">−</button>
             <button class="btn success" id="btnOsdZoomPill" onclick="adjustOsdZoom(0)" style="padding:2px 7px;">3.0x</button>
             <button class="btn" onclick="adjustOsdZoom(0.8)" style="padding:2px 7px;">+</button>
-            <button class="btn" id="btnOsdSensorMode" onclick="cycleOsdSensorPalette()" style="padding:2px 7px;">EO + Thermal</button>
+            <button class="btn" id="btnOsdSensorMode" onclick="cycleOsdSensorPalette()" style="padding:2px 8px;">EO + Thermal</button>
           </div>
         </div>
 
@@ -1128,13 +1118,13 @@
       <div class="v-splitter" id="vSplitter2" title="Drag left/right to resize Controls Sidebar"></div>
 
       <!-- =================================================================== -->
-      <!-- PANE 3: APPLE-SIMPLE MISSION CONTROL SIDEBAR (RIGHT)                -->
+      <!-- PANE 3: FIT-TO-PURPOSE 3-CARD MISSION CONTROL SIDEBAR (RIGHT)       -->
       <!-- =================================================================== -->
       <div class="pane" id="controlPane" style="width: 368px; flex: 0 0 368px;">
         <div class="pane-header">
           <div class="pane-title-group">
             <span class="pane-badge" style="background:rgba(10,132,255,0.22);color:#70b7ff;">Mission Control</span>
-            <span style="color:#a1a1aa;font-weight:500;">Fly, Follow &amp; Talk</span>
+            <span style="color:#a1a1aa;font-weight:500;">AI, Targets &amp; Flight</span>
           </div>
           <div class="pane-win-btns">
             <button class="win-btn close" onclick="togglePane('controlPane')" title="Close Sidebar">✕</button>
@@ -1144,7 +1134,7 @@
         <div class="operator-dock" style="gap:10px;padding:10px;">
 
           <!-- =============================================================== -->
-          <!-- APPLE CARD 0: ASK AI AUTO-CONTROLLER (NATURAL LANGUAGE PROMPT)  -->
+          <!-- CARD 1: ASK AI AUTO-CONTROLLER (NATURAL LANGUAGE PROMPT)        -->
           <!-- =============================================================== -->
           <div class="apple-card" style="border-color:rgba(10,132,255,0.45);background:linear-gradient(180deg,rgba(10,132,255,0.12),rgba(28,28,32,0.94));">
             <div class="apple-section-title">
@@ -1152,7 +1142,6 @@
               <button class="win-btn" onclick="toggleLlmApiKeyPanel()" id="btnToggleApiKeyPanel" style="font-size:10.5px;padding:2px 8px;border-radius:999px;" title="Optional: Add OpenAI / Gemini / Claude API Key">🔑 API Key</button>
             </div>
 
-            <!-- Main Apple Spotlight / ChatGPT Style Prompt Box -->
             <div style="display:flex;gap:6px;align-items:center;">
               <input
                 type="text"
@@ -1166,13 +1155,12 @@
               </button>
             </div>
 
-            <!-- 1-Tap Example Prompts -->
             <div class="apple-phrase-grid" style="gap:5px;">
               <button class="apple-phrase-chip" onclick="submitAiCopilotPrompt('Follow the snowmobile and ask if they are OK')" style="font-size:11px;padding:5px 7px;">
-                🛸 "Follow snowmobile &amp; ask if OK"
+                🛸 "Follow snowmobile &amp; ask OK"
               </button>
               <button class="apple-phrase-chip" onclick="submitAiCopilotPrompt('Follow the lost hiker and drop the warm survival barrel')" style="font-size:11px;padding:5px 7px;">
-                🚶 "Follow hiker &amp; drop supply"
+                🚶 "Follow hiker &amp; drop barrel"
               </button>
               <button class="apple-phrase-chip" onclick="submitAiCopilotPrompt('Fly close to the snowmobile and tell them to stop')" style="font-size:11px;padding:5px 7px;">
                 🛑 "Stop snowmobile &amp; talk"
@@ -1182,12 +1170,10 @@
               </button>
             </div>
 
-            <!-- Live AI Response Bubble -->
-            <div id="lblAiCopilotResponse" style="font-size:11.5px;color:#d4d4d8;background:rgba(0,0,0,0.32);border:1px solid rgba(255,255,255,0.08);padding:7px 9px;border-radius:9px;line-height:1.36;">
-              💬 Type any instruction above (or tap a chip) — e.g. <em>"Send Drone 2 to follow the snowmobile and ask if they need help"</em>.
+            <div id="lblAiCopilotResponse" style="font-size:11.5px;color:#d4d4d8;background:rgba(0,0,0,0.32);border:1px solid rgba(255,255,255,0.08);padding:6px 9px;border-radius:9px;line-height:1.35;">
+              💬 Type an instruction or tap a chip above.
             </div>
 
-            <!-- Optional API Key Drawer (Opens right here when 🔑 API Key is clicked) -->
             <div id="llmApiKeyPanelWrap" style="display:none;flex-direction:column;gap:6px;padding:8px 9px;background:rgba(10,132,255,0.12);border:1px solid rgba(10,132,255,0.45);border-radius:9px;">
               <div style="display:flex;justify-content:space-between;align-items:center;">
                 <strong style="font-size:11px;color:#64d2ff;">🔑 Optional Cloud LLM API Key</strong>
@@ -1218,24 +1204,134 @@
           </div>
 
           <!-- =============================================================== -->
-          <!-- APPLE CARD 1: FLIGHT MODE, SPEED & ACTIVE DRONE                 -->
+          <!-- CARD 2: TARGETS, VOICE INTERCOM & WARM SUPPLY DROP              -->
           <!-- =============================================================== -->
           <div class="apple-card">
             <div class="apple-section-title">
-              <span>Flight Mode</span>
+              <span>🎯 People, Voice &amp; Supply</span>
+              <label style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;color:#a1a1aa;cursor:pointer;" title="Automatically lock onto Snowmobile or Hiker when they enter the camera view">
+                <span>Auto-Lock on Sight</span>
+                <input type="checkbox" id="chkAutoTrackOnSight" checked onchange="toggleAutoTrackOnSight(this.checked)" style="accent-color:#30d158;cursor:pointer;" />
+              </label>
+            </div>
+
+            <!-- Find My Style Target List -->
+            <div class="apple-target-list">
+              <div class="apple-target-row" id="appleRowSnowmobile">
+                <div class="apple-target-info">
+                  <div class="apple-target-icon">🛸</div>
+                  <div style="min-width:0;">
+                    <div class="apple-target-name">Snowmobile</div>
+                    <div class="apple-target-sub" id="appleSubSnowmobile">+34.0°C &bull; Trail Corridor</div>
+                  </div>
+                </div>
+                <div class="apple-target-actions">
+                  <button class="apple-pill-btn follow" id="btnAppleFollowSnowmobile" onclick="assignDroneToAutoTrack('VEHICLE', null, false)">Follow</button>
+                  <button class="apple-pill-btn talk" id="btnAppleTalkSnowmobile" onclick="flyCloseAndOpenVoiceIntercom('VEHICLE')">🔊 Talk</button>
+                </div>
+              </div>
+
+              <div class="apple-target-row" id="appleRowHiker">
+                <div class="apple-target-info">
+                  <div class="apple-target-icon">🚶</div>
+                  <div style="min-width:0;">
+                    <div class="apple-target-name">Lost Hiker</div>
+                    <div class="apple-target-sub" id="appleSubHiker">+31.4°C &bull; Canyon Trail</div>
+                  </div>
+                </div>
+                <div class="apple-target-actions">
+                  <button class="apple-pill-btn follow" id="btnAppleFollowHiker" onclick="assignDroneToAutoTrack('PERSON', null, false)">Follow</button>
+                  <button class="apple-pill-btn talk" id="btnAppleTalkHiker" onclick="flyCloseAndOpenVoiceIntercom('PERSON')">🔊 Talk</button>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn danger" id="btnAppleStopFollow" onclick="cancelTargetAssignment()" style="display:none;width:100%;border-radius:10px;padding:6px 10px;font-size:12px;">
+              ✕ Stop Following (Return to Search)
+            </button>
+
+            <!-- 2-Way Speaker & Mic Intercom -->
+            <div id="voiceIntercomBox" style="display:flex;flex-direction:column;gap:6px;padding-top:2px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:11.5px;font-weight:600;color:#a1a1aa;">🔊 Drone Speaker &amp; Mic</span>
+                <span id="lblIntercomLinkBadge" style="font-size:11px;color:#4ade80;font-weight:600;">Ready</span>
+              </div>
+
+              <div style="display:none;">
+                <select id="selIntercomDrone" onchange="changeAssignedTrackDrone(this.value)">
+                  <option value="0" selected>Drone 1</option>
+                  <option value="1">Drone 2</option>
+                  <option value="2">Drone 3</option>
+                  <option value="3">Drone 4</option>
+                </select>
+                <select id="selIntercomTarget" onchange="assignDroneToAutoTrack(this.value, null, closeTalkHoverActive)">
+                  <option value="VEHICLE">Snowmobile</option>
+                  <option value="PERSON" selected>Lost Hiker</option>
+                </select>
+              </div>
+
+              <div class="apple-phrase-grid" style="gap:5px;">
+                <button class="apple-phrase-chip" onclick="sendVoiceIntercomPreset('HALT_LISTEN')" style="padding:5px 7px;font-size:11px;">🛑 "Stop &amp; Talk"</button>
+                <button class="apple-phrase-chip" onclick="sendVoiceIntercomPreset('STATUS_CHECK')" style="padding:5px 7px;font-size:11px;">🩺 "Are You OK?"</button>
+                <button class="apple-phrase-chip" onclick="sendVoiceIntercomPreset('FOLLOW_LIGHT')" style="padding:5px 7px;font-size:11px;">🟢 "Follow Drone"</button>
+                <button class="apple-phrase-chip" onclick="sendVoiceIntercomPreset('STAND_CLEAR_DROP')" style="padding:5px 7px;font-size:11px;">🪂 "Stand Clear"</button>
+              </div>
+
+              <div style="display:flex;gap:6px;">
+                <input type="text" id="txtVoiceIntercomInput" placeholder="Speak through drone speaker..." onkeydown="if(event.key==='Enter')sendCustomVoiceIntercomMessage()" style="flex:1;background:rgba(0,0,0,0.35);color:#f5f5f7;border:1px solid rgba(255,255,255,0.14);border-radius:999px;padding:6px 11px;font-size:12px;outline:none;" />
+                <button class="apple-pill-btn talk active" onclick="sendCustomVoiceIntercomMessage()" style="padding:6px 12px;">Speak</button>
+              </div>
+
+              <div id="lblVoiceIntercomTranscript" style="font-size:11.5px;color:#d4d4d8;background:rgba(0,0,0,0.28);padding:7px 9px;border-radius:9px;line-height:1.35;">
+                Tap <strong>🔊 Talk</strong> above to sprint to the target (21 m/s), hover at 8m, and talk.
+              </div>
+            </div>
+
+            <!-- 1-Tap Supply Drop Integrated Directly Under Target Actions -->
+            <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:8px;display:flex;flex-direction:column;gap:5px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:11.5px;font-weight:600;color:#f5f5f7;">🪂 Heated Survival Barrel (+42°C)</span>
+                <span class="step-badge" id="badgeDropStatus" style="font-size:10px;">Ready</span>
+              </div>
+              <div id="dropStatusDescription" style="display:none;"></div>
+              <div style="display:flex;gap:6px;" id="dropActionButtons">
+                <button class="btn warning" id="btnQueueDropNearTarget" onclick="queueDropNearActiveTarget()" style="flex:1;border-radius:9px;padding:6px 10px;font-size:11.5px;">
+                  🪂 Drop Barrel 15m from Target
+                </button>
+                <button class="btn danger" id="btnSidebarCancelDrop" onclick="cancelPendingDrop()" style="flex:1;display:none;border-radius:9px;padding:6px 10px;font-size:11.5px;">
+                  ✕ Cancel Drop
+                </button>
+              </div>
+              <div style="display:flex;gap:6px;" id="dropConfirmRow">
+                <button class="btn success" id="btnSidebarReleaseNow" onclick="executeImmediateDrop()" style="flex:1;display:none;border-radius:9px;padding:6px 10px;font-size:11.5px;">
+                  ✓ Release Now
+                </button>
+                <button class="btn" id="btnSidebarReloadPayload" onclick="reloadPayloadSimulation()" style="flex:1;display:none;border-radius:9px;padding:6px 10px;font-size:11.5px;">
+                  ↺ Reload Barrel
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- =============================================================== -->
+          <!-- CARD 3: FLIGHT MODE, SPEED & STICK (WITH AUTO SPEED REGIME)     -->
+          <!-- =============================================================== -->
+          <div class="apple-card">
+            <div class="apple-section-title">
+              <span>🕹️ Flight &amp; Speed</span>
               <span id="appleModeStatusPill" style="font-size:11px;font-weight:600;color:#4ade80;">1x Real-Time</span>
             </div>
 
             <!-- 3-Way Segmented Flight Mode -->
             <div class="apple-seg-bar" role="tablist" aria-label="Flight Mode">
-              <button class="apple-seg-btn active blue" id="segModeAuto" onclick="setAppleFlightMode('AUTO_SEARCH')" title="All 4 drones scan sectors automatically">🤖 Auto Search</button>
-              <button class="apple-seg-btn" id="segModeManual" onclick="setAppleFlightMode('MANUAL_FLY')" title="Fly manually at 1x real-time speed">🕹️ Manual Fly</button>
-              <button class="apple-seg-btn" id="segModeTrack" onclick="setAppleFlightMode('AUTO_FOLLOW')" title="Automatically follow the Snowmobile or Hiker">🎯 Follow Target</button>
+              <button class="apple-seg-btn active blue" id="segModeAuto" onclick="setAppleFlightMode('AUTO_SEARCH')" title="All 4 drones sweep sectors at 12.5 m/s (Max Range & Zero Thermal Blur)">🤖 Auto Search</button>
+              <button class="apple-seg-btn" id="segModeManual" onclick="setAppleFlightMode('MANUAL_FLY')" title="Fly manually with Trackpad or WASD">🕹️ Manual Fly</button>
+              <button class="apple-seg-btn" id="segModeTrack" onclick="setAppleFlightMode('AUTO_FOLLOW')" title="Sprint at 21 m/s to intercept, then match target speed">🎯 Follow</button>
             </div>
 
             <!-- Simulation Speed Segmented Bar -->
             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-              <span style="font-size:11.5px;color:#a1a1aa;font-weight:500;">Speed</span>
+              <span style="font-size:11.5px;color:#a1a1aa;font-weight:500;">Sim Speed</span>
               <div class="apple-seg-bar" style="flex:1;">
                 <button class="apple-seg-btn" id="segSpd05" onclick="setSimSpeed(0.5)">0.5x</button>
                 <button class="apple-seg-btn active" id="segSpd1" onclick="setSimSpeed(1)">1x Real</button>
@@ -1258,153 +1354,26 @@
             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
               <span style="font-size:11.5px;color:#a1a1aa;font-weight:500;">Drone</span>
               <div class="apple-seg-bar" style="flex:1;">
-                <button class="apple-seg-btn active" id="segDrone0" onclick="selectAppleActiveDrone(0)">Drone 1</button>
-                <button class="apple-seg-btn" id="segDrone1" onclick="selectAppleActiveDrone(1)">Drone 2</button>
-                <button class="apple-seg-btn" id="segDrone2" onclick="selectAppleActiveDrone(2)">Drone 3</button>
-                <button class="apple-seg-btn" id="segDrone3" onclick="selectAppleActiveDrone(3)">Drone 4</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- =============================================================== -->
-          <!-- APPLE CARD 2: PEOPLE & VEHICLES — FOLLOW & TALK ("FIND MY")     -->
-          <!-- =============================================================== -->
-          <div class="apple-card">
-            <div class="apple-section-title">
-              <span>People &amp; Vehicles</span>
-              <label style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:500;color:#a1a1aa;cursor:pointer;" title="Automatically lock onto Snowmobile or Hiker when they enter the camera view">
-                <span>Auto-Follow on Sight</span>
-                <input type="checkbox" id="chkAutoTrackOnSight" checked onchange="toggleAutoTrackOnSight(this.checked)" style="accent-color:#30d158;cursor:pointer;" />
-              </label>
-            </div>
-
-            <!-- Find My Style Target List -->
-            <div class="apple-target-list">
-              <!-- Snowmobile Row -->
-              <div class="apple-target-row" id="appleRowSnowmobile">
-                <div class="apple-target-info">
-                  <div class="apple-target-icon">🛸</div>
-                  <div style="min-width:0;">
-                    <div class="apple-target-name">Snowmobile</div>
-                    <div class="apple-target-sub" id="appleSubSnowmobile">+34.0°C &bull; Trail Corridor</div>
-                  </div>
-                </div>
-                <div class="apple-target-actions">
-                  <button class="apple-pill-btn follow" id="btnAppleFollowSnowmobile" onclick="assignDroneToAutoTrack('VEHICLE', null, false)">Follow</button>
-                  <button class="apple-pill-btn talk" id="btnAppleTalkSnowmobile" onclick="flyCloseAndOpenVoiceIntercom('VEHICLE')">🔊 Talk</button>
-                </div>
-              </div>
-
-              <!-- Lost Hiker Row -->
-              <div class="apple-target-row" id="appleRowHiker">
-                <div class="apple-target-info">
-                  <div class="apple-target-icon">🚶</div>
-                  <div style="min-width:0;">
-                    <div class="apple-target-name">Lost Hiker</div>
-                    <div class="apple-target-sub" id="appleSubHiker">+31.4°C &bull; Canyon Trail</div>
-                  </div>
-                </div>
-                <div class="apple-target-actions">
-                  <button class="apple-pill-btn follow" id="btnAppleFollowHiker" onclick="assignDroneToAutoTrack('PERSON', null, false)">Follow</button>
-                  <button class="apple-pill-btn talk" id="btnAppleTalkHiker" onclick="flyCloseAndOpenVoiceIntercom('PERSON')">🔊 Talk</button>
-                </div>
+                <button class="apple-seg-btn active" id="segDrone0" onclick="selectAppleActiveDrone(0)">D1</button>
+                <button class="apple-seg-btn" id="segDrone1" onclick="selectAppleActiveDrone(1)">D2</button>
+                <button class="apple-seg-btn" id="segDrone2" onclick="selectAppleActiveDrone(2)">D3</button>
+                <button class="apple-seg-btn" id="segDrone3" onclick="selectAppleActiveDrone(3)">D4</button>
               </div>
             </div>
 
-            <!-- Stop Following Button (shown when locked) -->
-            <button class="btn danger" id="btnAppleStopFollow" onclick="cancelTargetAssignment()" style="display:none;width:100%;border-radius:10px;padding:6px 10px;font-size:12px;">
-              ✕ Stop Following (Return to Search)
-            </button>
-
-            <!-- Clean Drone Speaker & Mic Intercom -->
-            <div id="voiceIntercomBox" style="display:flex;flex-direction:column;gap:7px;padding-top:2px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span style="font-size:11.5px;font-weight:600;color:#a1a1aa;">🔊 Drone Speaker &amp; Mic</span>
-                <span id="lblIntercomLinkBadge" style="font-size:11px;color:#4ade80;font-weight:600;">Ready</span>
-              </div>
-
-              <!-- Hidden synced selectors for compatibility -->
-              <div style="display:none;">
-                <select id="selIntercomDrone" onchange="changeAssignedTrackDrone(this.value)">
-                  <option value="0" selected>Drone 1</option>
-                  <option value="1">Drone 2</option>
-                  <option value="2">Drone 3</option>
-                  <option value="3">Drone 4</option>
-                </select>
-                <select id="selIntercomTarget" onchange="assignDroneToAutoTrack(this.value, null, closeTalkHoverActive)">
-                  <option value="VEHICLE">Snowmobile</option>
-                  <option value="PERSON" selected>Lost Hiker</option>
-                </select>
-              </div>
-
-              <!-- 4 Clean Phrase Chips -->
-              <div class="apple-phrase-grid">
-                <button class="apple-phrase-chip" onclick="sendVoiceIntercomPreset('HALT_LISTEN')">🛑 "Stop &amp; Talk"</button>
-                <button class="apple-phrase-chip" onclick="sendVoiceIntercomPreset('STATUS_CHECK')">🩺 "Are You OK?"</button>
-                <button class="apple-phrase-chip" onclick="sendVoiceIntercomPreset('FOLLOW_LIGHT')">🟢 "Follow Drone"</button>
-                <button class="apple-phrase-chip" onclick="sendVoiceIntercomPreset('STAND_CLEAR_DROP')">🪂 "Stand Clear"</button>
-              </div>
-
-              <!-- iMessage Style Input -->
-              <div style="display:flex;gap:6px;">
-                <input type="text" id="txtVoiceIntercomInput" placeholder="Speak through drone speaker..." onkeydown="if(event.key==='Enter')sendCustomVoiceIntercomMessage()" style="flex:1;background:rgba(0,0,0,0.35);color:#f5f5f7;border:1px solid rgba(255,255,255,0.14);border-radius:999px;padding:6px 12px;font-size:12px;outline:none;" />
-                <button class="apple-pill-btn talk active" onclick="sendCustomVoiceIntercomMessage()" style="padding:6px 13px;">Speak</button>
-              </div>
-
-              <!-- Clean Conversation Bubble -->
-              <div id="lblVoiceIntercomTranscript" style="font-size:11.5px;color:#d4d4d8;background:rgba(0,0,0,0.28);padding:8px 10px;border-radius:10px;line-height:1.38;">
-                Tap <strong>🔊 Talk</strong> next to Snowmobile or Lost Hiker (or click their yellow box in the video) to fly down and talk.
-              </div>
-            </div>
-          </div>
-
-          <!-- =============================================================== -->
-          <!-- APPLE CARD 3: FLIGHT STICK & WARM SUPPLY DROP                   -->
-          <!-- =============================================================== -->
-          <div class="apple-card">
-            <div class="apple-section-title">
-              <span>Steer &amp; Supply Drop</span>
-              <span class="step-badge" id="badgeStickState" style="background:rgba(10,132,255,0.18);color:#70b7ff;font-size:10.5px;">Ready</span>
+            <!-- Live Automatic Speed Regime Readout -->
+            <div id="lblManualPilotTelemetry" style="font-size:11.5px;color:#d4d4d8;background:rgba(0,0,0,0.28);padding:6px 9px;border-radius:8px;line-height:1.35;">
+              🚁 <strong>Drone 1</strong> &bull; 🔍 Max-Range Search &bull; <strong>12.5 m/s</strong> (45 km/h)
             </div>
 
-            <div id="lblManualPilotTelemetry" style="font-size:11.5px;color:#a1a1aa;line-height:1.35;">
-              🚁 Drone 1 &bull; 12.5 m/s
-            </div>
-
-            <canvas id="trackpadSteerCanvas" width="280" height="142" style="width:100%;height:122px;background:#101116;border:1px solid rgba(255,255,255,0.12);border-radius:12px;cursor:crosshair;display:block;touch-action:none;" title="Move inside pad or use WASD / Arrow Keys to steer. Click pad or press Space to Hover."></canvas>
+            <canvas id="trackpadSteerCanvas" width="280" height="128" style="width:100%;height:112px;background:#101116;border:1px solid rgba(255,255,255,0.12);border-radius:12px;cursor:crosshair;display:block;touch-action:none;" title="Move inside pad or use WASD / Arrow Keys to steer. Click pad or press Space to Hover."></canvas>
 
             <div style="display:flex;gap:6px;">
               <button class="btn" id="btnToggleStickArm" onclick="toggleStickArmPause()" style="flex:1;border-radius:9px;padding:6px 8px;font-size:11.5px;">⏸ Hover (Space)</button>
-              <button class="btn" onclick="toggleMapSubTool('GOTO_POINT')" style="flex:1;border-radius:9px;padding:6px 8px;font-size:11.5px;" title="Click any spot on Map or Video to fly there">📍 Click to Fly</button>
+              <button class="btn" onclick="toggleMapSubTool('GOTO_POINT')" style="flex:1;border-radius:9px;padding:6px 8px;font-size:11.5px;" title="Click any spot on Map or Video — Drone automatically sprints there at 21 m/s (76 km/h)!">📍 Click to Fly (21 m/s)</button>
             </div>
+            <span id="badgeStickState" style="display:none;">Ready</span>
             <span id="lblStickAxisReadout" style="display:none;">X: +0% • Y: +0%</span>
-
-            <!-- Clean 1-Tap Supply Drop -->
-            <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:9px;display:flex;flex-direction:column;gap:6px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span style="font-size:12px;font-weight:600;color:#f5f5f7;">🪂 Warm Survival Barrel (+42°C)</span>
-                <span class="step-badge" id="badgeDropStatus" style="font-size:10px;">Ready</span>
-              </div>
-              <div id="dropStatusDescription" style="font-size:11px;color:#a1a1aa;line-height:1.35;">
-                Drops a heated survival barrel &amp; radio 15m from the target.
-              </div>
-              <div style="display:flex;gap:6px;" id="dropActionButtons">
-                <button class="btn warning" id="btnQueueDropNearTarget" onclick="queueDropNearActiveTarget()" style="flex:1;border-radius:10px;padding:7px 10px;">
-                  🪂 Drop Supply Near Target
-                </button>
-                <button class="btn danger" id="btnSidebarCancelDrop" onclick="cancelPendingDrop()" style="flex:1;display:none;border-radius:10px;padding:7px 10px;">
-                  ✕ Cancel Drop
-                </button>
-              </div>
-              <div style="display:flex;gap:6px;" id="dropConfirmRow">
-                <button class="btn success" id="btnSidebarReleaseNow" onclick="executeImmediateDrop()" style="flex:1;display:none;border-radius:10px;padding:7px 10px;">
-                  ✓ Release Supply Now
-                </button>
-                <button class="btn" id="btnSidebarReloadPayload" onclick="reloadPayloadSimulation()" style="flex:1;display:none;border-radius:10px;padding:7px 10px;">
-                  ↺ Reload Supply
-                </button>
-              </div>
-            </div>
           </div>
 
           <!-- =============================================================== -->
@@ -3736,7 +3705,7 @@
       if (targetLockActive) {
         const distM = Math.round(Math.hypot(subj.x - td.x, subj.y - td.y));
         const modeTag = closeTalkHoverActive ? `🔊 Close Talk Hover (${distM}m)` : `🎯 Auto-Tracking (${distM}m)`;
-        if (tBanner) tBanner.style.borderColor = 'rgba(255, 159, 10, 0.5)';
+        if (tBanner) { tBanner.style.display = 'flex'; tBanner.style.borderColor = 'rgba(255, 159, 10, 0.5)'; }
         if (tBannerTxt) tBannerTxt.innerHTML = `<strong style="color:${td.color};">${td.shortName}</strong> ${modeTag} &rarr; <strong>${tName}</strong>`;
         if (btnMapCancelTgt) btnMapCancelTgt.style.display = 'inline-flex';
         if (badgeTgt) { badgeTgt.textContent = `${td.shortName} Auto-Tracking`; badgeTgt.className = 'step-badge amber'; }
@@ -3744,8 +3713,8 @@
         if (btnSideCancelTgt) btnSideCancelTgt.style.display = 'inline-flex';
         if (btnSideReassign) btnSideReassign.style.display = 'none';
       } else {
-        if (tBanner) tBanner.style.borderColor = 'var(--border-subtle)';
-        if (tBannerTxt) tBannerTxt.innerHTML = `No target locked — Click <strong>🛸 Auto-Track Snowmobile</strong>, <strong>🚶 Auto-Track Hiker</strong>, or click any target box in Video!`;
+        if (tBanner) { tBanner.style.display = 'none'; tBanner.style.borderColor = 'var(--border-subtle)'; }
+        if (tBannerTxt) tBannerTxt.innerHTML = `No target locked`;
         if (btnMapCancelTgt) btnMapCancelTgt.style.display = 'none';
         if (badgeTgt) { badgeTgt.textContent = 'Ready to Auto-Track'; badgeTgt.className = 'step-badge'; }
         if (lblDrone) { lblDrone.textContent = 'None (Click to Assign)'; lblDrone.style.color = '#4ade80'; }
@@ -3924,16 +3893,17 @@
       d.manualHold = false;
       d.customGoal = { x: wx, y: wy, label: sourceDesc };
       d.sectorDone = false;
-      d.sectorName = `📍 Fly -> (${Math.round(wx)}m, ${Math.round(wy)}m)`;
-      if (droneIdx === 0 && targetLockActive) {
+      d.sectorName = `⚡ Sprint -> (${Math.round(wx)}m, ${Math.round(wy)}m)`;
+      if (droneIdx === assignedTrackDroneIdx && targetLockActive) {
         targetLockActive = false;
+        closeTalkHoverActive = false;
         const chk = document.getElementById('chkPreemptMapping');
         if (chk) chk.checked = false;
       }
       updateTargetAndDropUI();
       updateCameraSwitcherLabels();
       const [lat, lon] = worldToLatLon(wx, wy);
-      updateAidBannerUI(`📍 ${d.shortName} Commanded to (${Math.round(wx)}m, ${Math.round(wy)}m / ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E) — Flying at ${(12.5 * simSpeed).toFixed(1)} m/s (${simSpeed}x)!`);
+      updateAidBannerUI(`⚡ ${d.shortName} Sprinting to Point (${Math.round(wx)}m, ${Math.round(wy)}m / ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E) at Max Transit Speed ${(21.0 * simSpeed).toFixed(1)} m/s (${Math.round(21.0 * simSpeed * 3.6)} km/h)!`);
       logAndDispatchMavlinkV2(`SET_POSITION_TARGET_GLOBAL_INT (#86) • ${d.shortName} GoTo (${lat.toFixed(4)}N, ${lon.toFixed(4)}E)`, 86, 'FD 35 00 00 0B FF BE 56 00 00', `/api/field/target?active=1&type=GOTO`);
     }
 
@@ -4985,10 +4955,15 @@
     }
 
     // =========================================================================
-    // 7. MAIN 60 FPS SIMULATION & RENDER LOOP (TRUE WALL-CLOCK PHYSICAL m/s!)
+    // 7. MAIN 60 FPS SIMULATION & RENDER LOOP (FIT-TO-PURPOSE AUTO SPEED REGIMES!)
     // =========================================================================
+    // Speed is 100% automatic based on mission intent (zero extra knobs required):
+    // 1. SPRINT / INTERCEPT (21.0 m/s = 75.6 km/h): Point-to-point GoTo, Payload Drop dash, & Target Intercept closing (>25m)
+    // 2. MAX-RANGE SEARCH CRUISE (12.5 m/s = 45.0 km/h): Optimal aerodynamic range (min Wh/km) + zero thermal motion blur
+    // 3. ESCORT / CLOSE TALK: Automatically decelerates inside 25m and matches Snowmobile (5.5 m/s) or Hiker (1.45 m/s)
     let lastFramePerfMs = performance.now();
-    const DRONE_CRUISE_MPS = 12.5; // 12.5 m/s = 45.0 km/h quadcopter patrol/goto speed at 1x Real-Time
+    const DRONE_SPRINT_MPS = 21.0; // 21.0 m/s = 75.6 km/h fast transit / intercept sprint at 1x Real-Time
+    const DRONE_CRUISE_MPS = 12.5; // 12.5 m/s = 45.0 km/h max-range search & zero-blur thermal sweep at 1x Real-Time
     const MANUAL_MAX_MPS   = 14.0; // 14.0 m/s = 50.4 km/h max manual stick speed at 1x Real-Time
     const HIKER_WALK_MPS   = 1.45; // 1.45 m/s = 5.2 km/h walking hiker escort speed at 1x Real-Time
     const VEHICLE_MOVE_MPS = 5.50; // 5.50 m/s = 19.8 km/h snowmobile trail speed at 1x Real-Time
@@ -5007,6 +4982,7 @@
       }
       const gCur = getMapGeometry();
       const viewAdaptiveStepM = DRONE_CRUISE_MPS * simDtSec;
+      const sprintStepM = DRONE_SPRINT_MPS * simDtSec;
 
       // Keyboard WASD / Arrow Keys update stickState if finger is not currently inside the pad
       const k = stickState.keysDown;
@@ -5140,15 +5116,20 @@
           if (d.role === 'MANUAL_HOLD') {
             // Hold position where human pilot left it!
             d.lastSpeedMps = 0.0;
+            d.speedRegimeTag = '⏸ Hovering';
           } else if (d.role === 'CUSTOM_GOTO' && d.customGoal) {
             const dx = d.customGoal.x - d.x;
             const dy = d.customGoal.y - d.y;
             const dist = Math.hypot(dx, dy);
             if (dist > 1.5) {
-              const step = Math.min(dist, viewAdaptiveStepM * 1.10);
+              // Automatically sprint at 21.0 m/s (76 km/h) on straight-line GoTo, decelerating smoothly inside 20m
+              const brakeRatio = dist < 20.0 ? Math.max(0.35, dist / 20.0) : 1.0;
+              const cmdMps = DRONE_SPRINT_MPS * brakeRatio;
+              const step = Math.min(dist, cmdMps * simDtSec);
               d.x += (dx / dist) * step;
               d.y += (dy / dist) * step;
-              d.lastSpeedMps = DRONE_CRUISE_MPS * 1.10 * simSpeed;
+              d.lastSpeedMps = cmdMps * simSpeed;
+              d.speedRegimeTag = '⚡ Sprint to Point';
               d.lastHeadingDeg = ((Math.atan2(dx, -dy) * 180 / Math.PI) + 360) % 360;
               if (Math.hypot(d.x - (d.trail[d.trail.length - 1]?.x || d.x), d.y - (d.trail[d.trail.length - 1]?.y || d.y)) > 8.0) {
                 d.trail.push({ x: d.x, y: d.y });
@@ -5158,6 +5139,7 @@
               d.x = d.customGoal.x;
               d.y = d.customGoal.y;
               d.lastSpeedMps = 0.0;
+              d.speedRegimeTag = '📍 Holding at Pin';
               d.sectorName = '📍 Holding at Pin';
             }
           } else if (idx === 0 && payloadState.status === 'EN_ROUTE_PENDING') {
@@ -5165,10 +5147,14 @@
             const dy = payloadState.targetY - d.y;
             const dist = Math.hypot(dx, dy);
             if (dist > 2.5) {
-              const step = Math.min(dist, viewAdaptiveStepM * 1.05);
+              // Sprint at 21.0 m/s to deliver warm survival barrel as fast as possible
+              const brakeRatio = dist < 20.0 ? Math.max(0.4, dist / 20.0) : 1.0;
+              const cmdMps = DRONE_SPRINT_MPS * brakeRatio;
+              const step = Math.min(dist, cmdMps * simDtSec);
               d.x += (dx / dist) * step;
               d.y += (dy / dist) * step;
-              d.lastSpeedMps = DRONE_CRUISE_MPS * 1.05 * simSpeed;
+              d.lastSpeedMps = cmdMps * simSpeed;
+              d.speedRegimeTag = '⚡ Sprint to Drop';
               d.lastHeadingDeg = ((Math.atan2(dx, -dy) * 180 / Math.PI) + 360) % 360;
             } else if ((aidState.mode === 'OFFLINE_DETERMINISTIC' || aidState.mode === 'CLOUD_LLM_JEV') && aidState.compiled.autoReleaseDrop && !aidState.compiled.requireHumanDropConfirm && !aidState.dropVetoLatched) {
               executeImmediateDrop(false);
@@ -5186,23 +5172,31 @@
             d.altAgl = closeTalkHoverActive ? 20 : (aidState.compiled?.trackAltM || 28);
             const tLabel = guidedTargetType === 'VEHICLE' ? 'Snowmobile' : 'Hiker';
             d.sectorName = closeTalkHoverActive ? `🔊 Talking -> ${tLabel} (8m)` : `🎯 Auto-Track -> ${tLabel}`;
-            if (dist > 0.6) {
-              // Fly at realistic bounded speed from previous position (NEVER teleport/snap!)
-              const step = Math.min(dist, viewAdaptiveStepM * 1.12);
+            const isHalted = (voiceIntercomState.haltedTargetKey === guidedTargetType);
+            const targetBaseMps = isHalted ? 0.0 : (guidedTargetType === 'VEHICLE' ? VEHICLE_MOVE_MPS : HIKER_WALK_MPS);
+            if (dist > 1.2) {
+              // Sprint at 21.0 m/s when closing from afar (>25m), smoothly decelerating to match target speed inside 25m!
+              const blend = Math.min(1.0, Math.max(0.0, (dist - 1.2) / 24.0));
+              const interceptMps = Math.max(targetBaseMps + 2.5, targetBaseMps + (DRONE_SPRINT_MPS - targetBaseMps) * blend);
+              const step = Math.min(dist, interceptMps * simDtSec);
               d.x += (dx / dist) * step;
               d.y += (dy / dist) * step;
               d.lastSpeedMps = (step / Math.max(0.001, dtRealSec));
+              d.speedRegimeTag = dist > 18.0 ? `⚡ Intercepting ${tLabel}` : `🎯 Escorting ${tLabel}`;
               d.lastHeadingDeg = ((Math.atan2(dx, -dy) * 180 / Math.PI) + 360) % 360;
               if (Math.hypot(d.x - (d.trail[d.trail.length - 1]?.x || d.x), d.y - (d.trail[d.trail.length - 1]?.y || d.y)) > 6.0) {
                 d.trail.push({ x: d.x, y: d.y });
                 if (d.trail.length > 50) d.trail.shift();
               }
             } else {
-              const isHalted = (voiceIntercomState.haltedTargetKey === guidedTargetType);
-              d.lastSpeedMps = isHalted ? 0.0 : ((guidedTargetType === 'VEHICLE' ? VEHICLE_MOVE_MPS : HIKER_WALK_MPS) * simSpeed);
+              d.lastSpeedMps = targetBaseMps * simSpeed;
+              d.speedRegimeTag = isHalted
+                ? `🔊 Hovering to Talk (${tLabel})`
+                : (closeTalkHoverActive ? `🔊 Talking Alongside ${tLabel}` : `🎯 Matching ${tLabel}`);
             }
           } else if (d.role === 'SHROUD_MAPPER' && d.waypoints && d.waypoints.length > 0) {
             d.sectorDone = false; // Continuous radar patrol NEVER parks at Done!
+            d.speedRegimeTag = '🔍 Max-Range Search';
             const wp = d.waypoints[d.wpIdx] || d.waypoints[0];
             const dx = wp.x - d.x;
             const dy = wp.y - d.y;
@@ -5259,7 +5253,9 @@
       const pd = drones[steeredDroneIdx] || drones[0];
       const spdMps = pd.lastSpeedMps ?? (simRunning ? DRONE_CRUISE_MPS * simSpeed : 0.0);
       const spdKmh = Math.round(spdMps * 3.6);
-      const hdg = String(Math.round(pd.lastHeadingDeg ?? 45)).padStart(3, '0');
+      const regimeTag = (stickMag > 0.03)
+        ? '🕹️ Manual Stick'
+        : (pd.speedRegimeTag || '🔍 Max-Range Search');
       const cards = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
       const dxH = lostPerson.x - pd.x;
       const dyH = lostPerson.y - pd.y;
@@ -5274,7 +5270,7 @@
 
       const teleEl = document.getElementById('lblManualPilotTelemetry');
       if (teleEl) {
-        teleEl.innerHTML = `🚁 <strong style="color:#f5f5f7;">${pd.shortName}</strong> &bull; <strong style="color:#4ade80;">${spdMps.toFixed(1)} m/s</strong> (${spdKmh} km/h) &bull; Heading ${hdg}°`;
+        teleEl.innerHTML = `🚁 <strong style="color:#f5f5f7;">${pd.shortName}</strong> &bull; <span style="color:#64d2ff;font-weight:600;">${regimeTag}</span> &bull; <strong style="color:#4ade80;">${spdMps.toFixed(1)} m/s</strong> (${spdKmh} km/h)`;
       }
 
       // Sync Apple Segmented Mode & Drone Pills
