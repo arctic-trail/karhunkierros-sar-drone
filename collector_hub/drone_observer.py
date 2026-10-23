@@ -9090,15 +9090,14 @@ def simulate_coaxial_x8_1000_envelope_expansion(
 
 def compute_pareto_optimal_4tier_portfolio_summary():
     """
-    Returns the refactored 4-Tier Pareto-Optimal Arctic SAR Product Portfolio
-    where every platform uses the optimal propulsion + wing combination for its speed/payload/range regime:
+    Returns the simplified public 4-Tier Arctic SAR Product Portfolio (V_NE <= 300 km/h, range < 300 km):
       1. Tier 1/2: `Karhunkierros-X8` Coaxial 6S Heavy-Sprint Multi-Rotor (0-138.6 km/h, 3.0 kg payload, 22.5 km calm / 14.8 km storm radius, EUR 1,639)
-      2. Tier 3A : `FIN-LAB-02 Sled B-Prop` High-Speed De-Iced Electric Pusher Marsupial Carrier (2.20 m Wing, 275.0 km/h dash, 35-55 km storm radius, EUR 2,450)
-      3. Tier 3B : `FIN-LAB-02 Sled A-Jet` Clipped-Wing Micro-Turbojet Sprint Responder (1.45 m 28-deg Swept Wing, 432-468 km/h dash, 35 km in 4.86 min, EUR 4,850)
+      2. Tier 3A : `FIN-LAB-02 Sled B-Prop` High-Speed De-Iced Electric Pusher Marsupial Carrier (2.20 m Wing, 275.0 km/h dash, 35-45 km storm radius, EUR 2,450)
+      3. Tier 3B : `FIN-LAB-02 Sled A` Baseline COTS Hobby RC Turbine Marsupial Carrier (2.20 m Wing, 259.2 km/h cruise, 35 km in 11.3 min, EUR 4,850)
       4. Tier 3C : `FIN-LAB-02 Sled C` 4-Stroke Canyon Relay Loiter (2.20 m Wing, 101-130 km/h loiter, 6.0 hr / <=284.5 km <300 km EU-compliant range, EUR 3,800)
     """
     return {
-        "portfolio_version": "v2.2_PARETO_OPTIMAL_4TIER_LINEUP",
+        "portfolio_version": "v2.3_SIMPLIFIED_PUBLIC_SAR_LINEUP",
         "awkward_259kmh_jet_middle_eliminated": True,
         "tiers": [
             {
@@ -9128,14 +9127,14 @@ def compute_pareto_optimal_4tier_portfolio_summary():
                 "unit_cost_eur": 2450.0,
             },
             {
-                "tier_id": "TIER_3B_SLED_A_JET_CLIPPED_SPRINT",
-                "name": "FIN-LAB-02 Sled A-Jet Clipped-Wing Micro-Turbojet Sprint Responder",
-                "propulsion": "135N EU Micro-Turbojet (Xicoy X132 / JetCat P130-RX) + Slotted Flaps + 355mm Nose Brake/Loiter Prop",
-                "wingspan_or_wheelbase_m": 1.45,
-                "cruise_speed_kmh": 432.0,
-                "max_dash_speed_kmh": 468.0,
-                "storm_14mps_radius_km": 42.0,
-                "calm_radius_km": 52.0,
+                "tier_id": "TIER_3B_SLED_A_COTS_259KMH_BASELINE",
+                "name": "FIN-LAB-02 Sled A Baseline COTS Hobby RC Turbine Marsupial Carrier",
+                "propulsion": "100N COTS Hobby RC Turbine (JetCat P100-RX-BL) + 2.20 m Wing + 355mm Nose Loiter Prop",
+                "wingspan_or_wheelbase_m": 2.20,
+                "cruise_speed_kmh": 259.2,
+                "max_dash_speed_kmh": 288.0,
+                "storm_14mps_radius_km": 35.0,
+                "calm_radius_km": 45.0,
                 "payload_nominal_kg": 5.00,
                 "payload_overload_kg": 5.00,
                 "unit_cost_eur": 4850.0,
