@@ -231,7 +231,7 @@ To determine how far the operational envelope of `FIN-LAB-02` can be pushed prac
 | **`R08_SINGLE_RUDDERVATOR_JAM`** | `1` of `2` $\Lambda$-tail ruddervators jammed at `+11°` in `10–18.5 m/s` crosswind | `0.0%` | **`100.0%`** | **`+100.0%`** | `E5` `INDI` Split-Ruddervator + Differential Flaperon Allocation |
 | **`R09_HIGH_ALT_SLUSH_TAKEOFF`** | `850–1,400 m` elevation deep wet snow/slush strip ($\mu = 0.125\text{–}0.175$, `31 m` clearing) | `62.0%` | **`100.0%`** | **`+38.0%`** | `E4` Symmetric `+12°` Flaperon Mix (`-26.6%` takeoff roll) |
 | **`R10_COMPOUND_TORTURE_STRESS`** | Simultaneous `-42 °C` + `1.65x` icing + `22 m/s` wind + `70 dB` RF blackout + `53 m/s` traffic conflict + servo jam | `0.0%` | **`96.0%`** | **`+96.0%`** | Full `E1–E5` COTS Upgrade Suite (`100.0%` airframe survival) |
-| **TOTAL (`N = 1,000` SIMULATIONS)** | **`500` Baseline Extreme Runs vs. `500` Upgraded COTS Runs (`0.017 s` execution)** | **`45.2%`** (`100%` survival) | **`99.6%`** (`100%` survival) | **`+54.4%`** | **`+€140` / `+110 g` Fixed Airframe Upgrade + Optional Fiber Pod** |
+| **TOTAL (`N = 1,000` SIMULATIONS)** | **`500` Baseline Extreme Runs vs. `500` Upgraded COTS Runs (`0.017 s` execution)** | **`45.2%`** (`100%` survival) | **`99.6%`** (`100%` survival) | **`+54.4%`** | **`+€140` / `+110 g` Fixed Airframe Upgrade + Dual-Band Directional Telemetry & Terrain VIO** |
 
 ### 9.3 Year-Round Arctic Edge-Case Hardening (`-45 °C` Polar Winter, `0 °C` Slush Freeze-Thaw & `+22 °C` Midnight-Sun / *Räkkä* Summer)
 
