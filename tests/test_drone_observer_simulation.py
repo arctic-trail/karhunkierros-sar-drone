@@ -2378,6 +2378,63 @@ class TestAerialObserverModule(unittest.TestCase):
         self.assertEqual(fog_res["under_fog_ceiling_corridor_agl_m"], 18.0)
         self.assertEqual(fog_res["opaslyhty_safe_canopy_altitude_agl_m"], 18.0)
 
+        # 5. Zero-BOM-Change High-Altitude Small-Blob Group-Split Tracker (9 in main group + 1 breakaway hiker)
+        blob_tracker = dobs.HighAltitudeSmallBlobThermalTracker(split_distance_threshold_m=25.0)
+        frame0_blobs = [
+            {"east_m": -100.0 + i * 2.5, "north_m": 200.0 - i * 1.5, "w_px": 4.0, "h_px": 8.0, "core_delta_c": 12.0}
+            for i in range(9)
+        ] + [{"east_m": -45.0, "north_m": 215.0, "w_px": 4.0, "h_px": 8.0, "core_delta_c": 13.5}]
+        blob_tracker.step(1.0, frame0_blobs, drone_alt_agl_m=120.0)
+
+        # Advance 2 seconds: main group moves SW at ~1.4 m/s, breakaway hiker moves East at ~2.8 m/s
+        frame1_blobs = [
+            {
+                "east_m": -100.0 + i * 2.5 - 2.0,
+                "north_m": 200.0 - i * 1.5 - 2.0,
+                "w_px": 4.0,
+                "h_px": 8.0,
+                "core_delta_c": 12.0,
+            }
+            for i in range(9)
+        ] + [{"east_m": -39.4, "north_m": 216.2, "w_px": 4.0, "h_px": 8.0, "core_delta_c": 13.5}]
+        split_state = blob_tracker.step(2.0, frame1_blobs, drone_alt_agl_m=120.0)
+        self.assertEqual(split_state["bom_changes_required"], 0)
+        self.assertTrue(split_state["zero_chinese_bom_compliant"])
+        self.assertEqual(split_state["active_track_count"], 10)
+        self.assertTrue(split_state["group_split_detected"])
+        self.assertEqual(len(split_state["main_group_track_ids"]), 9)
+        self.assertEqual(len(split_state["separated_outlier_track_ids"]), 1)
+
+        # 6. Zero-BOM-Change 850 nm LiDAR Fog-Backscatter Rejection Gate & 18.0 m Under-Fog Ceiling Corridor
+        gate = dobs.evaluate_lidar_fog_backscatter_rejection_gate(
+            lidar_raw_range_m=4.2,  # False Mie backscatter off fog droplets 4.2m ahead of lens
+            baro_isa_alt_agl_m=58.2,
+            ambient_temp_c=-12.0,
+            pad_temp_c=-10.0,
+            optical_visibility_m=30.0,
+        )
+        self.assertEqual(gate["bom_changes_required"], 0)
+        self.assertTrue(gate["fog_mie_backscatter_detected"])
+        self.assertTrue(gate["ekf_rngfnd_inhibited"])
+        self.assertTrue(gate["runaway_climb_prevented"])
+        self.assertEqual(gate["vertical_hold_source"], "BMP390_HYPSOMETRIC_BARO_PLUS_MML_2M_DEM_ZERO_BOM_CHANGE")
+
+        corridor = dobs.plan_autonomous_under_fog_ceiling_corridor(
+            current_east_m=-120.0,
+            current_north_m=180.0,
+            current_alt_agl_m=58.2,
+            target_east_m=-40.0,
+            target_north_m=215.0,
+            optical_visibility_m=30.0,
+            horizon_contrast_score=0.04,
+            corridor_tree_canopy_height_m=4.5,
+        )
+        self.assertEqual(corridor["bom_changes_required"], 0)
+        self.assertTrue(corridor["zero_visible_horizon_detected"])
+        self.assertEqual(corridor["commanded_corridor_alt_agl_m"], 18.0)
+        self.assertEqual(corridor["flight_mode"], "UNDER_FOG_CEILING_18M_DEM_CORRIDOR")
+        self.assertEqual(len(corridor["corridor_waypoints"]), 4)
+
 
 if __name__ == "__main__":
     print("=== Running Autonomous Aerial Observation & Guidance Module Test Suite ===")
