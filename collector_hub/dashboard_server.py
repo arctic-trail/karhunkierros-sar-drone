@@ -108,6 +108,61 @@ def etrs_tm35fin_to_wgs84(northing_m: float, easting_m: float):
     return round(math.degrees(lat), 6), round(math.degrees(lon), 6)
 
 
+def wgs84_to_etrs_gk(lat_deg: float, lon_deg: float, gk_zone: int = None):
+    """
+    JHS 197 narrow-band Gauss-Krüger projection ETRS-GK19..ETRS-GK31 (EPSG:3873..3885, k0=1.0000).
+    Keeps scale error (mittakaavavirhe) <= ~10 ppm (< 1 cm/km) across all of Finland including Åland.
+    """
+    zone = int(round(float(lon_deg))) if gk_zone is None else int(gk_zone)
+    zone = max(19, min(31, zone))
+    a = 6378137.0
+    f = 1.0 / 298.257222101
+    k0 = 1.0000
+    lon0 = math.radians(float(zone))
+    false_easting = float(zone * 1000000 + 500000)
+    e2 = f * (2.0 - f)
+    ep2 = e2 / (1.0 - e2)
+    phi = math.radians(lat_deg)
+    lam = math.radians(lon_deg)
+    dlon = lam - lon0
+    sin_p = math.sin(phi)
+    cos_p = math.cos(phi)
+    tan_p = math.tan(phi)
+    N = a / math.sqrt(1.0 - e2 * sin_p * sin_p)
+    T = tan_p * tan_p
+    C = ep2 * cos_p * cos_p
+    A = cos_p * dlon
+    e4 = e2 * e2
+    e6 = e4 * e2
+    M = a * (
+        (1.0 - e2 / 4.0 - 3.0 * e4 / 64.0 - 5.0 * e6 / 256.0) * phi
+        - (3.0 * e2 / 8.0 + 3.0 * e4 / 32.0 + 45.0 * e6 / 1024.0) * math.sin(2.0 * phi)
+        + (15.0 * e4 / 256.0 + 45.0 * e6 / 1024.0) * math.sin(4.0 * phi)
+        - (35.0 * e6 / 3072.0) * math.sin(6.0 * phi)
+    )
+    easting = false_easting + k0 * N * (
+        A
+        + (1.0 - T + C) * (A ** 3) / 6.0
+        + (5.0 - 18.0 * T + T * T + 72.0 * C - 58.0 * ep2) * (A ** 5) / 120.0
+    )
+    northing = k0 * (
+        M
+        + N * tan_p * (
+            (A ** 2) / 2.0
+            + (5.0 - T + 9.0 * C + 4.0 * C * C) * (A ** 4) / 24.0
+            + (61.0 - 58.0 * T + T * T + 600.0 * C - 330.0 * ep2) * (A ** 6) / 720.0
+        )
+    )
+    k = k0 * (1.0 + (1.0 + C) * (A ** 2) / 2.0 + (5.0 - 4.0 * T + 42.0 * C + 13.0 * C * C - 28.0 * ep2) * (A ** 4) / 24.0)
+    return {
+        "crs": f"ETRS-GK{zone} (EPSG:{3854 + zone})",
+        "gk_zone": zone,
+        "northing_m": int(round(northing)),
+        "easting_m": int(round(easting)),
+        "mittakaavavirhe_ppm": round((k - 1.0) * 1.0e6, 2),
+    }
+
+
 def wgs84_to_aviation_ddm(lat_deg: float, lon_deg: float) -> str:
     """Format WGS84 decimal degrees into Aviation SAR Degrees Decimal Minutes (DDM)."""
     ns = "N" if lat_deg >= 0 else "S"
