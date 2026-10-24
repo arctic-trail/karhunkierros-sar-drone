@@ -2289,6 +2289,95 @@ class TestAerialObserverModule(unittest.TestCase):
         self.assertFalse(bad_res["approved"])
         self.assertTrue(bridge.drop_veto_latched)
 
+    def test_32_jhs197_mittakaavavirhe_etrs_gk_and_freezing_fog_resilience(self):
+        """
+        Verifies:
+          1. Exact GRS80 2nd-order Gauss mid-latitude `enu_to_wgs84` / `wgs84_to_enu` round-trip
+             (< 0.05 m error over a 10 km leg across all Finnish latitudes from Åland to Lapland).
+          2. JHS 197 ETRS-TM35FIN `mittakaavavirhe_ppm` (-400 ppm at central meridian 27E,
+             ~+1,730..+1,820 ppm in the Åland archipelago at 19.35E) and `meridian_convergence_deg`,
+             plus `tm35fin_grid_vector_to_true_ground()` / `true_ground_vector_to_tm35fin_grid()`.
+          3. JHS 197 ETRS-GK19..ETRS-GK31 (`wgs84_to_etrs_gk` & `etrs_gk_to_wgs84`, EPSG:3873..3885)
+             keeping `mittakaavavirhe_ppm <= 10.5 ppm` (< 1 cm/km) across both Åland (GK20) and
+             Kuusamo/Oulanka (GK29).
+          4. High-altitude small-blob thermal gait classification (4x8 px at 120 m AGL) and
+             dense freezing-fog 850 nm LiDAR backscatter rejection + 18 m under-fog ceiling corridor.
+        """
+        # 1. Exact GRS80 ENU <-> WGS84 over a 10 km NE transit in Oulanka (66.26N, 29.42E)
+        lat_10k, lon_10k = dobs.enu_to_wgs84(
+            6000.0, 8000.0, ref_lat=dobs.OULANKA_REF_LAT_DEG, ref_lon=dobs.OULANKA_REF_LON_DEG, precision=8
+        )
+        e_rt, n_rt = dobs.wgs84_to_enu(
+            lat_10k, lon_10k, ref_lat=dobs.OULANKA_REF_LAT_DEG, ref_lon=dobs.OULANKA_REF_LON_DEG
+        )
+        self.assertAlmostEqual(e_rt, 6000.0, delta=0.05)
+        self.assertAlmostEqual(n_rt, 8000.0, delta=0.05)
+
+        # 2. ETRS-TM35FIN mittakaavavirhe at 27.0E (-400 ppm) vs. Åland archipelago (~19.35E, ~+1,750..1,820 ppm)
+        tm_central = dobs.wgs84_to_etrs_tm35fin(62.0, 27.0)
+        self.assertAlmostEqual(tm_central["mittakaavavirhe_ppm"], -400.0, delta=0.5)
+        self.assertAlmostEqual(tm_central["meridian_convergence_deg"], 0.0, delta=0.001)
+
+        tm_aland = dobs.wgs84_to_etrs_tm35fin(60.22, 19.35)
+        self.assertTrue(1700.0 <= tm_aland["mittakaavavirhe_ppm"] <= 1850.0)
+        self.assertTrue(-7.0 <= tm_aland["meridian_convergence_deg"] <= -6.0)
+
+        # Round-trip TM35FIN -> WGS84 -> TM35FIN
+        lat_inv, lon_inv = dobs.etrs_tm35fin_to_wgs84(
+            tm_aland["northing_exact_m"], tm_aland["easting_exact_m"]
+        )
+        self.assertAlmostEqual(lat_inv, 60.22, places=5)
+        self.assertAlmostEqual(lon_inv, 19.35, places=5)
+
+        # Grid vector <-> True ground vector compensation in Åland (removes ~1.8 m/km scale stretch & -6.6 deg tilt)
+        grid_vec = dobs.true_ground_vector_to_tm35fin_grid(0.0, 1000.0, 60.22, 19.35)
+        true_vec = dobs.tm35fin_grid_vector_to_true_ground(
+            grid_vec["delta_e_grid_m"], grid_vec["delta_n_grid_m"], 60.22, 19.35
+        )
+        self.assertAlmostEqual(true_vec["east_true_m"], 0.0, delta=0.01)
+        self.assertAlmostEqual(true_vec["north_true_m"], 1000.0, delta=0.01)
+        self.assertAlmostEqual(true_vec["true_ground_distance_m"], 1000.0, delta=0.01)
+        self.assertTrue(true_vec["scale_error_removed_m"] > 1.7)
+
+        # 3. JHS 197 ETRS-GKxx (< 10 ppm scale error in both Åland GK19/GK20 and Oulanka GK29)
+        gk_aland = dobs.wgs84_to_etrs_gk(60.22, 19.85)  # GK20 (central meridian 20E)
+        self.assertEqual(gk_aland["gk_zone"], 20)
+        self.assertEqual(gk_aland["epsg"], 3874)
+        self.assertTrue(abs(gk_aland["mittakaavavirhe_ppm"]) <= 10.5)
+
+        gk_oulanka = dobs.wgs84_to_etrs_gk(dobs.OULANKA_REF_LAT_DEG, dobs.OULANKA_REF_LON_DEG)  # GK29
+        self.assertEqual(gk_oulanka["gk_zone"], 29)
+        self.assertEqual(gk_oulanka["epsg"], 3883)
+        self.assertTrue(abs(gk_oulanka["mittakaavavirhe_ppm"]) <= 10.5)
+        lat_gk_rt, lon_gk_rt = dobs.etrs_gk_to_wgs84(
+            gk_oulanka["northing_exact_m"], gk_oulanka["easting_exact_m"]
+        )
+        self.assertAlmostEqual(lat_gk_rt, dobs.OULANKA_REF_LAT_DEG, places=5)
+        self.assertAlmostEqual(lon_gk_rt, dobs.OULANKA_REF_LON_DEG, places=5)
+
+        # 4. High-altitude small-blob thermal gait lock (4x8 px at 120 m AGL) & freezing-fog LiDAR gate
+        high_alt_sig = dobs.classify_finnish_boreal_thermal_signature(
+            bbox_width_norm=4.0 / 256.0,
+            bbox_height_norm=8.0 / 192.0,
+            estimated_height_m=1.75,
+            thermal_core_delta_c=11.0,
+            speed_mps=1.45,
+            drone_alt_agl_m=120.0,
+            thermal_blob_px_dims=(4, 8),
+        )
+        self.assertTrue(high_alt_sig["is_human_hiker"])
+        self.assertTrue(high_alt_sig["small_high_altitude_blob_lock"])
+
+        fog_res = dobs.evaluate_gnss_rf_jamming_and_weather_resilience(
+            alt_agl_m=58.2,
+            visibility_m=35.0,
+            lidar_baro_divergence_m=14.5,
+        )
+        self.assertTrue(fog_res["dense_zero_horizon_fog_detected"])
+        self.assertTrue(fog_res["lidar_fog_backscatter_rejected"])
+        self.assertEqual(fog_res["under_fog_ceiling_corridor_agl_m"], 18.0)
+        self.assertEqual(fog_res["opaslyhty_safe_canopy_altitude_agl_m"], 18.0)
+
 
 if __name__ == "__main__":
     print("=== Running Autonomous Aerial Observation & Guidance Module Test Suite ===")
