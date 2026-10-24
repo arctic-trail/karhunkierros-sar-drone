@@ -2434,6 +2434,13 @@ class TestAerialObserverModule(unittest.TestCase):
         self.assertEqual(corridor["commanded_corridor_alt_agl_m"], 18.0)
         self.assertEqual(corridor["flight_mode"], "UNDER_FOG_CEILING_18M_DEM_CORRIDOR")
         self.assertEqual(len(corridor["corridor_waypoints"]), 4)
+        self.assertTrue(corridor["vortex_ring_state_prevented"])
+
+        playbook_audit = dobs.run_six_iteration_corpdev_aerospace_playbook_audit()
+        self.assertTrue(playbook_audit["all_6_iterations_verified"])
+        self.assertEqual(playbook_audit["bom_changes_required"], 0)
+        self.assertTrue(playbook_audit["zero_chinese_bom_compliant"])
+        self.assertEqual(len(playbook_audit["iterations"]), 6)
 
 
 if __name__ == "__main__":
