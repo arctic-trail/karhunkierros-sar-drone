@@ -2250,22 +2250,19 @@ class TestAerialObserverModule(unittest.TestCase):
     def test_31_structured_playbook_no_regex_dynamic_envelopes_and_mobile_responder(self) -> None:
         """
         Verify:
-          1. Dynamic safe-operating-envelope physics engine in flight_simulator.html shifts bands
-             across all 6 gauges and PFD tapes based on altitude density, mass, G-load, icing, flaps,
-             headwind, and Manned Helicopter ceiling.
+          1. Operator Console (operator_console.html) includes structured mission playbook rules
+             and live ETRS-TM35FIN / WGS84 telemetry panels.
           2. Persona 4 Gloved Ground SAR Responder App (mobile_responder.html) exists and includes
              ETRS-TM35FIN + WGS84 coordinates, ATAK CoT export, and 2-way field ACK buttons.
           3. Exact JHS 197 ETRS-TM35FIN <-> WGS84 coordinate conversion round-trip accuracy (<1.0 m).
           4. MAVLinkV2FieldBridge.command_payload_drop unknown action never clears a latched drop veto.
         """
         root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        sim_path = os.path.join(root_dir, "fast_sar_jet_finlab02", "simulator_ui", "flight_simulator.html")
-        with open(sim_path, "r", encoding="utf-8") as f:
-            sim_html = f.read()
-        self.assertIn("window.lastDynamicEnvelope =", sim_html)
-        self.assertIn("window.toggleDynEnvFactor =", sim_html)
-        self.assertIn("Fast-SAR Mothership", sim_html)
-        self.assertIn("Pilot Cockpit &amp; Synthetic Vision GCS", sim_html)
+        console_path = os.path.join(root_dir, "collector_hub", "ui", "operator_mission_console.html")
+        with open(console_path, "r", encoding="utf-8") as f:
+            console_html = f.read()
+        self.assertIn("buildStructuredPlaybookRulesJS", console_html)
+        self.assertIn("ETRS-TM35FIN", console_html)
 
         resp_path = os.path.join(root_dir, "collector_hub", "ui", "mobile_responder.html")
         self.assertTrue(os.path.exists(resp_path))

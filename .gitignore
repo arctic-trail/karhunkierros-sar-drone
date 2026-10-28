@@ -1,6 +1,9 @@
-# Local untracked scratch directories
+# Local untracked scratch directories & custom PCB outputs
 _private/
 _*/
+*.kicad_pcb
+*.gbr
+*.drl
 
 # Python bytecode & virtual environments
 __pycache__/

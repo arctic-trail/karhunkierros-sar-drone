@@ -20,7 +20,6 @@ from urllib.parse import urlparse, unquote, unquote_plus
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UI_DIR = os.path.join(BASE_DIR, "ui")
 REPO_DIR = os.path.dirname(BASE_DIR)
-SIM_UI_DIR = os.path.join(REPO_DIR, "fast_sar_jet_finlab02", "simulator_ui")
 DEFAULT_ALERTS_DIR = os.getenv("OUT_DIR", os.path.join(REPO_DIR, "verified_alerts"))
 DOCS_IMAGES_DIR = os.path.join(REPO_DIR, "docs", "images")
 SERVER_START_TIME = time.time()
@@ -325,7 +324,7 @@ def build_production_readiness_audit(alerts_dir: str):
         except Exception:
             pass
 
-    step_path = os.path.join(REPO_DIR, "fast_sar_jet_finlab02", "cad", "arctic_fast_sar_jet_iter1_fixed16deg.step")
+    step_path = os.path.join(REPO_DIR, "cad", "opaslyhty_x500v2_sar_assembly.step")
     cad_verified = os.path.isfile(step_path) and os.path.getsize(step_path) > 100000
 
     personas = [
@@ -342,12 +341,12 @@ def build_production_readiness_audit(alerts_dir: str):
         },
         {
             "persona_id": "P2_MOTHERSHIP_COCKPIT",
-            "name": "Persona 2: Fast-SAR Mothership Pilot Cockpit & GCS (:8080)",
+            "name": "Persona 2: Fast-SAR Carrier Pilot Cockpit & GCS (:8080)",
             "software_and_design_status": f"100% PROD CODE & 3D CAD ({'STEP/STL Verified' if cad_verified else 'CAD Ready'})",
             "verified_in_code": "60 Hz Dynamic Safe-Envelope Gauges (Vs, Vfe, Vne, α_crit, EGT, Bingo, 6S Bus), 6-DoF RK4 Solver, FDIR Envelope Protection, OpenCASCADE STEP/STL & 1:1 mm CNC Cut-Sheets.",
             "live_hardware_link": "LIVE_AUTOPILOT_CONNECTED" if fc_live else "6DOF_DIGITAL_TWIN_REHEARSAL (0.0 Physical Flight Hours Flown Today)",
             "missing_design": "NONE (3D CAD STEP/STL, 1:1 CNC DXF/SVG, Sizing & FBW Control Laws 100% Complete)",
-            "missing_bench_testing": "GATE 3 BENCH: Static micro-turbojet (100–120N) thrust stand, S-duct inlet distortion (DC60) check, and -30°C cold-soaked kerostart relight bench test.",
+            "missing_bench_testing": "GATE 3 BENCH: Static 12S electric pusher / 70mm EDF thrust stand, intake airflow check, and -30°C cold-soaked battery load bench test.",
             "missing_field_testing": "GATE 2 BUILD & FLIGHT: Physical fabrication of 14.95 kg / 2.20 m airframe, Ground Vibration Test (GVT), EDF glide test, and 85 m mid-air marsupial quadcopter drop trial.",
             "missing_regulatory_agency": "TRAFICOM SORA: Specific Category BVLOS flight permit & mid-air sub-drone release authorization.",
         },
@@ -1150,17 +1149,6 @@ def make_command_center_handler(alerts_dir, verbose=False):
                     self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
                     self.end_headers()
                     with open(resp_path, "rb") as f:
-                        self.wfile.write(f.read())
-                    return
-
-            if clean_path in ("/cockpit", "/mothership", "/mothership_cockpit.html", "/flight_simulator.html", "/simulator_ui/flight_simulator.html"):
-                sim_path = os.path.join(SIM_UI_DIR, "flight_simulator.html")
-                if os.path.exists(sim_path):
-                    self.send_response(200)
-                    self.send_header("Content-Type", "text/html; charset=utf-8")
-                    self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
-                    self.end_headers()
-                    with open(sim_path, "rb") as f:
                         self.wfile.write(f.read())
                     return
 

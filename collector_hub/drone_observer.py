@@ -3824,7 +3824,7 @@ def run_six_iteration_aerospace_playbook_audit():
     """
     Executes the full 6-Iteration Aerospace Playbook verification across the
     end-to-end Arctic SAR System-of-Systems (`pi-diode-trailcam` + `sky-diode-relay` +
-    `karhunkierros-sar-drone` + `arctic-fast-sar-jet`), verifying that all 6 physical,
+    `karhunkierros-sar-drone`), verifying that all 6 physical,
     optical, weather, and geodetic failure modes are closed with zero BOM changes and
     100% Non-Chinese COTS compliance.
     """
@@ -10751,8 +10751,8 @@ def compute_pareto_optimal_4tier_portfolio_summary():
             },
             {
                 "tier_id": "TIER_3B_SLED_A_COTS_259KMH_BASELINE",
-                "name": "FIN-LAB-02 Sled A Baseline COTS Hobby RC Turbine Marsupial Carrier",
-                "propulsion": "100N COTS Hobby RC Turbine (JetCat P100-RX-BL) + 2.20 m Wing + 355mm Nose Loiter Prop",
+                "name": "FIN-LAB-02 Sled A Baseline COTS Electric Ducted Fan Marsupial Carrier",
+                "propulsion": "90mm 12S COTS Electric Ducted Fan (EDF) + 2.20 m Wing + 355mm Nose Loiter Prop",
                 "wingspan_or_wheelbase_m": 2.20,
                 "cruise_speed_kmh": 259.2,
                 "max_dash_speed_kmh": 288.0,
@@ -11124,9 +11124,9 @@ def run_complete_finlab_and_supply_chain_verification_suite():
     defensive_counter_sig = evaluate_defensive_counter_signature_and_tether_glint_detector()
 
     # 9. Import & Execute Initiatives #3, #4, #7 ([P12-BELT]), #8 ([P12-HEATED]), #9 ([P12-CAPTURE]), and #12 (FIN-LAB-06 USV)
-    finlab02_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "fast_sar_jet_finlab02")
-    if finlab02_dir not in sys.path:
-        sys.path.insert(0, finlab02_dir)
+    collector_dir = os.path.dirname(os.path.abspath(__file__))
+    if collector_dir not in sys.path:
+        sys.path.insert(0, collector_dir)
     import northern_flank_red_gap_solver as gap_solver
     fin_sig_lib_v1 = gap_solver.generate_fin_sig_lib_v1_winter_dataset(samples_per_class=40, temp_c=-30.0)
     fin_sig_lib_reval = gap_solver.recalibrate_fin_sig_lib_on_real_trial_data(temp_c=-30.0)

@@ -5,7 +5,6 @@
 > * **GitHub Topics:** `ardurover` · `ardupilot` · `usv` · `maritime-autonomy` · `colregs` · `subsea-cable` · `sidescan-sonar` · `magnetometer` · `ais` · `gnss-denied` · `allied-cots` · `open-hardware` · `gulf-of-finland` · `baltic-sea` · `finland` · `estonia`
 > * **Sister Project — Tier 1 (RF-Silent Arctic Trail & Coastal Landfall Node with 1-Way Optical Diode & `[P11-COAST]` / `[P12-BALTIC-100]`):** [`arctic-trail/arctic-trail-cam`](https://github.com/arctic-trail/arctic-trail-cam)
 > * **Sister Project — Tier 2 (Autonomous Wilderness SAR Quadcopter & `FIN-LAB-01` Open Fusion Hub):** [`arctic-trail/karhunkierros-sar-drone`](https://github.com/arctic-trail/karhunkierros-sar-drone) *(Note: this maritime subproject is also published inside [`maritime_usv_finlab06/`](https://github.com/arctic-trail/karhunkierros-sar-drone/tree/main/maritime_usv_finlab06))*
-> * **Sister Project — Tier 3 (Regional `350–400 km/h` Fast-SAR Jet-Hybrid `FIN-LAB-02`):** [`arctic-trail/arctic-fast-sar-jet`](https://github.com/arctic-trail/arctic-fast-sar-jet)
 > * **Full Maritime Engineering Charter (`O1–O7`), 5-System Architecture, 3D CAD, Hydrostatics, Sonde Physics, `P8` Sea-Trial Ladder (`8.1–8.5`), Mission `M4 Cable Watch` & 10-Point Risk Register (SSOT):** [**`docs/MARITIME_CHARTER_AND_ARCHITECTURE.md`**](docs/MARITIME_CHARTER_AND_ARCHITECTURE.md)
 > * **License:** [`MIT License`](LICENSE)
 
