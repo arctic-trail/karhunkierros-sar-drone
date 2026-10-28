@@ -59,12 +59,12 @@ def main() -> int:
     assert manifest_path.is_file(), f"Missing {manifest_path}"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
-    md_files = (
-        list(root.glob("*.md"))
-        + list((root / "docs").glob("*.md"))
-        + list((root / "maritime_usv_finlab06").glob("*.md"))
-        + list((root / "maritime_usv_finlab06" / "docs").glob("*.md"))
-    )
+    tracked_rel_paths = [
+        line.strip()
+        for line in subprocess.check_output(["git", "ls-files"], cwd=str(root), text=True).splitlines()
+        if line.strip()
+    ]
+    md_files = [root / p for p in tracked_rel_paths if p.endswith(".md") and (root / p).is_file()]
     total_img_links = 0
     for md in md_files:
         txt = md.read_text(encoding="utf-8", errors="ignore")
@@ -109,22 +109,20 @@ def main() -> int:
     ]
     forbidden_exts = {".kicad_pcb", ".gbr", ".drl"}
     scanned_files = 0
-    for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [d for d in dirnames if d not in {".git", "_private", "__pycache__", "tests"}]
-        for fn in filenames:
-            fp = pathlib.Path(dirpath) / fn
-            if fp.name == "run_full_verification_and_readiness_audit.py":
-                continue
-            if fp.suffix.lower() in forbidden_exts:
-                print(f"  [FAIL] Forbidden custom PCB/Gerber file in public repo: {fp.relative_to(root)}", file=sys.stderr)
-                return 1
-            if fp.suffix.lower() in {".py", ".md", ".html", ".json", ".svg", ".xml"}:
-                content = fp.read_text(encoding="utf-8", errors="ignore").lower()
-                for tok in forbidden:
-                    if tok in content:
-                        print(f"  [FAIL] Forbidden token {tok!r} in {fp.relative_to(root)}", file=sys.stderr)
-                        return 1
-                scanned_files += 1
+    for rel_p in tracked_rel_paths:
+        fp = root / rel_p
+        if not fp.is_file() or fp.name == "run_full_verification_and_readiness_audit.py" or rel_p.startswith("tests/"):
+            continue
+        if fp.suffix.lower() in forbidden_exts:
+            print(f"  [FAIL] Forbidden custom PCB/Gerber file in public repo: {rel_p}", file=sys.stderr)
+            return 1
+        if fp.suffix.lower() in {".py", ".md", ".html", ".json", ".svg", ".xml"}:
+            content = fp.read_text(encoding="utf-8", errors="ignore").lower()
+            for tok in forbidden:
+                if tok in content:
+                    print(f"  [FAIL] Forbidden token {tok!r} in {rel_p}", file=sys.stderr)
+                    return 1
+            scanned_files += 1
     print(f"  [PASS] {scanned_files} source/doc files verified clean (0 path leaks, 0 Chinese BOM, 0 jet/turbine/FADEC/PCB specs, 100% civilian SAR scope)")
 
     # 4. Print Honest 6-Persona Production Readiness vs. Missing Bench/Field/Regulatory Gates
