@@ -1,0 +1,163 @@
+{
+  "all_5_regimes_closed": true,
+  "iteration_history": [
+    {
+      "alt_est_err_85m_m": 58.7,
+      "feasible": false,
+      "file": "physics_verify_v01.py",
+      "r_cell_eff_mohm": 63.32,
+      "t_cruise_usable_min": 11.54,
+      "t_hover_usable_min": 8.64,
+      "v_sense_err_v": 5.101,
+      "violated_count": 6,
+      "witness_outcomes": {
+        "F1_4S_CUTOFF_AND_PM02_DIVIDER": "FAILED_ASSERT",
+        "F2_MINUS25C_INSULATED_PTC_ENDURANCE": "FAILED_ASSERT",
+        "F3_85M_HYPSOMETRIC_BARO_DEM_VIO": "FAILED_ASSERT"
+      }
+    },
+    {
+      "alt_est_err_85m_m": 1.34,
+      "feasible": false,
+      "file": "physics_verify_v02.py",
+      "r_cell_eff_mohm": 45.04,
+      "t_cruise_usable_min": 13.68,
+      "t_hover_usable_min": 10.55,
+      "v_sense_err_v": 0.006,
+      "violated_count": 4,
+      "witness_outcomes": {
+        "F1_4S_CUTOFF_AND_PM02_DIVIDER": "PASSED",
+        "F2_MINUS25C_INSULATED_PTC_ENDURANCE": "FAILED_ASSERT",
+        "F3_85M_HYPSOMETRIC_BARO_DEM_VIO": "PASSED"
+      }
+    },
+    {
+      "alt_est_err_85m_m": 1.34,
+      "feasible": true,
+      "file": "physics_verify.py",
+      "r_cell_eff_mohm": 13.97,
+      "r_combat_km": 5.18,
+      "t_cell_ss_c": 18.9,
+      "t_cruise_usable_min": 24.19,
+      "t_hover_usable_min": 19.2,
+      "v_sense_err_v": 0.0,
+      "violated_count": 0,
+      "witness_outcomes": {
+        "F1_4S_CUTOFF_AND_PM02_DIVIDER": "PASSED",
+        "F2_MINUS25C_INSULATED_PTC_ENDURANCE": "PASSED",
+        "F3_85M_HYPSOMETRIC_BARO_DEM_VIO": "PASSED"
+      }
+    }
+  ],
+  "playbook_version": "7.0",
+  "project": "karhunkierros-sar-drone",
+  "verified_10x_100x_gain": {
+    "composite_fom_gain_multiplier": null,
+    "gains_by_constraint": {
+      "H_ALT_85M_ERR": {
+        "baseline_v01_nominal": 58.70139,
+        "gain_multiplier_nominal": 43.697,
+        "gain_multiplier_tail_99pct": 38.707,
+        "golden_v03_nominal": 1.343375,
+        "golden_v03_tail_bound_99pct": 1.516569,
+        "sense": "<=",
+        "unit": "m"
+      },
+      "H_ARM_VOLT_MARGIN": {
+        "baseline_v01_nominal": -6.952794,
+        "gain_multiplier_nominal": 0.655,
+        "gain_multiplier_tail_99pct": 0.544,
+        "golden_v03_nominal": 0.654686,
+        "golden_v03_tail_bound_99pct": 0.543571,
+        "sense": ">=",
+        "unit": "V"
+      },
+      "H_CELL_TEMP": {
+        "baseline_v01_nominal": 250.554959,
+        "gain_multiplier_nominal": 1.166,
+        "gain_multiplier_tail_99pct": 1.161,
+        "golden_v03_nominal": 292.047681,
+        "golden_v03_tail_bound_99pct": 290.822268,
+        "sense": ">=",
+        "unit": "K"
+      },
+      "H_CROSSWIND_ROLL_TRIM": {
+        "baseline_v01_nominal": 27.094173,
+        "gain_multiplier_nominal": 1.0,
+        "gain_multiplier_tail_99pct": 0.931,
+        "golden_v03_nominal": 27.094173,
+        "golden_v03_tail_bound_99pct": 29.087032,
+        "sense": "<=",
+        "unit": "%"
+      },
+      "H_CRUISE_ENDURANCE_M25C": {
+        "baseline_v01_nominal": 11.540601,
+        "gain_multiplier_nominal": 2.096,
+        "gain_multiplier_tail_99pct": 2.029,
+        "golden_v03_nominal": 24.185214,
+        "golden_v03_tail_bound_99pct": 23.416804,
+        "sense": ">=",
+        "unit": "min"
+      },
+      "H_DESCENT_CONTROL": {
+        "baseline_v01_nominal": 95.5,
+        "gain_multiplier_nominal": 1.0,
+        "gain_multiplier_tail_99pct": 1.0,
+        "golden_v03_nominal": 95.5,
+        "golden_v03_tail_bound_99pct": 95.5,
+        "sense": ">=",
+        "unit": "%"
+      },
+      "H_HOVER_ENDURANCE_M25C": {
+        "baseline_v01_nominal": 8.637761,
+        "gain_multiplier_nominal": 2.222,
+        "gain_multiplier_tail_99pct": 2.145,
+        "golden_v03_nominal": 19.196637,
+        "golden_v03_tail_bound_99pct": 18.524458,
+        "sense": ">=",
+        "unit": "min"
+      },
+      "H_HOVER_TW_EFF": {
+        "baseline_v01_nominal": 1.903664,
+        "gain_multiplier_nominal": 1.0,
+        "gain_multiplier_tail_99pct": 0.97,
+        "golden_v03_nominal": 1.903664,
+        "golden_v03_tail_bound_99pct": 1.845695,
+        "sense": ">=",
+        "unit": "-"
+      },
+      "H_PM02_VOLT_SENSE_ERR": {
+        "baseline_v01_nominal": 5.100544,
+        "gain_multiplier_nominal": 5100544.495,
+        "gain_multiplier_tail_99pct": 5100544.495,
+        "golden_v03_nominal": 0.0,
+        "golden_v03_tail_bound_99pct": 0.0,
+        "sense": "<=",
+        "unit": "V"
+      },
+      "H_STATIC_MARGIN": {
+        "baseline_v01_nominal": 11.25,
+        "gain_multiplier_nominal": 1.0,
+        "gain_multiplier_tail_99pct": 1.0,
+        "golden_v03_nominal": 11.25,
+        "golden_v03_tail_bound_99pct": 11.25,
+        "sense": ">=",
+        "unit": "%"
+      },
+      "H_TRANSITION_CLIMB_PS": {
+        "baseline_v01_nominal": 3.296476,
+        "gain_multiplier_nominal": 1.0,
+        "gain_multiplier_tail_99pct": 0.888,
+        "golden_v03_nominal": 3.296476,
+        "golden_v03_tail_bound_99pct": 2.928797,
+        "sense": ">=",
+        "unit": "m/s"
+      }
+    },
+    "max_nominal_gain_multiplier": 43.697,
+    "max_tail_99pct_gain_multiplier": 38.707,
+    "passed_10x_100x_gate": true,
+    "primary_gain_constraint": "H_ALT_85M_ERR",
+    "target_gain_multiplier": 10.0
+  }
+}

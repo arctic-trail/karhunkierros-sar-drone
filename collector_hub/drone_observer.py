@@ -3820,9 +3820,9 @@ def plan_autonomous_under_fog_ceiling_corridor(
     }
 
 
-def run_six_iteration_corpdev_aerospace_playbook_audit():
+def run_six_iteration_aerospace_playbook_audit():
     """
-    Executes the full 6-Iteration CorpDev Aerospace Playbook verification across the
+    Executes the full 6-Iteration Aerospace Playbook verification across the
     end-to-end Arctic SAR System-of-Systems (`pi-diode-trailcam` + `sky-diode-relay` +
     `karhunkierros-sar-drone` + `arctic-fast-sar-jet`), verifying that all 6 physical,
     optical, weather, and geodetic failure modes are closed with zero BOM changes and
@@ -3930,7 +3930,7 @@ def run_six_iteration_corpdev_aerospace_playbook_audit():
         and abs(gk_oulanka["mittakaavavirhe_ppm"]) <= 10.5
     )
     return {
-        "playbook_version": "CORPDEV_AEROSPACE_PLAYBOOK_6_ITERATION_V2",
+        "playbook_version": "AEROSPACE_PLAYBOOK_6_ITERATION_V2",
         "all_6_iterations_verified": all_passed,
         "bom_changes_required": 0,
         "zero_chinese_bom_compliant": True,

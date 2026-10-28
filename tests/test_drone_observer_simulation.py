@@ -2436,7 +2436,7 @@ class TestAerialObserverModule(unittest.TestCase):
         self.assertEqual(len(corridor["corridor_waypoints"]), 4)
         self.assertTrue(corridor["vortex_ring_state_prevented"])
 
-        playbook_audit = dobs.run_six_iteration_corpdev_aerospace_playbook_audit()
+        playbook_audit = dobs.run_six_iteration_aerospace_playbook_audit()
         self.assertTrue(playbook_audit["all_6_iterations_verified"])
         self.assertEqual(playbook_audit["bom_changes_required"], 0)
         self.assertTrue(playbook_audit["zero_chinese_bom_compliant"])

@@ -1,0 +1,14 @@
+{
+  "design_hash": "ece5a0ef17fdc8867fce910d13b19f4e9d171fa2b422e6a0d077ffc76efaeee4",
+  "extractor": "aerospace-ssot-4.0",
+  "files": {
+    "design_params.yaml": "2085749c6d6faab070e764890284951c346bf1ecc8053bd679ecf978b2d47dfe",
+    "interfaces.yaml": "62a545e6969ffc6bdb75819a7c272b085bd35fb6d9eb9508912677356f1f99bf",
+    "known_limitations_P0.yaml": "5256e664a8791e8812d633c6d1ec36b1beac9aa1040ca5d01ae669791cf08b9d",
+    "part_catalog.yaml": "44fb28feae9a07be4e6ea4b9dd118ea68d240e1dc558c5844829766e5f72d347",
+    "requirements.yaml": "c47072763dd6ecdc9327b3ba8fb6d6a3513fcb1e8270b1e7683f8f8ea4247b43"
+  },
+  "p0_hash": "75dfbc813226413286847a3f63569c5ed2ea3659c7ea80de6d055a518d1979a4",
+  "requirement_hash": "56a387dcf021863cfb5ab7e3a4a6367662b82b6d57afb7b83ef91a1c64dd12ca",
+  "source_sha256": "9cb5532a3bff8dcfac44f0aa2f744986fd70fa2eb219ed2c65c9ea05adb2ad23"
+}

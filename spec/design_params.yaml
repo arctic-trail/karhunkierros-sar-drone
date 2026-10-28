@@ -1,0 +1,777 @@
+{
+  "closure": {
+    "sizing": {
+      "damping": 0.5,
+      "mass_state": "m_tow_kg",
+      "max_iter": 120,
+      "state": {
+        "i_cruise_a": 19.5,
+        "m_tow_kg": 2.38,
+        "t_cell_k": 249.5,
+        "vi_cruise_m_s": 3.8
+      },
+      "tol": 1e-09
+    }
+  },
+  "param": {
+    "a_bay_surface_m2": {
+      "bounds": [
+        0.035,
+        0.055
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Dorsal 4S2P battery bay external surface area",
+      "unit": "m^2",
+      "value": 0.044
+    },
+    "batt_crt_volt_v": {
+      "bounds": [
+        11.5,
+        18.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Iter 1 flaw: 6S 17.4V critical cutoff left in 4S parameter file",
+      "unit": "V",
+      "value": 17.4
+    },
+    "batt_low_volt_v": {
+      "bounds": [
+        12.0,
+        19.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Iter 1 flaw: 6S 18.0V low voltage warning on 4S pack",
+      "unit": "V",
+      "value": 18.0
+    },
+    "beta_arrhenius_q_k": {
+      "bounds": [
+        700.0,
+        1200.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Low-temperature usable capacity retention Arrhenius slope",
+      "unit": "K",
+      "value": 856.2
+    },
+    "beta_arrhenius_r_k": {
+      "bounds": [
+        2400.0,
+        2900.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Arrhenius internal resistance activation temperature",
+      "unit": "K",
+      "value": 2665.0
+    },
+    "c_th_pack_j_k": {
+      "bounds": [
+        500.0,
+        620.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Thermal heat capacity of 8x 70g 21700 cells",
+      "unit": "J/K",
+      "value": 560.0
+    },
+    "cd_area_front_m2": {
+      "bounds": [
+        0.035,
+        0.065
+      ],
+      "choices": null,
+      "sigma": 0.0015,
+      "source": "X500 V2 + 174x114x104mm dorsal bay + ventral pod flat-plate drag area",
+      "unit": "m^2",
+      "value": 0.048
+    },
+    "cd_area_lat_m2": {
+      "bounds": [
+        0.04,
+        0.07
+      ],
+      "choices": null,
+      "sigma": 0.0015,
+      "source": "X500 V2 lateral crosswind projected drag area",
+      "unit": "m^2",
+      "value": 0.054
+    },
+    "cold_cap_frac": {
+      "bounds": [
+        0.85,
+        0.95
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Reference 20 C high-rate discharge capacity fraction",
+      "unit": "-",
+      "value": 0.935
+    },
+    "d_prop_m": {
+      "bounds": [
+        0.24,
+        0.27
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "1045 (10x4.5 inch) carbon-nylon propeller diameter",
+      "unit": "m",
+      "value": 0.254
+    },
+    "dt_cal_err_k": {
+      "bounds": [
+        1.0,
+        2.8
+      ],
+      "choices": null,
+      "sigma": 0.18,
+      "source": "Residual air-column temperature calibration error after BARO_GND_TEMP = -25 C",
+      "unit": "K",
+      "value": 1.8
+    },
+    "dt_ptc_prop_k": {
+      "bounds": [
+        10.0,
+        18.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Thermostat smooth proportional control band width",
+      "unit": "K",
+      "value": 12.0
+    },
+    "e_spec_wh_kg": {
+      "bounds": [
+        180.0,
+        245.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Molicel INR-21700-P45B gravimetric energy density",
+      "unit": "Wh/kg",
+      "value": 214.0
+    },
+    "esc_heat_recovery_frac": {
+      "bounds": [
+        0.0,
+        0.5
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Zero ESC waste-heat recovery (ESCs are mounted on external carbon arms)",
+      "unit": "-",
+      "value": 0.0
+    },
+    "eta_motor": {
+      "bounds": [
+        0.78,
+        0.9
+      ],
+      "choices": null,
+      "sigma": 0.005,
+      "source": "2216 KV920 + 20A Bluejay ESC combined efficiency",
+      "unit": "-",
+      "value": 0.858
+    },
+    "f_max_per_motor_n": {
+      "bounds": [
+        11.0,
+        13.2
+      ],
+      "choices": null,
+      "sigma": 0.14,
+      "source": "Holybro 2216 KV920 thrust on 4S with 1045 prop and MOT_BAT_VOLT_MAX compensation",
+      "unit": "N",
+      "value": 12.1
+    },
+    "f_reserve_soc": {
+      "bounds": [
+        0.15,
+        0.3
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Mandatory 20% minimum SAR reserve SOC",
+      "unit": "-",
+      "value": 0.2
+    },
+    "fom_hover": {
+      "bounds": [
+        0.6,
+        0.8
+      ],
+      "choices": null,
+      "sigma": 0.006,
+      "source": "UIUC 10x4.5 rotor hover Figure of Merit",
+      "unit": "-",
+      "value": 0.715
+    },
+    "g_bridge_w_k": {
+      "bounds": [
+        0.08,
+        25.0
+      ],
+      "choices": null,
+      "sigma": 0.006,
+      "source": "Iter 1 flaw: bare open-frame rotor downwash windchill conductance",
+      "unit": "W/K",
+      "value": 18.0
+    },
+    "h_conv_bay_w_m2k": {
+      "bounds": [
+        20.0,
+        40.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Forced-convection heat transfer coefficient in rotor slipstream",
+      "unit": "W/(m^2 K)",
+      "value": 28.0
+    },
+    "h_lidar_max_m": {
+      "bounds": [
+        35.0,
+        40.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Benewake TF02-Pro maximum valid rangefinder ceiling (RNGFND1_TYPE = 19)",
+      "unit": "m",
+      "value": 40.0
+    },
+    "h_search_agl_m": {
+      "bounds": [
+        60.0,
+        105.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Above-canopy wide-area thermal search altitude AGL",
+      "unit": "m",
+      "value": 85.0
+    },
+    "hover_blockage_frac": {
+      "bounds": [
+        0.05,
+        0.12
+      ],
+      "choices": null,
+      "sigma": 0.003,
+      "source": "Center plate + carbon boom + sensor pod planform blockage fraction",
+      "unit": "-",
+      "value": 0.082
+    },
+    "hypsometric_baro_dem_enabled": {
+      "bounds": null,
+      "choices": [
+        0.0,
+        1.0
+      ],
+      "sigma": null,
+      "source": "Iter 1 flaw: 0 = uncompensated ISA baro + 40m LiDAR clamp",
+      "unit": "-",
+      "value": 0.0
+    },
+    "k_epp_w_mk": {
+      "bounds": [
+        0.03,
+        0.045
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Closed-cell EPP foam thermal conductivity",
+      "unit": "W/(m K)",
+      "value": 0.035
+    },
+    "k_ind_cruise": {
+      "bounds": [
+        1.05,
+        1.3
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Glauert oblique inflow induced power factor",
+      "unit": "-",
+      "value": 1.15
+    },
+    "k_inflow_roll_n_per_mps": {
+      "bounds": [
+        0.15,
+        0.3
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Translational advancing/retreating blade inflow roll moment coupling",
+      "unit": "N/(m/s)",
+      "value": 0.22
+    },
+    "m_p01_kg": {
+      "bounds": [
+        0.72,
+        0.79
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "P01 Holybro X500 V2 carbon frame + 4x 2216 KV920 + 4x 20A ESCs + 1045 props + 270mm skids",
+      "unit": "kg",
+      "value": 0.755
+    },
+    "m_p02_kg": {
+      "bounds": [
+        0.06,
+        0.075
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "P02 Holybro Pixhawk 6C Mini + PM02 V3 power module",
+      "unit": "kg",
+      "value": 0.068
+    },
+    "m_p03_kg": {
+      "bounds": [
+        0.038,
+        0.048
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "P03 Holybro M10 GNSS + IST8310 compass on rear-port mast (-68, +64 mm)",
+      "unit": "kg",
+      "value": 0.042
+    },
+    "m_p04_kg": {
+      "bounds": [
+        0.75,
+        0.82
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "P04 8x Molicel P45B (4S2P 9.0Ah) + 100A BMS + 60A fuse + 174x114x104mm EPP bay + 10W PTC",
+      "unit": "kg",
+      "value": 0.785
+    },
+    "m_p05_kg": {
+      "bounds": [
+        0.075,
+        0.095
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "P05 Benewake TF02-Pro LiDAR (69x41.5x26mm nadir) + Bosch BMP390 baro",
+      "unit": "kg",
+      "value": 0.085
+    },
+    "m_p06_kg": {
+      "bounds": [
+        0.495,
+        0.555
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "P06 RPi 5 8GB + Topdon TC001 LWIR (-45 deg) + IMX296 nadir VIO + SX1262 LoRa + Matek UBEC",
+      "unit": "kg",
+      "value": 0.525
+    },
+    "m_p07_kg": {
+      "bounds": [
+        0.055,
+        0.075
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "P07 RadioMaster Bandit Micro 868MHz ELRS C2 receiver + Holybro EU Direct Remote ID",
+      "unit": "kg",
+      "value": 0.065
+    },
+    "m_p08_kg": {
+      "bounds": [
+        0.045,
+        0.065
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "P08 12 AWG silicone foam-labyrinth harness + PEEK thermal isolators + M3 bobbins + straps",
+      "unit": "kg",
+      "value": 0.055
+    },
+    "mu_advance_coeff": {
+      "bounds": [
+        0.1,
+        0.2
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Blade profile drag advance-ratio multiplier coefficient",
+      "unit": "-",
+      "value": 0.14
+    },
+    "n_parallel_strings": {
+      "bounds": [
+        2.0,
+        2.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "2P parallel cell string count",
+      "unit": "-",
+      "value": 2.0
+    },
+    "n_rotors": {
+      "bounds": [
+        4.0,
+        4.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Holybro X500 V2 quadrotor layout",
+      "unit": "-",
+      "value": 4.0
+    },
+    "n_series_cells": {
+      "bounds": [
+        4.0,
+        4.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "4S lithium-ion series cell count",
+      "unit": "-",
+      "value": 4.0
+    },
+    "p_avionics_w": {
+      "bounds": [
+        20.0,
+        30.0
+      ],
+      "choices": null,
+      "sigma": 0.4,
+      "source": "Pixhawk 6C Mini + RPi 5 + TC001 + IMX296 + TF02-Pro + SX1262 + ELRS + Remote ID",
+      "unit": "W",
+      "value": 24.5
+    },
+    "p_profile_hover_w": {
+      "bounds": [
+        24.0,
+        42.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "4-rotor blade profile drag power in hover",
+      "unit": "W",
+      "value": 29.93
+    },
+    "p_ptc_heater_w": {
+      "bounds": [
+        0.0,
+        15.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Iter 1 flaw: 0 W active PTC battery heating",
+      "unit": "W",
+      "value": 0.0
+    },
+    "pm02_volt_mult_cfg": {
+      "bounds": [
+        10.0,
+        18.5
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Iter 1 flaw: misscaled BATT_VOLT_MULT parameter",
+      "unit": "-",
+      "value": 12.02
+    },
+    "pm02_volt_mult_hw": {
+      "bounds": [
+        18.0,
+        18.3
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Holybro PM02 V3 fixed 18.182:1 analog resistor divider",
+      "unit": "-",
+      "value": 18.182
+    },
+    "q_pack_ah": {
+      "bounds": [
+        7.5,
+        9.5
+      ],
+      "choices": null,
+      "sigma": 0.08,
+      "source": "Iter 1 baseline 8.0 Ah 4S2P pack capacity",
+      "unit": "Ah",
+      "value": 8.0
+    },
+    "r_cell_20c_ohm": {
+      "bounds": [
+        0.011,
+        0.016
+      ],
+      "choices": null,
+      "sigma": 0.0004,
+      "source": "Molicel P45B DC internal resistance at T_ref = 293.15 K (13.5 mOhm)",
+      "unit": "Ohm",
+      "value": 0.0135
+    },
+    "route_eff_factor": {
+      "bounds": [
+        0.75,
+        0.95
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Net route efficiency accounting for launch, climb, turns, and landing",
+      "unit": "-",
+      "value": 0.85
+    },
+    "sigma_dem_m": {
+      "bounds": [
+        0.6,
+        1.4
+      ],
+      "choices": null,
+      "sigma": 0.08,
+      "source": "NLS Finland MML 2m LiDAR DEM + static pressure port reference vertical RMS error",
+      "unit": "m",
+      "value": 0.95
+    },
+    "sigma_vio_tilt_rad": {
+      "bounds": [
+        0.005,
+        0.013
+      ],
+      "choices": null,
+      "sigma": 0.0008,
+      "source": "IMX296/TC001 ExtNav VIO slant-range attitude/scale projection error",
+      "unit": "rad",
+      "value": 0.0085
+    },
+    "synchro_max_rpm_trim_pct": {
+      "bounds": [
+        2.0,
+        6.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Maximum outer-loop attitude/phase RPM trim authority reserve",
+      "unit": "%",
+      "value": 4.5
+    },
+    "t_amb_k": {
+      "bounds": [
+        242.0,
+        258.0
+      ],
+      "choices": null,
+      "sigma": 0.8,
+      "source": "-25.0 C Kaamos polar night ambient temperature",
+      "unit": "K",
+      "value": 248.15
+    },
+    "t_cell_init_k": {
+      "bounds": [
+        242.0,
+        298.15
+      ],
+      "choices": null,
+      "sigma": 0.8,
+      "source": "Iter 1 flaw: cold-soaked -25 C launch without warm-case pre-heating",
+      "unit": "K",
+      "value": 248.15
+    },
+    "t_cell_max_safe_k": {
+      "bounds": [
+        315.0,
+        323.15
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "45 C upper safe cell operating temperature limit",
+      "unit": "K",
+      "value": 318.15
+    },
+    "t_epp_insul_m": {
+      "bounds": [
+        0.0002,
+        0.02
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Iter 1 flaw: uninsulated bare battery strap on open carbon deck",
+      "unit": "m",
+      "value": 0.0005
+    },
+    "t_ptc_setpoint_k": {
+      "bounds": [
+        277.15,
+        286.15
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "DS18B20 -> RPi GPIO4/GPIO17 -> IRLZ44N MOSFET thermostat midpoint setpoint (+8.0 C)",
+      "unit": "K",
+      "value": 281.15
+    },
+    "t_ref_k": {
+      "bounds": [
+        293.15,
+        293.15
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "20 C electrochemical reference temperature",
+      "unit": "K",
+      "value": 293.15
+    },
+    "t_sortie_eval_s": {
+      "bounds": [
+        900.0,
+        1500.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Reference 20-minute sortie thermal evaluation horizon",
+      "unit": "s",
+      "value": 1200.0
+    },
+    "v_cell_oc_eod_v": {
+      "bounds": [
+        3.45,
+        3.6
+      ],
+      "choices": null,
+      "sigma": 0.01,
+      "source": "Molicel P45B 20% SOC end-of-discharge OCV knee (14.08V pack)",
+      "unit": "V",
+      "value": 3.52
+    },
+    "v_cell_oc_mean_v": {
+      "bounds": [
+        3.65,
+        3.85
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Molicel P45B mid-discharge open-circuit cell voltage (15.05V pack)",
+      "unit": "V",
+      "value": 3.7625
+    },
+    "v_climb_trans_m_s": {
+      "bounds": [
+        5.0,
+        8.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Forward transition climb airspeed",
+      "unit": "m/s",
+      "value": 6.0
+    },
+    "v_crosswind_m_s": {
+      "bounds": [
+        8.0,
+        12.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Design beam crosswind speed on northern fells",
+      "unit": "m/s",
+      "value": 10.0
+    },
+    "v_cruise_m_s": {
+      "bounds": [
+        8.0,
+        12.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "WPNAV_SPEED = 1000 cm/s (10 m/s) SAR search cruise airspeed",
+      "unit": "m/s",
+      "value": 10.0
+    },
+    "v_descent_horiz_m_s": {
+      "bounds": [
+        3.0,
+        6.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Oblique forward speed during descent to shed vortex rings",
+      "unit": "m/s",
+      "value": 4.0
+    },
+    "v_descent_m_s": {
+      "bounds": [
+        1.0,
+        2.5
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "WPNAV_SPEED_DN = 150 cm/s VRS-safe vertical descent rate (Vz/vi0 = 0.21)",
+      "unit": "m/s",
+      "value": 1.5
+    },
+    "v_headwind_cruise_m_s": {
+      "bounds": [
+        2.0,
+        6.0
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Steady canyon wind along outbound/inbound search track",
+      "unit": "m/s",
+      "value": 4.0
+    },
+    "wheelbase_m": {
+      "bounds": [
+        0.48,
+        0.52
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Holybro X500 V2 diagonal motor-to-motor wheelbase",
+      "unit": "m",
+      "value": 0.5
+    },
+    "x_cg_m": {
+      "bounds": [
+        -0.01,
+        0.01
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Balanced quadcopter longitudinal CG datum at geometric center",
+      "unit": "m",
+      "value": 0.0
+    },
+    "x_np_m": {
+      "bounds": [
+        0.045,
+        0.07
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Aerodynamic neutral point from rotor dihedral & aft battery fairing",
+      "unit": "m",
+      "value": 0.05625
+    },
+    "z_cp_lat_m": {
+      "bounds": [
+        0.025,
+        0.06
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "Lateral aerodynamic center of pressure vertical offset above CG",
+      "unit": "m",
+      "value": 0.042
+    }
+  }
+}

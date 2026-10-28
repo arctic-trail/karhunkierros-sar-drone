@@ -1,0 +1,25 @@
+{
+  "limitation": {
+    "LIM_ICING_FREEZING_DRIZZLE": {
+      "affects": [
+        "H_HOVER_TW_EFF",
+        "H_TRANSITION_CLIMB_PS"
+      ],
+      "text": "Uncoated 1045 carbon-nylon propellers lack active electro-thermal blade de-icing; supercooled freezing drizzle requires pre-flight hydrophobic treatment."
+    },
+    "LIM_WARM_LAUNCH_SOP": {
+      "affects": [
+        "H_CELL_TEMP",
+        "H_ARM_VOLT_MARGIN"
+      ],
+      "text": "Cold-soaking an unpowered pack to -25 C raises R_cell to ~68 mOhm; SOP stores packs at +20 C in the heated patrol vehicle case prior to launch and enforces BATT_ARM_VOLT >= 14.8 V."
+    },
+    "LIM_ZERO_FLIGHT_HOURS": {
+      "affects": [
+        "H_HOVER_ENDURANCE_M25C",
+        "H_CRUISE_ENDURANCE_M25C"
+      ],
+      "text": "0.0 Flight Hours \u2014 13/17 COTS sub-items on physical bench; outdoor -25 C flight endurance and Traficom SORA approval pending Gate 1..4 trials."
+    }
+  }
+}

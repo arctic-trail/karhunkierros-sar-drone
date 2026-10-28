@@ -1,0 +1,54 @@
+{
+  "pin": {
+    "+14.8V_VBAT_4S2P": {
+      "bus": "ANALOG_PWR_18V182_DIV",
+      "connector": "PM02V3_XT60_PWR1",
+      "pin_no": 1
+    },
+    "+5.1V_UBEC_MATEK": {
+      "bus": "MATEK_BEC12S_PRO_5V_5A",
+      "connector": "COMPANION_PWR_JST6P",
+      "pin_no": 1
+    },
+    "GPIO17_PTC_MOSFET_GATE": {
+      "bus": "PWM_IRLZ44N_10W_HEATER",
+      "connector": "RPI5_J8_HEADER_40P",
+      "pin_no": 11
+    },
+    "GPIO4_DS18B20_1WIRE": {
+      "bus": "1WIRE_THERMOSTAT_SENSE",
+      "connector": "RPI5_J8_HEADER_40P",
+      "pin_no": 7
+    },
+    "I2C1_BMP390_SCL": {
+      "bus": "I2C_400KHZ_BARO",
+      "connector": "PIXHAWK6C_I2C_JST4P",
+      "pin_no": 2
+    },
+    "PM02V3_ISENSE_ADC": {
+      "bus": "ADC_CURR_36A36_PER_V",
+      "connector": "PIXHAWK6C_POWER1_6P",
+      "pin_no": 3
+    },
+    "PM02V3_VSENSE_ADC": {
+      "bus": "ADC_VOLT_18V182_MULT",
+      "connector": "PIXHAWK6C_POWER1_6P",
+      "pin_no": 4
+    },
+    "RCIN_ELRS_868_CRSF": {
+      "bus": "CRSF_420000_C2_LINK",
+      "connector": "PIXHAWK6C_RC_IN_SBUS",
+      "pin_no": 1
+    },
+    "TELEM1_RPI5_MAVLINK_TX": {
+      "bus": "UART_921600_EXTNAV_MAV2",
+      "connector": "PIXHAWK6C_TELEM1_SERIAL1",
+      "pin_no": 2
+    },
+    "UART4_TF02PRO_RX": {
+      "bus": "UART_115200_RNGFND1_TYPE19",
+      "connector": "PIXHAWK6C_GPS2_SERIAL4",
+      "pin_no": 3
+    }
+  }
+}

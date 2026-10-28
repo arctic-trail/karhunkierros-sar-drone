@@ -1,0 +1,51 @@
+{
+  "project": "karhunkierros-sar-drone",
+  "prompt_bytes": 15827,
+  "cad_metrics": {
+    "cad_dir_exists": true,
+    "step_files": [
+      {
+        "file": "opaslyhty_x500v2_sar_assembly.step",
+        "lines": 13157,
+        "manifold_solids": 53,
+        "closed_shells": 53,
+        "advanced_faces": 219,
+        "planar_surfaces": 154,
+        "cylindrical_surfaces": 65,
+        "bspline_surfaces": 0,
+        "non_planar_surfaces_total": 65,
+        "empty_edge_loops": 0,
+        "pairwise_brep_overlaps": 0,
+        "is_cuboid_box_or_spoof_proxy": false
+      }
+    ],
+    "stl_files": [
+      {
+        "file": "opaslyhty_x500v2_sar_assembly.stl",
+        "vertices": 5960,
+        "triangles": 11848,
+        "extents_mm": [
+          607.55,
+          607.55,
+          325.0
+        ],
+        "volume_mm3": 2612480.0,
+        "bbox_volume_mm3": 119963500.0,
+        "volumetric_fill_ratio": 0.0218,
+        "is_low_poly_primitive_proxy": false
+      }
+    ],
+    "dxf_files": [
+      {
+        "file": "opaslyhty_x500v2_sar_cnc_plates.dxf",
+        "circles": 40,
+        "lwpolylines": 10,
+        "lines": 0
+      }
+    ]
+  },
+  "pcb_directory_files": [
+    "Allied_EU_COTS_BOM.csv",
+    "cots_wiring_harness.json"
+  ]
+}

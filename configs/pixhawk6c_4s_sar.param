@@ -1,0 +1,92 @@
+# ArduCopter 4.5 Parameter File — Opaslyhty X500 V2 4S2P Arctic SAR Quadcopter (Golden Iter 3)
+# Airframe: Holybro X500 V2 (500mm 3K Carbon Quad-X, 2216 920KV, 1045 Carbon-Nylon Props, 270mm Skids)
+# Flight Controller: Holybro Pixhawk 6C Mini (STM32H743 + Dual Heated IMU ICM-42688-P/BMI088)
+# Power Module: Holybro PM02 V3 (18.182 V/V Divider on PWR1 Pin 4, 36.36 A/V Shunt on PWR1 Pin 3)
+# Battery: 4S2P Molicel INR21700-P45B (14.4V nominal / 16.8V max, 9000 mAh) in 174x114x104mm (15mm EPP) + 10W PTC Bay
+# Verified MTOW: 2.380 kg (8 COTS Parts P01..P08) | Unit BOM Cost: 1329.00 EUR
+# Verified -25 C Hover Endurance: 19.20 min (20% reserve, 99% LCB tail: 18.52 min)
+# Verified -25 C Search Cruise Endurance (10.0 m/s): 24.19 min (20% reserve, 99% LCB tail: 23.42 min)
+# Verified -25 C Wind-Aware Combat Radius (4.0 m/s wind, 0.85 route eff): 5.18 km (10.36 km round-trip track)
+
+FRAME_CLASS,1
+FRAME_TYPE,1
+
+# --- 4S2P Molicel P45B Battery & Holybro PM02 V3 Calibration (Resolves Iter-1 6S 17.4V Failsafe Bug) ---
+# Uses Pixhawk 6C Mini native hwdef ADC pin mapping on PWR1 (no BATT_VOLT_PIN/BATT_CURR_PIN override)
+BATT_MONITOR,4
+BATT_CAPACITY,9000
+BATT_VOLT_MULT,18.182
+BATT_AMP_PERVLT,36.36
+BATT_ARM_VOLT,14.8
+BATT_LOW_VOLT,13.4
+BATT_CRT_VOLT,12.8
+BATT_FS_VOLTSRC,1
+BATT_LOW_MAH,2700
+BATT_CRT_MAH,1800
+BATT_FS_LOW_ACT,2
+BATT_FS_CRT_ACT,1
+BATT_LOW_TIMER,10
+
+# --- Propulsion, Thrust Linearization & Harmonic Notch (2216 920KV + 1045 Props on 4S) ---
+MOT_PWM_TYPE,4
+MOT_BAT_VOLT_MAX,16.8
+MOT_BAT_VOLT_MIN,12.8
+MOT_HOVER_LEARN,2
+MOT_THST_EXPO,0.65
+MOT_THST_HOVER,0.34
+MOT_SPIN_MIN,0.12
+MOT_SPIN_ARM,0.08
+INS_HNTCH_ENABLE,1
+INS_HNTCH_MODE,1
+INS_HNTCH_REF,0.34
+INS_HNTCH_FREQ,88.0
+INS_HNTCH_BW,44.0
+INS_GYRO_FILTER,40
+
+# --- Multi-Modal Altitude Fusion: Benewake TF02-Pro (RNGFND1_TYPE 19 on SERIAL4) + Baro-DEM + ExtNav VIO ---
+SERIAL4_PROTOCOL,9
+SERIAL4_BAUD,115
+RNGFND1_TYPE,19
+RNGFND1_ORIENT,25
+RNGFND1_MIN_CM,10
+RNGFND1_MAX_CM,3500
+RNGFND1_GNDCLEAR,16
+BARO_GND_TEMP,-25
+TERRAIN_ENABLE,1
+EK3_SRC1_POSXY,3
+EK3_SRC1_VELXY,3
+EK3_SRC1_POSZ,1
+EK3_SRC1_VELZ,3
+EK3_SRC1_YAW,1
+EK3_SRC2_POSXY,6
+EK3_SRC2_VELXY,6
+EK3_SRC2_POSZ,6
+EK3_SRC2_VELZ,6
+EK3_SRC2_YAW,1
+EK3_RNG_USE_HGT,70
+EK3_RNG_M_NSE,0.25
+EK3_BARO_M_NSE,1.20
+VISO_TYPE,1
+
+# --- Navigation, Crosswind Trim & VRS-Safe Descent Envelope (Regimes 1..5) ---
+WPNAV_SPEED,1000
+WPNAV_SPEED_UP,450
+WPNAV_SPEED_DN,150
+WPNAV_ACCEL,250
+WPNAV_ACCEL_Z,150
+PSC_VELZ_P,5.0
+PSC_ACCZ_P,0.50
+PSC_ACCZ_I,1.00
+ATC_ANG_RLL_P,4.5
+ATC_ANG_PIT_P,4.5
+ATC_ANG_YAW_P,3.5
+ANGLE_MAX,3500
+
+# --- Companion Computer (Raspberry Pi 5 MAVLink2 on TELEM1/SERIAL1) & Failsafe Safety ---
+SERIAL1_PROTOCOL,2
+SERIAL1_BAUD,921
+RTL_ALT,8500
+RTL_SPEED,1000
+RTL_CLIMB_MIN,1500
+FS_THR_ENABLE,1
+FS_GCS_ENABLE,1

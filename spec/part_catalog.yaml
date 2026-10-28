@@ -1,0 +1,84 @@
+{
+  "part": {
+    "P01_Holybro_X500_V2_Frame_Motors": {
+      "allied": true,
+      "custom_pcb": false,
+      "datasheet": "Holybro-X500-V2-ARF-Kit-2216-KV920-1045.pdf",
+      "fit": 25.0,
+      "mass_kg": 0.755,
+      "mfr": "Holybro",
+      "origin": "US_HK_Allied",
+      "unit_cost_eur": 290.0
+    },
+    "P02_Holybro_Pixhawk_6C_Mini_PM02V3": {
+      "allied": true,
+      "custom_pcb": false,
+      "datasheet": "Holybro-Pixhawk-6C-Mini-STM32H743-PM02-V3.pdf",
+      "fit": 15.0,
+      "mass_kg": 0.068,
+      "mfr": "Holybro_STMicro",
+      "origin": "US_EU",
+      "unit_cost_eur": 225.0
+    },
+    "P03_Holybro_M10_GPS_Compass": {
+      "allied": true,
+      "custom_pcb": false,
+      "datasheet": "u-blox-MAX-M10S-IST8310-GNSS.pdf",
+      "fit": 10.0,
+      "mass_kg": 0.042,
+      "mfr": "Holybro_u_blox",
+      "origin": "CH_EU",
+      "unit_cost_eur": 59.0
+    },
+    "P04_Molicel_P45B_4S2P_9000mAh_PTC": {
+      "allied": true,
+      "custom_pcb": false,
+      "datasheet": "Molicel-INR-21700-P45B-4500mAh-45A-Datasheet.pdf",
+      "fit": 30.0,
+      "mass_kg": 0.785,
+      "mfr": "E_One_Moli_Energy",
+      "origin": "TW_CA",
+      "unit_cost_eur": 129.0
+    },
+    "P05_Benewake_TF02_Pro_BMP390_Mount": {
+      "allied": true,
+      "custom_pcb": false,
+      "datasheet": "Bosch-BMP390-TF02-Pro-RNGFND1-Type19.pdf",
+      "fit": 25.0,
+      "mass_kg": 0.085,
+      "mfr": "Benewake_Bosch",
+      "origin": "DE_EU",
+      "unit_cost_eur": 145.0
+    },
+    "P06_RPi5_Topdon_TC001_LWIR_Pod": {
+      "allied": true,
+      "custom_pcb": false,
+      "datasheet": "RaspberryPi5-IMX296-TC001-SX1262-BEC12S-PRO.pdf",
+      "fit": 45.0,
+      "mass_kg": 0.525,
+      "mfr": "Sony_RaspberryPi_UK",
+      "origin": "UK_US",
+      "unit_cost_eur": 415.0
+    },
+    "P07_ELRS_868MHz_C2_And_RemoteID": {
+      "allied": true,
+      "custom_pcb": false,
+      "datasheet": "RadioMaster-Bandit-868MHz-ELRS-Holybro-RemoteID.pdf",
+      "fit": 10.0,
+      "mass_kg": 0.065,
+      "mfr": "RadioMaster_Holybro",
+      "origin": "EU_Allied",
+      "unit_cost_eur": 48.0
+    },
+    "P08_Silicone_Harness_PEEK_Fasteners": {
+      "allied": true,
+      "custom_pcb": false,
+      "datasheet": "12AWG-Silicone-PEEK-Isolators-M3-Bobbins.pdf",
+      "fit": 5.0,
+      "mass_kg": 0.055,
+      "mfr": "Wurth_Boker_DE",
+      "origin": "DE_EU",
+      "unit_cost_eur": 18.0
+    }
+  }
+}

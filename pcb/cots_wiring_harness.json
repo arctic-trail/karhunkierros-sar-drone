@@ -1,0 +1,136 @@
+{
+  "project_id": "Opaslyhty_Karhunkierros_SAR_Quadcopter",
+  "cots_only": true,
+  "custom_pcb_count": 0,
+  "regulators": [
+    {
+      "id": "REG_5V_UBEC",
+      "device": "Matek BEC12S-PRO (TI TPS54560 5.1V 5A Step-Down UBEC Module)",
+      "vin_range_v": [9.0, 26.0],
+      "vout_nominal_v": 5.1,
+      "imax_continuous_a": 5.0,
+      "loads": [
+        "Raspberry Pi 5 (8GB) + Active Cooler",
+        "Topdon TC001 256x192 LWIR Thermal Camera (USB-C)",
+        "RPi Global Shutter Camera (IMX296 CSI-2 Nadir VIO)",
+        "Waveshare SX1262 868MHz LoRa HAT"
+      ],
+      "peak_load_a": 3.30,
+      "margin_pct": 34.0
+    },
+    {
+      "id": "REG_PIXHAWK_SENSOR_BUS",
+      "device": "Holybro PM02 V3 5.2V/3A Brick -> Pixhawk 6C Mini Internal FMU 5.0V & 3.3V Sensor Rails",
+      "vin_range_v": [4.9, 5.5],
+      "vout_nominal_v": 5.0,
+      "imax_continuous_a": 2.0,
+      "loads": [
+        "Holybro M10 GNSS + IST8310 Compass (GPS1 port)",
+        "Benewake TF02-Pro 40m LiDAR (GPS2/SERIAL4 port)",
+        "Bosch BMP390 Digital Barometer (I2C1 port)",
+        "RadioMaster Bandit Micro 868MHz ELRS C2 Receiver (RC IN port)",
+        "Holybro EU Direct Remote ID Module (CAN1 port)"
+      ],
+      "peak_load_a": 0.42,
+      "margin_pct": 79.0
+    }
+  ],
+  "harnesses": [
+    {
+      "harness_id": "H01_MAIN_BATTERY_BMS_FUSE_XT60",
+      "connector_a": "Molicel P45B 4S2P Pack + 100A 4S BMS + 60A MIDI Fuse + JST-XH 5P Balance Lead",
+      "connector_b": "Holybro PM02 V3 Power Module XT60PW-M (via 65mm EPP Foam Labyrinth)",
+      "wire_gauge_awg": 12,
+      "insulation": "Silicone 200C (-60C rated)",
+      "signals": [
+        {"pin": 1, "name": "VBAT_POS_4S_FUSED_60A", "wire_color": "Red", "voltage_v": 14.8},
+        {"pin": 2, "name": "VBAT_GND", "wire_color": "Black", "voltage_v": 0.0}
+      ]
+    },
+    {
+      "harness_id": "H02_PM02V3_TO_PIXHAWK6C_PWR1",
+      "connector_a": "PM02 V3 6-Pin Molex Clik-Mate",
+      "connector_b": "Pixhawk 6C Mini PWR1 (6-Pin JST-GH)",
+      "wire_gauge_awg": 26,
+      "signals": [
+        {"pin": 1, "name": "VDD_5V_BRICK", "wire_color": "Red"},
+        {"pin": 2, "name": "VDD_5V_BRICK", "wire_color": "Red"},
+        {"pin": 3, "name": "CURRENT_ADC_36A36_PER_V", "wire_color": "Yellow"},
+        {"pin": 4, "name": "VOLTAGE_ADC_18V182_PER_V", "wire_color": "Blue"},
+        {"pin": 5, "name": "GND", "wire_color": "Black"},
+        {"pin": 6, "name": "GND", "wire_color": "Black"}
+      ]
+    },
+    {
+      "harness_id": "H03_PIXHAWK_TELEM1_TO_RPI5_UART",
+      "connector_a": "Pixhawk 6C Mini TELEM1 / SERIAL1 (6-Pin JST-GH)",
+      "connector_b": "Raspberry Pi 5 J8 Header (Pins 6, 8, 10)",
+      "wire_gauge_awg": 28,
+      "empty_pin_discipline": "All unpopulated JST-GH and GPIO header pins are rendered in neutral Slate-Grey (#64748B); active wire colors are strictly reserved for populated conductors.",
+      "signals": [
+        {"pin": 1, "name": "VCC_5V_DO_NOT_BACKFEED", "wire_color": "Slate-Grey (LEAVE EMPTY / UNCONNECTED)"},
+        {"pin": 2, "name": "TELEM1_TX_TO_RPI_GPIO15_RXD", "wire_color": "Green"},
+        {"pin": 3, "name": "TELEM1_RX_FROM_RPI_GPIO14_TXD", "wire_color": "Orange"},
+        {"pin": 4, "name": "TELEM1_CTS_UNUSED", "wire_color": "Slate-Grey (LEAVE EMPTY)"},
+        {"pin": 5, "name": "TELEM1_RTS_UNUSED", "wire_color": "Slate-Grey (LEAVE EMPTY)"},
+        {"pin": 6, "name": "GND_COMMON", "wire_color": "Black"}
+      ]
+    },
+    {
+      "harness_id": "H04_PIXHAWK_GPS1_TO_M10_GNSS",
+      "connector_a": "Pixhawk 6C Mini GPS1 (10-Pin JST-GH)",
+      "connector_b": "Holybro M10 GPS + IST8310 Compass on Rear-Port Mast (-68, +64 mm)",
+      "wire_gauge_awg": 28,
+      "signals": [
+        {"pin": 1, "name": "VCC_5V", "wire_color": "Red"},
+        {"pin": 2, "name": "GPS_TX", "wire_color": "Green"},
+        {"pin": 3, "name": "GPS_RX", "wire_color": "Orange"},
+        {"pin": 4, "name": "I2C_SCL_IST8310", "wire_color": "Yellow"},
+        {"pin": 5, "name": "I2C_SDA_IST8310", "wire_color": "Blue"},
+        {"pin": 6, "name": "SAFETY_SWITCH", "wire_color": "Purple"},
+        {"pin": 7, "name": "SAFETY_LED", "wire_color": "Slate-Grey (LEAVE EMPTY)"},
+        {"pin": 8, "name": "VDD_3V3", "wire_color": "Red"},
+        {"pin": 9, "name": "BUZZER", "wire_color": "Slate-Grey (LEAVE EMPTY)"},
+        {"pin": 10, "name": "GND", "wire_color": "Black"}
+      ]
+    },
+    {
+      "harness_id": "H05_PIXHAWK_SERIAL4_I2C_TO_TF02_BMP390",
+      "connector_a": "Pixhawk 6C Mini GPS2/SERIAL4 + I2C1 (JST-GH)",
+      "connector_b": "Benewake TF02-Pro LiDAR (RNGFND1_TYPE 19) + Bosch BMP390 Baro",
+      "wire_gauge_awg": 28,
+      "signals": [
+        {"pin": 1, "name": "VCC_5V_TF02", "wire_color": "Red"},
+        {"pin": 2, "name": "SERIAL4_TX_TO_TF02_RX", "wire_color": "Green"},
+        {"pin": 3, "name": "SERIAL4_RX_FROM_TF02_TX", "wire_color": "Orange"},
+        {"pin": 4, "name": "BMP390_I2C1_SCL", "wire_color": "Yellow"},
+        {"pin": 5, "name": "BMP390_I2C1_SDA", "wire_color": "Blue"},
+        {"pin": 6, "name": "GND", "wire_color": "Black"}
+      ]
+    },
+    {
+      "harness_id": "H06_RPI5_THERMOSTAT_TO_PTC_HEATER",
+      "connector_a": "Raspberry Pi 5 J8 Header (GPIO4 Pin 7, GPIO17 Pin 11, 3.3V Pin 1, GND Pin 9)",
+      "connector_b": "DS18B20 1-Wire Probe + IRLZ44N Low-Side MOSFET + 10W 12V Polyimide PTC Heater Pad",
+      "wire_gauge_awg": 22,
+      "signals": [
+        {"pin": 1, "name": "VDD_3V3_DS18B20_PULLUP", "wire_color": "Red"},
+        {"pin": 7, "name": "GPIO4_1WIRE_DS18B20_DATA", "wire_color": "Yellow"},
+        {"pin": 11, "name": "GPIO17_IRLZ44N_MOSFET_GATE", "wire_color": "Blue"},
+        {"pin": 9, "name": "GND_THERMOSTAT_RETURN", "wire_color": "Black"}
+      ]
+    },
+    {
+      "harness_id": "H07_PIXHAWK_RCIN_TO_ELRS_868_C2",
+      "connector_a": "Pixhawk 6C Mini RC IN + CAN1 (JST-GH)",
+      "connector_b": "RadioMaster Bandit Micro 868MHz ELRS Receiver + Holybro EU Direct Remote ID",
+      "wire_gauge_awg": 28,
+      "signals": [
+        {"pin": 1, "name": "VCC_5V_RCIN", "wire_color": "Red"},
+        {"pin": 2, "name": "CRSF_RX", "wire_color": "Green"},
+        {"pin": 3, "name": "CRSF_TX", "wire_color": "Orange"},
+        {"pin": 4, "name": "GND", "wire_color": "Black"}
+      ]
+    }
+  ]
+}

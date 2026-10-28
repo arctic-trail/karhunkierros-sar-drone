@@ -1,0 +1,34 @@
+{
+  "events": [
+    {
+      "event_hash": "c209cd748fec7ba2bed78f7bed6bc4860601f49f0f47a24ab25fde788ac3ae28",
+      "payload": {
+        "profile": "full-release",
+        "schema": "aerospace-ledger-4.0"
+      },
+      "prev_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "seq": 0,
+      "stage": "GENESIS"
+    },
+    {
+      "event_hash": "2132cede444938c1b9d41ee81e86b33ac49edb2d8573a032d436909ff383ba44",
+      "payload": {
+        "design_hash": "ece5a0ef17fdc8867fce910d13b19f4e9d171fa2b422e6a0d077ffc76efaeee4",
+        "requirement_hash": "56a387dcf021863cfb5ab7e3a4a6367662b82b6d57afb7b83ef91a1c64dd12ca",
+        "source_sha256": "9cb5532a3bff8dcfac44f0aa2f744986fd70fa2eb219ed2c65c9ea05adb2ad23"
+      },
+      "prev_hash": "c209cd748fec7ba2bed78f7bed6bc4860601f49f0f47a24ab25fde788ac3ae28",
+      "seq": 1,
+      "stage": "SSOT_FROZEN"
+    },
+    {
+      "event_hash": "cefa634d1990a677a0e224391088128320a515aea333009e49b3ec3da7262d0d",
+      "payload": {
+        "p0_hash": "75dfbc813226413286847a3f63569c5ed2ea3659c7ea80de6d055a518d1979a4"
+      },
+      "prev_hash": "2132cede444938c1b9d41ee81e86b33ac49edb2d8573a032d436909ff383ba44",
+      "seq": 2,
+      "stage": "P0_FROZEN"
+    }
+  ]
+}

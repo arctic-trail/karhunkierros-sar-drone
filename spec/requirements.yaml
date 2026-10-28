@@ -1,0 +1,149 @@
+{
+  "hard": {
+    "H_ALT_85M_ERR": {
+      "bound": 2.5,
+      "eps": 0.01,
+      "requirement": "R_ALT_85M_ERR",
+      "scale": null,
+      "sense": "<=",
+      "tau": 0.01,
+      "unit": "m"
+    },
+    "H_ARM_VOLT_MARGIN": {
+      "bound": 0.45,
+      "eps": 0.01,
+      "requirement": "R_ARM_VOLT",
+      "scale": null,
+      "sense": ">=",
+      "tau": 0.01,
+      "unit": "V"
+    },
+    "H_CELL_TEMP": {
+      "bound": 273.15,
+      "eps": 0.01,
+      "requirement": "R_CELL_TEMP",
+      "scale": null,
+      "sense": ">=",
+      "tau": 0.005,
+      "unit": "K"
+    },
+    "H_CROSSWIND_ROLL_TRIM": {
+      "bound": 38.0,
+      "eps": 0.01,
+      "requirement": "R_CROSSWIND_TRIM",
+      "scale": null,
+      "sense": "<=",
+      "tau": 0.01,
+      "unit": "%"
+    },
+    "H_CRUISE_ENDURANCE_M25C": {
+      "bound": 18.0,
+      "eps": 0.01,
+      "requirement": "R_CRUISE_ENDURANCE",
+      "scale": null,
+      "sense": ">=",
+      "tau": 0.01,
+      "unit": "min"
+    },
+    "H_DESCENT_CONTROL": {
+      "bound": 94.0,
+      "eps": 0.01,
+      "requirement": "R_DESCENT_AUTH",
+      "scale": null,
+      "sense": ">=",
+      "tau": 0.005,
+      "unit": "%"
+    },
+    "H_HOVER_ENDURANCE_M25C": {
+      "bound": 15.0,
+      "eps": 0.01,
+      "requirement": "R_HOVER_ENDURANCE",
+      "scale": null,
+      "sense": ">=",
+      "tau": 0.01,
+      "unit": "min"
+    },
+    "H_HOVER_TW_EFF": {
+      "bound": 1.75,
+      "eps": 0.01,
+      "requirement": "R_HOVER_TW",
+      "scale": null,
+      "sense": ">=",
+      "tau": 0.01,
+      "unit": "-"
+    },
+    "H_PM02_VOLT_SENSE_ERR": {
+      "bound": 0.15,
+      "eps": 0.01,
+      "requirement": "R_PM02_SENSE",
+      "scale": null,
+      "sense": "<=",
+      "tau": 0.01,
+      "unit": "V"
+    },
+    "H_STATIC_MARGIN": {
+      "bound": 8.0,
+      "eps": 0.01,
+      "requirement": "R_STATIC_MARGIN",
+      "scale": null,
+      "sense": ">=",
+      "tau": 0.01,
+      "unit": "%"
+    },
+    "H_TRANSITION_CLIMB_PS": {
+      "bound": 2.5,
+      "eps": 0.01,
+      "requirement": "R_TRANSITION_CLIMB",
+      "scale": null,
+      "sense": ">=",
+      "tau": 0.01,
+      "unit": "m/s"
+    }
+  },
+  "requirement": {
+    "R_ALT_85M_ERR": {
+      "source": "FIN-LAB-03 High-Alt Navigation Spec",
+      "text": "First-principles derived vertical altitude estimation error at 85 m AGL in -25 C air must be <= 2.5 m."
+    },
+    "R_ARM_VOLT": {
+      "source": "ArduCopter 4.5 Battery Failsafe Spec",
+      "text": "Loaded 20% SOC EOD hover terminal voltage must remain >= 0.45 V above configured BATT_CRT_VOLT cutoff."
+    },
+    "R_CELL_TEMP": {
+      "source": "Molicel INR-21700-P45B Low-Temp Spec",
+      "text": "End-of-sortie battery cell temperature during -25 C cruise must remain >= 273.15 K (0 C)."
+    },
+    "R_CROSSWIND_TRIM": {
+      "source": "Opaslyhty Arctic Wind Envelope Spec v3.1",
+      "text": "Roll motor saturation in 10 m/s beam crosswind hover must not exceed 38.0%."
+    },
+    "R_CRUISE_ENDURANCE": {
+      "source": "Karhunkierros SAR Mission Profile",
+      "text": "Usable -25 C search cruise endurance with 20% reserve must be >= 18.0 min."
+    },
+    "R_DESCENT_AUTH": {
+      "source": "Opaslyhty VRS Avoidance & Control Spec v3.1",
+      "text": "Inner-loop attitude PID authority during VRS-safe oblique descent must remain >= 94.0%."
+    },
+    "R_HOVER_ENDURANCE": {
+      "source": "Karhunkierros SAR Mission Profile",
+      "text": "Usable -25 C hover endurance with 20% safety reserve must be >= 15.0 min."
+    },
+    "R_HOVER_TW": {
+      "source": "Opaslyhty Arctic SAR Airframe Spec v3.1",
+      "text": "Effective hover thrust-to-weight ratio at 20% SOC EOD voltage accounting for rotor-downwash frame blockage must be >= 1.75."
+    },
+    "R_PM02_SENSE": {
+      "source": "Holybro PM02 V3 Hardware Datasheet",
+      "text": "Holybro PM02 V3 ADC voltage sensing error at nominal 4S pack voltage must be <= 0.15 V."
+    },
+    "R_STATIC_MARGIN": {
+      "source": "Opaslyhty 6-DOF Trim Stability Spec v3.1",
+      "text": "Forward-flight pitch static stability margin (X_NP - X_CG)/L_ref must be >= 8.0%."
+    },
+    "R_TRANSITION_CLIMB": {
+      "source": "Opaslyhty Canopy Climb Spec v3.1",
+      "text": "Specific excess vertical climb power in 6 m/s transition climb must be >= 2.5 m/s."
+    }
+  }
+}
