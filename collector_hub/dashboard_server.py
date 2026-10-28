@@ -1128,8 +1128,7 @@ def make_command_center_handler(alerts_dir, verbose=False):
                     return
 
             # 5. Root page -> index.html, /console -> operator_mission_console.html,
-            #    /mobile_responder.html -> Persona 4 Gloved Ground SAR Responder App,
-            #    /mothership_cockpit.html or /flight_simulator.html -> Persona 2 Production Mothership Cockpit
+            #    /mobile_responder.html -> Persona 4 Gloved Ground SAR Responder App
             if clean_path in ("/console", "/mission", "/operator_mission_console.html", "/collector_hub/ui/operator_mission_console.html"):
                 console_path = os.path.join(UI_DIR, "operator_mission_console.html")
                 if os.path.exists(console_path):

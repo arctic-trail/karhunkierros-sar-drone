@@ -95,7 +95,7 @@ def evaluate_finlab02_high_speed_airframe(
     in its 60-deg swept / 1.28 m fast-responder configuration with 100% Non-Chinese COTS BOM.
     Includes clean wing/body parasitic drag (cd0_clean = 0.0185) plus dorsal intake momentum
     ram drag and fuselage/boom interference drag (cd0_pod_intake_ram = 0.01012 -> D = 91.3 N
-    at 400 km/h, +40.7 N excess thrust with 132 N turbine, and V_max = 481.5 km/h).
+    at 400 km/h, +40.7 N excess thrust with 132 N EDF, and V_max = 481.5 km/h).
     """
     ar = (wingspan_m ** 2) / wing_area_m2
     k_ind = 1.0 / (math.pi * 0.78 * ar)

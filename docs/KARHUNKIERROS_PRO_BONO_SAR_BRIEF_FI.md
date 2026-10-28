@@ -89,7 +89,7 @@ Vaikka kyse on puhtaasti ihmishenkien pelastamisesta hätätilanteessa, arkkiteh
 
 ---
 
-## 4. Tier-3 Fast-SAR Suihkuhybridi (`FIN-LAB-02`) & "Kenguru-tyyppinen" Kaksoisdrooni (`35–45 km` myrskypelastuksesta `2 757 km` partiointiin)
+## 4. Sähköinen kiinteäsiipinen emokone (`FIN-LAB-02`) & "Kenguru-tyyppinen" Kaksoisdrooni (`35–45 km` myrskypelastukseen)
 
 ### 4.1 Miksi pelkkä nelikopteri törmää fysiikan seinään `4,59 kilometrissä` `14 m/s` (`50 km/h`) tunturimyrskyssä?
 Vaikka itsenäinen `Karhunkierros`-nelikopteri (`Holybro X500 V2`, `18 m/s` matkalento) on ihanteellinen `0–14 km` säteellä auratusta tiestä tai lämmitetystä maastopesästä tyynessä ja kohtalaisessa säässä, **moniroottorinen kopteri kohtaa kovan aerodynaamisen rajan kovassa arktisessa myrskyssä (`14 m/s` / `50,4 km/h` vastatuuli `-25 °C` pakkasessa):**
@@ -129,5 +129,5 @@ Koska `FIN-LAB-02`-runko käyttää painopisteeseen (`X_CG = 595 mm`) sijoitettu
 ## 5. Pro Bono -pilottimahdollisuus ja vaiheistus (Vaiheet 1–3)
 
 1. **Vaihe 1–2 (Kenttätesti yksityismaalla — "Laavu/Tupa = Autiotupa"):** Testataan ensin mobiililla takakontti-/ahkio-lähdöllä havumetsässä (`350 €` kamerakävelytesti -> `1 189 €` täysi COTS-dronepilotti turvapilotin RC-ohjaimen valvonnassa).
-2. **Vaihe 3 (Pohjois-Suomen Pro Bono -pilotti):** Viedään koeteltu paketti yhteiskäyttöön **Metsähallituksen Luontopalveluiden** (*Oulanka / Karhunkierros*, *UKK-puisto*, *Pallas-Yllästunturi*), **Vapepan**, **Suomen Lentopelastusseuran (SLPS)** sekä **Poliisin**, **Rajavartiolaitoksen** ja **Pelastuslaitosten** kanssa.
+2. **Vaihe 3 (Pohjois-Suomen Pro Bono -pilotti):** Viedään Vaiheiden 1–2 metsätestauksessa validoitu avoin paketti yhteiskäyttöön **Metsähallituksen Luontopalveluiden** (*Oulanka / Karhunkierros*, *UKK-puisto*, *Pallas-Yllästunturi*), **Vapepan**, **Suomen Lentopelastusseuran (SLPS)** sekä **Poliisin**, **Rajavartiolaitoksen** ja **Pelastuslaitosten** kanssa.
 

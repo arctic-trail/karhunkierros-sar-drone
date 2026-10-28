@@ -10716,7 +10716,7 @@ def compute_pareto_optimal_4tier_portfolio_summary():
     Returns the simplified public 4-Tier Arctic SAR Product Portfolio (V_NE <= 300 km/h, range < 300 km):
       1. Tier 1/2: `Karhunkierros-X8` Coaxial 6S Heavy-Sprint Multi-Rotor (0-138.6 km/h, 3.0 kg payload, 22.5 km calm / 14.8 km storm radius, EUR 1,639)
       2. Tier 3A : `FIN-LAB-02 Sled B-Prop` High-Speed De-Iced Electric Pusher Marsupial Carrier (2.20 m Wing, 275.0 km/h dash, 35-45 km storm radius, EUR 2,450)
-      3. Tier 3B : `FIN-LAB-02 Sled A` Baseline COTS Hobby RC Turbine Marsupial Carrier (2.20 m Wing, 259.2 km/h cruise, 35 km in 11.3 min, EUR 4,850)
+      3. Tier 3B : `FIN-LAB-02 Sled A` Baseline COTS Electric Ducted Fan Marsupial Carrier (2.20 m Wing, 259.2 km/h cruise, 35 km in 11.3 min, EUR 4,850)
       4. Tier 3C : `FIN-LAB-02 Sled C` 4-Stroke Canyon Relay Loiter (2.20 m Wing, 101-130 km/h loiter, 6.0 hr / <=284.5 km <300 km EU-compliant range, EUR 3,800)
     """
     return {
@@ -11196,7 +11196,7 @@ class CommandAndConquerTacticalOverwatchController:
          - Unobserved/invisible areas on the map are rendered as pitch-black shroud (`#000000`, visibility=0.0).
          - Previously swept terrain is stored as dimmed memory (`EXPLORED_SHROUD`, visibility=0.35).
          - Areas covered by ground trail cameras (`NODE-NORTH-01`, `NODE-SOUTH-02`, `NODE-RIDGE-02`) or
-           airborne drone EO/LWIR/Starvis gimbals (`DRONE-SIERRA-01..04`, `FIN-LAB-02-JET`) are carved
+           airborne drone EO/LWIR/Starvis gimbals (`DRONE-SIERRA-01..04`, `FIN-LAB-02-CARRIER`) are carved
            open and rendered directly onto the map surface as live projected camera feeds (`visibility=1.0`).
       2. Detect Potentially Lost People & Vehicles with Priority Over Mapping (`OPTIONS`):
          - Configurable preemption (`preempt_mapping_on_detection=True/False`), target class priority hierarchy
@@ -11370,7 +11370,7 @@ class CommandAndConquerTacticalOverwatchController:
 
         preempted = bool(self.options["preempt_mapping_on_detection"] and selected_target is not None)
 
-        # Assign 4 SAR quadcopters + 1 FIN-LAB-02 Mothership Jet according to fleet_split_policy
+        # Assign 4 SAR quadcopters + 1 FIN-LAB-02 Fixed-Wing Carrier according to fleet_split_policy
         drone_assignments = []
         fleet_ids = ["DRONE-SIERRA-01", "DRONE-KILO-02", "DRONE-ECHO-03", "DRONE-FOXTROT-04"]
         for idx, d_id in enumerate(fleet_ids):
