@@ -313,13 +313,13 @@ Before unboxing and plugging in the Step 6 downward sensors and dual radios, spo
      * **Antenna #1 (`Rear/Bottom Carbon Edge —`):** Tape the first black `T`-antenna horizontally along the rear/bottom edge of the carbon top plate (right next to the `#4 LoRa` antenna base, `IMG_9708`).
      * **Antenna #2 (`Right Carbon Edge |`):** Tape the second black `T`-antenna vertically along the right edge of the carbon top plate (`next to M2 / M3`, `IMG_9708`). Because those two carbon plate edges meet at a `90°` corner, the two `T`-bars automatically form a textbook **`90°` (`L`-shape, `—` vs. `|`) orthogonal diversity angle** with zero cable tension and 100% propeller clearance!
 
-![Step 6F Action 1 Verified — Precision Wire Stripper [T09] (IMG_9687) + Textbook Through-Hole Wrap on RP3 V2 (IMG_9690) & Action 2 Plug-In Guide](assets/block2_step6f_part1_wires_on_rp3_verified_and_part2_plug_into_drone_v2.jpg)
+![Step 6F Action 1 Verified — Precision Wire Stripper [T09] (IMG_9687) + Textbook Through-Hole Wrap on RP3 V2 (IMG_9690) & Action 2 Plug-In Guide](assets/block2_step6f_part1_wires_on_rp3_verified_and_part2_plug_into_drone_v3.jpg)
 
 ![Step 6F Tweezer-Creased Blue 3M Tape Partition Crimp Verified (IMG_9691–9697) & Action 2 Plug-In Guide](assets/block2_step6f_blue_tape_partition_crimp_verified_and_plug_into_drone_v2.jpg)
 
 ![Step 6F 11 PM Dead-Simple 2-Box Placement Guide — Box 1 (3-Pin Plug) & Box 2 (Screw-Free Flat Carbon Rectangle)](assets/block2_step6f_11pm_dead_simple_2_steps_v2.jpg)
 
-![Step 6F 100% Complete — 3-Pin RC Plug Splice & Blue Tape Lock (IMG_9704/9705) + RP3 V2 Board & 90° Orthogonal Edge T-Antennas Installed (IMG_9708/9710)](assets/block2_step6f_complete_100pct_hardware_finished_v2.jpg)
+![Step 6F 100% Complete — 3-Pin RC Plug Splice & Blue Tape Lock (IMG_9704/9705) + RP3 V2 Board & 90° Orthogonal Edge T-Antennas Installed (IMG_9708/9710)](assets/block2_step6f_complete_100pct_hardware_finished_v3.jpg)
 
 Mount both downward range/flow sensors underneath the front/ventral plate aiming **straight down at the ground (`-90° Nadir`)** with an unobstructed view between the `270 mm` landing skids:
 
@@ -376,14 +376,14 @@ Mount both downward range/flow sensors underneath the front/ventral plate aiming
 
 ![Step 7F Final Standing Ground-Clearance Check (>200mm Above Skids) & Underside Map for Option A (TOPDON TC001 — GOLD) & Option B (#3 RadioMaster RP3 V2 — YELLOW)](assets/block3_step7f_final_standing_verified_and_proceed_to_a_and_b_v5.jpg)
 
-![Step 8 Verified — ArduCam Box Foam + Finnish Fiskars Scissors [T08] + Loctite Super Glue [T07] Standoff Shim for TOPDON TC001 [D02] & Next Step 6F (#3 RadioMaster RP3 V2 [D10])](assets/block3_step8_fiskars_foam_shim_verified_and_step6f_rp3_guide_v2.jpg)
+![Step 8 Verified — ArduCam Box Foam + Finnish Fiskars Scissors [T08] + Loctite Super Glue [T07] Standoff Shim for TOPDON TC001 [D02] & Next Step 6F (#3 RadioMaster RP3 V2 [D10])](assets/block3_step8_fiskars_foam_shim_verified_and_step6f_rp3_guide_v3.jpg)
 
 5. **`Step 9` (Final Hardware Step — Mounting `#3 RadioMaster RP3 V2` `[D10]` & `2x` Black T-Shaped Antennas at `90°` Along the Deck Edges, `IMG_9704`–`IMG_9710`):**
    * Plug the 3-pin wire splice from your `#3 RadioMaster RP3 V2` (`Black = GND`, `Red = +5V`, `White = T / RC Signal`) into the black 3-pin plug coming from `Pixhawk 6C` `PPM/SBUS RC` (`Black -> Black`, `Red -> Red`, `White -> Yellow`, `IMG_9704`) and wrap the mated 3-pin junction tightly in **blue `3M` painter's tape (`[T10]`, `IMG_9705`)**.
    * Seat the blue-taped `#3 RadioMaster RP3 V2` board onto the flat, screw-free carbon rectangle just above the `M2` sticker and below the `#4 LR900-F` module (`IMG_9708`), then press a strip of **blue `3M` tape** flat over the board to seal and lock it down (`IMG_9709` & `IMG_9710`).
    * Tape **T-Antenna #1 (`Vertical |`)** along the **left carbon deck edge** and **T-Antenna #2 (`Horizontal —`)** along the **bottom/rear carbon deck edge** using blue `3M` tape (`IMG_9708`–`IMG_9710`). This creates a **true `90°` orthogonal L-shape** around the `M2` corner with zero coax strain and `> 120 mm` propeller clearance.
 
-![Final Build Step (Step 9) — 2x Black T-Shaped Antennas Taped at 90° Along Left (|) & Bottom (—) Deck Edges & #3 RP3 V2 Sealed Under Blue 3M Tape (IMG_9708 & IMG_9710)](assets/block3_step9_final_t_antennas_and_rp3_mounted_on_deck_v2.jpg)
+![Final Build Step (Step 9) — 2x Black T-Shaped Antennas Taped at 90° Along Left (|) & Bottom (—) Deck Edges & #3 RP3 V2 Sealed Under Blue 3M Tape (IMG_9708 & IMG_9710)](assets/block3_step9_final_t_antennas_and_rp3_mounted_on_deck_v3.jpg)
 
 ![Opaslyhty 100% Completed Airframe — 500 mm Quad-X with 210 mm Finnish Fiskars Scissors [T08] for Scale (IMG_9711) & Overhead/Isometric Views (IMG_9712–IMG_9714)](assets/opaslyhty_100pct_completed_airframe_with_fiskars_scale_v3.jpg)
 
