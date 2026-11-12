@@ -17,6 +17,10 @@
 
 ![Opaslyhty 4-View Orthographic & Isometric CAD Blueprint (Polar-Night Kaamos v0.4)](cad/opaslyhty_x500v2_3d_cad_ortho_ref_v5.png)
 
+![Opaslyhty 100% Completed Bench Airframe — 500 mm Quad-X with 210 mm Finnish Fiskars Scissors [T08] for Scale & Overhead/Isometric Views](docs/assets/opaslyhty_100pct_completed_airframe_with_fiskars_scale_v3.jpg)
+
+![Final Hardware Assembly Step — 2x Black T-Shaped Antennas Taped at 90° Along Left (|) & Bottom (—) Carbon Deck Edges & #3 RadioMaster RP3 V2 Sealed Under Blue 3M Tape](docs/assets/block3_step9_final_t_antennas_and_rp3_mounted_on_deck_v2.jpg)
+
 ---
 
 ## 1. 3-Baseline Architectural Trade Comparison & Multi-Iteration 5-Regime Aerospace Closure (`solver.py`)

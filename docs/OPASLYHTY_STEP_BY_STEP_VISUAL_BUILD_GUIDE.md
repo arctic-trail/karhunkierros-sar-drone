@@ -378,6 +378,13 @@ Mount both downward range/flow sensors underneath the front/ventral plate aiming
 
 ![Step 8 Verified — ArduCam Box Foam + Finnish Fiskars Scissors [T08] + Loctite Super Glue [T07] Standoff Shim for TOPDON TC001 [D02] & Next Step 6F (#3 RadioMaster RP3 V2 [D10])](assets/block3_step8_fiskars_foam_shim_verified_and_step6f_rp3_guide_v2.jpg)
 
+5. **`Step 9` (Final Hardware Step — Mounting `#3 RadioMaster RP3 V2` `[D10]` & `2x` Black T-Shaped Antennas at `90°` Along the Deck Edges, `IMG_9704`–`IMG_9710`):**
+   * Plug the 3-pin wire splice from your `#3 RadioMaster RP3 V2` (`Black = GND`, `Red = +5V`, `White = T / RC Signal`) into the black 3-pin plug coming from `Pixhawk 6C` `PPM/SBUS RC` (`Black -> Black`, `Red -> Red`, `White -> Yellow`, `IMG_9704`) and wrap the mated 3-pin junction tightly in **blue `3M` painter's tape (`[T10]`, `IMG_9705`)**.
+   * Seat the blue-taped `#3 RadioMaster RP3 V2` board onto the flat, screw-free carbon rectangle just above the `M2` sticker and below the `#4 LR900-F` module (`IMG_9708`), then press a strip of **blue `3M` tape** flat over the board to seal and lock it down (`IMG_9709` & `IMG_9710`).
+   * Tape **T-Antenna #1 (`Vertical |`)** along the **left carbon deck edge** and **T-Antenna #2 (`Horizontal —`)** along the **bottom/rear carbon deck edge** using blue `3M` tape (`IMG_9708`–`IMG_9710`). This creates a **true `90°` orthogonal L-shape** around the `M2` corner with zero coax strain and `> 120 mm` propeller clearance.
+
+![Final Build Step (Step 9) — 2x Black T-Shaped Antennas Taped at 90° Along Left (|) & Bottom (—) Deck Edges & #3 RP3 V2 Sealed Under Blue 3M Tape (IMG_9708 & IMG_9710)](assets/block3_step9_final_t_antennas_and_rp3_mounted_on_deck_v2.jpg)
+
 ![Opaslyhty 100% Completed Airframe — 500 mm Quad-X with 210 mm Finnish Fiskars Scissors [T08] for Scale (IMG_9711) & Overhead/Isometric Views (IMG_9712–IMG_9714)](assets/opaslyhty_100pct_completed_airframe_with_fiskars_scale_v3.jpg)
 
 ### Step 3.3 — Mandatory 30-Second Multimeter Smoke Test (`[T03]`) & One-Command Bring-Up
