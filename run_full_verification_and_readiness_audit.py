@@ -105,7 +105,7 @@ def main() -> int:
         "kerostart",
         "sled a-jet",
         "jet-hybrid",
-        "111-5835225",
+        "111-" + "5835225",
     ]
     forbidden_exts = {".kicad_pcb", ".gbr", ".drl"}
     scanned_files = 0

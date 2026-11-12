@@ -319,7 +319,7 @@ Before unboxing and plugging in the Step 6 downward sensors and dual radios, spo
 
 ![Step 6F 11 PM Dead-Simple 2-Box Placement Guide — Box 1 (3-Pin Plug) & Box 2 (Screw-Free Flat Carbon Rectangle)](assets/block2_step6f_11pm_dead_simple_2_steps_v2.jpg)
 
-![Step 6F 100% Complete — 3-Pin RC Plug Splice & Blue Tape Lock (IMG_9704/9705) + RP3 V2 Board & 90° Orthogonal Edge T-Antennas Installed (IMG_9708/9710)](assets/block2_step6f_complete_100pct_hardware_finished_v3.jpg)
+![Step 6F 100% Complete — 3-Pin RC Plug Splice & Blue Tape Lock (IMG_9704/9705) + RP3 V2 Board & 90° Orthogonal Edge T-Antennas Installed (IMG_9708/9710)](assets/block2_step6f_complete_100pct_hardware_finished_v4.jpg)
 
 Mount both downward range/flow sensors underneath the front/ventral plate aiming **straight down at the ground (`-90° Nadir`)** with an unobstructed view between the `270 mm` landing skids:
 
