@@ -1,24 +1,29 @@
-"""Opaslyhty (-25 C Arctic SAR Quadcopter) — Iteration 3 Golden SSOT (v0.3).
+"""Opaslyhty (-25 C Arctic & Polar-Night Kaamos SAR Quadcopter) — Iteration 4 Golden SSOT (v0.4).
 
-Remediates all three P0 Arctic failure modes (F1, F2, F3) and incorporates all Round-1
-Independent Engineering Review fixes:
-  - 8-part Allied COTS BOM (`P01..P08`, `2.380 kg`, `EUR 1,329.00`) reconciled item-by-item
-    across Python SSOT, `pcb/Allied_EU_COTS_BOM.csv`, and `README.md`, including 868 MHz ELRS
-    C2 receiver + EU Direct Remote ID (`P07`), 100A 4S BMS + balance lead + 60A MIDI fuse (`P04`),
-    and PEEK thermal-break isolators + 12 AWG silicone foam-labyrinth harness (`P08`).
+Remediates all three P0 Arctic failure modes (F1, F2, F3), incorporates all Round-1
+Independent Engineering Review fixes, and adds the 100% Civilian Polar-Night (Kaamos)
+"Guiding-Lantern" & Starvis-2 NoIR Upgrade:
+  - 9-part Allied COTS BOM (`P01..P09`, `2.410 kg`, `EUR 1,374.00`) reconciled item-by-item
+    across Python SSOT, `spec/part_catalog.yaml`, `pcb/Allied_EU_COTS_BOM.csv`, and `README.md`,
+    including 868 MHz ELRS C2 receiver + EU Direct Remote ID (`P07`), 100A 4S BMS + balance lead
+    + 60A MIDI fuse (`P04`), PEEK thermal-break isolators + 12 AWG silicone foam-labyrinth
+    harness (`P08`), and the Polar-Night Guiding-Lantern kit (`P09`: EASA 3 sm green night
+    anti-collision strobe + PWM-switched 3.0 W warm-white downward hiker shepherd beam + Sony
+    IMX462 Starvis-2 NoIR 0.0001 lux optical-flow pairing, `+0.030 kg`, `+EUR 45.00`).
   - F1 FIXED: Sag-compensated 4S Li-ion voltage thresholds (`BATT_CRT_VOLT = 12.8 V`,
     `BATT_LOW_VOLT = 13.4 V`, `BATT_ARM_VOLT = 14.8 V`) evaluated at the 20% SOC end-of-discharge
     OCV knee (`3.52 V/cell = 14.08 V` pack), plus calibrated `BATT_VOLT_MULT = 18.182` matching
     the Holybro PM02 V3 hardware divider (`PWR1` Pin 3 current, Pin 4 voltage).
   - F2 FIXED: Unified transient + steady-state electro-thermal model (`174 x 114 x 104 mm` outer
     EPP enclosure, `144 x 84 x 74 mm` cavity with `15 mm` walls, `esc_heat_recovery_frac = 0.0`,
-    `g_bridge_w_k = 0.120 W/K`, `R_th = 4.651 K/W`, `C_th = 560 J/K`, `T_ref = 293.15 K`,
+    `g_bridge_w_k = 0.120 W/K`, `R_th = 4.656 K/W`, `C_th = 560 J/K`, `T_ref = 293.15 K`,
     `beta_arrhenius_r_k = 2665.0 K`) starting from `+20 C` warm-case launch with thermostatic
     `10 W` polyimide PTC heater (`DS18B20 -> RPi GPIO4/GPIO17 -> IRLZ44N MOSFET`).
-  - F3 FIXED: First-principles derived 85 m AGL altitude error
+  - F3 & KAAMOS POLAR-NIGHT FIXED: First-principles derived 85 m AGL altitude error
     `sqrt((h_agl * (dt_cal_err_k / t_amb_k))^2 + sigma_dem_m^2 + (h_agl * sigma_vio_tilt_rad)^2)`
-    combining `BARO_GND_TEMP = -25 C`, `TERRAIN_ENABLE = 1` MML 2m DEM, and EKF3 `EK3_SRC2`
-    `ExtNav` VIO fallback above the `40 m` Benewake `TF02-Pro` (`RNGFND1_TYPE = 19`) ceiling.
+    combining `BARO_GND_TEMP = -25 C`, `TERRAIN_ENABLE = 1` MML 2m DEM, and dual-band
+    `IMX462 Starvis-2 NoIR` + `TC001` LWIR `ExtNav` VIO (with 0.5 s NUC shutter-freeze coasting),
+    plus `>= 25.0 m` night clearance above `28.0 m` snow-laden boreal spruce (`tykkylumi`) crowns.
 """
 from __future__ import annotations
 
@@ -39,18 +44,20 @@ requirement("R_HOVER_ENDURANCE", "Usable -25 C hover endurance with 20% safety r
 requirement("R_CRUISE_ENDURANCE", "Usable -25 C search cruise endurance with 20% reserve must be >= 18.0 min.", source="Karhunkierros SAR Mission Profile")
 requirement("R_ALT_85M_ERR", "First-principles derived vertical altitude estimation error at 85 m AGL in -25 C air must be <= 2.5 m.", source="FIN-LAB-03 High-Alt Navigation Spec")
 requirement("R_CELL_TEMP", "End-of-sortie battery cell temperature during -25 C cruise must remain >= 273.15 K (0 C).", source="Molicel INR-21700-P45B Low-Temp Spec")
+requirement("R_NIGHT_CANOPY_CLEARANCE", "Polar-night search altitude vertical clearance above mature snow-laden boreal spruce canopy (tykkylumi) accounting for 85 m AGL altimetry error must remain >= 25.0 m.", source="Opaslyhty Polar-Night Kaamos Flight Safety Spec v3.2")
 
 # ---------------------------------------------------------------------------
-# 2. Parameters (Iter 3 v0.3 Golden: All 8 BOM Subsystem Masses + Unified Physics)
+# 2. Parameters (Iter 4 v0.4 Golden: All 9 BOM Subsystem Masses + Unified Polar-Night Physics)
 # ---------------------------------------------------------------------------
 param("m_p01_kg", 0.755, "kg", source="P01 Holybro X500 V2 carbon frame + 4x 2216 KV920 + 4x 20A ESCs + 1045 props + 270mm skids", bounds=(0.720, 0.790))
 param("m_p02_kg", 0.068, "kg", source="P02 Holybro Pixhawk 6C Mini + PM02 V3 power module", bounds=(0.060, 0.075))
-param("m_p03_kg", 0.042, "kg", source="P03 Holybro M10 GNSS + IST8310 compass on rear-port mast (-68, +64 mm)", bounds=(0.038, 0.048))
+param("m_p03_kg", 0.042, "kg", source="P03 Holybro M10 GNSS + IST8310 compass on rear-port mast (-62, +62 mm)", bounds=(0.038, 0.048))
 param("m_p04_kg", 0.785, "kg", source="P04 8x Molicel P45B (4S2P 9.0Ah) + 100A BMS + 60A fuse + 174x114x104mm EPP bay + 10W PTC", bounds=(0.750, 0.820))
 param("m_p05_kg", 0.085, "kg", source="P05 Benewake TF02-Pro LiDAR (69x41.5x26mm nadir) + Bosch BMP390 baro", bounds=(0.075, 0.095))
 param("m_p06_kg", 0.525, "kg", source="P06 RPi 5 8GB + Topdon TC001 LWIR (-45 deg) + IMX296 nadir VIO + SX1262 LoRa + Matek UBEC", bounds=(0.495, 0.555))
 param("m_p07_kg", 0.065, "kg", source="P07 RadioMaster Bandit Micro 868MHz ELRS C2 receiver + Holybro EU Direct Remote ID", bounds=(0.055, 0.075))
 param("m_p08_kg", 0.055, "kg", source="P08 12 AWG silicone foam-labyrinth harness + PEEK thermal isolators + M3 bobbins + straps", bounds=(0.045, 0.065))
+param("m_p09_kg", 0.030, "kg", source="P09 EASA 3sm green night strobe + 3W PWM Guiding-Lantern shepherd LED + Sony IMX462 Starvis-2 NoIR", bounds=(0.024, 0.036))
 
 param("n_rotors", 4.0, "-", source="Holybro X500 V2 quadrotor layout", bounds=(4.0, 4.0))
 param("d_prop_m", 0.254, "m", source="1045 (10x4.5 inch) carbon-nylon propeller diameter", bounds=(0.24, 0.27))
@@ -84,7 +91,8 @@ param("h_lidar_max_m", 40.0, "m", source="Benewake TF02-Pro maximum valid rangef
 param("hypsometric_baro_dem_enabled", 1.0, "-", source="Iter 3 fix: BARO_GND_TEMP + TERRAIN_ENABLE DEM + EK3_SRC2 ExtNav VIO enabled", choices=[0.0, 1.0])
 param("dt_cal_err_k", 1.80, "K", source="Residual air-column temperature calibration error after BARO_GND_TEMP = -25 C", bounds=(1.0, 2.8), sigma=0.18)
 param("sigma_dem_m", 0.95, "m", source="NLS Finland MML 2m LiDAR DEM + static pressure port reference vertical RMS error", bounds=(0.6, 1.4), sigma=0.08)
-param("sigma_vio_tilt_rad", 0.0085, "rad", source="IMX296/TC001 ExtNav VIO slant-range attitude/scale projection error", bounds=(0.005, 0.013), sigma=0.0008)
+param("sigma_vio_tilt_rad", 0.0085, "rad", source="IMX462 Starvis-2 NoIR + IMX296/TC001 ExtNav VIO slant-range attitude/scale projection error", bounds=(0.005, 0.013), sigma=0.0008)
+param("h_boreal_canopy_max_m", 28.0, "m", source="Oulanka / Karhunkierros mature snow-laden Norway spruce (tykkylumi) maximum crown height", bounds=(22.0, 35.0), sigma=1.2)
 
 # Unified Electro-Thermal Battery Model (174x114x104mm Outer, 144x84x74mm Cavity, R_th = 4.651 K/W)
 param("n_series_cells", 4.0, "-", source="4S lithium-ion series cell count", bounds=(4.0, 4.0))
@@ -116,10 +124,10 @@ param("p_ptc_heater_w", 10.0, "W", source="Iter 3 10.0 W polyimide PTC heater pa
 param("t_ptc_setpoint_k", 281.15, "K", source="DS18B20 -> RPi GPIO4/GPIO17 -> IRLZ44N MOSFET thermostat midpoint setpoint (+8.0 C)", bounds=(277.15, 286.15))
 param("dt_ptc_prop_k", 12.0, "K", source="Thermostat smooth proportional control band width", bounds=(10.0, 18.0))
 param("esc_heat_recovery_frac", 0.0, "-", source="Zero ESC waste-heat recovery (ESCs are mounted on external carbon arms)", bounds=(0.0, 0.50))
-param("p_avionics_w", 24.5, "W", source="Pixhawk 6C Mini + RPi 5 + TC001 + IMX296 + TF02-Pro + SX1262 + ELRS + Remote ID", bounds=(20.0, 30.0), sigma=0.4)
+param("p_avionics_w", 28.0, "W", source="Pixhawk 6C Mini + RPi 5 + TC001 + IMX462 Starvis-2/IMX296 + TF02-Pro + SX1262 + ELRS + 3.0W Shepherd LED + 0.5W EASA Strobe", bounds=(20.0, 33.0), sigma=0.4)
 
 # ---------------------------------------------------------------------------
-# 3. 100% Real Orderable Allied COTS Parts (8 Parts P01..P08, Sum = 2.380 kg, EUR 1,329.00)
+# 3. 100% Real Orderable Allied COTS Parts (9 Parts P01..P09, Sum = 2.410 kg, EUR 1,374.00)
 # ---------------------------------------------------------------------------
 part("P01_Holybro_X500_V2_Frame_Motors", mfr="Holybro", origin="US_HK_Allied", allied=True, unit_cost_eur=290.0, mass_kg=0.755, fit=25.0, custom_pcb=False, datasheet="Holybro-X500-V2-ARF-Kit-2216-KV920-1045.pdf")
 part("P02_Holybro_Pixhawk_6C_Mini_PM02V3", mfr="Holybro_STMicro", origin="US_EU", allied=True, unit_cost_eur=225.0, mass_kg=0.068, fit=15.0, custom_pcb=False, datasheet="Holybro-Pixhawk-6C-Mini-STM32H743-PM02-V3.pdf")
@@ -129,6 +137,7 @@ part("P05_Benewake_TF02_Pro_BMP390_Mount", mfr="Benewake_Bosch", origin="DE_EU",
 part("P06_RPi5_Topdon_TC001_LWIR_Pod", mfr="Sony_RaspberryPi_UK", origin="UK_US", allied=True, unit_cost_eur=415.0, mass_kg=0.525, fit=45.0, custom_pcb=False, datasheet="RaspberryPi5-IMX296-TC001-SX1262-BEC12S-PRO.pdf")
 part("P07_ELRS_868MHz_C2_And_RemoteID", mfr="RadioMaster_Holybro", origin="EU_Allied", allied=True, unit_cost_eur=48.0, mass_kg=0.065, fit=10.0, custom_pcb=False, datasheet="RadioMaster-Bandit-868MHz-ELRS-Holybro-RemoteID.pdf")
 part("P08_Silicone_Harness_PEEK_Fasteners", mfr="Wurth_Boker_DE", origin="DE_EU", allied=True, unit_cost_eur=18.0, mass_kg=0.055, fit=5.0, custom_pcb=False, datasheet="12AWG-Silicone-PEEK-Isolators-M3-Bobbins.pdf")
+part("P09_Polar_Night_Strobe_Shepherd_Starvis_Kit", mfr="Sony_Cree_ViFly_Allied", origin="JP_US_UK", allied=True, unit_cost_eur=45.0, mass_kg=0.030, fit=8.0, custom_pcb=False, datasheet="Sony-IMX462-Starvis2-NoIR-Cree-XPG3-3W-EASA-Strobe.pdf")
 
 # ---------------------------------------------------------------------------
 # 4. Electrical & Bus Pin Mapping (Reconciled with pcb/cots_wiring_harness.json)
@@ -139,6 +148,8 @@ pin("PM02V3_VSENSE_ADC", connector="PIXHAWK6C_POWER1_6P", pin_no=4, bus="ADC_VOL
 pin("+5.1V_UBEC_MATEK", connector="COMPANION_PWR_JST6P", pin_no=1, bus="MATEK_BEC12S_PRO_5V_5A")
 pin("GPIO4_DS18B20_1WIRE", connector="RPI5_J8_HEADER_40P", pin_no=7, bus="1WIRE_THERMOSTAT_SENSE")
 pin("GPIO17_PTC_MOSFET_GATE", connector="RPI5_J8_HEADER_40P", pin_no=11, bus="PWM_IRLZ44N_10W_HEATER")
+pin("GPIO18_EASA_NIGHT_STROBE", connector="RPI5_J8_HEADER_40P", pin_no=12, bus="EASA_GREEN_3SM_NIGHT_STROBE")
+pin("PWM_AUX1_SHEPHERD_LANTERN", connector="PIXHAWK6C_FMU_AUX_PWM", pin_no=1, bus="PWM_SERVO9_3W_SHEPHERD_LED")
 pin("UART4_TF02PRO_RX", connector="PIXHAWK6C_GPS2_SERIAL4", pin_no=3, bus="UART_115200_RNGFND1_TYPE19")
 pin("I2C1_BMP390_SCL", connector="PIXHAWK6C_I2C_JST4P", pin_no=2, bus="I2C_400KHZ_BARO")
 pin("TELEM1_RPI5_MAVLINK_TX", connector="PIXHAWK6C_TELEM1_SERIAL1", pin_no=2, bus="UART_921600_EXTNAV_MAV2")
@@ -157,10 +168,10 @@ limitation("LIM_ICING_FREEZING_DRIZZLE", "Uncoated 1045 carbon-nylon propellers 
 # ---------------------------------------------------------------------------
 @closure(
     state={
-        "m_tow_kg": 2.380,
-        "vi_cruise_m_s": 3.80,
-        "t_cell_k": 290.4,
-        "i_cruise_a": 15.8,
+        "m_tow_kg": 2.410,
+        "vi_cruise_m_s": 3.84,
+        "t_cell_k": 292.2,
+        "i_cruise_a": 16.9,
     },
     mass_state="m_tow_kg",
     tol=1e-9,
@@ -176,7 +187,7 @@ def sizing_closure(x: dict, p) -> dict:
     sec_per_min = 3600.0 / (100.0 * 0.5 + 10.0)
     tiny = 1.0 / (1000.0 ** 3)
 
-    # 1. Total takeoff mass derived directly by summing P01..P08 subsystem masses
+    # 1. Total takeoff mass derived directly by summing P01..P09 subsystem masses
     m_bom = (
         p.m_p01_kg
         + p.m_p02_kg
@@ -186,6 +197,7 @@ def sizing_closure(x: dict, p) -> dict:
         + p.m_p06_kg
         + p.m_p07_kg
         + p.m_p08_kg
+        + p.m_p09_kg
     )
     m_tow = m_bom + 0.0 * x["m_tow_kg"]
     weight_n = m_tow * g0
@@ -314,6 +326,7 @@ def sizing_closure(x: dict, p) -> dict:
         (1.0 - p.hypsometric_baro_dem_enabled) * uncomp_baro_err_m
         + p.hypsometric_baro_dem_enabled * derived_hypso_vio_err_m
     )
+    night_canopy_clearance_m = p.h_search_agl_m - p.h_boreal_canopy_max_m - alt_error_85m_agl_m
 
     return {
         "m_tow_kg": m_tow,
@@ -346,6 +359,7 @@ def sizing_closure(x: dict, p) -> dict:
         "arm_ocv_margin_v": arm_ocv_margin_v,
         "pm02_volt_sense_err_v": pm02_volt_sense_err_v,
         "alt_error_85m_agl_m": alt_error_85m_agl_m,
+        "night_canopy_clearance_m": night_canopy_clearance_m,
     }
 
 
@@ -405,6 +419,11 @@ def h_alt_85m_err(x: dict, p):
 @hard("H_CELL_TEMP", requirement="R_CELL_TEMP", sense=">=", bound=273.15, unit="K", eps=0.01, tau=0.005)
 def h_cell_temp(x: dict, p):
     return x["t_cell_k"]
+
+
+@hard("H_NIGHT_CANOPY_CLEARANCE", requirement="R_NIGHT_CANOPY_CLEARANCE", sense=">=", bound=25.0, unit="m", eps=0.01, tau=0.01)
+def h_night_canopy_clearance(x: dict, p):
+    return x["night_canopy_clearance_m"]
 
 
 # ---------------------------------------------------------------------------

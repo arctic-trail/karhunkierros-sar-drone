@@ -72,6 +72,15 @@
       "tau": 0.01,
       "unit": "-"
     },
+    "H_NIGHT_CANOPY_CLEARANCE": {
+      "bound": 25.0,
+      "eps": 0.01,
+      "requirement": "R_NIGHT_CANOPY_CLEARANCE",
+      "scale": null,
+      "sense": ">=",
+      "tau": 0.01,
+      "unit": "m"
+    },
     "H_PM02_VOLT_SENSE_ERR": {
       "bound": 0.15,
       "eps": 0.01,
@@ -132,6 +141,10 @@
     "R_HOVER_TW": {
       "source": "Opaslyhty Arctic SAR Airframe Spec v3.1",
       "text": "Effective hover thrust-to-weight ratio at 20% SOC EOD voltage accounting for rotor-downwash frame blockage must be >= 1.75."
+    },
+    "R_NIGHT_CANOPY_CLEARANCE": {
+      "source": "Opaslyhty Polar-Night Kaamos Flight Safety Spec v3.2",
+      "text": "Polar-night search altitude vertical clearance above mature snow-laden boreal spruce canopy (tykkylumi) accounting for 85 m AGL altimetry error must remain >= 25.0 m."
     },
     "R_PM02_SENSE": {
       "source": "Holybro PM02 V3 Hardware Datasheet",

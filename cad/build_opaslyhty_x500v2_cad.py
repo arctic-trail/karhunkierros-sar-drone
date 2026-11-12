@@ -255,26 +255,47 @@ def build_stage_solids() -> dict[str, list[bd.Solid]]:
         * bd.Rot(0, 180, 0)
         * bd.Cylinder(radius=6.5, height=10.0, align=(bd.Align.CENTER, bd.Align.CENTER, bd.Align.MIN))
     )
+    # [P09] Sony IMX462 Starvis-2 NoIR (0.0001 lux Polar-Night VIO) pointed strictly nadir (-Z) at z = -8..+2 mm
+    starvis2_barrel = (
+        bd.Pos(103.0, 24.0, 2.0)
+        * bd.Rot(0, 180, 0)
+        * bd.Cylinder(radius=4.5, height=10.0, align=(bd.Align.CENTER, bd.Align.CENTER, bd.Align.MIN))
+    )
     # Benewake TF02-Pro LiDAR at exact datasheet dimensions (41.5 x 69.0 x 26.0 mm) mounted nadir (-Z)
-    # Placed at (94.0, -14.0, -15.0) -> x in [73.25, 114.75], y in [-48.5, +20.5], z in [-28.0, -2.0]
+    # Placed at (94.0, -18.0, -15.0) -> x in [73.25, 114.75], y in [-52.5, +16.5], z in [-28.0, -2.0]
     tf02_lidar = bd.Pos(94.0, -18.0, -15.0) * bd.Box(41.5, 69.0, 26.0)
 
     # Ventral RPi 5 + Matek BEC12S-PRO + SX1262 Companion Pod (120 x 72 x 52 mm at z = -56.25..-4.25 mm)
     companion_pod = bd.Pos(0.0, 0.0, -30.25) * bd.Box(120.0, 72.0, 52.0)
     companion_pod = bd.fillet(companion_pod.edges().filter_by(bd.Axis.X), radius=8.0)
 
+    # [P09] Ventral Nadir 3.0W (350 lm) Guiding-Lantern Shepherd LED Optic Pod at z = -64.25..-56.25 mm
+    shepherd_lantern = (
+        bd.Pos(0.0, 0.0, -56.25)
+        * bd.Rot(0, 180, 0)
+        * bd.Cylinder(radius=11.0, height=8.0, align=(bd.Align.CENTER, bd.Align.CENTER, bd.Align.MIN))
+    )
+
     stage3.extend(sensor_housing.solids())
     stage3.extend(lwir_barrel.solids())
     stage3.extend(vis_barrel.solids())
+    stage3.extend(starvis2_barrel.solids())
     stage3.extend(tf02_lidar.solids())
     stage3.extend(companion_pod.solids())
+    stage3.extend(shepherd_lantern.solids())
 
-    # --- STAGE 4: Dorsal 174x114x104mm (15mm Wall, 144x84x74mm Cavity) EPP Battery Bay & 1045 Propellers ---
+    # --- STAGE 4: Dorsal 174x114x104mm (15mm Wall, 144x84x74mm Cavity) EPP Battery Bay, EASA Strobe & 1045 Props ---
     # Seated flush on top_plate (z = 35.25 mm) -> z = 35.25..139.25 mm (center z = 87.25 mm),
     # offset slightly (+6.0, -6.0 mm) so the rear-port M10 GNSS mast at (-62.0, +62.0) has 3.0 mm clearance.
     batt_bay = bd.Pos(6.0, -6.0, 87.25) * bd.Box(174.0, 114.0, 104.0)
     batt_bay = bd.fillet(batt_bay.edges().filter_by(bd.Axis.Z), radius=8.0)
     stage4.extend(batt_bay.solids())
+
+    # [P09] Dorsal EASA 3sm Green Night Anti-Collision Strobe Dome at (+6.0, -6.0, z = 139.25..147.25 mm)
+    easa_night_strobe = bd.Pos(6.0, -6.0, 139.25) * bd.Cylinder(
+        radius=9.0, height=8.0, align=(bd.Align.CENTER, bd.Align.CENTER, bd.Align.MIN)
+    )
+    stage4.extend(easa_night_strobe.solids())
 
     for mx, my, angle_deg in motor_coords:
         prop_hub = bd.Pos(mx, my, 56.0) * bd.Cylinder(
@@ -340,14 +361,18 @@ def _render_shaded_hlr_tile(
         pts = [(float(X[tri[0]]), float(Y[tri[0]])), (float(X[tri[1]]), float(Y[tri[1]])), (float(X[tri[2]]), float(Y[tri[2]]))]
         zc = float(V[tri, 2].mean())
         rc = float(np.hypot(V[tri, 0].mean(), V[tri, 1].mean()))
-        if zc > 139.5:
+        if zc > 139.3 and rc < 25.0:
+            base = (16, 185, 129)    # [P09] Dorsal EASA 3sm Green Night Strobe (Emerald Beacon)
+        elif zc > 139.5:
             base = (234, 179, 8)     # M10 GNSS Compass Puck (Gold)
         elif zc > 35.5 and rc < 115.0 and not (V[tri, 0].mean() < -48.0 and V[tri, 1].mean() > 48.0):
             base = (37, 99, 235)     # Dorsal 174x114x104mm 15mm EPP + 10W PTC Battery Bay (Arctic Blue)
         elif zc > 58.0 and rc >= 115.0:
             base = (148, 163, 184)   # 1045 Carbon-Nylon Propellers (Slate Silver)
         elif V[tri, 0].mean() > 70.0 and abs(V[tri, 1].mean()) < 60.0 and zc < 32.0:
-            base = (220, 38, 38)     # Forward -45deg TC001 LWIR + Nadir VIO + TF02-Pro Pod (Crimson)
+            base = (220, 38, 38)     # Forward -45deg TC001 LWIR + Nadir Starvis-2/IMX296 + TF02-Pro Pod (Crimson)
+        elif zc <= -56.25 and rc < 15.0:
+            base = (245, 158, 11)    # [P09] Ventral 3.0W Guiding-Lantern Shepherd LED Spot (Warm Amber)
         elif zc < -3.0 and rc < 64.0 and zc > -60.0:
             base = (22, 163, 74)     # Ventral RPi 5 + BEC12S-PRO + LoRa Companion Pod (Emerald)
         else:
@@ -389,13 +414,13 @@ def generate_ortho_blueprint_plate(stl_bytes: bytes, out_png_path: Path) -> dict
     draw.rectangle([(20, 20), (W - 20, 105)], fill=(15, 23, 42))
     draw.text(
         (42, 34),
-        "OPASLYHTY ARCTIC SAR QUADCOPTER — 4-VIEW ORTHOGRAPHIC & ISOMETRIC CAD BLUEPRINT (GOLDEN ITER 3)",
+        "OPASLYHTY ARCTIC & POLAR-NIGHT SAR QUADCOPTER — 4-VIEW ORTHO & ISO CAD BLUEPRINT (KAAMOS v0.4)",
         fill=(248, 250, 252),
         font=f_title,
     )
     draw.text(
         (42, 70),
-        f"Airframe: Holybro X500 V2 (500mm Wheelbase) | Outer B-Rep Envelope: {proj['extents'][0]:.2f} x {proj['extents'][1]:.2f} x {proj['extents'][2]:.2f} mm | Faces: {proj['face_count']} | MTOW: 2.380 kg",
+        f"Airframe: Holybro X500 V2 (500mm Wheelbase) | Outer B-Rep Envelope: {proj['extents'][0]:.2f} x {proj['extents'][1]:.2f} x {proj['extents'][2]:.2f} mm | Faces: {proj['face_count']} | MTOW: 2.410 kg",
         fill=(148, 163, 184),
         font=f_body,
     )
@@ -438,9 +463,9 @@ def generate_ortho_blueprint_plate(stl_bytes: bytes, out_png_path: Path) -> dict
                 "  - 144 x 84 x 74 mm internal pack cavity",
                 "  - Fits 4x2 21700 (88x44x70mm) + 100A BMS",
                 "  - R_th = 4.656 K/W, C_th = 560 J/K",
-                "  - Holds +18.9 C cell core at -25 C cruise",
+                "  - Holds +19.3 C cell core at -25 C",
                 "",
-                "[P01] Wide-Stance 270mm Carbon Landing Gear",
+                "[P01] Wide-Stance 270mm Landing Gear",
                 "  - 2x 12 mm OD skids at y = +-135 mm",
                 "  - Cross-tubes at x = +-66 mm, z = -6.75 mm",
                 "  - 0.0 mm clash with companion pod",
@@ -448,31 +473,31 @@ def generate_ortho_blueprint_plate(stl_bytes: bytes, out_png_path: Path) -> dict
             ]
         elif vname == "SIDE":
             notes = [
-                "[P05] Forward Multi-Modal Sensor Pod",
-                "  - Topdon TC001 LWIR (-45 deg oblique-nadir)",
-                "  - RPi Global Shutter IMX296 (nadir -Z)",
+                "[P05/P09] Forward Multi-Modal Night Pod",
+                "  - Topdon TC001 LWIR (-45 deg, 0.5s NUC)",
+                "  - IMX462 Starvis-2 (0.0001 lx) + IMX296",
                 "  - Benewake TF02-Pro (69x41.5x26mm nadir)",
                 "  - Bosch BMP390 Hypsometric Baro-DEM",
                 "",
-                "[P06] Ventral Companion Compute Pod",
-                "  - Raspberry Pi 5 (8GB) + Active Cooler",
-                "  - Matek BEC12S-PRO 5.1V 5A Buck UBEC",
-                "  - Waveshare SX1262 868 MHz LoRa HAT",
+                "[P06/P09] Ventral Pod & Guiding-Lantern",
+                "  - RPi 5 (8GB) + BEC12S-PRO 5.1V/5A UBEC",
+                "  - 3.0W 350lm Shepherd LED (z=-64..-56)",
+                "  - Dorsal EASA 3sm Strobe (z=+139..+147)",
                 "  - [P07] 868MHz ELRS C2 + EU Remote ID",
             ]
         else:
             notes = [
-                "VERIFIED GOLDEN ITER 3 CLOSURE:",
-                "  - MTOW: 2.380 kg | BOM: 1,329.00 EUR",
-                "  - Hover T/W (-25 C): 1.90x (>= 1.75x)",
-                "  - 20% SOC EOD Hover V: 13.45V (>= 12.8V)",
-                "  - 10 m/s Wind Roll Sat: 27.1% (<= 38%)",
-                "  - -25 C Hover Endurance: 19.20 min",
-                "  - -25 C Cruise Endurance: 24.19 min",
-                "  - Wind-Aware Radius: 5.18 km",
+                "POLAR-NIGHT (KAAMOS) CLOSURE:",
+                "  - MTOW: 2.410 kg | BOM: 1,374.00 EUR",
+                "  - Hover T/W (-25 C): 1.88x (>= 1.75x)",
+                "  - 20% SOC EOD Hover V: 13.44V (>= 12.8V)",
+                "  - 10 m/s Wind Roll Sat: 27.5% (<= 38%)",
+                "  - -25 C Hover Endurance: 18.72 min",
+                "  - -25 C Cruise Endurance: 23.65 min",
+                "  - Wind-Aware Radius: 5.07 km",
                 "  - 85m AGL Alt Error: 1.34 m (<= 2.5 m)",
-                "  - VRS Descent Authority: 95.5% (>= 94%)",
-                "  - Custom PCBs: 0 (8 Allied COTS Parts)",
+                "  - Night Canopy Margin: 55.7 m (>= 25 m)",
+                "  - Custom PCBs: 0 (9 Allied COTS Parts)",
             ]
         for idx, line in enumerate(notes):
             draw.text((lx + 12, ly + 14 + idx * 28), line, fill=(30, 41, 59), font=f_body)
@@ -505,13 +530,13 @@ def generate_ikea_4stage_isometric_plate(stages: dict[str, list[bd.Solid]], out_
     draw.rectangle([(20, 20), (W - 20, 105)], fill=(15, 23, 42))
     draw.text(
         (42, 34),
-        "OPASLYHTY ARCTIC SAR QUADCOPTER — 4-STAGE 3D ISOMETRIC IKEA ASSEMBLY GUIDE (GOLDEN ITER 3)",
+        "OPASLYHTY ARCTIC & POLAR-NIGHT SAR QUADCOPTER — 4-STAGE 3D IKEA ASSEMBLY GUIDE (KAAMOS v0.4)",
         fill=(248, 250, 252),
         font=f_title,
     )
     draw.text(
         (42, 70),
-        "Progressive 3D B-Rep Sub-Assembly Projections (opencascade-hlr-4.0) | Tools [T01]..[T06] | Parts [P01]..[P08] | Slate-Grey Empty Pin Discipline",
+        "Progressive 3D B-Rep Sub-Assembly Projections (opencascade-hlr-4.0) | Tools [T01]..[T06] | Parts [P01]..[P09] | Slate-Grey Empty Pin Discipline",
         fill=(148, 163, 184),
         font=f_body,
     )
@@ -523,7 +548,7 @@ def generate_ikea_4stage_isometric_plate(stages: dict[str, list[bd.Solid]], out_
             30,
             125,
             [
-                "PARTS: [P01] Holybro X500 V2 Frame | [P08] Hardware",
+                "PARTS: [P01] Holybro X500 V2 | [P08] Hardware",
                 "TOOLS: [T01] 2.0mm Hex | [T02] Loctite 243",
                 "",
                 "1. Clamp 4x 16mm carbon arms (r=54..250mm) at",
@@ -531,10 +556,10 @@ def generate_ikea_4stage_isometric_plate(stages: dict[str, list[bd.Solid]], out_
                 "2. Bolt 8x off-diagonal standoffs at (+-64,+-24)",
                 "   and (+-24,+-64) mm (17.3mm clear of arms).",
                 "3. Bolt upper cross-tubes (x=+-66mm, z=-6.75mm)",
-                "   and 270mm wide skids (y=+-135mm, 37.6deg slope).",
+                "   and 270mm wide skids (y=+-135mm, 37.6deg).",
                 "4. Apply Loctite 243 + Nyloc + witness stripe.",
                 "",
-                "CHECK: Wheelbase = 500.0 mm | Skid track = 270 mm.",
+                "CHECK: Wheelbase = 500 mm | Skid track = 270 mm.",
             ],
         ),
         (
@@ -544,56 +569,56 @@ def generate_ikea_4stage_isometric_plate(stages: dict[str, list[bd.Solid]], out_
             125,
             [
                 "PARTS: [P02] Pixhawk 6C + PM02 | [P03] M10 GNSS",
-                "TOOLS: [T01] 2.0mm Hex | [T03] Digital Multimeter",
+                "TOOLS: [T01] 2.0mm Hex | [T03] Multimeter",
                 "",
                 "1. Bolt 4x 2216 920KV motors flush on arm tips",
                 "   at z=26.0mm (16x16mm M3) with Loctite 243.",
                 "2. Mount Pixhawk 6C Mini at (+4,0,+10.25mm) and",
                 "   PM02 V3 at (-32,0,+7.25mm) inside r<54mm bay.",
-                "3. Bolt M10 GNSS mast at rear-port (-62,+62,+35mm)",
-                "   clear of the 174x114x104mm dorsal battery bay.",
-                "4. Plug PM02 V3 JST-GH into PWR1 (Pin3=I, Pin4=V).",
+                "3. Bolt M10 GNSS mast at rear-port (-62,+62,+35)",
+                "   clear of the 174x114x104mm dorsal EPP bay.",
+                "4. Plug PM02 V3 JST-GH into PWR1 (Pin3=I, 4=V).",
                 "",
                 "CHECK: XT60 resistance > 10 kOhm (zero short).",
             ],
         ),
         (
             "STAGE_3",
-            "STAGE 3: -45deg LWIR / NADIR VIO & TF02-PRO POD + VENTRAL RPi 5 POD",
+            "STAGE 3: -45deg LWIR / STARVIS-2 POD + RPi 5 & 3W SHEPHERD LED",
             30,
             830,
             [
-                "PARTS: [P05] TF02-Pro | [P06] RPi5+TC001 | [P07] ELRS",
+                "PARTS: [P05] TF02 | [P06] RPi5 | [P09] Night",
                 "TOOLS: [T03] Multimeter | [T05] JST-GH Tweezers",
                 "",
-                "1. Suspend ventral RPi 5 + Matek BEC12S-PRO 5.1V",
-                "   5A UBEC + SX1262 pod on M3 silicone bobbins.",
-                "2. Bolt forward sensor pod at (+90,0,+15mm): TC001",
-                "   at -45 deg, IMX296 & TF02-Pro (69x41.5x26) nadir.",
-                "3. Wire TELEM1/SERIAL1 to RPi 5 GPIO14/15 (leave",
-                "   Pin 1 5V Slate-Grey EMPTY) & TF02-Pro to SERIAL4.",
+                "1. Suspend ventral RPi 5 + BEC12S-PRO 5.1V/5A",
+                "   UBEC + 3W Shepherd LED (SERVO9) on bobbins.",
+                "2. Bolt forward pod (+90,0,+15mm): TC001 -45deg,",
+                "   IMX462 Starvis-2 + IMX296 & TF02-Pro nadir.",
+                "3. Wire TELEM1 to RPi GPIO14/15 (Pin 1 5V Slate-",
+                "   Grey EMPTY) & verify 3.99A <= 5.0A UBEC.",
                 "",
-                "CHECK: 5.10V +- 0.05V UBEC & PM02 5.2V sensor rail.",
+                "CHECK: 5.10V +- 0.05V UBEC & PM02 5.2V rail.",
             ],
         ),
         (
             "STAGE_4",
-            "STAGE 4: DORSAL 174x114x104mm EPP + 10W PTC BAY & 1045 PROPS",
+            "STAGE 4: DORSAL EPP + 10W PTC BAY, EASA STROBE & 1045 PROPS",
             1115,
             830,
             [
-                "PARTS: [P04] 4S2P P45B + 100A BMS + EPP + 10W PTC",
+                "PARTS: [P04] 4S2P+EPP+PTC | [P09] Strobe",
                 "TOOLS: [T03] Multimeter | [T06] Prop Nut Driver",
                 "",
-                "1. Mount 174x114x104mm (15mm wall, 144x84x74mm",
-                "   cavity) EPP bay on PEEK isolators + Kevlar straps.",
+                "1. Mount 174x114x104mm (15mm) EPP bay + dorsal",
+                "   EASA 3sm strobe (GPIO18) on PEEK isolators.",
                 "2. Insert warm (+20 C) 4S2P Molicel P45B + 100A",
-                "   BMS + 60A fuse; wire DS18B20/MOSFET to GPIO4/17.",
+                "   BMS + 60A fuse; wire DS18B20 to GPIO4/17.",
                 "3. Load pixhawk6c_4s_sar.param (BATT_CRT=12.8V,",
-                "   RNGFND1_TYPE=19, EK3_SRC2=6, WPNAV_DN=150).",
+                "   TERRAIN_MARGIN=25.0, SERVO9=1100..1900).",
                 "4. Fit 1045 CW/CCW props AFTER 10-Second BIST.",
                 "",
-                "CHECK: 607.55 x 607.55 x 325.00 mm | 2.380 kg.",
+                "CHECK: 607.55 x 607.55 x 325.00 mm | 2.410 kg.",
             ],
         ),
     ]
@@ -639,8 +664,8 @@ def build_all() -> dict:
     stl_path = cad_dir / "opaslyhty_x500v2_sar_assembly.stl"
     step_path = cad_dir / "opaslyhty_x500v2_sar_assembly.step"
     dxf_path = cad_dir / "opaslyhty_x500v2_sar_cnc_plates.dxf"
-    ortho_png_path = cad_dir / "opaslyhty_x500v2_3d_cad_ortho_ref_v3.png"
-    ikea_png_path = cad_dir / "opaslyhty_x500v2_ikea_assembly_guide_v3.png"
+    ortho_png_path = cad_dir / "opaslyhty_x500v2_3d_cad_ortho_ref_v5.png"
+    ikea_png_path = cad_dir / "opaslyhty_x500v2_ikea_assembly_guide_v6.png"
 
     stages = build_stage_solids()
     full_solids = stages["STAGE_4"]

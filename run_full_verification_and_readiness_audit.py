@@ -68,7 +68,7 @@ def main() -> int:
     total_img_links = 0
     for md in md_files:
         txt = md.read_text(encoding="utf-8", errors="ignore")
-        for rel_img in re.findall(r"(?:docs/)?images/[A-Za-z0-9_./-]+\.(?:jpg|png)", txt):
+        for rel_img in re.findall(r"(?:(?:docs/)?images|cad)/[A-Za-z0-9_./-]+\.(?:jpg|png)", txt):
             img_p = (md.parent / rel_img).resolve()
             if not img_p.is_file():
                 print(f"  [FAIL] Broken image link in {md.relative_to(root)}: {rel_img}", file=sys.stderr)

@@ -91,22 +91,22 @@ def load_signing_key(key_file=None, allow_example_keys=None):
                 raise RuntimeError(f"Invalid node_key.json ({kf}): {e}") from e
 
     if allow_example_keys is None:
-        allow_example = os.getenv("ALLOW_EXAMPLE_KEYS", "1") != "0"
+        allow_example = os.getenv("ALLOW_EXAMPLE_KEYS", "0").strip().lower() in ("1", "true", "yes")
     else:
         allow_example = bool(allow_example_keys)
 
     if not priv_hex:
         if not allow_example:
             raise RuntimeError(
-                "No node private key provisioned and ALLOW_EXAMPLE_KEYS=0. "
-                "Provision a unique key with generate_keys.py."
+                "No node private key provisioned and ALLOW_EXAMPLE_KEYS is not enabled. "
+                "Provision a unique key with generate_keys.py (or set ALLOW_EXAMPLE_KEYS=1 for isolated bench testing)."
             )
         priv_hex = DEFAULT_EXAMPLE_PRIVKEY_HEX
 
     if priv_hex.lower() == DEFAULT_EXAMPLE_PRIVKEY_HEX.lower():
         if not allow_example:
             raise RuntimeError(
-                "Refusing to sign with default example key while ALLOW_EXAMPLE_KEYS=0. "
+                "Refusing to sign with default example key while ALLOW_EXAMPLE_KEYS is not enabled. "
                 "Provision a unique key with generate_keys.py."
             )
         print("[!] SECURITY NOTICE: Using default benchtop example key. Provision unique keys before deployment.", file=sys.stderr)
@@ -152,7 +152,10 @@ def derive_ephemeral_key_from_trig(trig_line):
     return ",".join(clean_parts), ephemeral_sk
 
 
-signing_key = load_signing_key()
+try:
+    signing_key = load_signing_key()
+except RuntimeError:
+    signing_key = None
 
 # Model Configuration (MS-COCO 80-class IDs mapped for Arctic security, motorized vehicles & Nordic wildlife)
 HEF_PATH = os.getenv("HEF_PATH", "/usr/share/hailo-models/yolov8s_h8l.hef")
@@ -347,7 +350,7 @@ def transmit_over_diode(sock, alert_meta, jpeg_bytes, shared_trunk=None, custom_
             alert_meta["detections_truncated"] = True
 
     meta_bytes = json.dumps(alert_meta, separators=(",", ":")).encode("utf-8")
-    active_sk = custom_signing_key if custom_signing_key is not None else signing_key
+    active_sk = custom_signing_key if custom_signing_key is not None else (signing_key if signing_key is not None else load_signing_key())
     signature = active_sk.sign(meta_bytes).signature
 
     # Type 0x01: Signed Alert Header Datagram

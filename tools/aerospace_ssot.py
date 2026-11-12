@@ -863,11 +863,12 @@ def project_all(stl_bytes: bytes, **kwargs) -> dict:
 
 
 def embed_png_provenance(png_bytes: bytes, provenance: dict) -> bytes:
-    """Embed `cad_hlr_provenance` tEXt chunk into a PNG file right before IEND."""
-    keyword = b"cad_hlr_provenance"
-    text_data = keyword + b"\x00" + canonical_json(provenance).encode("utf-8")
-    chunk_len = struct.pack(">I", len(text_data))
-    chunk_crc = struct.pack(">I", zlib.crc32(b"tEXt" + text_data) & 0xFFFFFFFF)
-    text_chunk = chunk_len + b"tEXt" + text_data + chunk_crc
+    """Embed `cad_hlr_provenance` and `playbook_provenance` tEXt chunks into a PNG file right before IEND."""
+    chunks = b""
+    for keyword in (b"cad_hlr_provenance", b"playbook_provenance"):
+        text_data = keyword + b"\x00" + canonical_json(provenance).encode("utf-8")
+        chunk_len = struct.pack(">I", len(text_data))
+        chunk_crc = struct.pack(">I", zlib.crc32(b"tEXt" + text_data) & 0xFFFFFFFF)
+        chunks += chunk_len + b"tEXt" + text_data + chunk_crc
     iend_pos = png_bytes.rfind(b"\x00\x00\x00\x00IEND")
-    return png_bytes[:iend_pos] + text_chunk + png_bytes[iend_pos:]
+    return png_bytes[:iend_pos] + chunks + png_bytes[iend_pos:]

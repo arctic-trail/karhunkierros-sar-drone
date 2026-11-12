@@ -12,7 +12,8 @@ import shutil
 import tempfile
 import hashlib
 import secrets
-# Import receiver components directly
+# Import receiver components directly (enable isolated bench fixture key for resilience tests)
+os.environ.setdefault("ALLOW_EXAMPLE_KEYS", "1")
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../collector_hub")))
 import receiver_hub
 from receiver_hub import SigningKey

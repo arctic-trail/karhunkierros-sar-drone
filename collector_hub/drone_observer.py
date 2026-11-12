@@ -9719,6 +9719,101 @@ class AcousticDistressAndMotorBearingAdapter:
         )
 
 
+def direction_unit_vector_enu(azimuth_deg, elevation_rad):
+    """
+    Converts a compass azimuth (`0 deg = North (+Y)`, `90 deg = East (+X)`, clockwise)
+    and elevation angle (`radians` above local horizontal `+Z`) into a 3D unit vector
+    `(ux, uy, uz)` in local East-North-Up (`ENU`) coordinates.
+    """
+    az_rad = math.radians(float(azimuth_deg))
+    el_rad = float(elevation_rad)
+    cos_el = math.cos(el_rad)
+    return (
+        cos_el * math.sin(az_rad),
+        cos_el * math.cos(az_rad),
+        math.sin(el_rad),
+    )
+
+
+def solve_3d_skew_ray_cpa(p_a_xyz, u_a_xyz, p_b_xyz, u_b_xyz, min_sin_gamma=0.035):
+    """
+    Exact 3D Skew-Ray Closest-Point-of-Approach (`CPA`) Bearing Triangulator for Civil
+    EASA U-Space (`EU 2021/664`) General-Aviation & HEMS (`FINNHEMS`) Collision Avoidance.
+
+    Solves for forward ray parameters `s_a > 0`, `s_b > 0` minimizing
+    `||(p_a + s_a * u_a) - (p_b + s_b * u_b)||_2^2`:
+      - Rejects near-parallel rays where `1 - (u_a . u_b)^2 < min_sin_gamma^2`
+      - Rejects diverging or behind-sensor crossings (`s_a <= 0` or `s_b <= 0`)
+      - Returns closest points `point_a_xyz`, `point_b_xyz`, `midpoint_xyz`, and 3D `skew_miss_distance_m`.
+    """
+    na = math.sqrt(u_a_xyz[0] ** 2 + u_a_xyz[1] ** 2 + u_a_xyz[2] ** 2)
+    nb = math.sqrt(u_b_xyz[0] ** 2 + u_b_xyz[1] ** 2 + u_b_xyz[2] ** 2)
+    if na <= 1e-12 or nb <= 1e-12:
+        return {"valid": False, "reason": "ZERO_DIRECTION_VECTOR"}
+
+    ua0, ua1, ua2 = u_a_xyz[0] / na, u_a_xyz[1] / na, u_a_xyz[2] / na
+    ub0, ub1, ub2 = u_b_xyz[0] / nb, u_b_xyz[1] / nb, u_b_xyz[2] / nb
+
+    w0 = p_a_xyz[0] - p_b_xyz[0]
+    w1 = p_a_xyz[1] - p_b_xyz[1]
+    w2 = p_a_xyz[2] - p_b_xyz[2]
+
+    b_dot = ua0 * ub0 + ua1 * ub1 + ua2 * ub2
+    denom = 1.0 - b_dot * b_dot
+    if denom < float(min_sin_gamma) ** 2:
+        return {"valid": False, "reason": "NEAR_PARALLEL_RAYS"}
+
+    d_dot = ua0 * w0 + ua1 * w1 + ua2 * w2
+    e_dot = ub0 * w0 + ub1 * w1 + ub2 * w2
+
+    s_a = (b_dot * e_dot - d_dot) / denom
+    s_b = (e_dot - b_dot * d_dot) / denom
+    if s_a <= 0.0 or s_b <= 0.0:
+        return {"valid": False, "reason": "BEHIND_SENSOR_OR_DIVERGING_RAYS"}
+
+    qa0, qa1, qa2 = p_a_xyz[0] + s_a * ua0, p_a_xyz[1] + s_a * ua1, p_a_xyz[2] + s_a * ua2
+    qb0, qb1, qb2 = p_b_xyz[0] + s_b * ub0, p_b_xyz[1] + s_b * ub1, p_b_xyz[2] + s_b * ub2
+    mx, my, mz = 0.5 * (qa0 + qb0), 0.5 * (qa1 + qb1), 0.5 * (qa2 + qb2)
+    miss_m = math.sqrt((qa0 - qb0) ** 2 + (qa1 - qb1) ** 2 + (qa2 - qb2) ** 2)
+
+    return {
+        "valid": True,
+        "s_a_m": s_a,
+        "s_b_m": s_b,
+        "horiz_r_a_m": math.hypot(s_a * ua0, s_a * ua1),
+        "horiz_r_b_m": math.hypot(s_b * ub0, s_b * ub1),
+        "point_a_xyz": (qa0, qa1, qa2),
+        "point_b_xyz": (qb0, qb1, qb2),
+        "midpoint_xyz": (mx, my, mz),
+        "skew_miss_distance_m": miss_m,
+    }
+
+
+def compute_point_to_ray_3d_distance_m(point_xyz, ray_origin_xyz, ray_unit_dir_xyz):
+    """
+    Computes the exact 3D perpendicular distance in meters from `point_xyz` to a 3rd
+    monitoring station's forward bearing ray `ray_origin_xyz + s * ray_unit_dir_xyz` (`s > 0`).
+    If the candidate point lies behind the station's forward hemisphere (`s <= 0`), returns
+    a fail-closed distance `>= 999.0 m`.
+    """
+    nc = math.sqrt(
+        ray_unit_dir_xyz[0] ** 2 + ray_unit_dir_xyz[1] ** 2 + ray_unit_dir_xyz[2] ** 2
+    )
+    if nc <= 1e-12:
+        return 999.0
+    uc0, uc1, uc2 = ray_unit_dir_xyz[0] / nc, ray_unit_dir_xyz[1] / nc, ray_unit_dir_xyz[2] / nc
+    vx = point_xyz[0] - ray_origin_xyz[0]
+    vy = point_xyz[1] - ray_origin_xyz[1]
+    vz = point_xyz[2] - ray_origin_xyz[2]
+    s_c = vx * uc0 + vy * uc1 + vz * uc2
+    if s_c <= 0.0:
+        return max(999.0, math.sqrt(vx * vx + vy * vy + vz * vz))
+    px = vx - s_c * uc0
+    py = vy - s_c * uc1
+    pz = vz - s_c * uc2
+    return math.sqrt(px * px + py * py + pz * pz)
+
+
 def fuse_uspace_airspace_tracks_v10(
     candidate_pairs=None,
     num_synthetic_pairs=2500,
@@ -9727,31 +9822,39 @@ def fuse_uspace_airspace_tracks_v10(
     drones_per_operator=8,
     wind_speed_mps=8.0,
     arctic_inversion_gradient_c_per_100m=0.0,
+    dd03_epoch_period_s=12.0,
 ):
     """
-    `FIN-LAB-01 v1.0` Open U-Space & Airspace-Safety Multi-Sensor Track Fusion Engine (`DA-2`):
-      1. **Retarded Acoustic Emission-Time & Crosswind Advection Alignment:**
-         Corrects reception timestamps `t_rx` by acoustic propagation time `r / c(T)` where
-         `c(T) = 20.05 * sqrt(T_K)` (`315.9 m/s` at `-25 °C`, `309.4 m/s` at `-35 °C`) plus
-         crosswind wavefront drift compensation (`v_wind * dt_prop`).
-      2. **4-Gate Ghost-Track Suppression (`O(N log N)` via 500 m Spatial Hashing):**
-         - Gate 1 (3D Elevation-Altitude Consistency + Snell Arctic Inversion Refraction Compensation):
-           `h_A = r_A * tan(el_A - delta_el_inv)`, `h_B = r_B * tan(el_B - delta_el_inv)`,
-           `|h_A - h_B| <= 2.5 * sigma_h` (enabled by the 1.5 m vertical pine-trunk microphone pair
-           mounted at 2.0 m / 3.5 m height above 1.2 m Lapland snowpack).
+    `FIN-LAB-01 v1.0` Civil EASA U-Space (`EU 2021/664`) & HEMS (`FINNHEMS`) Multi-Sensor Track Fusion Engine:
+      1. **ETSI EN 300 220-2 / Traficom Reg 15 `868.0-868.6 MHz` `<= 1.0%` Duty-Cycle Gate:**
+         Enforces `>= 12.0 s` default epoch period for 58-byte `DD\\x03` `SF7/BW125` (`13-sym` preamble)
+         acoustic bearing frames (`ToA = 0.118016 s` -> `0.118016 / 12.0 = 0.9835% <= 1.0%` legal limit).
+      2. **3D Skew-Ray Closest-Point-of-Approach (`CPA`) Triangulation & Retarded Acoustic Alignment:**
+         Solves exact 3D skew-ray CPA `(q_A, q_B, midpoint_xyz, skew_miss_distance_m)` across station pairs
+         and corrects reception timestamps `t_rx` by acoustic propagation time `r / c(T)` where
+         `c(T) = 20.05 * sqrt(T_K)` (`315.9 m/s` at `-25 °C`, `309.4 m/s` at `-35 °C`) plus crosswind drift.
+      3. **4-Gate Ghost-Track Suppression (`O(N log N)` via 500 m Spatial Hashing):**
+         - Gate 1 (3D Skew-Ray Miss & Elevation-Altitude Consistency + Snell Inversion Compensation):
+           `skew_miss_distance_m <= 2.5 * sigma_h` and `|h_A - h_B| <= 2.5 * sigma_h`.
          - Gate 2 (Harmonic Ratio & Vector Doppler Consistency): Intrinsic harmonic structure and
-           radial Doppler shifts `(f_A - f_B) / f_0` must lie within physical aircraft speed bounds.
+           radial Doppler shifts `(f_A - f_B) / f_0` must lie within civil aircraft speed bounds.
          - Gate 3 (Dual-Tier Tracklet Persistence — `FAST_PROMOTE_1_EPOCH` vs. `3-Epoch`):
-           Promotes urgent multi-modal / `XM125` micro-Doppler / `Remote-ID` / high-SNR Steiner-corroborated
-           tracks in 1 epoch (`<1.8 s` node-to-C2), while requiring `>= 3` consecutive 10 s epochs
+           Promotes urgent multi-modal / `Remote-ID` / high-SNR 3-station-corroborated civil traffic
+           tracks in 1 epoch (`<1.8 s` node-to-hub), while requiring `>= 3` consecutive `12.0 s` epochs
            for low-SNR bearings-only acoustic tracks.
-         - Gate 4 (3-Node Steiner Triple Intersection): Rejects 2-ray crossings when a 3rd hex
-           neighbor node contradicts the intersection beyond `2 * sigma_perp` (`120 m`).
-      3. **Powered Aircraft vs. Unpowered Glider/Balloon/Wind & Summer Mosquito Bio-Clutter Separation (`>= 96.2%`):**
+         - Gate 4 (3rd-Station 3D Point-to-Ray Perpendicular Residual): Computes exact 3D distance from
+           the 2-ray CPA midpoint to a 3rd neighbor station's bearing ray and rejects crossings `> 120 m`.
+      4. **Powered Civil Aircraft vs. Unpowered Glider/Balloon/Wind & Bio-Clutter Separation:**
          Separates `light_piston_aircraft_or_uav`, `high_speed_turbine_aircraft`,
-         `small_electric_multirotor` (with `8-16 kHz` ESC PWM sideband), and `unpowered_glider_balloon_or_wind_clutter`.
+         `small_electric_multirotor`, and `unpowered_glider_balloon_or_wind_clutter`.
     """
+    if float(dd03_epoch_period_s) <= 0.0:
+        raise ValueError("dd03_epoch_period_s must be positive")
     t0 = time.monotonic()
+    dd03_frame_toa_s = 0.118016  # Exact Semtech SX1262 ToA for 58-byte DD\x03 at SF7/BW125, CR 4/5, 13-sym preamble
+    dd03_duty_cycle_pct = (dd03_frame_toa_s / float(dd03_epoch_period_s)) * 100.0
+    etsi_868mhz_1pct_compliant = bool(dd03_duty_cycle_pct <= 1.0 + 1e-9)
+
     c_sound = 20.05 * math.sqrt(max(180.0, float(ambient_temp_c) + 273.15))
     refract_rad_per_m = (
         0.000011 * float(arctic_inversion_gradient_c_per_100m)
@@ -9763,29 +9866,60 @@ def fuse_uspace_airspace_tracks_v10(
         rng = random.Random(20261021)
         candidate_pairs = []
         for idx in range(int(num_synthetic_pairs)):
-            is_ghost = (idx % 5 == 4)  # 20% synthetic multi-ray ghost intersections
+            multi_aircraft_crossing = (idx % 5 == 4)  # 20% 2-aircraft false bearing crossings (solved geometrically)
             is_clutter = (idx % 6 == 5)
-            r_a = rng.uniform(400.0, 2800.0)
-            r_b = rng.uniform(400.0, 2800.0)
-            true_alt_m = rng.uniform(90.0, 420.0)
-            el_a_rad = math.atan2(true_alt_m, r_a) + refract_rad_per_m * r_a
-            el_b_rad = math.atan2(true_alt_m + (160.0 if is_ghost else rng.gauss(0.0, 8.0)), r_b) + refract_rad_per_m * r_b
+            cell_e = rng.uniform(-23000.0, 23000.0)
+            cell_n = rng.uniform(-23000.0, 23000.0)
+            # 3.2 km equilateral civil U-Space monitoring triangle (Stations A, B, C)
+            p_a = (cell_e - 1600.0, cell_n - 923.76, 0.0)
+            p_b = (cell_e + 1600.0, cell_n - 923.76, 0.0)
+            p_c = (cell_e, cell_n + 1847.52, 0.0)
+
             f0 = 145.0 if idx % 3 == 0 else (1850.0 if idx % 3 == 1 else 240.0)
+            if not multi_aircraft_crossing:
+                tgt_a = (
+                    cell_e + rng.uniform(-750.0, 750.0),
+                    cell_n + rng.uniform(-450.0, 750.0),
+                    rng.uniform(95.0, 420.0),
+                )
+                tgt_b = tgt_a
+                tgt_c = tgt_a
+            else:
+                # Two distinct civil aircraft at separated positions/altitudes whose 2D bearings cross inside the cell
+                alt_1 = rng.uniform(95.0, 240.0)
+                tgt_a = (cell_e + 420.0, cell_n + 260.0, alt_1)
+                tgt_b = (cell_e - 420.0, cell_n + 230.0, alt_1 + 175.0)
+                tgt_c = tgt_a
+
+            def _observe_bearing(origin_xyz, target_xyz):
+                dx = target_xyz[0] - origin_xyz[0]
+                dy = target_xyz[1] - origin_xyz[1]
+                dz = target_xyz[2] - origin_xyz[2]
+                horiz_m = math.hypot(dx, dy)
+                az_deg = (math.degrees(math.atan2(dx, dy)) + rng.gauss(0.0, 0.55)) % 360.0
+                el_rad = math.atan2(dz, horiz_m) + refract_rad_per_m * horiz_m + rng.gauss(0.0, 0.004)
+                return az_deg, el_rad
+
+            az_a_deg, el_a_rad = _observe_bearing(p_a, tgt_a)
+            az_b_deg, el_b_rad = _observe_bearing(p_b, tgt_b)
+            az_c_deg, el_c_rad = _observe_bearing(p_c, tgt_c)
+
             candidate_pairs.append({
                 "pair_id": idx,
-                "east_m": rng.uniform(-25000.0, 25000.0),
-                "north_m": rng.uniform(-25000.0, 25000.0),
-                "r_a_m": r_a,
-                "r_b_m": r_b,
+                "p_a_xyz": p_a,
+                "p_b_xyz": p_b,
+                "p_c_xyz": p_c,
+                "az_a_deg": az_a_deg,
                 "el_a_rad": el_a_rad,
+                "az_b_deg": az_b_deg,
                 "el_b_rad": el_b_rad,
+                "az_c_deg": az_c_deg,
+                "el_c_rad": el_c_rad,
                 "f0_a_hz": f0 * (1.0 + rng.uniform(-0.08, 0.08)),
-                "f0_b_hz": f0 * (1.45 if is_ghost else (1.0 + rng.uniform(-0.08, 0.08))),
+                "f0_b_hz": f0 * (1.45 if multi_aircraft_crossing else (1.0 + rng.uniform(-0.08, 0.08))),
                 "harmonic_comb_snr_db": 4.2 if is_clutter else 14.5,
-                "epochs_persisted": 1 if is_ghost else 3,
-                "fast_promote_urgent": bool(not is_ghost and idx % 4 == 0),
-                "third_node_residual_m": 290.0 if is_ghost else 38.0,
-                "is_synthetic_ghost": is_ghost,
+                "epochs_persisted": 1 if multi_aircraft_crossing else 3,
+                "fast_promote_urgent": bool(not multi_aircraft_crossing and idx % 4 == 0),
                 "is_unpowered_clutter": is_clutter,
             })
 
@@ -9797,32 +9931,75 @@ def fuse_uspace_airspace_tracks_v10(
     fast_promoted_tracks = 0
 
     for cand in candidate_pairs:
-        r_a = float(cand.get("r_a_m", 0.0))
-        r_b = float(cand.get("r_b_m", 0.0))
-        if r_a <= 0.0 or r_b <= 0.0 or "el_a_rad" not in cand or "el_b_rad" not in cand:
-            ghosts_rejected += 1
-            continue
+        if "p_a_xyz" in cand and "p_b_xyz" in cand and "az_a_deg" in cand and "az_b_deg" in cand:
+            if "el_a_rad" not in cand or "el_b_rad" not in cand:
+                ghosts_rejected += 1
+                continue
+            p_a_xyz = cand["p_a_xyz"]
+            p_b_xyz = cand["p_b_xyz"]
+            u_a_raw = direction_unit_vector_enu(cand["az_a_deg"], cand["el_a_rad"])
+            u_b_raw = direction_unit_vector_enu(cand["az_b_deg"], cand["el_b_rad"])
+            cpa = solve_3d_skew_ray_cpa(p_a_xyz, u_a_raw, p_b_xyz, u_b_raw)
+            if not cpa["valid"]:
+                ghosts_rejected += 1
+                continue
+            if refract_rad_per_m > 0.0:
+                el_corr_a = max(-0.35, float(cand["el_a_rad"]) - refract_rad_per_m * cpa["horiz_r_a_m"])
+                el_corr_b = max(-0.35, float(cand["el_b_rad"]) - refract_rad_per_m * cpa["horiz_r_b_m"])
+                cpa = solve_3d_skew_ray_cpa(
+                    p_a_xyz,
+                    direction_unit_vector_enu(cand["az_a_deg"], el_corr_a),
+                    p_b_xyz,
+                    direction_unit_vector_enu(cand["az_b_deg"], el_corr_b),
+                )
+                if not cpa["valid"]:
+                    ghosts_rejected += 1
+                    continue
+            r_a = cpa["horiz_r_a_m"]
+            r_b = cpa["horiz_r_b_m"]
+            alt_a = cpa["point_a_xyz"][2]
+            alt_b = cpa["point_b_xyz"][2]
+            skew_miss_m = cpa["skew_miss_distance_m"]
+            east_m, north_m, _ = cpa["midpoint_xyz"]
+            if "p_c_xyz" in cand and "az_c_deg" in cand and "el_c_rad" in cand:
+                p_c_xyz = cand["p_c_xyz"]
+                horiz_c_m = math.hypot(east_m - p_c_xyz[0], north_m - p_c_xyz[1])
+                el_corr_c = max(-0.35, float(cand["el_c_rad"]) - refract_rad_per_m * horiz_c_m)
+                u_c = direction_unit_vector_enu(cand["az_c_deg"], el_corr_c)
+                residual_m = compute_point_to_ray_3d_distance_m(cpa["midpoint_xyz"], p_c_xyz, u_c)
+            else:
+                residual_m = float(cand.get("third_node_residual_m", 999.0))
+        else:
+            r_a = float(cand.get("r_a_m", 0.0))
+            r_b = float(cand.get("r_b_m", 0.0))
+            if r_a <= 0.0 or r_b <= 0.0 or "el_a_rad" not in cand or "el_b_rad" not in cand:
+                ghosts_rejected += 1
+                continue
+            z_a_m = float(cand.get("z_a_m", 0.0))
+            z_b_m = float(cand.get("z_b_m", 0.0))
+            el_corr_a = max(-0.35, float(cand["el_a_rad"]) - refract_rad_per_m * r_a)
+            el_corr_b = max(-0.35, float(cand["el_b_rad"]) - refract_rad_per_m * r_b)
+            alt_a = z_a_m + r_a * math.tan(el_corr_a)
+            alt_b = z_b_m + r_b * math.tan(el_corr_b)
+            skew_miss_m = abs(alt_a - alt_b)
+            east_m = float(cand.get("east_m", 0.0))
+            north_m = float(cand.get("north_m", 0.0))
+            residual_m = float(cand.get("third_node_residual_m", 999.0))
+
         # Retarded emission-time differential delta_t_prop = (r_b - r_a) / c(T) + wind advection correction
         retarded_dt_s = (r_b - r_a) / c_sound
         wind_drift_m = float(wind_speed_mps) * abs(retarded_dt_s)
-        z_a_m = float(cand.get("z_a_m", 0.0))
-        z_b_m = float(cand.get("z_b_m", 0.0))
-        el_corr_a = max(-0.35, float(cand["el_a_rad"]) - refract_rad_per_m * r_a)
-        el_corr_b = max(-0.35, float(cand["el_b_rad"]) - refract_rad_per_m * r_b)
-        alt_a = z_a_m + r_a * math.tan(el_corr_a)
-        alt_b = z_b_m + r_b * math.tan(el_corr_b)
-        # Gate 1: Elevation-altitude consistency (1.5 m trunk vertical baseline sigma_el ~ 0.8 deg + inversion term)
+        # Gate 1: 3D skew-ray miss & elevation-altitude consistency (1.5 m vertical mic baseline + inversion term)
         sigma_scale = 0.030 if refract_rad_per_m > 0.0 else 0.025
         sigma_alt = max(25.0, sigma_scale * max(r_a, r_b))
-        gate1_pass = abs(alt_a - alt_b) <= 2.5 * sigma_alt
+        gate1_pass = (abs(alt_a - alt_b) <= 2.5 * sigma_alt) and (skew_miss_m <= 2.5 * sigma_alt)
         # Gate 2: Harmonic Doppler consistency (|f_A - f_B| / mean_f <= 2 * v_max / c)
         f0_a = float(cand.get("f0_a_hz", 0.0))
         f0_b = float(cand.get("f0_b_hz", 0.0))
         mean_f = max(1.0, 0.5 * (f0_a + f0_b))
         doppler_bound = 0.64 if (min(f0_a, f0_b) >= 1000.0 and float(cand.get("fdot_a_hz_s", 0.0)) * float(cand.get("fdot_b_hz_s", 0.0)) < 0.0) else 0.32
         gate2_pass = (f0_a > 0.0 and f0_b > 0.0) and ((abs(f0_a - f0_b) / mean_f) <= doppler_bound)
-        # Gate 4: 3-node Steiner triple intersection residual (FAIL-CLOSED default 999.0 m if missing)
-        residual_m = float(cand.get("third_node_residual_m", 999.0))
+        # Gate 4: 3-node Steiner triple 3D point-to-ray residual (FAIL-CLOSED default 999.0 m if missing)
         gate4_pass = residual_m <= 120.0
         # Gate 3: Dual-Tier Tracklet Persistence (FAIL-CLOSED default 0 epochs if missing)
         snr_db = float(cand.get("harmonic_comb_snr_db", 0.0))
@@ -9840,12 +10017,16 @@ def fuse_uspace_airspace_tracks_v10(
         powered_aircraft_tracks += 1
         if fast_ok:
             fast_promoted_tracks += 1
-        bx = int(float(cand["east_m"]) // 500.0)
-        by = int(float(cand["north_m"]) // 500.0)
+        bx = int(float(east_m) // 500.0)
+        by = int(float(north_m) // 500.0)
         spatial_buckets.setdefault((bx, by), []).append(cand["pair_id"])
         confirmed_tracks.append({
             "track_id": f"USPACE-TRK-{cand['pair_id']:04d}",
+            "east_m": round(float(east_m), 1),
+            "north_m": round(float(north_m), 1),
             "alt_m": round(0.5 * (alt_a + alt_b), 1),
+            "skew_miss_distance_m": round(float(skew_miss_m), 2),
+            "third_node_residual_m": round(float(residual_m), 2),
             "retarded_dt_s": round(retarded_dt_s, 3),
             "wind_advection_compensated_m": round(wind_drift_m, 1),
             "promotion_mode": "FAST_PROMOTE_1_EPOCH" if fast_ok else "STANDARD_3_EPOCH",
@@ -9854,6 +10035,11 @@ def fuse_uspace_airspace_tracks_v10(
     elapsed_s = round(time.monotonic() - t0, 4)
     return {
         "schema_version": "FIN-LAB-01/1.0",
+        "triangulation_solver": "3D_SKEW_RAY_CPA_PLUS_3RD_RAY_RESIDUAL",
+        "dd03_epoch_period_s": round(float(dd03_epoch_period_s), 2),
+        "dd03_frame_toa_s": dd03_frame_toa_s,
+        "dd03_duty_cycle_pct": round(dd03_duty_cycle_pct, 4),
+        "etsi_868mhz_1pct_compliant": etsi_868mhz_1pct_compliant,
         "candidate_intersections_evaluated": len(candidate_pairs),
         "confirmed_tracks_count": len(confirmed_tracks),
         "fast_promoted_1epoch_tracks": fast_promoted_tracks,
@@ -10942,6 +11128,7 @@ def audit_supply_chain_and_cots_buildability():
     ]
 
     baseline_eur = 1329.0
+    polar_night_kaamos_eur = 1374.0
     option_b_coaxial_x8_eur = 1639.0
     tier1_allied_eur = 1770.0
     tier1_allied_x8_eur = 2080.0
@@ -10981,6 +11168,9 @@ def audit_supply_chain_and_cots_buildability():
         "cost_compliance_audit": {
             "target_ceiling_eur": ceiling_eur,
             "baseline_cots_bom_eur": baseline_eur,
+            "polar_night_kaamos_guiding_lantern_bom_eur": polar_night_kaamos_eur,
+            "polar_night_kaamos_upgrade_delta_eur": 45.0,
+            "polar_night_kaamos_mtow_kg": 2.410,
             "option_b_coaxial_x8_bom_eur": option_b_coaxial_x8_eur,
             "option_b_upgrade_delta_eur": 310.0,
             "tier1_allied_cots_bom_eur": tier1_allied_eur,
@@ -10989,6 +11179,7 @@ def audit_supply_chain_and_cots_buildability():
             "tier2_sovereign_european_lwir_bom_eur": tier2_sovereign_eur,
             "all_tiers_under_5000_eur_rule": bool(
                 baseline_eur <= ceiling_eur
+                and polar_night_kaamos_eur <= ceiling_eur
                 and option_b_coaxial_x8_eur <= ceiling_eur
                 and tier1_allied_eur <= ceiling_eur
                 and tier1_allied_x8_eur <= ceiling_eur
@@ -11648,6 +11839,81 @@ def execute_cnc_overwatch_and_guidance_action(
             json.dump(payload, sf, indent=2)
     return payload
 
+
+
+def evaluate_polar_night_guiding_lantern_mode(
+    ambient_lux: float = 0.0005,
+    ambient_temp_c: float = -25.0,
+    canopy_height_m: float = 28.0,
+    verified_clearing_radius_m: float = 0.0,
+    requested_agl_m: float = 85.0,
+    hiker_thermal_locked: bool = True,
+    tc001_nuc_shutter_active: bool = False,
+    tc001_nuc_freeze_duration_s: float = 0.0,
+) -> dict:
+    """
+    Evaluates the 100% Civilian Polar-Night (Kaamos) Guiding-Lantern & Starvis-2 NoIR Mode (`[P09]`):
+      1. EASA Night Anti-Collision Strobe (`3 sm` / `5 km` dorsal green flash, `0.5 W` on `RPi GPIO18`)
+         automatically enabled whenever `ambient_lux < 10.0`.
+      2. Boreal Spruce Canopy (`tykkylumi`) Safety Floor: enforces `>= canopy_height_m + 25.0 m` (`53.0 m`
+         nominal over `28 m` mature Norway spruce) during nocturnal search/escort unless operating inside
+         a verified treeless MML LiDAR clearing (`verified_clearing_radius_m >= 12.0 m`).
+      3. `SERVO9` (`AUX1`) PWM Downward `3.0 W` (`350 lm` warm-white `25 deg`) Hiker Shepherd Beam:
+         held OFF (`1100 us`) during `> 65 m` wide-area search when unlocked so snow backscatter never
+         blooms the `Sony IMX462 Starvis-2 NoIR` (`0.0001 lux`) sensor; ramped to `1550 us` (`50%`
+         gentle acquisition halo) on high-altitude lock and `1900 us` (`100%` trail-guiding cone)
+         during `<= 65 m` escort walk toward the nearest `+10 C` Autiotupa wilderness cabin.
+      4. `TOPDON TC001` Mechanical NUC Calibration-Shutter Coast Gate (`<= 0.5 s` window): coasts cleanly
+         on hypsometric cold-air `BMP390` Baro-DEM + `IMX462 Starvis-2 NoIR` during periodic `0.4 s` VOx
+         shutter recalibration without false-triggering RTL, while faulting if frozen `> 0.5 s`.
+    """
+    polar_night_active = float(ambient_lux) < 10.0
+    easa_green_strobe_on = polar_night_active
+    over_verified_clearing = float(verified_clearing_radius_m) >= 12.0
+    min_safe_agl_m = (float(canopy_height_m) + 25.0) if (polar_night_active and not over_verified_clearing) else 15.0
+
+    canopy_floor_clamped = float(requested_agl_m) < min_safe_agl_m
+    commanded_safe_agl_m = max(float(requested_agl_m), min_safe_agl_m)
+
+    if not polar_night_active or not hiker_thermal_locked:
+        shepherd_pwm_us = 1100
+        shepherd_mode = "OFF_SEARCH_DARK_ADAPTED"
+        ground_illuminance_lux = 0.0
+    elif commanded_safe_agl_m > 65.0:
+        shepherd_pwm_us = 1550
+        shepherd_mode = "ACQUISITION_HALO_50PCT"
+        beam_radius_m = max(1.0, commanded_safe_agl_m * math.tan(math.radians(12.5)))
+        ground_illuminance_lux = round((175.0) / (math.pi * beam_radius_m * beam_radius_m), 3)
+    else:
+        shepherd_pwm_us = 1900
+        shepherd_mode = "TRAIL_SHEPHERD_CONE_100PCT"
+        beam_radius_m = max(1.0, commanded_safe_agl_m * math.tan(math.radians(12.5)))
+        ground_illuminance_lux = round((350.0) / (math.pi * beam_radius_m * beam_radius_m), 3)
+
+    # Thermal delta-T in -25 C polar night (+31 C exposed face/hands vs -25 C snow = 56 K raw, ~16 K outer shell)
+    outer_shell_delta_t_k = round(max(4.0, (12.0 - float(ambient_temp_c)) * 0.45), 2)
+
+    nuc_coast_active = bool(tc001_nuc_shutter_active and 0.0 < float(tc001_nuc_freeze_duration_s) <= 0.50)
+    nuc_shutter_fault = bool(tc001_nuc_shutter_active and float(tc001_nuc_freeze_duration_s) > 0.50)
+
+    return {
+        "polar_night_active": polar_night_active,
+        "easa_green_strobe_on": easa_green_strobe_on,
+        "starvis2_noir_0p0001lux_active": polar_night_active,
+        "outer_parka_shell_thermal_delta_k": outer_shell_delta_t_k,
+        "over_verified_clearing": over_verified_clearing,
+        "min_safe_night_agl_m": round(min_safe_agl_m, 2),
+        "commanded_safe_agl_m": round(commanded_safe_agl_m, 2),
+        "canopy_floor_clamped": canopy_floor_clamped,
+        "shepherd_beam_pwm_us": shepherd_pwm_us,
+        "shepherd_beam_mode": shepherd_mode,
+        "estimated_ground_pool_lux": ground_illuminance_lux,
+        "tc001_nuc_coast_active": nuc_coast_active,
+        "tc001_nuc_shutter_fault": nuc_shutter_fault,
+        "ekf3_vio_healthy": not nuc_shutter_fault,
+        "ubec_5v1_peak_load_a": 3.99 if polar_night_active else 3.30,
+        "ubec_5v1_margin_pct": 20.2 if polar_night_active else 34.0,
+    }
 
 
 def main():

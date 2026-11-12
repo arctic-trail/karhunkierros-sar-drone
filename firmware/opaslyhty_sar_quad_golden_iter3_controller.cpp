@@ -60,19 +60,27 @@ inline constexpr float kPtcPropBandK = 12.0f;       // Smooth proportional therm
 inline constexpr float kCellOcvMeanV = 3.7625f;     // Mid-discharge OCV (15.05 V pack)
 inline constexpr float kCellOcvEod20PctV = 3.520f;  // 20% SOC end-of-discharge OCV knee (14.08 V pack)
 
-// Altimetry & VRS Envelope Constants
+// Altimetry, VRS Envelope & Polar-Night (Kaamos) Guiding-Lantern Constants
 inline constexpr float kTf02ProMaxValidM = 35.0f;   // Benewake TF02-Pro conservative Arctic gate (RNGFND1_MAX_CM=3500)
 inline constexpr float kTf02ProHardCeilM = 40.0f;   // Hardware saturation ceiling
-inline constexpr float kMaxSafeDescentMps = 1.50f;  // WPNAV_SPEED_DN = 150 cm/s (Vz / vi0 = 0.226 < 0.25 VRS onset)
-inline constexpr float kHoverInducedVi0Mps = 6.64f; // Momentum-theory hover induced velocity (m/s)
+inline constexpr float kMaxSafeDescentMps = 1.50f;  // WPNAV_SPEED_DN = 150 cm/s (Vz / vi0 = 0.224 < 0.25 VRS onset)
+inline constexpr float kHoverInducedVi0Mps = 6.682f;// Momentum-theory hover induced velocity at 2.410 kg MTOW (m/s)
 inline constexpr float kAttitudeErrGateDeg = 4.00f; // VRS attitude instability gate (deg)
 inline constexpr uint8_t kVrsDebounceTicks = 3u;    // Consecutive unstable high-sink ticks required to trigger VRS escape
 inline constexpr float kVuichardVxEscapeMps = 3.5f; // Vuichard lateral cyclic escape velocity out of vortex column (m/s)
+inline constexpr uint8_t kMaxTc001NucCoastTicks = 5u;      // Max 0.5 s (5 ticks @ 10 Hz) TC001 NUC shutter-freeze coast window
+inline constexpr float kNightCanopyClearanceMinM = 25.0f;  // Mandatory >= 25.0 m vertical margin above snow-laden spruce (tykkylumi)
+inline constexpr float kDefaultBorealCanopyHeightM = 28.0f;// Mature Oulanka/Karhunkierros Norway spruce crown height (m)
+inline constexpr float kMinSafeClearingRadiusM = 12.0f;    // Verified treeless clearing radius required to descend below canopy+25m
+inline constexpr uint16_t kShepherdPwmOffUs = 1100u;       // SERVO9 PWM off (prevents backscatter blooming Starvis-2 at 85m search)
+inline constexpr uint16_t kShepherdPwmAcquireUs = 1550u;   // SERVO9 PWM 50% gentle acquisition halo on initial thermal lock
+inline constexpr uint16_t kShepherdPwmEscortUs = 1900u;    // SERVO9 PWM 100% 3.0W (350 lm) downward hiker trail-shepherd beam
 
 enum class AltitudeSource : uint8_t {
     kLidarPrimaryFused = 0,
     kHypsometricBaroDemVio = 1,
-    kEmergencyBaroFallback = 2
+    kEmergencyBaroFallback = 2,
+    kNucShutterBaroStarvisCoast = 3
 };
 
 enum class FailsafeState : uint8_t {
@@ -126,6 +134,15 @@ struct AttitudeNotchPidState {
     bool vrs_recovery_active{false};
 };
 
+struct PolarNightLanternState {
+    bool polar_night_active{true};
+    bool easa_green_strobe_on{true};
+    bool canopy_floor_clamped{false};
+    float min_safe_night_agl_m{53.0f};
+    float commanded_safe_agl_m{85.0f};
+    uint16_t shepherd_beam_pwm_us{kShepherdPwmOffUs};
+};
+
 struct SupervisorConfig {
     float batt_arm_volt{kBattArmVolt4S};
     float batt_low_volt{kBattLowVolt4S};
@@ -135,12 +152,21 @@ struct SupervisorConfig {
     float r_th_pack_k_w{kRthPackKPerW};
     float p_ptc_max_w{kPtcMaxPowerW};
     uint8_t consecutive_vrs_ticks{1u};
+    bool tc001_nuc_shutter_active{false};
+    uint8_t tc001_nuc_freeze_ticks{0u};
+    float last_valid_vio_agl_m{85.0f};
+    bool polar_night_mode{true};
+    float canopy_height_m{kDefaultBorealCanopyHeightM};
+    float verified_clearing_radius_m{0.0f};
+    float requested_mission_agl_m{85.0f};
+    bool hiker_escort_locked{false};
 };
 
 struct SupervisorStepOutput {
     ThermalBatteryState battery{};
     EKFAltitudeOutput ekf{};
     AttitudeNotchPidState attitude{};
+    PolarNightLanternState night_lantern{};
     FailsafeState failsafe{FailsafeState::kNominalMission};
     CanFrame telemetry_frame{};
 };
@@ -283,12 +309,19 @@ inline ThermalBatteryState evaluate_coupled_battery_sag(
 // - Below 35 m AGL: fuses Benewake TF02-Pro LiDAR (0.78 weight) + hypsometric BMP390 Baro-DEM (0.22)
 // - Above 35 m AGL (up to 85 m SAR search altitude): TF02-Pro saturates at 40m; switches to
 //   hypsometric cold-air-compensated BMP390 Baro-DEM (`BARO_GND_TEMP = -25 C`, `TERRAIN_ENABLE = 1`)
-//   + Global Shutter IMX296 / TC001 `ExtNav` VIO (`EK3_SRC2`), checking unscaled 1.0x sensor disagreement.
+//   + Dual-Band IMX462 Starvis-2 NoIR / IMX296 / TC001 `ExtNav` VIO (`EK3_SRC2`), checking unscaled
+//   1.0x sensor disagreement.
+// - During brief (<= 0.5 s / <= 5 ticks @ 10 Hz) TOPDON TC001 mechanical NUC shutter calibration
+//   freezes, coasts cleanly on hypsometric Baro-DEM + Starvis-2 / last-valid VIO bias without
+//   false-triggering RTL; if the freeze exceeds 5 ticks (> 0.5 s), rejects coasting and faults.
 inline EKFAltitudeOutput evaluate_ekf3_altitude_voter(
     float baro_raw_isa_agl_m,
     float lidar_range_m,
     float vio_agl_m,
-    float t_amb_k
+    float t_amb_k,
+    bool tc001_nuc_shutter_active = false,
+    uint8_t tc001_nuc_freeze_ticks = 0u,
+    float last_valid_vio_agl_m = 85.0f
 ) noexcept {
     EKFAltitudeOutput out{};
     if (!std::isfinite(baro_raw_isa_agl_m) || !std::isfinite(t_amb_k) || t_amb_k <= 180.0f) {
@@ -304,7 +337,14 @@ inline EKFAltitudeOutput evaluate_ekf3_altitude_voter(
     const bool lidar_valid = std::isfinite(lidar_range_m) &&
                              (lidar_range_m >= 0.10f) &&
                              (lidar_range_m <= kTf02ProMaxValidM);
-    const bool vio_valid = std::isfinite(vio_agl_m) &&
+    const bool nuc_coast_allowed = tc001_nuc_shutter_active &&
+                                   (tc001_nuc_freeze_ticks > 0u) &&
+                                   (tc001_nuc_freeze_ticks <= kMaxTc001NucCoastTicks) &&
+                                   std::isfinite(last_valid_vio_agl_m) &&
+                                   (last_valid_vio_agl_m >= 0.50f) &&
+                                   (last_valid_vio_agl_m <= 150.0f);
+    const bool vio_valid = !tc001_nuc_shutter_active &&
+                           std::isfinite(vio_agl_m) &&
                            (vio_agl_m >= 0.50f) &&
                            (vio_agl_m <= 150.0f);
 
@@ -312,6 +352,16 @@ inline EKFAltitudeOutput evaluate_ekf3_altitude_voter(
         out.fused_agl_m = 0.78f * lidar_range_m + 0.22f * out.baro_alt;
         out.est_error_m = std::fabs(out.baro_alt - lidar_range_m) + 0.15f;
         out.source = AltitudeSource::kLidarPrimaryFused;
+    } else if (nuc_coast_allowed) {
+        out.fused_agl_m = 0.75f * out.baro_alt + 0.25f * last_valid_vio_agl_m;
+        const float coast_drift_m = 0.08f * static_cast<float>(tc001_nuc_freeze_ticks);
+        const float base_rss_m = std::sqrt(
+            (out.fused_agl_m * (1.80f / t_amb_k)) * (out.fused_agl_m * (1.80f / t_amb_k)) +
+            0.95f * 0.95f +
+            (out.fused_agl_m * 0.0085f) * (out.fused_agl_m * 0.0085f)
+        );
+        out.est_error_m = std::max(base_rss_m + coast_drift_m, std::fabs(out.baro_alt - last_valid_vio_agl_m));
+        out.source = AltitudeSource::kNucShutterBaroStarvisCoast;
     } else if (vio_valid) {
         out.fused_agl_m = 0.62f * out.baro_alt + 0.38f * vio_agl_m;
         // Full 1.0x unscaled disagreement between Baro-DEM and ExtNav VIO + first-principles RSS floor
@@ -325,12 +375,57 @@ inline EKFAltitudeOutput evaluate_ekf3_altitude_voter(
         out.source = AltitudeSource::kHypsometricBaroDemVio;
     } else {
         out.fused_agl_m = out.baro_alt;
-        // Without LiDAR or VIO, barometric drift + DEM uncertainty grows with altitude
+        // Without LiDAR or VIO (or stuck NUC shutter > 0.5 s), barometric drift + DEM uncertainty grows with altitude
         out.est_error_m = std::hypot(1.85f, out.baro_alt * 0.025f);
         out.source = AltitudeSource::kEmergencyBaroFallback;
     }
     out.ekf_healthy = std::isfinite(out.fused_agl_m) && (out.est_error_m <= 2.50f);
     return out;
+}
+
+// Polar-Night (Kaamos) Guiding-Lantern & Boreal Spruce Canopy Safety Floor Gate:
+// - Enforces EASA 3 sm dorsal green night anti-collision strobe whenever polar_night_mode is active.
+// - Enforces >= 25.0 m vertical safety clearance above snow-laden spruce crowns (`canopy_height_m`,
+//   typically 28 m -> 53 m minimum night AGL) unless over a verified treeless clearing (`>= 12 m` radius).
+// - Controls SERVO9 PWM downward 3.0W warm-white shepherd beam (1100 us OFF during >= 65m wide-area
+//   search to prevent snow-backscatter blooming on Starvis-2; 1550 us gentle halo on initial lock;
+//   1900 us full 350 lm trail-guiding cone during <= 60m hiker escort walk to Autiotupa).
+inline PolarNightLanternState evaluate_polar_night_guiding_lantern(
+    bool polar_night_mode,
+    float canopy_height_m,
+    float verified_clearing_radius_m,
+    float requested_mission_agl_m,
+    bool hiker_escort_locked
+) noexcept {
+    PolarNightLanternState st{};
+    st.polar_night_active = polar_night_mode;
+    st.easa_green_strobe_on = polar_night_mode;
+
+    const float safe_canopy_m = std::isfinite(canopy_height_m) ? std::max(0.0f, canopy_height_m) : kDefaultBorealCanopyHeightM;
+    const bool over_verified_clearing = std::isfinite(verified_clearing_radius_m) &&
+                                        (verified_clearing_radius_m >= kMinSafeClearingRadiusM);
+
+    st.min_safe_night_agl_m = (polar_night_mode && !over_verified_clearing)
+        ? (safe_canopy_m + kNightCanopyClearanceMinM)
+        : 15.0f;
+
+    const float req_agl = std::isfinite(requested_mission_agl_m) ? requested_mission_agl_m : 85.0f;
+    if (req_agl < st.min_safe_night_agl_m) {
+        st.commanded_safe_agl_m = st.min_safe_night_agl_m;
+        st.canopy_floor_clamped = true;
+    } else {
+        st.commanded_safe_agl_m = req_agl;
+        st.canopy_floor_clamped = false;
+    }
+
+    if (!polar_night_mode || !hiker_escort_locked) {
+        st.shepherd_beam_pwm_us = kShepherdPwmOffUs;
+    } else if (st.commanded_safe_agl_m > 65.0f) {
+        st.shepherd_beam_pwm_us = kShepherdPwmAcquireUs;
+    } else {
+        st.shepherd_beam_pwm_us = kShepherdPwmEscortUs;
+    }
+    return st;
 }
 
 // VRS Descent Protection, Debounced Vuichard Lateral Escape & Harmonic-Notch Attitude Controller
@@ -440,7 +535,10 @@ inline SupervisorStepOutput step_opaslyhty_supervisor(
         draw.baro_raw_agl_m,
         draw.lidar_range_m,
         draw.vio_agl_m,
-        draw.t_amb_k
+        draw.t_amb_k,
+        cfg.tc001_nuc_shutter_active,
+        cfg.tc001_nuc_freeze_ticks,
+        cfg.last_valid_vio_agl_m
     );
     out.attitude = evaluate_attitude_and_vrs_gate(
         draw.attitude_err_deg * 0.7071f,
@@ -448,6 +546,13 @@ inline SupervisorStepOutput step_opaslyhty_supervisor(
         draw.descent_rate_mps,
         0.34f,
         cfg.consecutive_vrs_ticks
+    );
+    out.night_lantern = evaluate_polar_night_guiding_lantern(
+        cfg.polar_night_mode,
+        cfg.canopy_height_m,
+        cfg.verified_clearing_radius_m,
+        cfg.requested_mission_agl_m,
+        cfg.hiker_escort_locked
     );
 
     // Strict safety failsafe priority hierarchy:
@@ -581,6 +686,46 @@ int main() {
     const auto vrs_3tick = evaluate_attitude_and_vrs_gate(3.5f, 3.0f, 2.4f, 0.34f, kVrsDebounceTicks);
     if (!vrs_3tick.vrs_recovery_active || vrs_3tick.commanded_vx_escape_mps < 3.0f) {
         std::fprintf(stderr, "FAIL: Sustained 3-tick VRS instability did not trigger Vuichard lateral escape\n");
+        return 1;
+    }
+
+    // 7. Polar-Night Test E: TOPDON TC001 0.4s (4-tick <= 5-tick) NUC Shutter Coast vs. >0.5s (8-tick) Stuck Shutter
+    sil::McDrawInput nuc_draw = sil::kMc3000Draws[1]; // 85m AGL draw (above 35m LiDAR cap)
+    nuc_draw.vio_agl_m = qnan;                        // VIO frozen/unavailable during NUC shutter close
+    SupervisorConfig nuc_coast_cfg{};
+    nuc_coast_cfg.tc001_nuc_shutter_active = true;
+    nuc_coast_cfg.tc001_nuc_freeze_ticks = 4u;
+    nuc_coast_cfg.last_valid_vio_agl_m = 85.4f;
+    const auto nuc_ok_res = step_opaslyhty_supervisor(nuc_draw, nuc_coast_cfg);
+    if (!nuc_ok_res.ekf.ekf_healthy ||
+        nuc_ok_res.ekf.source != AltitudeSource::kNucShutterBaroStarvisCoast ||
+        nuc_ok_res.failsafe != FailsafeState::kNominalMission) {
+        std::fprintf(stderr, "FAIL: Brief 0.4s TC001 NUC shutter freeze failed to coast cleanly on Baro+Starvis\n");
+        return 1;
+    }
+
+    SupervisorConfig nuc_stuck_cfg = nuc_coast_cfg;
+    nuc_stuck_cfg.tc001_nuc_freeze_ticks = 8u; // 0.8s > 0.5s max coast window -> must fault to kLowBatteryRtl!
+    const auto nuc_stuck_res = step_opaslyhty_supervisor(nuc_draw, nuc_stuck_cfg);
+    if (nuc_stuck_res.ekf.ekf_healthy || nuc_stuck_res.failsafe != FailsafeState::kLowBatteryRtl) {
+        std::fprintf(stderr, "FAIL: Stuck >0.5s TC001 NUC shutter freeze failed to trigger kLowBatteryRtl\n");
+        return 1;
+    }
+
+    // 8. Polar-Night Test F: Boreal Canopy + 25m Safety Floor & Guiding-Lantern Shepherd PWM State Machine
+    // Over closed 28m snow-laden spruce canopy (clearing = 0m), a 35m descent command must clamp to 53.0m!
+    const auto night_forest = evaluate_polar_night_guiding_lantern(true, 28.0f, 0.0f, 35.0f, true);
+    if (!night_forest.easa_green_strobe_on ||
+        !night_forest.canopy_floor_clamped ||
+        std::fabs(night_forest.commanded_safe_agl_m - 53.0f) > 1e-3f ||
+        night_forest.shepherd_beam_pwm_us != kShepherdPwmEscortUs) {
+        std::fprintf(stderr, "FAIL: Polar-night canopy floor clamp or 1900us shepherd PWM escort state invalid\n");
+        return 1;
+    }
+    // Over a verified 18m radius marsh/Autiotupa clearing, controlled 28m escort descent is permitted:
+    const auto night_clearing = evaluate_polar_night_guiding_lantern(true, 28.0f, 18.0f, 28.0f, true);
+    if (night_clearing.canopy_floor_clamped || std::fabs(night_clearing.commanded_safe_agl_m - 28.0f) > 1e-3f) {
+        std::fprintf(stderr, "FAIL: Verified >=12m treeless clearing blocked safe 28m night escort altitude\n");
         return 1;
     }
 

@@ -15,6 +15,11 @@
       "connector": "RPI5_J8_HEADER_40P",
       "pin_no": 11
     },
+    "GPIO18_EASA_NIGHT_STROBE": {
+      "bus": "EASA_GREEN_3SM_NIGHT_STROBE",
+      "connector": "RPI5_J8_HEADER_40P",
+      "pin_no": 12
+    },
     "GPIO4_DS18B20_1WIRE": {
       "bus": "1WIRE_THERMOSTAT_SENSE",
       "connector": "RPI5_J8_HEADER_40P",
@@ -34,6 +39,11 @@
       "bus": "ADC_VOLT_18V182_MULT",
       "connector": "PIXHAWK6C_POWER1_6P",
       "pin_no": 4
+    },
+    "PWM_AUX1_SHEPHERD_LANTERN": {
+      "bus": "PWM_SERVO9_3W_SHEPHERD_LED",
+      "connector": "PIXHAWK6C_FMU_AUX_PWM",
+      "pin_no": 1
     },
     "RCIN_ELRS_868_CRSF": {
       "bus": "CRSF_420000_C2_LINK",

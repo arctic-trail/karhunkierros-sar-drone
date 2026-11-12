@@ -35,11 +35,11 @@
       "alt_est_err_85m_m": 1.34,
       "feasible": true,
       "file": "physics_verify.py",
-      "r_cell_eff_mohm": 13.97,
-      "r_combat_km": 5.18,
-      "t_cell_ss_c": 18.9,
-      "t_cruise_usable_min": 24.19,
-      "t_hover_usable_min": 19.2,
+      "r_cell_eff_mohm": 13.8,
+      "r_combat_km": 5.07,
+      "t_cell_ss_c": 19.3,
+      "t_cruise_usable_min": 23.65,
+      "t_hover_usable_min": 18.72,
       "v_sense_err_v": 0.0,
       "violated_count": 0,
       "witness_outcomes": {
@@ -49,53 +49,63 @@
       }
     }
   ],
-  "playbook_version": "7.0",
+  "playbook_version": "8.0",
   "project": "karhunkierros-sar-drone",
+  "round2_golden_evaluation": {
+    "cost_eur": 1374.0,
+    "m_tow_kg": 2.41,
+    "nominal_state": {
+      "night_canopy_clearance_m": 55.66,
+      "r_combat_km": 5.07,
+      "t_cruise_usable_min": 23.65,
+      "t_hover_usable_min": 18.72
+    }
+  },
   "verified_10x_100x_gain": {
     "composite_fom_gain_multiplier": null,
     "gains_by_constraint": {
       "H_ALT_85M_ERR": {
         "baseline_v01_nominal": 58.70139,
         "gain_multiplier_nominal": 43.697,
-        "gain_multiplier_tail_99pct": 38.707,
+        "gain_multiplier_tail_99pct": 38.566,
         "golden_v03_nominal": 1.343375,
-        "golden_v03_tail_bound_99pct": 1.516569,
+        "golden_v03_tail_bound_99pct": 1.522087,
         "sense": "<=",
         "unit": "m"
       },
       "H_ARM_VOLT_MARGIN": {
         "baseline_v01_nominal": -6.952794,
-        "gain_multiplier_nominal": 0.655,
-        "gain_multiplier_tail_99pct": 0.544,
-        "golden_v03_nominal": 0.654686,
-        "golden_v03_tail_bound_99pct": 0.543571,
+        "gain_multiplier_nominal": 0.644,
+        "gain_multiplier_tail_99pct": 0.527,
+        "golden_v03_nominal": 0.644244,
+        "golden_v03_tail_bound_99pct": 0.526838,
         "sense": ">=",
         "unit": "V"
       },
       "H_CELL_TEMP": {
         "baseline_v01_nominal": 250.554959,
-        "gain_multiplier_nominal": 1.166,
-        "gain_multiplier_tail_99pct": 1.161,
-        "golden_v03_nominal": 292.047681,
-        "golden_v03_tail_bound_99pct": 290.822268,
+        "gain_multiplier_nominal": 1.167,
+        "gain_multiplier_tail_99pct": 1.162,
+        "golden_v03_nominal": 292.448639,
+        "golden_v03_tail_bound_99pct": 291.186163,
         "sense": ">=",
         "unit": "K"
       },
       "H_CROSSWIND_ROLL_TRIM": {
         "baseline_v01_nominal": 27.094173,
-        "gain_multiplier_nominal": 1.0,
-        "gain_multiplier_tail_99pct": 0.931,
-        "golden_v03_nominal": 27.094173,
-        "golden_v03_tail_bound_99pct": 29.087032,
+        "gain_multiplier_nominal": 0.986,
+        "gain_multiplier_tail_99pct": 0.924,
+        "golden_v03_nominal": 27.477451,
+        "golden_v03_tail_bound_99pct": 29.315251,
         "sense": "<=",
         "unit": "%"
       },
       "H_CRUISE_ENDURANCE_M25C": {
         "baseline_v01_nominal": 11.540601,
-        "gain_multiplier_nominal": 2.096,
-        "gain_multiplier_tail_99pct": 2.029,
-        "golden_v03_nominal": 24.185214,
-        "golden_v03_tail_bound_99pct": 23.416804,
+        "gain_multiplier_nominal": 2.049,
+        "gain_multiplier_tail_99pct": 1.989,
+        "golden_v03_nominal": 23.652168,
+        "golden_v03_tail_bound_99pct": 22.956059,
         "sense": ">=",
         "unit": "min"
       },
@@ -110,19 +120,19 @@
       },
       "H_HOVER_ENDURANCE_M25C": {
         "baseline_v01_nominal": 8.637761,
-        "gain_multiplier_nominal": 2.222,
-        "gain_multiplier_tail_99pct": 2.145,
-        "golden_v03_nominal": 19.196637,
-        "golden_v03_tail_bound_99pct": 18.524458,
+        "gain_multiplier_nominal": 2.168,
+        "gain_multiplier_tail_99pct": 2.091,
+        "golden_v03_nominal": 18.72375,
+        "golden_v03_tail_bound_99pct": 18.062571,
         "sense": ">=",
         "unit": "min"
       },
       "H_HOVER_TW_EFF": {
         "baseline_v01_nominal": 1.903664,
-        "gain_multiplier_nominal": 1.0,
-        "gain_multiplier_tail_99pct": 0.97,
-        "golden_v03_nominal": 1.903664,
-        "golden_v03_tail_bound_99pct": 1.845695,
+        "gain_multiplier_nominal": 0.988,
+        "gain_multiplier_tail_99pct": 0.959,
+        "golden_v03_nominal": 1.879967,
+        "golden_v03_tail_bound_99pct": 1.825122,
         "sense": ">=",
         "unit": "-"
       },
@@ -146,16 +156,16 @@
       },
       "H_TRANSITION_CLIMB_PS": {
         "baseline_v01_nominal": 3.296476,
-        "gain_multiplier_nominal": 1.0,
-        "gain_multiplier_tail_99pct": 0.888,
-        "golden_v03_nominal": 3.296476,
-        "golden_v03_tail_bound_99pct": 2.928797,
+        "gain_multiplier_nominal": 0.967,
+        "gain_multiplier_tail_99pct": 0.861,
+        "golden_v03_nominal": 3.187247,
+        "golden_v03_tail_bound_99pct": 2.837829,
         "sense": ">=",
         "unit": "m/s"
       }
     },
     "max_nominal_gain_multiplier": 43.697,
-    "max_tail_99pct_gain_multiplier": 38.707,
+    "max_tail_99pct_gain_multiplier": 38.566,
     "passed_10x_100x_gate": true,
     "primary_gain_constraint": "H_ALT_85M_ERR",
     "target_gain_multiplier": 10.0

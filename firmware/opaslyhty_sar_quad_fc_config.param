@@ -3,10 +3,10 @@
 # Flight Controller: Holybro Pixhawk 6C Mini (STM32H743 + Dual Heated IMU ICM-42688-P/BMI088)
 # Power Module: Holybro PM02 V3 (18.182 V/V Divider on PWR1 Pin 4, 36.36 A/V Shunt on PWR1 Pin 3)
 # Battery: 4S2P Molicel INR21700-P45B (14.4V nominal / 16.8V max, 9000 mAh) in 174x114x104mm (15mm EPP) + 10W PTC Bay
-# Verified MTOW: 2.380 kg (8 COTS Parts P01..P08) | Unit BOM Cost: 1329.00 EUR
-# Verified -25 C Hover Endurance: 19.20 min (20% reserve, 99% LCB tail: 18.52 min)
-# Verified -25 C Search Cruise Endurance (10.0 m/s): 24.19 min (20% reserve, 99% LCB tail: 23.42 min)
-# Verified -25 C Wind-Aware Combat Radius (4.0 m/s wind, 0.85 route eff): 5.18 km (10.36 km round-trip track)
+# Verified MTOW: 2.410 kg (9 COTS Parts P01..P09) | Unit BOM Cost: 1374.00 EUR
+# Verified -25 C Hover Endurance: 18.72 min (20% reserve, 99% LCB tail: 18.06 min)
+# Verified -25 C Search Cruise Endurance (10.0 m/s): 23.65 min (20% reserve, 99% LCB tail: 22.96 min)
+# Verified -25 C Wind-Aware Combat Radius (4.0 m/s wind, 0.85 route eff): 5.07 km / 5.1 km (10.14 km round-trip track)
 
 FRAME_CLASS,1
 FRAME_TYPE,1
@@ -90,3 +90,12 @@ RTL_SPEED,1000
 RTL_CLIMB_MIN,1500
 FS_THR_ENABLE,1
 FS_GCS_ENABLE,1
+
+# --- Polar-Night (Kaamos) Guiding-Lantern Shepherd Beam (SERVO9 AUX1), EASA Strobe & 25m Canopy Floor ---
+TERRAIN_FOLLOW,1
+TERRAIN_MARGIN,25.0
+NTF_LED_TYPES,123079
+SERVO9_FUNCTION,0
+SERVO9_MIN,1100
+SERVO9_TRIM,1100
+SERVO9_MAX,1900

@@ -5,10 +5,10 @@
       "mass_state": "m_tow_kg",
       "max_iter": 120,
       "state": {
-        "i_cruise_a": 19.5,
-        "m_tow_kg": 2.38,
-        "t_cell_k": 249.5,
-        "vi_cruise_m_s": 3.8
+        "i_cruise_a": 16.9,
+        "m_tow_kg": 2.41,
+        "t_cell_k": 292.2,
+        "vi_cruise_m_s": 3.84
       },
       "tol": 1e-09
     }
@@ -21,7 +21,7 @@
       ],
       "choices": null,
       "sigma": null,
-      "source": "Dorsal 4S2P battery bay external surface area",
+      "source": "Dorsal 4S2P battery bay effective wind-exposed surface area",
       "unit": "m^2",
       "value": 0.044
     },
@@ -32,9 +32,9 @@
       ],
       "choices": null,
       "sigma": null,
-      "source": "Iter 1 flaw: 6S 17.4V critical cutoff left in 4S parameter file",
+      "source": "Iter 3 sag-compensated 4S critical cutoff (3.20 V/cell under load)",
       "unit": "V",
-      "value": 17.4
+      "value": 12.8
     },
     "batt_low_volt_v": {
       "bounds": [
@@ -43,9 +43,9 @@
       ],
       "choices": null,
       "sigma": null,
-      "source": "Iter 1 flaw: 6S 18.0V low voltage warning on 4S pack",
+      "source": "Iter 3 sag-compensated 4S low voltage RTL trigger (3.35 V/cell)",
       "unit": "V",
-      "value": 18.0
+      "value": 13.4
     },
     "beta_arrhenius_q_k": {
       "bounds": [
@@ -65,7 +65,7 @@
       ],
       "choices": null,
       "sigma": null,
-      "source": "Arrhenius internal resistance activation temperature",
+      "source": "Arrhenius internal resistance activation temperature (shared with C++)",
       "unit": "K",
       "value": 2665.0
     },
@@ -76,7 +76,7 @@
       ],
       "choices": null,
       "sigma": null,
-      "source": "Thermal heat capacity of 8x 70g 21700 cells",
+      "source": "Thermal heat capacity of 8x 70g 21700 cells (0.56 kg * 1000 J/kgK)",
       "unit": "J/K",
       "value": 560.0
     },
@@ -197,7 +197,7 @@
       ],
       "choices": null,
       "sigma": null,
-      "source": "Mandatory 20% minimum SAR reserve SOC",
+      "source": "Mandatory 20% minimum SAR reserve SOC (BATT_CRT_MAH = 1800 mAh)",
       "unit": "-",
       "value": 0.2
     },
@@ -219,9 +219,20 @@
       ],
       "choices": null,
       "sigma": 0.006,
-      "source": "Iter 1 flaw: bare open-frame rotor downwash windchill conductance",
+      "source": "Iter 3 PEEK isolator + 12 AWG foam-labyrinth thermal bridge conductance (R_th = 4.65 K/W)",
       "unit": "W/K",
-      "value": 18.0
+      "value": 0.12
+    },
+    "h_boreal_canopy_max_m": {
+      "bounds": [
+        22.0,
+        35.0
+      ],
+      "choices": null,
+      "sigma": 1.2,
+      "source": "Oulanka / Karhunkierros mature snow-laden Norway spruce (tykkylumi) maximum crown height",
+      "unit": "m",
+      "value": 28.0
     },
     "h_conv_bay_w_m2k": {
       "bounds": [
@@ -274,9 +285,9 @@
         1.0
       ],
       "sigma": null,
-      "source": "Iter 1 flaw: 0 = uncompensated ISA baro + 40m LiDAR clamp",
+      "source": "Iter 3 fix: BARO_GND_TEMP + TERRAIN_ENABLE DEM + EK3_SRC2 ExtNav VIO enabled",
       "unit": "-",
-      "value": 0.0
+      "value": 1.0
     },
     "k_epp_w_mk": {
       "bounds": [
@@ -340,7 +351,7 @@
       ],
       "choices": null,
       "sigma": null,
-      "source": "P03 Holybro M10 GNSS + IST8310 compass on rear-port mast (-68, +64 mm)",
+      "source": "P03 Holybro M10 GNSS + IST8310 compass on rear-port mast (-62, +62 mm)",
       "unit": "kg",
       "value": 0.042
     },
@@ -399,6 +410,17 @@
       "unit": "kg",
       "value": 0.055
     },
+    "m_p09_kg": {
+      "bounds": [
+        0.024,
+        0.036
+      ],
+      "choices": null,
+      "sigma": null,
+      "source": "P09 EASA 3sm green night strobe + 3W PWM Guiding-Lantern shepherd LED + Sony IMX462 Starvis-2 NoIR",
+      "unit": "kg",
+      "value": 0.03
+    },
     "mu_advance_coeff": {
       "bounds": [
         0.1,
@@ -446,13 +468,13 @@
     "p_avionics_w": {
       "bounds": [
         20.0,
-        30.0
+        33.0
       ],
       "choices": null,
       "sigma": 0.4,
-      "source": "Pixhawk 6C Mini + RPi 5 + TC001 + IMX296 + TF02-Pro + SX1262 + ELRS + Remote ID",
+      "source": "Pixhawk 6C Mini + RPi 5 + TC001 + IMX462 Starvis-2/IMX296 + TF02-Pro + SX1262 + ELRS + 3.0W Shepherd LED + 0.5W EASA Strobe",
       "unit": "W",
-      "value": 24.5
+      "value": 28.0
     },
     "p_profile_hover_w": {
       "bounds": [
@@ -472,9 +494,9 @@
       ],
       "choices": null,
       "sigma": null,
-      "source": "Iter 1 flaw: 0 W active PTC battery heating",
+      "source": "Iter 3 10.0 W polyimide PTC heater pad rating",
       "unit": "W",
-      "value": 0.0
+      "value": 10.0
     },
     "pm02_volt_mult_cfg": {
       "bounds": [
@@ -483,9 +505,9 @@
       ],
       "choices": null,
       "sigma": null,
-      "source": "Iter 1 flaw: misscaled BATT_VOLT_MULT parameter",
+      "source": "Iter 3 calibrated BATT_VOLT_MULT matching PM02 V3 divider",
       "unit": "-",
-      "value": 12.02
+      "value": 18.182
     },
     "pm02_volt_mult_hw": {
       "bounds": [
@@ -500,14 +522,14 @@
     },
     "q_pack_ah": {
       "bounds": [
-        7.5,
+        8.5,
         9.5
       ],
       "choices": null,
       "sigma": 0.08,
-      "source": "Iter 1 baseline 8.0 Ah 4S2P pack capacity",
+      "source": "Iter 3 9.0 Ah 4S2P Molicel INR-21700-P45B pack nominal capacity",
       "unit": "Ah",
-      "value": 8.0
+      "value": 9.0
     },
     "r_cell_20c_ohm": {
       "bounds": [
@@ -549,7 +571,7 @@
       ],
       "choices": null,
       "sigma": 0.0008,
-      "source": "IMX296/TC001 ExtNav VIO slant-range attitude/scale projection error",
+      "source": "IMX462 Starvis-2 NoIR + IMX296/TC001 ExtNav VIO slant-range attitude/scale projection error",
       "unit": "rad",
       "value": 0.0085
     },
@@ -577,14 +599,14 @@
     },
     "t_cell_init_k": {
       "bounds": [
-        242.0,
+        288.15,
         298.15
       ],
       "choices": null,
       "sigma": 0.8,
-      "source": "Iter 1 flaw: cold-soaked -25 C launch without warm-case pre-heating",
+      "source": "Warm-case launch initial cell temperature (+20.0 C per Nordic SAR SOP)",
       "unit": "K",
-      "value": 248.15
+      "value": 293.15
     },
     "t_cell_max_safe_k": {
       "bounds": [
@@ -604,9 +626,9 @@
       ],
       "choices": null,
       "sigma": null,
-      "source": "Iter 1 flaw: uninsulated bare battery strap on open carbon deck",
+      "source": "Iter 3 15.0 mm closed-cell EPP wall (174x114x104mm outer, 144x84x74mm cavity)",
       "unit": "m",
-      "value": 0.0005
+      "value": 0.015
     },
     "t_ptc_setpoint_k": {
       "bounds": [
@@ -626,7 +648,7 @@
       ],
       "choices": null,
       "sigma": null,
-      "source": "20 C electrochemical reference temperature",
+      "source": "20 C electrochemical reference temperature (shared with C++)",
       "unit": "K",
       "value": 293.15
     },

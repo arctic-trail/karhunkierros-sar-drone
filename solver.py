@@ -67,13 +67,18 @@ def build_five_regime_closure_report(ev_gold: dict) -> dict:
             "mu_lcb": round(float(lcb["H_CRUISE_ENDURANCE_M25C"]), 4),
         },
         "REGIME_5_DESCENT_TERMINAL_FAULT": {
-            "pass": bool(lcb["H_DESCENT_CONTROL"] >= 0.005 and lcb["H_ALT_85M_ERR"] >= 0.01),
+            "pass": bool(
+                lcb["H_DESCENT_CONTROL"] >= 0.005
+                and lcb["H_ALT_85M_ERR"] >= 0.01
+                and lcb["H_NIGHT_CANOPY_CLEARANCE"] >= 0.01
+            ),
             "v_descent_safe_mps": 1.5,
             "v_tip_induced_hover_mps": round(float(st["vi_hover_m_s"]), 3),
             "vrs_avoidance_ratio_vz_over_vi0": round(float(st["vrs_ratio"]), 3),
             "descent_control_authority_pct": round(float(st["descent_control_margin_pct"]), 2),
             "descent_control_tail_99pct": round(float(tail["H_DESCENT_CONTROL"]), 2),
             "alt_est_err_85m_m": round(float(st["alt_error_85m_agl_m"]), 3),
+            "night_canopy_clearance_m": round(float(st["night_canopy_clearance_m"]), 3),
             "mu_lcb": round(float(lcb["H_DESCENT_CONTROL"]), 4),
         },
     }
@@ -171,8 +176,18 @@ def run_coupled_verification() -> dict:
 
     receipt = {
         "project": "karhunkierros-sar-drone",
-        "playbook_version": "7.0",
+        "playbook_version": "8.0",
         "all_5_regimes_closed": all_regimes_closed,
+        "round2_golden_evaluation": {
+            "cost_eur": round(float(ev_v03["cost_eur"]), 2),
+            "m_tow_kg": round(float(ev_v03["m_tow"]), 3),
+            "nominal_state": {
+                "r_combat_km": round(float(st3["r_combat_km"]), 2),
+                "t_hover_usable_min": round(float(st3["t_hover_usable_min"]), 2),
+                "t_cruise_usable_min": round(float(st3["t_cruise_usable_min"]), 2),
+                "night_canopy_clearance_m": round(float(st3["night_canopy_clearance_m"]), 2),
+            },
+        },
         "iteration_history": [
             report["iterations"]["iteration_1_v01_baseline"],
             report["iterations"]["iteration_2_v02_intermediate"],

@@ -12,11 +12,12 @@
       "loads": [
         "Raspberry Pi 5 (8GB) + Active Cooler",
         "Topdon TC001 256x192 LWIR Thermal Camera (USB-C)",
-        "RPi Global Shutter Camera (IMX296 CSI-2 Nadir VIO)",
-        "Waveshare SX1262 868MHz LoRa HAT"
+        "RPi Global Shutter Camera (IMX296 CSI-2) + Sony IMX462 Starvis-2 NoIR (0.0001 lux Polar-Night VIO)",
+        "Waveshare SX1262 868MHz LoRa HAT",
+        "Cree XP-G3 3.0W Warm-White PWM Guiding-Lantern Shepherd LED + EASA 0.5W Green Night Strobe"
       ],
-      "peak_load_a": 3.30,
-      "margin_pct": 34.0
+      "peak_load_a": 3.99,
+      "margin_pct": 20.2
     },
     {
       "id": "REG_PIXHAWK_SENSOR_BUS",
@@ -130,6 +131,19 @@
         {"pin": 2, "name": "CRSF_RX", "wire_color": "Green"},
         {"pin": 3, "name": "CRSF_TX", "wire_color": "Orange"},
         {"pin": 4, "name": "GND", "wire_color": "Black"}
+      ]
+    },
+    {
+      "harness_id": "H08_POLAR_NIGHT_STROBE_AND_SHEPHERD_LANTERN",
+      "connector_a": "Matek BEC12S-PRO 5.1V Rail + Pixhawk 6C Mini FMU AUX1 (SERVO9 PWM) + RPi 5 J8 Pin 12 (GPIO18)",
+      "connector_b": "Cree XP-G3 3.0W 350lm Nadir Shepherd LED (AO3400 Low-Side PWM MOSFET) + Dorsal EASA 3sm Green Night Strobe",
+      "wire_gauge_awg": 24,
+      "signals": [
+        {"pin": 1, "name": "VDD_5V1_UBEC_LIGHTING", "wire_color": "Red"},
+        {"pin": 2, "name": "AUX1_SERVO9_PWM_SHEPHERD_GATE", "wire_color": "Purple"},
+        {"pin": 3, "name": "GPIO18_EASA_GREEN_STROBE_EN", "wire_color": "Green"},
+        {"pin": 4, "name": "AUX2_SPARE_UNUSED", "wire_color": "Slate-Grey (LEAVE EMPTY)"},
+        {"pin": 5, "name": "GND_LIGHTING_RETURN", "wire_color": "Black"}
       ]
     }
   ]

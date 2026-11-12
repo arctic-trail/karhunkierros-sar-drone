@@ -79,6 +79,16 @@
       "mfr": "Wurth_Boker_DE",
       "origin": "DE_EU",
       "unit_cost_eur": 18.0
+    },
+    "P09_Polar_Night_Strobe_Shepherd_Starvis_Kit": {
+      "allied": true,
+      "custom_pcb": false,
+      "datasheet": "Sony-IMX462-Starvis2-NoIR-Cree-XPG3-3W-EASA-Strobe.pdf",
+      "fit": 8.0,
+      "mass_kg": 0.03,
+      "mfr": "Sony_Cree_ViFly_Allied",
+      "origin": "JP_US_UK",
+      "unit_cost_eur": 45.0
     }
   }
 }

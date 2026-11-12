@@ -108,7 +108,10 @@ Even though the system exists purely to save human lives in emergencies, every h
 | **7. Arctic Battery (`-40 °C`) & Fastener Kit** | `8,000 mAh 4S2P` (`14.8 V`, `118.4 Wh`) `-40 °C` Li-Ion (`XT60`) + `2.5 mm` silicone pad + `M3` hardware | `€113` |
 | **Base Core Drone Subtotal (`v1.6` Bench Kit)** | **Complete snap-in COTS drone assembly (`~2.5 hours`, zero custom PCBs)** | **`€1,189`** |
 | **8. `v2.0` Field-Hardening Additions (`FIN-LAB`)** | Optional `LTE` burst modem (`+€95`) + `31-material` clamp-on EMI ferrite kit (`+€15`) + wireless `UHF/DECT` drop-cask mic (`+€30`) | `+€140` |
-| **Hardened `v2.0` Core Aircraft Total** | **Full `v2.0` field-hardened SAR aircraft (excluding optional `€610` `+10 °C` roofed launch nest)** | **`€1,329`** |
+| **Hardened `v2.0` Core Aircraft Total (`Qty-1 Fast Retail`)** | **Full `v2.0` field-hardened day-winter SAR aircraft at single-unit retail (`€695` `100x` / `€485` `1000x`, excluding optional `€610` `+10 °C` roofed launch nest)** | **`€1,329`** |
+| **9. `v0.4` Polar-Night (*Kaamos*) Guiding-Lantern Kit (`[P09]`)** | **`Sony IMX462 Starvis-2 NoIR` (`0.0001 lux`) + nadir `3.0 W` (`350 lm` `4000 K`) PWM Shepherd LED (`SERVO9`) + dorsal EASA `3 sm` green strobe (`+0.030 kg` $\to$ `2.410 kg` MTOW)** | **`+€45` (`€1,374`)** |
+| **Lot-100 (`100x`) B2B Wholesale Polar-Night Total** | **B2B distributor / OEM module pricing at `100` units (`-47.7%` vs. `Qty-1` retail; see [Section 2 of `README.md`](../README.md))** | **`€718` (`€695` Base)** |
+| **Lot-1,000 (`1000x`) OEM Volume Polar-Night Total** | **Direct factory tray / bare `256×192` LWIR core / OEM `FMUv6C` & `Molicel P45B` pricing at `1,000` units (`-63.7%` / `2.75×` cheaper than `Qty-1`)** | **`€499` (`€485` Base)** |
 
 ### 4.2 Five-Layer Jam-Resilient Navigation Stack, Four-Tier Link Ladder & Canopy Geometry
 

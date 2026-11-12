@@ -123,7 +123,7 @@ def load_authorized_nodes(out_dir=None, allow_example_keys=None):
     """
     target_dir = out_dir or OUT_DIR
     if allow_example_keys is None:
-        allow_example = os.getenv("ALLOW_EXAMPLE_KEYS", "1") != "0"
+        allow_example = os.getenv("ALLOW_EXAMPLE_KEYS", "0").strip().lower() in ("1", "true", "yes")
     else:
         allow_example = bool(allow_example_keys)
 
@@ -535,8 +535,11 @@ def process_datagram(pkt, now=None, strict_clock_skew=None):
 
             vk = KNOWN_NODE_PUBKEYS[node_id]
             pubkey_hex = vk.encode().hex()
-            if os.getenv("ALLOW_EXAMPLE_KEYS", "1") == "0" and pubkey_hex.lower() in DEFAULT_EXAMPLE_PUBKEYS:
-                print(f"[!] Rejected example key for node {node_id} (ALLOW_EXAMPLE_KEYS=0)", file=sys.stderr)
+            if (
+                os.getenv("ALLOW_EXAMPLE_KEYS", "0").strip().lower() not in ("1", "true", "yes")
+                and pubkey_hex.lower() in DEFAULT_EXAMPLE_PUBKEYS
+            ):
+                print(f"[!] Rejected example key for node {node_id} (ALLOW_EXAMPLE_KEYS not enabled)", file=sys.stderr)
                 return False
 
             # Verify Ed25519 cryptographic signature over exact JSON bytes

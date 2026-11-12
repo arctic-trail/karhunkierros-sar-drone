@@ -89,25 +89,31 @@ def compress_for_subghz_nlos(img_bytes, max_bytes=MAX_THUMB_BYTES):
     )
 
 
+DEFAULT_EXAMPLE_RELAY_PRIVKEY_HEX = "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60"
+
+
 def _load_relay_signing_key_hex(explicit_hex=None):
-    """Loads the relay signing key from explicit argument, environment, or node_key.json."""
-    if explicit_hex:
-        return explicit_hex
-    env_hex = os.getenv("NODE_SIGNING_KEY_HEX") or os.getenv("PRIVATE_KEY_HEX")
-    if env_hex:
-        return env_hex
-    for kf in (os.getenv("NODE_KEY_FILE", "/etc/trailcam/node_key.json"), "./node_key.json"):
-        if kf and os.path.isfile(kf):
-            try:
-                with open(kf, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                if data.get("private_key_hex"):
-                    return data["private_key_hex"]
-            except Exception:
-                pass
-    if os.getenv("ALLOW_EXAMPLE_KEYS", "1") == "0":
-        raise RuntimeError("No relay signing key provisioned while ALLOW_EXAMPLE_KEYS=0")
-    return "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60"
+    """Loads the relay signing key from explicit argument, environment, or node_key.json (fails closed unless ALLOW_EXAMPLE_KEYS is enabled)."""
+    allow_example = os.getenv("ALLOW_EXAMPLE_KEYS", "0").strip().lower() in ("1", "true", "yes")
+    key_hex = explicit_hex or os.getenv("NODE_SIGNING_KEY_HEX") or os.getenv("PRIVATE_KEY_HEX")
+    if not key_hex:
+        for kf in (os.getenv("NODE_KEY_FILE", "/etc/trailcam/node_key.json"), "./node_key.json"):
+            if kf and os.path.isfile(kf):
+                try:
+                    with open(kf, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    if data.get("private_key_hex"):
+                        key_hex = data["private_key_hex"]
+                        break
+                except Exception:
+                    pass
+    if not key_hex:
+        if not allow_example:
+            raise RuntimeError("No relay signing key provisioned while ALLOW_EXAMPLE_KEYS is not enabled")
+        key_hex = DEFAULT_EXAMPLE_RELAY_PRIVKEY_HEX
+    if str(key_hex).strip().lower() == DEFAULT_EXAMPLE_RELAY_PRIVKEY_HEX and not allow_example:
+        raise RuntimeError("Refusing default example relay signing key while ALLOW_EXAMPLE_KEYS is not enabled")
+    return str(key_hex).strip()
 
 
 def build_nlos_serial_frames(alert_meta, img_bytes, signing_key_hex):

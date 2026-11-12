@@ -2439,6 +2439,200 @@ class TestAerialObserverModule(unittest.TestCase):
         self.assertTrue(playbook_audit["zero_chinese_bom_compliant"])
         self.assertEqual(len(playbook_audit["iterations"]), 6)
 
+    def test_12_fail_closed_keys_etsi_12s_epoch_and_3d_skew_ray_cpa(self):
+        """
+        Verifies:
+          1. ALLOW_EXAMPLE_KEYS defaults to fail-closed ('0') across receiver_hub, sender_node,
+             and subghz_nlos_relay when unset or '0'.
+          2. 12.0 s DD\\x03 LoRa SF7/BW125 epoch achieves 0.9835% <= 1.0% ETSI EN 300 220-2 /
+             Traficom Reg 15 duty cycle on 868.0-868.6 MHz (whereas 10.0 s exceeds 1.0%).
+          3. Exact 3D Skew-Ray Closest-Point-of-Approach (CPA) bearing triangulation & 3rd-station
+             3D point-to-ray residual replace synthetic ghost pre-tagging in fuse_uspace_airspace_tracks_v10.
+        """
+        import receiver_hub
+        import subghz_nlos_relay
+
+        # 1. Fail-closed ALLOW_EXAMPLE_KEYS default check (unset & explicit '0')
+        saved_env = {
+            k: os.environ.get(k)
+            for k in ("ALLOW_EXAMPLE_KEYS", "PRIVATE_KEY_HEX", "NODE_SIGNING_KEY_HEX", "NODE_KEY_FILE", "AUTHORIZED_NODES_FILE")
+        }
+        saved_pubkeys = dict(receiver_hub.KNOWN_NODE_PUBKEYS)
+        try:
+            for k in saved_env:
+                os.environ.pop(k, None)
+            with tempfile.TemporaryDirectory() as tmpdir:
+                nonexistent_kf = os.path.join(tmpdir, "missing_node_key.json")
+                os.environ["NODE_KEY_FILE"] = nonexistent_kf
+
+                # Unset ALLOW_EXAMPLE_KEYS must fail closed across all 3 modules
+                with self.assertRaises(RuntimeError):
+                    sender_node.load_signing_key(key_file=nonexistent_kf)
+                with self.assertRaises(RuntimeError):
+                    subghz_nlos_relay._load_relay_signing_key_hex()
+
+                receiver_hub.KNOWN_NODE_PUBKEYS.clear()
+                receiver_hub.KNOWN_NODE_PUBKEYS["NODE-NORTH-01"] = receiver_hub.VerifyKey(
+                    bytes.fromhex(receiver_hub.DEFAULT_EXAMPLE_PUBKEY_HEX)
+                )
+                with self.assertRaises(RuntimeError):
+                    receiver_hub.load_authorized_nodes(out_dir=tmpdir)
+
+                # Even if KNOWN_NODE_PUBKEYS holds the example key in memory, process_datagram must reject when unset
+                receiver_hub.KNOWN_NODE_PUBKEYS["NODE-NORTH-01"] = receiver_hub.VerifyKey(
+                    bytes.fromhex(receiver_hub.DEFAULT_EXAMPLE_PUBKEY_HEX)
+                )
+                ex_sk = receiver_hub.SigningKey(bytes.fromhex(sender_node.DEFAULT_EXAMPLE_PRIVKEY_HEX))
+                meta_b = json.dumps({"node": "NODE-NORTH-01", "ts": 1700000000, "nonce": "0011223344556677"}).encode("utf-8")
+                ex_pkt = b"DD\x01" + ex_sk.sign(meta_b).signature + meta_b
+                self.assertFalse(receiver_hub.process_datagram(ex_pkt))
+
+                # Example key written inside node_key.json must ALSO be rejected when ALLOW_EXAMPLE_KEYS is unset
+                bad_kf = os.path.join(tmpdir, "bad_example_key.json")
+                with open(bad_kf, "w", encoding="utf-8") as f:
+                    json.dump({"node_id": "NODE-NORTH-01", "private_key_hex": sender_node.DEFAULT_EXAMPLE_PRIVKEY_HEX}, f)
+                os.environ["NODE_KEY_FILE"] = bad_kf
+                with self.assertRaises(RuntimeError):
+                    sender_node.load_signing_key(key_file=bad_kf)
+                with self.assertRaises(RuntimeError):
+                    subghz_nlos_relay._load_relay_signing_key_hex()
+        finally:
+            receiver_hub.KNOWN_NODE_PUBKEYS.clear()
+            receiver_hub.KNOWN_NODE_PUBKEYS.update(saved_pubkeys)
+            for k, v in saved_env.items():
+                if v is None:
+                    os.environ.pop(k, None)
+                else:
+                    os.environ[k] = v
+
+        # 2. ETSI 868.0-868.6 MHz <= 1.0% duty-cycle epoch check (12.0 s compliant vs 10.0 s non-compliant)
+        res_12s = dobs.fuse_uspace_airspace_tracks_v10(num_synthetic_pairs=250, dd03_epoch_period_s=12.0)
+        self.assertEqual(res_12s["triangulation_solver"], "3D_SKEW_RAY_CPA_PLUS_3RD_RAY_RESIDUAL")
+        self.assertEqual(res_12s["dd03_epoch_period_s"], 12.0)
+        self.assertAlmostEqual(res_12s["dd03_duty_cycle_pct"], 0.9835, places=3)
+        self.assertTrue(res_12s["etsi_868mhz_1pct_compliant"])
+
+        res_10s = dobs.fuse_uspace_airspace_tracks_v10(num_synthetic_pairs=50, dd03_epoch_period_s=10.0)
+        self.assertAlmostEqual(res_10s["dd03_duty_cycle_pct"], 1.1802, places=3)
+        self.assertFalse(res_10s["etsi_868mhz_1pct_compliant"])
+
+        # 3. Exact 3D Skew-Ray Closest-Point-of-Approach (CPA) & 3rd-Station Residual Math
+        p_a = (0.0, 0.0, 15.0)
+        p_b = (2400.0, 0.0, 25.0)
+        p_c = (1200.0, 2078.46, 20.0)
+        true_hems_xyz = (1150.0, 980.0, 210.0)
+
+        def _exact_az_el(orig, tgt):
+            dx, dy, dz = tgt[0] - orig[0], tgt[1] - orig[1], tgt[2] - orig[2]
+            return math.degrees(math.atan2(dx, dy)) % 360.0, math.atan2(dz, math.hypot(dx, dy))
+
+        az_a, el_a = _exact_az_el(p_a, true_hems_xyz)
+        az_b, el_b = _exact_az_el(p_b, true_hems_xyz)
+        az_c, el_c = _exact_az_el(p_c, true_hems_xyz)
+
+        cpa_hit = dobs.solve_3d_skew_ray_cpa(
+            p_a, dobs.direction_unit_vector_enu(az_a, el_a),
+            p_b, dobs.direction_unit_vector_enu(az_b, el_b),
+        )
+        self.assertTrue(cpa_hit["valid"])
+        self.assertAlmostEqual(cpa_hit["midpoint_xyz"][0], true_hems_xyz[0], places=5)
+        self.assertAlmostEqual(cpa_hit["midpoint_xyz"][1], true_hems_xyz[1], places=5)
+        self.assertAlmostEqual(cpa_hit["midpoint_xyz"][2], true_hems_xyz[2], places=5)
+        self.assertLess(cpa_hit["skew_miss_distance_m"], 1e-6)
+
+        res_c = dobs.compute_point_to_ray_3d_distance_m(
+            cpa_hit["midpoint_xyz"], p_c, dobs.direction_unit_vector_enu(az_c, el_c)
+        )
+        self.assertLess(res_c, 1e-6)
+
+        # Diverging / behind-sensor rays must fail closed
+        cpa_div = dobs.solve_3d_skew_ray_cpa(
+            p_a, dobs.direction_unit_vector_enu(270.0, 0.1),  # West (-X)
+            p_b, dobs.direction_unit_vector_enu(90.0, 0.1),   # East (+X)
+        )
+        self.assertFalse(cpa_div["valid"])
+
+        # Two separate aircraft producing a 2D crossing must be rejected by 3D CPA skew miss + 3rd-station residual
+        az_b_other, el_b_other = _exact_az_el(p_b, (950.0, 980.0, 395.0))
+        ghost_vs_true = dobs.fuse_uspace_airspace_tracks_v10(
+            candidate_pairs=[
+                {
+                    "pair_id": 1,
+                    "p_a_xyz": p_a, "p_b_xyz": p_b, "p_c_xyz": p_c,
+                    "az_a_deg": az_a, "el_a_rad": el_a,
+                    "az_b_deg": az_b, "el_b_rad": el_b,
+                    "az_c_deg": az_c, "el_c_rad": el_c,
+                    "f0_a_hz": 238.0, "f0_b_hz": 241.0,
+                    "harmonic_comb_snr_db": 15.0,
+                    "epochs_persisted": 3,
+                    "fast_promote_urgent": True,
+                },
+                {
+                    "pair_id": 2,
+                    "p_a_xyz": p_a, "p_b_xyz": p_b, "p_c_xyz": p_c,
+                    "az_a_deg": az_a, "el_a_rad": el_a,
+                    "az_b_deg": az_b_other, "el_b_rad": el_b_other,
+                    "az_c_deg": az_c, "el_c_rad": el_c,
+                    "f0_a_hz": 238.0, "f0_b_hz": 240.0,
+                    "harmonic_comb_snr_db": 15.0,
+                    "epochs_persisted": 3,
+                    "fast_promote_urgent": False,
+                },
+            ]
+        )
+        self.assertEqual(ghost_vs_true["confirmed_tracks_count"], 1)
+        self.assertEqual(ghost_vs_true["ghost_intersections_rejected"], 1)
+
+    def test_35_polar_night_kaamos_guiding_lantern_and_nuc_coast(self):
+        """Verifies [P09] Polar-Night (Kaamos) Guiding-Lantern Mode, 25m canopy floor, Shepherd PWM, and TC001 NUC coast."""
+        # 1. Supply-chain audit reflects [P09] Polar-Night Kaamos EUR 1,374.00 / 2.410 kg alongside EUR 1,329.00 core baseline
+        sup = dobs.audit_supply_chain_and_cots_buildability()
+        self.assertEqual(sup["cost_compliance_audit"]["baseline_cots_bom_eur"], 1329.0)
+        self.assertEqual(sup["cost_compliance_audit"]["polar_night_kaamos_guiding_lantern_bom_eur"], 1374.0)
+        self.assertEqual(sup["cost_compliance_audit"]["polar_night_kaamos_mtow_kg"], 2.410)
+        self.assertTrue(sup["cost_compliance_audit"]["all_tiers_under_5000_eur_rule"])
+
+        # 2. Closed 28m spruce canopy at night: 35m request clamps to 53.0m (28+25m), EASA strobe ON, 1900us Shepherd beam ON
+        forest_escort = dobs.evaluate_polar_night_guiding_lantern_mode(
+            ambient_lux=0.0004,
+            ambient_temp_c=-25.0,
+            canopy_height_m=28.0,
+            verified_clearing_radius_m=0.0,
+            requested_agl_m=35.0,
+            hiker_thermal_locked=True,
+        )
+        self.assertTrue(forest_escort["polar_night_active"])
+        self.assertTrue(forest_escort["easa_green_strobe_on"])
+        self.assertTrue(forest_escort["canopy_floor_clamped"])
+        self.assertEqual(forest_escort["commanded_safe_agl_m"], 53.0)
+        self.assertEqual(forest_escort["shepherd_beam_pwm_us"], 1900)
+        self.assertGreater(forest_escort["estimated_ground_pool_lux"], 0.5)
+        self.assertEqual(forest_escort["ubec_5v1_peak_load_a"], 3.99)
+
+        # 3. Verified >= 12m marsh/Autiotupa clearing permits controlled 28m escort descent
+        clearing_escort = dobs.evaluate_polar_night_guiding_lantern_mode(
+            ambient_lux=0.0004,
+            canopy_height_m=28.0,
+            verified_clearing_radius_m=18.0,
+            requested_agl_m=28.0,
+            hiker_thermal_locked=True,
+        )
+        self.assertFalse(clearing_escort["canopy_floor_clamped"])
+        self.assertEqual(clearing_escort["commanded_safe_agl_m"], 28.0)
+
+        # 4. Brief 0.4s TC001 NUC shutter calibration coasts cleanly; >0.5s stuck shutter faults
+        nuc_ok = dobs.evaluate_polar_night_guiding_lantern_mode(
+            tc001_nuc_shutter_active=True, tc001_nuc_freeze_duration_s=0.40
+        )
+        self.assertTrue(nuc_ok["tc001_nuc_coast_active"])
+        self.assertTrue(nuc_ok["ekf3_vio_healthy"])
+
+        nuc_fault = dobs.evaluate_polar_night_guiding_lantern_mode(
+            tc001_nuc_shutter_active=True, tc001_nuc_freeze_duration_s=0.85
+        )
+        self.assertTrue(nuc_fault["tc001_nuc_shutter_fault"])
+        self.assertFalse(nuc_fault["ekf3_vio_healthy"])
+
 
 if __name__ == "__main__":
     print("=== Running Autonomous Aerial Observation & Guidance Module Test Suite ===")
