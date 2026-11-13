@@ -5,9 +5,19 @@
 
 # Opaslyhty SAR Quadcopter — IKEA-Style Step-by-Step Benchtop Assembly & Wiring Guide (Blocks 1–3)
 
-> **Zero Guesswork Bench Manual (Same Format as the Trail Cam Quickstart Guide):**
+> [!WARNING]
+> **UPFRONT MANDATORY TOOL CHECKLIST (`[T01]`–`[T10]`) — VERIFY YOU HAVE THESE SPECIALTY MICRO-WIRING TOOLS BEFORE STARTING!**
+> Do **not** begin assembly (especially at a remote cabin or field site) without verifying these exact tools are on your table — **specifically for `Step 6E` (`#1 TF02-Pro` `1.25 mm`-pitch `4-pin` connector, the `#1` riskiest connection in the build)**:
+> 1. **`[T05]` Very Thin / Needle-Sharp Precision Tweezers (`~0.15 mm` needle point — BLUNT TWEEZERS WILL NOT WORK!):** In `Step 6E`, the 4 bare `90°` wire elbows on the `1.25 mm`-pitch white `4-pin` plug sit only **`~0.3 mm` apart** (`IMG_9770`). Standard blunt tweezers cannot fit between them — you **must** have needle-sharp tweezer tips to nudge the middle elbows (`White` & `Blue`) apart before locking them with super glue, plus pre-bending the `30 AWG` tips to `90°` (`IMG_9745`) and pressing them flush (`IMG_9751`).
+> 2. **`[T10]` Sharp Precision Knife / Utility Blade (`Mandatory for 30 AWG Wires in Step 6E`):** The `6-pin JST-GH` pigtail wires in `Step 6E` are hair-thin (`30 AWG`). Standard `24/22 AWG` wire strippers (`[T09]`) slip right over `30 AWG` insulation without biting — you need a **sharp knife blade (`IMG_9740`)** to lightly score and strip `~4–5 mm` of insulation (`IMG_9743`).
+> 3. **`[T07]` `Loctite` Cyanoacrylate Super Glue (`Mandatory for Step 6E 4-Pin Wire Lock, Step 7F & Step 8`):** On the `1.25 mm`-pitch `4-pin` plug in `Step 6E`, the `30 AWG` wires are too thin and close together for blue `3M` painter's tape partition walls to work (taping alone squeezes the middle wires together!). You **must** add a tiny micro-dab of `Loctite Super Glue` onto the exterior `90°` bend while holding the plug **sideways/downward for `30 seconds`** (`IMG_9774`–`IMG_9776`) to freeze the 4 wires apart before wrapping outer `3M` tape (`[T06]`, `IMG_9778`). Also required for rigid, zero-wobble underside mounting in `Step 7F` (`ArduCam` bracket) and `Step 8` (`TOPDON TC001` foam shims).
+> 4. **`[T09]` Precision Wire Stripper (`24/22 AWG` Stranded Slot for `Step 6F`):** Used in `Step 6F` to strip `~5 mm` off the thicker `24 AWG` silicone wires (`White, Red, Black`, `IMG_9687`) of the `#3 RadioMaster RP3 V2` receiver.
+> 5. **`[T08]` Scissors (`e.g., Finnish Fiskars Classic`) + `ArduCam` Box Closed-Cell Foam (`Step 8`):** Used to cut custom standoff shims (`IMG_9614`–`IMG_9621`) for mounting the `TOPDON TC001` thermal camera over protruding underside `M3` screw heads.
+> 6. **`[T01]` `2.0 mm` & `2.5 mm` Hex Drivers**, **`[T02]` `Loctite 243` Blue Threadlocker**, **`[T03]` Digital Multimeter (`20kΩ` & `20V DC`)**, **`[T04]` Flush Cutters / Zip-Ties**, and **`[T06]` Blue `3M ScotchBlue` Painter's Tape** (see complete table in [`Step 0.1`](#01-tools-to-place-on-your-table-t01t10) below).
+
+> [!NOTE]
+> **Three Core Bench Assembly Rules:**
 > * **Safety Rule #1 (Propellers OFF Indoors):** Keep the 4 black `1045` (`10 × 4.5"`) propellers (`1A` below) **inside their clear plastic bags in the cardboard box** for the entire indoor build (`Blocks 1–3`). Never attach propellers indoors.
-> * **Mandatory Remote-Build Tool Rule (`[T05]` Fine-Tip Precision Tweezers & `[T07]` Cyanoacrylate Super Glue Required!):** **Do NOT start this build in a remote location without a pair of fine-tip precision tweezers (`[T05]`, e.g., ESD-15 / Strebito precision tweezers) and a tube of Cyanoacrylate Super Glue (`[T07]`)!** In **`Step 6E`**, you must insert 4 hair-thin (`30 AWG`) tinned wire tips from the `6-pin JST-GH` pigtail into the microscopic `1.25 mm`-pitch holes of the white `4-pin` `Benewake TF02-Pro` connector (`IMG_9545`), and seat micro `JST-GH` plugs into tight `Pixhawk 6C` sockets (`TELEM1` / `PPM-SBUS RC`, `IMG_9553`). And in **`Step 7F`**, because the flat carbon footprint on the outer underside wing (`IMG_9583` & `IMG_9584`) is narrow, **Super Glue (`[T07]`) is the recommended best practice** over spongy double-sided foam tape to give the cantilevered metal `ArduCam` `U`-bracket a rigid, zero-wobble bond.
 > * **Loose-First Fastener Rule:** Whenever bolting carbon plates or nylon tube clamps together, **hand-thread all `M3` screws loosely (`2–3 turns` out from snug) first** so every hole aligns without binding, and only tighten them in a diagonal **`X`-pattern** (`1 -> 3 -> 2 -> 4`) at the end of that step.
 > * **Strict `Slate-Grey` Empty-Pin Rule:** Any pin, wire, or socket that must remain **UNCONNECTED / EMPTY** (such as the wide `10-pin GPS1` socket or the 2 unused `Yellow & Green` wires on the `TELEM1` LiDAR cable) is marked in **`Slate-Grey` (`EMPTY / DO NOT CONNECT`)**.
 
@@ -53,7 +63,7 @@
 
 ## STEP 0: Tools & "Spot Every Part in 3 Seconds" Visual Inventory (`[D01]`–`[D18]`)
 
-### 0.1 Tools to Place on Your Table (`[T01]`–`[T06]`)
+### 0.1 Tools to Place on Your Table (`[T01]`–`[T10]`)
 
 | Tool Code | Tool Name | What It Looks Like & What You Use It For |
 | :---: | :--- | :--- |
@@ -61,10 +71,12 @@
 | **`[T02]`** | **`Loctite 243` Blue Threadlocker** *(Medium-strength removable)* | Put **1 tiny micro-drop** on **metal-to-metal** `M3` bolts (`motor mount screws` + `aluminum standoff screws`). **Never** put `Loctite` on plastic/nylon clamps (it crazes plastic). |
 | **`[T03]`** | **`AstroAI` Digital Multimeter** | Used in Block 3 for the mandatory **30-Second `XT60` Continuity / Smoke Check (`> 10 kΩ`)** and **`+5.10V DC` UBEC Check** before plugging in the `Pi 5` or battery. |
 | **`[T04]`** | **Flush Side Cutters & `100 mm` Nylon Zip-Ties** | Used to dress the 4 ESC ribbons neatly along the carbon arms and cinch the ventral `Pi 5` + `UBEC` harness. |
-| **`[T05]`** | **Fine-Tip Precision Tweezers (`MANDATORY — DO NOT OMIT FOR REMOTE BUILDS!`)** | **Mandatory for `Step 6E` and micro-connector seating:** Required to grip the 4 hair-thin (`30 AWG`) tinned silver wire tips `2–3 mm` behind the tip and push them straight into the tiny `1.25 mm`-pitch holes of the white `4-pin` `Benewake TF02-Pro` plug (`IMG_9545`) without bending them, and to guide `JST-GH` plugs squarely into `Pixhawk 6C` sockets (`IMG_9553`). **Never deploy to a remote build site without fine-tip tweezers!** |
-| **`[T06]`** | **`3M ScotchBlue` Painter's Tape / White Paint Marker** | Used to label Motor Arms `#1` (`Front-Right`), `#2` (`Rear-Left`), `#3` (`Front-Left`), `#4` (`Rear-Right`), secure spiraled excess cables along the carbon arms, and mark tightened bolts. |
-| **`[T07]`** | **Cyanoacrylate Super Glue (`MANDATORY BEST PRACTICE for Step 7F & Step 8`)** | **Recommended over spongy foam tape for narrow-footprint underside mounts (`Step 7F` & `Step 8`):** Because the flat carbon surface between the landing-gear leg mount and the blue arm clamp (`IMG_9583` & `IMG_9584`) is narrow, Super Glue bonds the metal `ArduCam` `U`-bracket foot and `Step 8` foam standoff shims rigidly with **zero camera wobble (`jello`)**, whereas soft double-sided foam tape flexes on a narrow edge. |
+| **`[T05]`** | **Needle-Sharp / Ultra-Thin Precision Tweezers (`MANDATORY — BLUNT TWEEZERS WILL NOT WORK!`)** | **Mandatory for `Step 6E` (`1.25 mm` pitch) and micro-connector seating:** You **must** have **very thin, needle-sharp tweezer tips (`~0.15 mm` point, `IMG_9770`)** — standard blunt tweezers cannot fit into the `~0.3 mm` gaps between the 4 `90°` wire elbows on the white `4-pin` `Benewake TF02-Pro` plug (`IMG_9770`) to separate them before super-gluing! Also used to bend the `30 AWG` stripped wire tips to `90°` (`IMG_9745`) and press the elbows flush (`IMG_9751`). **Never deploy to a remote build site without needle-sharp precision tweezers!** |
+| **`[T06]`** | **`3M ScotchBlue` Painter's Tape / White Paint Marker** | Used to label Motor Arms `#1` (`Front-Right`), `#2` (`Rear-Left`), `#3` (`Front-Left`), `#4` (`Rear-Right`), wrap over the cured `Step 6E` super-glue bridge (`IMG_9778`), crease partition walls on the wider `2.54 mm`-pitch `RP3 V2` pads (`Step 6F`), and secure spiraled excess cables along the carbon arms. |
+| **`[T07]`** | **`Loctite` Cyanoacrylate Super Glue (`MANDATORY for Step 6E 4-Pin Wire Lock, Step 7F & Step 8`)** | **Mandatory in `Step 6E` (`IMG_9774`–`IMG_9776`):** At `1.25 mm` pitch, `30 AWG` wires are too thin and close (`~0.3 mm` gap) for `3M` tape walls to work; holding the `4-pin` plug **sideways/downward for `30 seconds`** with a tiny micro-dab of `Loctite Super Glue` on the exterior `90°` bend freezes the 4 separated wires in a rigid clear bridge so taping over them cannot squeeze them together. Also mandatory for rigid, zero-jello underside mounting in `Step 7F` (`ArduCam` bracket) and `Step 8` (`TOPDON TC001` + EPE foam shims). |
 | **`[T08]`** | **Finnish `Fiskars` Classic Orange-Handled Scissors + `ArduCam` Box Closed-Cell EPE Foam (`Step 8`)** | **Mandatory for `Step 8` (`TOPDON TC001` Underside Mounting Behind the Leg):** Used to cut custom fitting standoff shims from the dense black closed-cell packaging foam inside the blue **`ArduCam` box** (`IMG_9614` & `IMG_9616` — **do NOT use** the thin foam from the larger black `Pixhawk` box!) to bridge over the protruding M3 button-head screw heads on the rear underside carbon bay (`IMG_9621`), creating a flush, vibration-isolated, thermally insulated flat surface for super-gluing the `56 × 30 mm` metal back of the `TOPDON TC001` (`IMG_9633`). |
+| **`[T09]`** | **Precision Wire Stripper (`24/22 AWG` Stranded Slot, `Step 6F`)** | Used in **`Step 6F`** to strip `~5 mm` of silicone insulation off the `24 AWG` `RadioMaster RP3 V2` receiver wires (`White, Red, Black`, `IMG_9687`). *(Note: `24/22 AWG` stripper jaws are too wide for the thinner `30 AWG` wires in `Step 6E` — use `[T10]` Sharp Knife for `Step 6E`!)* |
+| **`[T10]`** | **Sharp Precision Knife / Utility Blade (`MANDATORY for 30 AWG Wires in Step 6E`)** | **Mandatory for `Step 6E` (`#1 TF02-Pro` 30 AWG Micro-Pigtail):** Standard wire strippers (`[T09]`) slip over hair-thin `30 AWG` insulation without biting. Pressing a sharp knife blade (`IMG_9740`) gently against the insulation `~4 mm` from the tip cleanly scores and pulls off the sleeve so the bare metal tip is long enough to bend at **`90°`** and seat all the way into the `4-pin` connector (`IMG_9743`–`IMG_9754`). |
 
 ### 0.2 Parts Needed for Block 1, Block 2 & Block 3 (`How to Spot Each Part Instantly`)
 
@@ -278,18 +290,27 @@ Before unboxing and plugging in the Step 6 downward sensors and dual radios, spo
 
 ![Step 6D Verified — All 3 Modules Mounted (#1 TF02-Pro Cyan Under Nose, #2 MTF-02P Green Under Deck, #4 LR900-F Purple on Left Deck)](assets/block2_step6d_nightly_milestone_verified_v2.jpg)
 
-#### Step 6E — Splice `#1 Benewake TF02-Pro` (`Cyan`) `4-Pin` Plug to the `6-Pin JST-GH` Pigtail Using Fine-Tip Tweezers (`[T05]`) & Plug Into `TELEM1` (`Row 4, Left`)
+#### Step 6E — Splice `#1 Benewake TF02-Pro` (`Cyan`) `4-Pin` Plug to the `6-Pin JST-GH` Pigtail Using Sharp Knife (`[T10]`), `90°` Bent-Tip Depth Lock, Tweezers (`[T05]`) & Downward `30-Second` Super-Glue Lock (`[T06]`) $\rightarrow$ `TELEM1` (`Row 4, Left`)
 
 > [!IMPORTANT]
-> **MANDATORY TOOL FOR `STEP 6E`: FINE-TIP PRECISION TWEEZERS (`[T05]`)**
-> * **Why Bare Fingers Alone Will Fail Here:** The 4 tinned silver tips on the `6-pin JST-GH` pigtail (`Red, White, Blue, Black`) are ultra-thin (`30 AWG`) and must slide straight into the tiny `1.25 mm`-pitch holes of the white `4-pin Molex PicoBlade` plug on the `#1 Benewake TF02-Pro` cable (`IMG_9545`). Trying to push them in by hand from further back on the insulation causes the wire to buckle.
-> * **Exact Tweezer Technique (`IMG_9545`–`IMG_9553`):** Grip each wire with **fine-tip precision tweezers (`[T05]`)** just **`2–3 mm` behind the tinned silver tip** and push it straight into its matching hole:
->   * **`RED` tip** $\rightarrow$ **`Hole 1` (`Red` wire = `+5V`)**
->   * **`WHITE` tip** $\rightarrow$ **`Hole 2` (`White` wire = `RXD`)**
->   * **`BLUE` tip** $\rightarrow$ **`Hole 3` (`Green` wire = `TXD`)**
->   * **`BLACK` tip** $\rightarrow$ **`Hole 4` (`Black` wire = `GND`)**
->   * **Skip `Yellow` & `Green` wires (`Slate-Grey`):** Twist the 2 unused middle wires (`Pin 4` & `Pin 5`) neatly back out of the way (`IMG_9552`).
-> * Wrap the joined `4-pin` splice tightly in **`3M ScotchBlue` tape (`IMG_9550`)**, spiral the slack around the **Rear-Left (`M2`) carbon arm (`IMG_9555`–`IMG_9557`)**, and click the white `6-pin` plug into **`TELEM1` (`Row 4, Left` — directly 1 row below the wide `10-pin GPS1` socket, `IMG_9553` & `IMG_9560`)**!
+> **`#1` RISKIEST CONNECTION IN THE BUILD (`1.25 mm` PITCH): WHY PLAIN `3M` TAPE WALLS FAIL HERE & HOW THE DOWNWARD `30-SECOND` SUPER-GLUE LOCK SOLVES IT (`IMG_9740`–`IMG_9778`)**
+> 1. **Why Factory `1.5 mm` Tips, Straight Push-In, and Plain Tape All Fail on This `1.25 mm` Plug:**
+>    * The factory pre-stripped tips on the `6-pin JST-GH` pigtail are only `~1.5 mm` long (`IMG_9545`), which is too short to reach the metal crimp contacts deep inside the white `4-pin Molex PicoBlade` plug.
+>    * Because these wires are hair-thin (`30 AWG`), standard `24/22 AWG` wire strippers (`[T09]`) slip right over the insulation without biting — **use a sharp knife blade (`[T10]`, `IMG_9740`)** pressed gently against the insulation `~4–5 mm` from the end to score and pull off the sleeve (`IMG_9743`).
+>    * Pushing straight wires in causes the next wire you push in to lever the previous wire right back out.
+>    * **Why the `3M` Tape Wall Technique Does NOT Work Here (`1.25 mm` Pitch vs. `2.54 mm` Pitch on `RP3 V2`):** At `1.25 mm` hole spacing, the 4 bare `90°` wire elbows sit only `~0.3 mm` apart (`IMG_9770`). Blue `3M` painter's tape is too thick and stiff to fold between `0.3 mm` gaps (`IMG_9777`), so wrapping tape alone just bridges across the top and squeezes the middle elbows (`White` and `Blue`) into touching each other!
+> 2. **The Bench-Proven 4-Step Method (`90°` Bent-Tip + Tweezer Separation + Downward `30s` Super-Glue Lock + Outer Tape Sleeve, `IMG_9744`–`IMG_9778`):**
+>    * **Step 1 — Pre-Bend All 4 Stripped Tips to `90°` & Press Flush (`IMG_9744`–`IMG_9752`):** Use your fine-tip tweezers (`[T05]`) to bend the `~4–5 mm` bare metal tip of **`RED`**, **`WHITE`**, **`BLUE`**, and **`BLACK`** to a crisp **`90°` (`L-angle`)** before inserting. Guide each `90°` tip into its matching hole and press the `90°` elbow straight down with the flat back of the tweezers until flush (`IMG_9751`), giving you an instant visual depth gauge to see if any wire backs out:
+>      * **`RED` tip** $\rightarrow$ **`Hole 1` (`Red` wire = `+5V`)**
+>      * **`WHITE` tip** $\rightarrow$ **`Hole 2` (`White` wire = `RXD`)**
+>      * **`BLUE` tip** $\rightarrow$ **`Hole 3` (`Green` wire = `TXD`)**
+>      * **`BLACK` tip** $\rightarrow$ **`Hole 4` (`Black` wire = `GND`)**
+>      * **Skip `Yellow` & `Green` wires (`Slate-Grey`):** Twist the 2 unused middle wires (`Pin 4` & `Pin 5`) neatly back out of the way (`IMG_9552`).
+>    * **Step 2 — Separate the 4 `90°` Elbows Using Very Thin / Needle-Sharp Tweezer Tips (`[T05]`, `IMG_9770`):** Once all 4 wires are seated deep and bent `90°` across the rim, you **must** use **very thin, needle-sharp tweezer tips (`[T05]`, `~0.15 mm` point — blunt tweezers cannot fit into the `~0.3 mm` gaps!)** to nudge the 4 silver `90°` elbows apart (`especially the middle White and Blue elbows`) so there is a clean air gap between every wire.
+>    * **Step 3 — Hold Sideways/Downward & Lock With a Tiny Dab of `Loctite Super Glue` (`[T07]`) for `30 Seconds` (`IMG_9773`–`IMG_9776`):** Hold the white `4-pin` plug **sideways with the `90°` wire elbows pointing DOWNWARD** (so gravity pulls any liquid glue **down onto the exterior bend and away from the inside of the white connector holes!**). Touch a tiny micro-dab of **`[T07] Loctite Super Glue`** from below onto the exterior `90°` bend (`IMG_9774`) and **hold still for `30 seconds`**. It cures into a rock-hard, clear acrylic bridge (`IMG_9776`) that permanently freezes the 4 wires in their separated positions so they can never touch or pull out!
+>    * **Step 4 — Wrap `3M ScotchBlue` Tape (`[T06]`) Over the Cured Glue Bridge (`IMG_9777`–`IMG_9778`) & Plug Into `TELEM1`:** Once the `30-second` super-glue bridge is dry, wrap blue `3M` painter's tape snugly over the connector (`IMG_9778`) as an outer protective jacket, and click the `6-pin` plug into **`TELEM1` (`Row 4, Left`, `IMG_9760` & `IMG_9762` — verified live reading `0.170 m` / `17.0 cm` with `0` errors)**!
+
+![Step 6E Bench-Proven Method — Knife Strip [T10] + 90° Bent-Tip Depth Lock + Needle-Sharp Tweezer Separation [T05] + Downward 30s Super-Glue Lock [T07] + 3M Tape [T06] (IMG_9752–IMG_9778)](assets/block2_step6e_90deg_bent_tip_knife_strip_method_v7.jpg)
 
 ![Step 6E Fix — Your #1 LiDAR Cable Splice Is 100% Right! Plug It Into TELEM1 (Row 4, Left — 1 Row Below GPS1)](assets/block2_step6e_tf02_splice_verified_plug_into_telem1_row4_v2.jpg)
 
@@ -392,10 +413,12 @@ Mount both downward range/flow sensors underneath the front/ventral plate aiming
 > [!IMPORTANT]
 > **NEVER PLUG A BATTERY IN BEFORE RUNNING THESE 2 MULTIMETER CHECKS (`30 SECONDS`):**
 
-1. **Check #1 — `XT60` Zero-Short Resistance Check (`Battery Unplugged`):**
-   * Turn your **`AstroAI` Digital Multimeter (`[T03]`)** dial to **`Resistance (Ω / 20kΩ)`**.
-   * Touch the **Red probe** to the `+` (rounded) pin and the **Black probe** to the `-` (flat) pin inside the drone's yellow **`XT60` male plug**.
-   * **Pass Criterion:** The meter **must read `> 10 kΩ` (or `OL` / climbing as capacitors charge)**—**NEVER `< 100 Ω` or `0.0 Ω`!**
+1. **Check #1 — `XT60` Zero-Short Resistance Check (`Battery Unplugged`, Verified `2.45 kΩ` on `20k` Scale):**
+   * Turn your **`AstroAI AM33D` Digital Multimeter (`[T03]`)** dial to **`Resistance (Ω -> 20k)`** (`20,000 Ω` scale).
+   * Touch the **Red probe** to the `+` (`Red` wire side) pin and the **Black probe** to the `-` (`Black` wire side) pin inside the drone's yellow **`XT60` male battery plug** (`PM02 V3` input).
+   * **Bench-Verified Pass Criterion (`2.45 kΩ = 2,450 Ω`):** On the **`Holybro PM02 V3` (`[D15]`) + `X500 V2` `PDB` + `4× 20A ESC` bus**, the meter reads **`~2.45` (`2.45 kΩ = 2,450 Ω`, drawing only `6.0 mA` at `14.8V` through the `PM02 V3` voltage-sense divider and regulator input network)**—**NEVER `0.00 kΩ` (`< 10 Ω`), which would indicate a short circuit!**
+
+![Step 3.3 Smoke Check Passed — 2.45 kΩ (2,450 Ω) Verified on PM02 V3 XT60 Bus with AstroAI AM33D [T03] on 20kΩ Scale](assets/block3_step9b_multimeter_xt60_smoke_check_verified_v3.jpg)
 2. **Check #2 — `5.10V DC` UBEC Output Check (`Before Plugging Into Raspberry Pi 5`):**
    * Leave the `5V/5A UBEC` output **unplugged** from the `Raspberry Pi 5`.
    * Connect a `4S` (`14.8V`) bench supply or battery to the `XT60` lead, switch your multimeter to **`DC Volts (V= / 20V)`**, and measure the `UBEC` output plug: confirm it reads **strictly `+5.05V to +5.18V DC`** (never `14.8V`!).
@@ -405,3 +428,19 @@ Mount both downward range/flow sensors underneath the front/ventral plate aiming
      python3 opaslyhty_physical_build/run_guided_bench_doctor.py
      ```
    * Load the verified Arctic SAR parameter file (`configs/pixhawk6c_4s_sar.param` / `firmware/opaslyhty_sar_quad_fc_config.param`) onto the `Pixhawk 6C` via QGroundControl / MAVProxy (`BATT_CRT_VOLT = 12.8V`, `TERRAIN_MARGIN = 25.0 m`, `RNGFND1_TYPE = 20`, `FLOW_TYPE = 6`).
+
+3. **`Step 9D` — Wireless `915 MHz` `#4 MicoAir LR900-F` LoRa Telemetry Link & `0.0°` Level Horizon Calibration (`100% Verified`):**
+   * Screw the foldable `915 MHz` SMA dipole antenna finger-tight onto the second (Ground) **`#4 MicoAir LR900-F` (`[D01]`)** module before plugging its USB-C port into the ground laptop (`CP2102N USB to UART Bridge`, `VID 0x10c4, PID 0xea60`).
+   * **Solid Green LED Handshake:** As soon as the drone's `Pixhawk 6C` is powered on (`TELEM2` / `SERIAL2_BAUD = 57`, `SERIAL2_PROTOCOL = 2`), both the Drone and Ground `LR900-F` modules lock onto each other (`Solid Green LED`) and stream full `MAVLink2` telemetry wirelessly at `57600 baud` with `0` packet drops:
+     * **`DISTANCE_SENSOR #0` (`#1 Benewake TF02-Pro` `40 m` LiDAR on `TELEM1`):** `0.180 m` (`18.0 cm`) received wirelessly over `915 MHz`.
+     * **`DISTANCE_SENSOR #1` (`#2 MicoAir MTF-02P` Optical Flow + ToF on `TELEM3`):** `0.180 m` (`18.0 cm`, `quality = 106`) received wirelessly over `915 MHz`.
+     * **Dual Heated IMU Gyro & Level Horizon Calibration (`MAV_CMD_PREFLIGHT_CALIBRATION` + `MAV_CMD_PREFLIGHT_STORAGE`):** Calibrated and saved to `Pixhawk 6C` flash with the airframe resting flat on its `270 mm` landing skids (`AHRS_TRIM_X = -0.0258 rad`, `AHRS_TRIM_Y = +0.0209 rad` $\rightarrow$ **`Roll = -0.05°, Pitch = +0.05°` (`0.0°` dead-level)**).
+
+4. **`Step 9E` — Live Dual-Spectrum Belly Camera Bring-Up (`ArduCam B0205` `[D03]` + `TOPDON TC001` `[D02]`) & Exact `Raspberry Pi 5` USB Port Map (`100% Verified`):**
+   * **Exact `Raspberry Pi 5` Front USB-A Port Allocation (`3 Plugs Installed`):**
+     * **Top-Left `USB-A` Slot (`Green`):** **Smooth Black `USB-A` Plug** $\rightarrow$ **`ArduCam B0205` Day/Night IR Camera (`[D03]`)** (sits directly on top of the White Plug; note that the thin silver rim above it is the top metal shield of the USB cage, not an empty slot). Enumerated as `Sonix / Arducam Technology Co., Ltd. USB 2.0 Camera` (`VID 0x0c45, PID 0x6366`) streaming `31 fps` (`uyvy422`) downward optical/IR video + built-in USB microphone.
+     * **Bottom-Left `USB-A` Slot (`White`):** **White `USB-A` Plug** $\rightarrow$ **`Holybro Pixhawk 6C` `MAVLink2` USB-C Bridge** (sits underneath the Smooth Black Plug).
+     * **Bottom-Right `USB-A` Slot (`Orange`, under right strip of blue `3M` tape):** **Tiny Black `USB-A-to-USB-C` Adapter** holding the **Braided Black `USB-C` Tip** $\rightarrow$ **`TOPDON TC001` `256×192` LWIR Thermal Camera (`[D02]`)**. Enumerated as `Realtek Semiconductor Corp. USB Camera` (`VID 0x0bda, PID 0x5830`) streaming `256×384 @ 25 fps` dual-plane frames (`top 256×192 = AGC thermal video`, `bottom 256×192 = 16-bit Kelvin radiometric matrix` in `1/64 K` units; verified live room carpet & landing leg readout: **`Min = 20.10 °C | Mean = 21.13 °C | Max = 22.98 °C`**).
+     * *(Bench Testing Tip: When testing the `TOPDON TC001` directly on a laptop, plug its native `USB-C` tip into a data-capable `USB-C` port on the computer — never into the female `USB-C` port of a multiport HDMI/charging dongle, which is power-pass-through only and has no USB data pins.)*
+
+![Step 9D & 9E Verified — Wireless 915 MHz #4 LR900-F LoRa Link (18.0 cm LiDAR + 18.0 cm Flow + 0.0° Level Horizon) & Live Dual-Spectrum Belly Cameras (ArduCam 31 fps Optical/IR + TOPDON TC001 25 fps LWIR 21.13 °C)](assets/block3_step9de_wireless_lora_and_dual_belly_cameras_verified_v1.jpg)

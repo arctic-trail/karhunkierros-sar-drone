@@ -21,6 +21,8 @@
 
 ![Final Hardware Assembly Step — 2x Black T-Shaped Antennas Taped at 90° Along Left (|) & Bottom (—) Carbon Deck Edges & #3 RadioMaster RP3 V2 Sealed Under Blue 3M Tape](docs/assets/block3_step9_final_t_antennas_and_rp3_mounted_on_deck_v3.jpg)
 
+![Step 9D & 9E Live Bench Bring-Up Verified — Wireless 915 MHz #4 LR900-F LoRa Telemetry (18.0 cm LiDAR + 18.0 cm Optical Flow + 0.0° Level Horizon) & Dual-Spectrum Belly Cameras (ArduCam B0205 31 fps Optical/IR + TOPDON TC001 25 fps LWIR Thermal 21.13 °C)](docs/assets/block3_step9de_wireless_lora_and_dual_belly_cameras_verified_v1.jpg)
+
 ---
 
 ## 1. 3-Baseline Architectural Trade Comparison & Multi-Iteration 5-Regime Aerospace Closure (`solver.py`)
@@ -93,16 +95,24 @@ Purchasing single-unit consumer/hobbyist retail modules (`€1,374.00` Polar-Nig
 
 ![Opaslyhty 4-Stage 3D Isometric IKEA Assembly Guide (Polar-Night Kaamos v0.4)](cad/opaslyhty_x500v2_ikea_assembly_guide_v6.png)
 
-### Required Bench Tools Schedule (`[T01]`–`[T06]`)
+### Required Bench Tools Schedule (`[T01]`–`[T10]` — Verify All Tools Before Starting!)
+
+> [!WARNING]
+> **Upfront Specialty Tool Requirement for `Step 6E` (`#1 TF02-Pro` `1.25 mm`-Pitch `4-Pin` Plug — The `#1` Riskiest Connection in the Build):**
+> Before starting assembly, verify you have **Very Thin / Needle-Sharp Precision Tweezers (`[T05]`, `~0.15 mm` needle point — blunt tweezers cannot fit in the `~0.3 mm` gaps between the 4 `90°` wire elbows!)**, a **Sharp Knife Blade (`[T10]` — `24/22 AWG` wire strippers `[T09]` slip over `30 AWG` insulation)**, and **`Loctite` Cyanoacrylate Super Glue (`[T07]` — required to hold the `4-pin` plug sideways/downward for `30 seconds` and freeze the 4 separated `90°` elbows before wrapping `3M` tape `[T06]`, as plain tape alone squeezes `1.25 mm` wires together)**.
 
 | Tool ID | Tool Name & Specification | Primary Assembly & Verification Role |
 | :---: | :--- | :--- |
 | **`[T01]`** | `2.0 mm` & `2.5 mm` Precision Hex Driver Set | Torquing `M3` off-diagonal carbon frame standoffs, `16 mm` arm clamps, and `2216` motor base screws (`0.8 N·m`). |
 | **`[T02]`** | `Loctite 243` Medium-Strength Threadlocker + Nyloc Wrench + Paint Marker | Executing the mandatory **3-Step Vibration Lock** (`Loctite 243` + `M3 Nyloc` nut + high-visibility torque witness paint stripe) on all propulsion and structural fasteners. |
-| **`[T03]`** | True-RMS Digital Multimeter (`DC V` / Continuity / `kΩ`) | Executing the **30-Second Multimeter** pre-power continuity & rail check (`XT60` resistance `> 10 kΩ`, `Matek BEC12S-PRO` `5.10 V ± 0.05 V`, `PM02 V3` `5.20 V` FC sensor rail). |
+| **`[T03]`** | True-RMS Digital Multimeter (`DC V` / Continuity / `20kΩ`) | Executing the **30-Second Multimeter** pre-power continuity & rail check (`XT60` resistance `2.45 kΩ` on `PM02 V3` bus, `Matek BEC12S-PRO` `5.10 V ± 0.05 V`, `PM02 V3` `5.20 V` FC sensor rail). |
 | **`[T04]`** | Flush Micro-Cutters & Cold-Rated Nylon Cable Ties (`-40 °C`) | Strain-relieving `ESC`, `JST-GH`, and `USB-C` harnesses along the `16 mm` carbon tube arms away from `1045` propeller tips. |
-| **`[T05]`** | ESD Fine-Tip Tweezers & Pin Inspection Magnifier | Seating `6-pin` and `10-pin` `JST-GH` connectors and verifying **Slate-Grey** empty-pin isolation (`Pin 1` `5V` unpopulated on `TELEM1/SERIAL1`). |
-| **`[T06]`** | `10 mm` Propeller Nut Driver & Optical Tachometer / Laptop (`QGroundControl`) | Securing self-tightening `1045` `CW`/`CCW` propellers after completing the **10-Second BIST** (Built-In Self-Test). |
+| **`[T05]`** | **Needle-Sharp / Ultra-Thin Precision Tweezers (`~0.15 mm` Point — Mandatory!)** | **Mandatory for `Step 6E` (`1.25 mm` pitch):** Pre-bending `30 AWG` tips to `90°`, pressing elbows flush, and nudging the 4 `90°` elbows apart (`~0.3 mm` gaps where blunt tweezers cannot fit), plus seating `JST-GH` connectors. |
+| **`[T06]`** | **`3M ScotchBlue` Painter's Tape** + `10 mm` Prop Nut Driver | Wrapping over the cured `Step 6E` super-glue bridge, creasing `Step 6F` `2.54 mm`-pitch partition walls on `RP3 V2`, securing spiraled cables, and mounting `1045` propellers outdoors after BIST. |
+| **`[T07]`** | **`Loctite` Cyanoacrylate Super Glue (`Mandatory for Step 6E, 7F & 8`)** | **Mandatory in `Step 6E`:** Holding the `4-pin` plug sideways/downward for `30 s` with a tiny micro-dab on the exterior `90°` bend to freeze wire separation before taping; also rigid underside mounting in `Step 7F` (`ArduCam`) & `Step 8` (`TC001`). |
+| **`[T08]`** | **Finnish `Fiskars` Scissors + `ArduCam` Box Closed-Cell EPE Foam (`Step 8`)** | Cutting custom standoff shims from the dense black `ArduCam` box foam to bridge over protruding underside `M3` screw heads for flush, vibration-isolated `TOPDON TC001` mounting. |
+| **`[T09]`** | **Precision Wire Stripper (`24/22 AWG` Stranded Slot, `Step 6F`)** | Stripping `~5 mm` of silicone insulation off the `24 AWG` `RadioMaster RP3 V2` receiver wires (`White, Red, Black`). *(Use `[T10]` Sharp Knife for the thinner `30 AWG` wires in `Step 6E`.)* |
+| **`[T10]`** | **Sharp Precision Knife / Utility Blade (`Mandatory for 30 AWG in Step 6E`)** | Scoring and stripping `~4–5 mm` of insulation off the hair-thin `30 AWG` `TELEM1` pigtail wires in `Step 6E` (where `24/22 AWG` wire strippers slip without biting). |
 
 ### Step-by-Step Mechanical & Electrical Assembly (`Step 1` – `Step 7`)
 
